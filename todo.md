@@ -1,5 +1,5 @@
 ## TODO
-- Add clang format
+- Add OpenGL
 - Add ImGui
 - Add Google Test
 
@@ -7,3 +7,4 @@
 - Create SDL2 window
 
 ## Done
+- Add clang format
