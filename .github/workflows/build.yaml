@@ -2,7 +2,7 @@ name: build
 on:
   push:
 jobs:
-  run_tests:
+  build:
     runs-on: windows-latest
     steps:
       - name: Checkout
