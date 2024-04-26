@@ -1,4 +1,5 @@
 ## TODO
+- Add clang format
 - Add ImGui
 - Add Google Test
 
