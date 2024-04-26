@@ -4,7 +4,8 @@
 - Add Google Test
 
 ## Doing
-- Create SDL2 window
+- Add build github action
 
 ## Done
+- Create SDL2 window
 - Add clang format
