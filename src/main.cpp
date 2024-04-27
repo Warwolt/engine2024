@@ -196,11 +196,14 @@ int main(int /*argc*/, char** /*args*/) {
 			exit(1);
 		}
 
-		const char* fn_name = "engine_update";
-		engine.update = (EngineUpdateFn*)(GetProcAddress(engine_dll, fn_name));
-		if (!engine.update) {
-			fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
-			exit(1);
+		{
+			const char* fn_name = "engine_update";
+			EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(engine_dll, fn_name));
+			if (!fn) {
+				fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
+				exit(1);
+			}
+			engine.update = fn;
 		}
 	}
 
