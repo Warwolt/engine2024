@@ -91,6 +91,14 @@ std::optional<FILETIME> read_dll_timestamp(HMODULE dll_module) {
 	return localized_dll_timestamp;
 }
 
+std::string filetime_to_string(const FILETIME* filetime) {
+	SYSTEMTIME st;
+	char buffer[128];
+	FileTimeToSystemTime(filetime, &st);
+	sprintf_s(buffer, "%04d-%02d-%02d %02d:%02d:%02d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+	return std::string(buffer);
+}
+
 int main(int /*argc*/, char** /*args*/) {
 	printf("Game Engine 2024 Initializing\n");
 
@@ -232,7 +240,7 @@ int main(int /*argc*/, char** /*args*/) {
 	/* Load engine DLL */
 	std::string copied_dll_path = {};
 	HMODULE engine_dll = {};
-	FILETIME last_dll_write = {};
+	FILETIME prev_dll_write_timestamp = {};
 	std::function<EngineUpdateFn> engine_update = [](engine::EngineState*) {};
 	{
 		/* Load original DLL */
@@ -273,12 +281,11 @@ int main(int /*argc*/, char** /*args*/) {
 			fprintf(stderr, "error: read_dll_timestamp() failed for \"%s\"\n", original_dll_name);
 			exit(1);
 		}
-		last_dll_write = timestamp.value();
+		prev_dll_write_timestamp = timestamp.value();
 
 		if (DebugConfig::PRINT_TIMESTAMP_ON_DLL_LOAD) {
-			SYSTEMTIME st;
-			FileTimeToSystemTime(&last_dll_write, &st);
-			printf("Last file write to %s: %04d-%02d-%02d %02d:%02d:%02d\n", original_dll_name, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+			std::string filetime_str = filetime_to_string(&prev_dll_write_timestamp);
+			printf("Last file write to %s: %s\n", original_dll_name, filetime_str.c_str());
 		}
 
 		/* Read functions */
@@ -307,7 +314,15 @@ int main(int /*argc*/, char** /*args*/) {
 	while (!quit) {
 		/* Hot reloading */
 		{
-			// check if dll timestamp has changed
+			if (std::optional<FILETIME> dll_write_timestamp = read_dll_timestamp(engine_dll)) {
+				std::string filetime_str = filetime_to_string(&dll_write_timestamp.value());
+				printf("Last file write to GameEngine2024-copy.dll: %s\n", filetime_str.c_str());
+				if (CompareFileTime(&dll_write_timestamp.value(), &prev_dll_write_timestamp)) {
+					printf("Library re-built");
+				}
+			} else {
+				fprintf(stderr, "error: read_dll_timestamp(engine_dll) in main loop failed\n");
+			}
 		}
 
 		/* Input */

@@ -49,7 +49,7 @@ foreach(TARGET IN ITEMS ${MAIN_BINARY})
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
 endforeach()
 
-# Copy SDL2 dlls
+# Copy DLLs
 foreach(DLL IN ITEMS ${DLLS})
     add_custom_command(TARGET ${MAIN_BINARY} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
