@@ -6,9 +6,9 @@
   - https://v8.dev/docs/embed
 
 ## Doing
-- Add OpenGL
 
 ## Done
+- Add OpenGL
 - Add build github action
 - Create SDL2 window
 - Add clang format
