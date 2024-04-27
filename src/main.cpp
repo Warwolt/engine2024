@@ -178,7 +178,8 @@ int main(int /*argc*/, char** /*args*/) {
 	}
 
 	/* Main loop */
-
+	uint64_t tick = 0;
+	uint64_t millis = 0;
 	timing::Timer timer;
 	bool quit = false;
 	while (!quit) {
@@ -199,7 +200,12 @@ int main(int /*argc*/, char** /*args*/) {
 
 		/* Update */
 		{
-			printf("%zu\n", delta_ms);
+			millis += delta_ms;
+			if (millis >= 1000) {
+				millis -= 1000;
+				tick += 1;
+				printf("%zu\n", tick);
+			}
 		}
 
 		/* Render */
