@@ -1,4 +1,4 @@
-#include <timing.h>
+#include <engine.h>
 
 #include <GL/glew.h>
 
@@ -6,8 +6,17 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
+#define WIN32_LEAN_AND_MEAN
+#include <functional>
 #include <stdio.h>
 #include <stdlib.h>
+#include <windows.h>
+
+using EngineUpdateFn = void(EngineState*);
+
+struct EngineFunctions {
+	std::function<EngineUpdateFn> update = [](EngineState*) {};
+};
 
 const char* vertex_shader_src =
 	"#version 330 core\n"
@@ -48,7 +57,7 @@ int main(int /*argc*/, char** /*args*/) {
 	{
 		/* Initialize SDL */
 		if (SDL_Init(SDL_INIT_VIDEO)) {
-			fprintf(stderr, "SDL_Init failed with error: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_Init failed with: %s\n", SDL_GetError());
 			exit(1);
 		}
 
@@ -68,27 +77,27 @@ int main(int /*argc*/, char** /*args*/) {
 			SDL_WINDOW_OPENGL
 		);
 		if (!window) {
-			fprintf(stderr, "SDL_CreateWindow failed with error: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_CreateWindow failed with: %s\n", SDL_GetError());
 			exit(1);
 		}
 
 		/* Create GL Context */
 		gl_context = SDL_GL_CreateContext(window);
 		if (!gl_context) {
-			fprintf(stderr, "SDL_GL_CreateContext failed with error: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_GL_CreateContext failed with: %s\n", SDL_GetError());
 			exit(1);
 		}
 
 		/* Initialize GLEW */
 		const GLenum glewError = glewInit();
 		if (glewError != GLEW_OK) {
-			fprintf(stderr, "glewInit failed with error: %s\n", glewGetErrorString(glewError));
+			fprintf(stderr, "error: glewInit failed with: %s\n", glewGetErrorString(glewError));
 			exit(1);
 		}
 
 		/* Set VSync */
 		if (SDL_GL_SetSwapInterval(1)) {
-			fprintf(stderr, "SDL_GL_SetSwapInterval failed with error: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_GL_SetSwapInterval failed with: %s\n", SDL_GetError());
 		}
 
 		/* Set OpenGL error callback */
@@ -110,7 +119,7 @@ int main(int /*argc*/, char** /*args*/) {
 		if (vertex_shader_compiled != GL_TRUE) {
 			char info_log[512] = { 0 };
 			glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-			fprintf(stderr, "Vertex shader failed to compile:\n%s\n", info_log);
+			fprintf(stderr, "error: Vertex shader failed to compile:\n%s\n", info_log);
 			exit(1);
 		}
 		glAttachShader(shader_program, vertex_shader);
@@ -124,7 +133,7 @@ int main(int /*argc*/, char** /*args*/) {
 		if (fragment_shader_compiled != GL_TRUE) {
 			char info_log[512] = { 0 };
 			glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-			fprintf(stderr, "Fragment shader failed to compile:\n%s\n", info_log);
+			fprintf(stderr, "error: Fragment shader failed to compile:\n%s\n", info_log);
 			exit(1);
 		}
 		glAttachShader(shader_program, fragment_shader);
@@ -136,7 +145,7 @@ int main(int /*argc*/, char** /*args*/) {
 		if (shader_program_linked != GL_TRUE) {
 			char info_log[512] = { 0 };
 			glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-			fprintf(stderr, "Shader program failed to link:\n%s\n", info_log);
+			fprintf(stderr, "error: Shader program failed to link:\n%s\n", info_log);
 			exit(1);
 		}
 
@@ -177,15 +186,28 @@ int main(int /*argc*/, char** /*args*/) {
 		glBindVertexArray(NULL);
 	}
 
+	/* Load engine DLL */
+	EngineFunctions engine;
+	{
+		const char* dll_name = "GameEngine2024.dll";
+		HMODULE engine_dll = LoadLibraryA(dll_name);
+		if (!engine_dll) {
+			fprintf(stderr, "error: LoadLibraryA(\"%s\") returned null. Does the DLL exist?\n", dll_name);
+			exit(1);
+		}
+
+		const char* fn_name = "engine_update";
+		engine.update = (EngineUpdateFn*)(GetProcAddress(engine_dll, fn_name));
+		if (!engine.update) {
+			fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
+			exit(1);
+		}
+	}
+
 	/* Main loop */
-	uint64_t tick = 0;
-	uint64_t millis = 0;
-	timing::Timer timer;
+	EngineState engine_state;
 	bool quit = false;
 	while (!quit) {
-		uint64_t delta_ms = timer.elapsed_ms();
-		timer.reset();
-
 		/* Input */
 		{
 			SDL_Event event;
@@ -199,14 +221,7 @@ int main(int /*argc*/, char** /*args*/) {
 		}
 
 		/* Update */
-		{
-			millis += delta_ms;
-			if (millis >= 1000) {
-				millis -= 1000;
-				tick += 1;
-				printf("%zu\n", tick);
-			}
-		}
+		engine.update(&engine_state);
 
 		/* Render */
 		{
