@@ -65,18 +65,22 @@ void print_last_winapi_error() {
 	LocalFree(err_msg);
 }
 
-std::optional<FILETIME> read_dll_timestamp(HMODULE dll_module) {
-	/* Get full DLL path */
+std::string get_dll_full_path(HMODULE dll_module) {
 	char dll_full_path[MAX_PATH];
 	if (GetModuleFileName(dll_module, dll_full_path, sizeof(dll_full_path)) == 0) {
 		fprintf(stderr, "error: read_dll_timestamp failed: ");
 		print_last_winapi_error();
+		return std::string();
 	}
+	return std::string(dll_full_path);
+}
 
-	/* Read timestamp */
+std::optional<FILETIME> read_dll_timestamp(HMODULE dll_module) {
+	std::string dll_full_path = get_dll_full_path(dll_module);
 	WIN32_FILE_ATTRIBUTE_DATA data;
-	if (!GetFileAttributesEx(dll_full_path, GetFileExInfoStandard, &data)) {
-		fprintf(stderr, "error: GetFileAttributesEx(\"%s\") failed with: ", dll_full_path);
+
+	if (!GetFileAttributesEx(dll_full_path.c_str(), GetFileExInfoStandard, &data)) {
+		fprintf(stderr, "error: GetFileAttributesEx(\"%s\") failed with: ", dll_full_path.c_str());
 		print_last_winapi_error();
 		return {};
 	}
@@ -223,22 +227,47 @@ int main(int /*argc*/, char** /*args*/) {
 	}
 
 	/* Load engine DLL */
+	std::string copied_dll_path = {};
 	HMODULE engine_dll = {};
 	FILETIME last_dll_write = {};
 	std::function<EngineUpdateFn> engine_update = [](engine::EngineState*) {};
 	{
-		/* Load DLL */
-		const char* dll_name = "GameEngine2024.dll";
-		engine_dll = LoadLibrary(dll_name);
+		/* Load original DLL */
+		const char* original_dll_name = "GameEngine2024.dll";
+		HMODULE original_engine_dll = LoadLibrary(original_dll_name);
+		if (!original_engine_dll) {
+			fprintf(stderr, "error: LoadLibrary(\"%s\") returned null. Does the DLL exist?\n", original_dll_name);
+			exit(1);
+		}
+
+		/* Get path of original DLL */
+		const std::string original_dll_path = get_dll_full_path(original_engine_dll);
+		if (original_dll_path.empty()) {
+			fprintf(stderr, "error: failed to get full path of engine DLL");
+			exit(1);
+		}
+
+		/* Create a copy of the DLL */
+		copied_dll_path = original_dll_path.substr(0, original_dll_path.size() - 4) + "-copy.dll";
+		const bool fail_if_already_exists = false;
+		if (!CopyFile(original_dll_path.c_str(), copied_dll_path.c_str(), fail_if_already_exists)) {
+			fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed with:", original_dll_path.c_str(), copied_dll_path.c_str(), fail_if_already_exists ? "true" : "false");
+			print_last_winapi_error();
+			exit(1);
+		}
+
+		/* Load copied DLL*/
+		const char* copied_dll_name = "GameEngine2024-copy.dll";
+		engine_dll = LoadLibrary(copied_dll_name);
 		if (!engine_dll) {
-			fprintf(stderr, "error: LoadLibrary(\"%s\") returned null. Does the DLL exist?\n", dll_name);
+			fprintf(stderr, "error: LoadLibrary(\"%s\") returned null. Does the DLL exist?\n", copied_dll_name);
 			exit(1);
 		}
 
 		/* Read last write timestamp */
 		std::optional<FILETIME> timestamp = read_dll_timestamp(engine_dll);
 		if (!timestamp.has_value()) {
-			fprintf(stderr, "error: read_dll_timestamp() failed for \"%s\"\n", dll_name);
+			fprintf(stderr, "error: read_dll_timestamp() failed for \"%s\"\n", original_dll_name);
 			exit(1);
 		}
 		last_dll_write = timestamp.value();
@@ -246,7 +275,7 @@ int main(int /*argc*/, char** /*args*/) {
 		if (DebugConfig::PRINT_TIMESTAMP_ON_DLL_LOAD) {
 			SYSTEMTIME st;
 			FileTimeToSystemTime(&last_dll_write, &st);
-			printf("Last file write to %s: %04d-%02d-%02d %02d:%02d:%02d\n", dll_name, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+			printf("Last file write to %s: %04d-%02d-%02d %02d:%02d:%02d\n", original_dll_name, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 		}
 
 		/* Read functions */
@@ -258,6 +287,13 @@ int main(int /*argc*/, char** /*args*/) {
 				exit(1);
 			}
 			engine_update = fn;
+		}
+
+		/* Unload original DLL */
+		if (!FreeLibrary(original_engine_dll)) {
+			fprintf(stderr, "error: FreeLibrary(original_engine_dll) failed: ");
+			print_last_winapi_error();
+			exit(1);
 		}
 	}
 
@@ -299,7 +335,22 @@ int main(int /*argc*/, char** /*args*/) {
 		}
 	}
 
-	/* Shutdown */
+	/* Unload and delete copied engine DLL */
+	{
+		/* Free copied engine DLL */
+		if (!FreeLibrary(engine_dll)) {
+			fprintf(stderr, "error: FreeLibrary(engine_dll) failed: ");
+			print_last_winapi_error();
+		}
+
+		/* Delete copied engine DLL */
+		if (!DeleteFile(copied_dll_path.c_str())) {
+			fprintf(stderr, "error: DeleteFile(\"%s\") failed: ", copied_dll_path.c_str());
+			print_last_winapi_error();
+		}
+	}
+
+	/* Shutdown SDL + OpenGL */
 	{
 		glDeleteBuffers(1, &vbo);
 		glDeleteProgram(shader_program);
