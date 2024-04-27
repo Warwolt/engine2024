@@ -1,23 +1,25 @@
+#include <GL/glew.h>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
-#include <GL/GLU.h>
+#include <GL/glu.h>
 
 #include <stdio.h>
 
-// void GLAPIENTRY on_opengl_error(
-// 	GLenum source,
-// 	GLenum type,
-// 	GLuint id,
-// 	GLenum severity,
-// 	GLsizei length,
-// 	const GLchar* message,
-// 	const void* userParam
-// ) {
-// 	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
-// }
+void GLAPIENTRY on_opengl_error(
+	GLenum /*source*/,
+	GLenum type,
+	GLuint /*id*/,
+	GLenum severity,
+	GLsizei /*length*/,
+	const GLchar* message,
+	const void* /*userParam*/
+) {
+	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+}
 
-int main(int argc, char* args[]) {
+int main(int /*argc*/, char** /*args*/) {
 	printf("Hello Game Engine 2024!\n");
 
 	if (SDL_Init(SDL_INIT_VIDEO)) {
@@ -26,7 +28,6 @@ int main(int argc, char* args[]) {
 	}
 
 	glEnable(GL_DEBUG_OUTPUT);
-	// glDebugMessageCallback(on_opengl_error, 0); // requires GLEW
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -53,15 +54,18 @@ int main(int argc, char* args[]) {
 			fprintf(stderr, "SDL_GL_CreateContext failed with error: %s\n", SDL_GetError());
 			return 1;
 		}
+		if (GLenum glewError = glewInit(); glewError != GLEW_OK) {
+			fprintf(stderr, "glewInit failed with error: %s\n", glewGetErrorString(glewError));
+		}
+		glDebugMessageCallback(on_opengl_error, 0);
 	}
 
-	// Requires GLEW
-	// GLuint shader_program;
-	// GLuint vertex_shader;
-	// {
-	// 	shader_program = glCreateProgram();
-	// 	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	// }
+	GLuint shader_program;
+	GLuint vertex_shader;
+	{
+		shader_program = glCreateProgram();
+		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+	}
 
 	SDL_Delay(1000);
 
