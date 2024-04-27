@@ -7,14 +7,18 @@
 #include <SDL2/SDL_opengl.h>
 
 #define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <functional>
+#include <optional>
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
 
 using EngineUpdateFn = void(engine::EngineState*);
 
-constexpr bool PRINT_DLL_TIMESTAMPS = false;
+namespace DebugConfig {
+	constexpr bool PRINT_TIMESTAMP_ON_DLL_LOAD = true;
+} // namespace DebugConfig
 
 const char* vertex_shader_src =
 	"#version 330 core\n"
@@ -59,6 +63,25 @@ void print_last_winapi_error() {
 	_snprintf_s(buffer, sizeof(buffer), "%s", err_msg);
 	fprintf(stderr, "%s", buffer);
 	LocalFree(err_msg);
+}
+
+std::optional<FILETIME> read_dll_timestamp(HMODULE dll_module) {
+	/* Get full DLL path */
+	char dll_full_path[MAX_PATH];
+	if (GetModuleFileName(dll_module, dll_full_path, sizeof(dll_full_path)) == 0) {
+		fprintf(stderr, "error: read_dll_timestamp failed: ");
+		print_last_winapi_error();
+	}
+
+	/* Read timestamp */
+	WIN32_FILE_ATTRIBUTE_DATA data;
+	if (!GetFileAttributesEx(dll_full_path, GetFileExInfoStandard, &data)) {
+		fprintf(stderr, "error: GetFileAttributesEx(\"%s\") failed with: ", dll_full_path);
+		print_last_winapi_error();
+		return {};
+	}
+
+	return data.ftLastWriteTime;
 }
 
 int main(int /*argc*/, char** /*args*/) {
@@ -200,42 +223,30 @@ int main(int /*argc*/, char** /*args*/) {
 	}
 
 	/* Load engine DLL */
-	// 1. make a copy of DLL (so original can be rebuilt)
-	// 2. load DLL copy
-	// 3. save DLL copy timestamp
-	// 4. while running, if DLL timestamp newer than DLL copy timestamp, goto 1
+	HMODULE engine_dll = {};
 	FILETIME last_dll_write = {};
 	std::function<EngineUpdateFn> engine_update = [](engine::EngineState*) {};
 	{
 		/* Load DLL */
 		const char* dll_name = "GameEngine2024.dll";
-		HMODULE engine_dll = LoadLibrary(dll_name);
+		engine_dll = LoadLibrary(dll_name);
 		if (!engine_dll) {
-			fprintf(stderr, "error: LoadLibraryA(\"%s\") returned null. Does the DLL exist?\n", dll_name);
+			fprintf(stderr, "error: LoadLibrary(\"%s\") returned null. Does the DLL exist?\n", dll_name);
 			exit(1);
 		}
 
-		// DEBUG print out dll_name full path
-		char dll_full_path[MAX_PATH];
-		if (GetModuleFileName(engine_dll, dll_full_path, sizeof(dll_full_path)) == 0) {
-			fprintf(stderr, "error: GetModuleFileName(\"%s\") failed:", dll_name);
-			print_last_winapi_error();
-		}
-
 		/* Read last write timestamp */
-		{
-			WIN32_FILE_ATTRIBUTE_DATA data;
-			if (GetFileAttributesEx(dll_full_path, GetFileExInfoStandard, &data)) {
-				last_dll_write = data.ftLastWriteTime;
-				if (PRINT_DLL_TIMESTAMPS) {
-					SYSTEMTIME st;
-					FileTimeToSystemTime(&last_dll_write, &st);
-					printf("Last file write to %s: %04d-%02d-%02d %02d:%02d:%02d\n", dll_name, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
-				}
-			} else {
-				fprintf(stderr, "error: GetFileAttributesEx(\"dll_full_path\") failed with: ");
-				print_last_winapi_error();
-			}
+		std::optional<FILETIME> timestamp = read_dll_timestamp(engine_dll);
+		if (!timestamp.has_value()) {
+			fprintf(stderr, "error: read_dll_timestamp() failed for \"%s\"\n", dll_name);
+			exit(1);
+		}
+		last_dll_write = timestamp.value();
+
+		if (DebugConfig::PRINT_TIMESTAMP_ON_DLL_LOAD) {
+			SYSTEMTIME st;
+			FileTimeToSystemTime(&last_dll_write, &st);
+			printf("Last file write to %s: %04d-%02d-%02d %02d:%02d:%02d\n", dll_name, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 		}
 
 		/* Read functions */
@@ -254,6 +265,11 @@ int main(int /*argc*/, char** /*args*/) {
 	engine::EngineState engine_state;
 	bool quit = false;
 	while (!quit) {
+		/* Hot reloading */
+		{
+			// check if dll timestamp has changed
+		}
+
 		/* Input */
 		{
 			SDL_Event event;
