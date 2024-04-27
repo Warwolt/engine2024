@@ -1,12 +1,11 @@
 #include <GL/glew.h>
 
+#include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
-#include <GL/glu.h>
-
-#include <cstdlib>
 #include <stdio.h>
+#include <stdlib.h>
 
 const char* vertex_shader_src =
 	"#version 330 core\n"
@@ -26,8 +25,7 @@ const char* fragment_shader_src =
 	"    FragColor = vertexColor;\n"
 	"}";
 
-void GLAPIENTRY
-on_opengl_error(
+void GLAPIENTRY on_opengl_error(
 	GLenum /*source*/,
 	GLenum type,
 	GLuint /*id*/,
@@ -40,7 +38,7 @@ on_opengl_error(
 }
 
 int main(int /*argc*/, char** /*args*/) {
-	printf("Hello Game Engine 2024!\n");
+	printf("Game Engine 2024 Start\n");
 
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
@@ -175,25 +173,29 @@ int main(int /*argc*/, char** /*args*/) {
 	bool quit = false;
 	while (!quit) {
 		/* Input */
-		SDL_Event event;
-		while (SDL_PollEvent(&event)) {
-			switch (event.type) {
-				case SDL_QUIT:
-				case SDL_KEYDOWN:
-					quit = true;
+		{
+			SDL_Event event;
+			while (SDL_PollEvent(&event)) {
+				switch (event.type) {
+					case SDL_QUIT:
+					case SDL_KEYDOWN:
+						quit = true;
+				}
 			}
 		}
 
 		/* Render */
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glUseProgram(shader_program);
-		glBindVertexArray(vao);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		glBindBuffer(GL_ARRAY_BUFFER, NULL);
-		glBindVertexArray(NULL);
+		{
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glUseProgram(shader_program);
+			glBindVertexArray(vao);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindBuffer(GL_ARRAY_BUFFER, NULL);
+			glBindVertexArray(NULL);
 
-		SDL_GL_SwapWindow(window);
+			SDL_GL_SwapWindow(window);
+		}
 	}
 
 	/* Shutdown */
