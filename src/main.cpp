@@ -158,8 +158,8 @@ int main(int /*argc*/, char** /*args*/) {
 		glEnableVertexAttribArray(0);
 
 		/* Unbind */
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, NULL);
+		glBindVertexArray(NULL);
 	}
 
 	/* Main loop */
@@ -169,13 +169,22 @@ int main(int /*argc*/, char** /*args*/) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
+				case SDL_QUIT:
 				case SDL_KEYDOWN:
 					quit = true;
 			}
 		}
 
 		/* Render */
-		//
+		glClearColor(0.f, 0.f, 0.f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glUseProgram(shader_program);
+		glBindVertexArray(vao);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindBuffer(GL_ARRAY_BUFFER, NULL);
+		glBindVertexArray(NULL);
+
+		SDL_GL_SwapWindow(window);
 	}
 
 	/* Shutdown */
