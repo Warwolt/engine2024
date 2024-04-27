@@ -122,10 +122,24 @@ int main(int /*argc*/, char** /*args*/) {
 		}
 	}
 
-	SDL_Delay(1000);
+	/* Main loop */
+	bool quit = false;
+	while (!quit) {
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_KEYDOWN:
+					quit = true;
+			}
+		}
+	}
 
-	SDL_DestroyWindow(window);
-	SDL_Quit();
+	/* Shutdown */
+	{
+		glDeleteProgram(shader_program);
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+	}
 
 	return 0;
 }
