@@ -12,11 +12,7 @@
 #include <stdlib.h>
 #include <windows.h>
 
-using EngineUpdateFn = void(EngineState*);
-
-struct EngineFunctions {
-	std::function<EngineUpdateFn> update = [](EngineState*) {};
-};
+using EngineUpdateFn = void(engine::EngineState*);
 
 const char* vertex_shader_src =
 	"#version 330 core\n"
@@ -187,7 +183,7 @@ int main(int /*argc*/, char** /*args*/) {
 	}
 
 	/* Load engine DLL */
-	EngineFunctions engine;
+	std::function<EngineUpdateFn> engine_update = [](engine::EngineState*) {};
 	{
 		const char* dll_name = "GameEngine2024.dll";
 		HMODULE engine_dll = LoadLibraryA(dll_name);
@@ -203,12 +199,12 @@ int main(int /*argc*/, char** /*args*/) {
 				fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
 				exit(1);
 			}
-			engine.update = fn;
+			engine_update = fn;
 		}
 	}
 
 	/* Main loop */
-	EngineState engine_state;
+	engine::EngineState engine_state;
 	bool quit = false;
 	while (!quit) {
 		/* Input */
@@ -224,7 +220,7 @@ int main(int /*argc*/, char** /*args*/) {
 		}
 
 		/* Update */
-		engine.update(&engine_state);
+		engine_update(&engine_state);
 
 		/* Render */
 		{
