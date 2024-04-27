@@ -10,6 +10,9 @@ set(INC
     ${GLEW_DIR}/include
     ${SDL_DIR}/include)
 
+set(SRC
+    src/timing.cpp)
+
 set(LIB
     opengl32
     glu32
@@ -27,7 +30,7 @@ set(DLLS
     ${SDL_DIR}/lib/SDL2_mixer.dll
     ${SDL_DIR}/lib/SDL2_ttf.dll)
 
-add_executable(${MAIN_BINARY} src/main.cpp)
+add_executable(${MAIN_BINARY} src/main.cpp ${SRC})
 target_include_directories(${MAIN_BINARY} PRIVATE ${INC})
 target_link_libraries(${MAIN_BINARY} PRIVATE ${LIB})
 

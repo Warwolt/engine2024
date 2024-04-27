@@ -1,3 +1,5 @@
+#include <timing.h>
+
 #include <GL/glew.h>
 
 #include <GL/glu.h>
@@ -81,6 +83,12 @@ int main(int /*argc*/, char** /*args*/) {
 		const GLenum glewError = glewInit();
 		if (glewError != GLEW_OK) {
 			fprintf(stderr, "glewInit failed with error: %s\n", glewGetErrorString(glewError));
+			exit(1);
+		}
+
+		/* Set VSync */
+		if (SDL_GL_SetSwapInterval(1)) {
+			fprintf(stderr, "SDL_GL_SetSwapInterval failed with error: %s\n", SDL_GetError());
 		}
 
 		/* Set OpenGL error callback */
@@ -170,8 +178,13 @@ int main(int /*argc*/, char** /*args*/) {
 	}
 
 	/* Main loop */
+
+	timing::Timer timer;
 	bool quit = false;
 	while (!quit) {
+		uint64_t delta_ms = timer.elapsed_ms();
+		timer.reset();
+
 		/* Input */
 		{
 			SDL_Event event;
@@ -182,6 +195,11 @@ int main(int /*argc*/, char** /*args*/) {
 						quit = true;
 				}
 			}
+		}
+
+		/* Update */
+		{
+			printf("%zu\n", delta_ms);
 		}
 
 		/* Render */
