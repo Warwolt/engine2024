@@ -80,16 +80,19 @@ std::optional<FILETIME> read_dll_timestamp(HMODULE dll_module) {
 	WIN32_FILE_ATTRIBUTE_DATA data;
 
 	if (!GetFileAttributesEx(dll_full_path.c_str(), GetFileExInfoStandard, &data)) {
-		fprintf(stderr, "error: GetFileAttributesEx(\"%s\") failed with: ", dll_full_path.c_str());
+		fprintf(stderr, "error: GetFileAttributesEx(\"%s\") failed: ", dll_full_path.c_str());
 		print_last_winapi_error();
 		return {};
 	}
 
-	return data.ftLastWriteTime;
+	FILETIME localized_dll_timestamp;
+	FileTimeToLocalFileTime(&data.ftLastWriteTime, &localized_dll_timestamp);
+
+	return localized_dll_timestamp;
 }
 
 int main(int /*argc*/, char** /*args*/) {
-	printf("Game Engine 2024 Start\n");
+	printf("Game Engine 2024 Initializing\n");
 
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
@@ -97,7 +100,7 @@ int main(int /*argc*/, char** /*args*/) {
 	{
 		/* Initialize SDL */
 		if (SDL_Init(SDL_INIT_VIDEO)) {
-			fprintf(stderr, "error: SDL_Init failed with: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_Init failed: %s\n", SDL_GetError());
 			exit(1);
 		}
 
@@ -117,27 +120,27 @@ int main(int /*argc*/, char** /*args*/) {
 			SDL_WINDOW_OPENGL
 		);
 		if (!window) {
-			fprintf(stderr, "error: SDL_CreateWindow failed with: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_CreateWindow failed: %s\n", SDL_GetError());
 			exit(1);
 		}
 
 		/* Create GL Context */
 		gl_context = SDL_GL_CreateContext(window);
 		if (!gl_context) {
-			fprintf(stderr, "error: SDL_GL_CreateContext failed with: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_GL_CreateContext failed: %s\n", SDL_GetError());
 			exit(1);
 		}
 
 		/* Initialize GLEW */
 		const GLenum glewError = glewInit();
 		if (glewError != GLEW_OK) {
-			fprintf(stderr, "error: glewInit failed with: %s\n", glewGetErrorString(glewError));
+			fprintf(stderr, "error: glewInit failed: %s\n", glewGetErrorString(glewError));
 			exit(1);
 		}
 
 		/* Set VSync */
 		if (SDL_GL_SetSwapInterval(1)) {
-			fprintf(stderr, "error: SDL_GL_SetSwapInterval failed with: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_GL_SetSwapInterval failed: %s\n", SDL_GetError());
 		}
 
 		/* Set OpenGL error callback */
@@ -251,7 +254,7 @@ int main(int /*argc*/, char** /*args*/) {
 		copied_dll_path = original_dll_path.substr(0, original_dll_path.size() - 4) + "-copy.dll";
 		const bool fail_if_already_exists = false;
 		if (!CopyFile(original_dll_path.c_str(), copied_dll_path.c_str(), fail_if_already_exists)) {
-			fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed with:", original_dll_path.c_str(), copied_dll_path.c_str(), fail_if_already_exists ? "true" : "false");
+			fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed:", original_dll_path.c_str(), copied_dll_path.c_str(), fail_if_already_exists ? "true" : "false");
 			print_last_winapi_error();
 			exit(1);
 		}
@@ -296,6 +299,7 @@ int main(int /*argc*/, char** /*args*/) {
 			exit(1);
 		}
 	}
+	printf("Engine DLL loaded\n");
 
 	/* Main loop */
 	engine::EngineState engine_state;
@@ -312,7 +316,6 @@ int main(int /*argc*/, char** /*args*/) {
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
 					case SDL_QUIT:
-					case SDL_KEYDOWN:
 						quit = true;
 				}
 			}
