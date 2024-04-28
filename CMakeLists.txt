@@ -8,10 +8,12 @@ set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/glew)
 
 set(INC
     src
+    src/platform
     ${GLEW_DIR}/include
     ${SDL_DIR}/include)
 
 set(SRC
+    src/platform/library_loader.cpp
     src/engine.cpp
     src/timing.cpp)
 
@@ -42,7 +44,7 @@ target_include_directories(${MAIN_BINARY} PRIVATE ${INC})
 target_link_libraries(${MAIN_BINARY} PRIVATE ${LIB})
 
 # Set compile options for targets
-foreach(TARGET IN ITEMS ${MAIN_BINARY})
+foreach(TARGET IN ITEMS ${MAIN_BINARY} ${MAIN_LIBRARY})
     set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
