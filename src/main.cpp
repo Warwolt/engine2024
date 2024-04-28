@@ -48,13 +48,13 @@ const char* load_library_error_to_string(LoadLibraryError err) {
 class EngineLibraryLoader {
 public:
 	const char* m_library_name;
-	const char* m_copied_library_name;
 	std::string m_library_path;
 	std::string m_copied_library_path;
 	FILETIME m_last_library_write;
 	HMODULE m_copied_library;
 
 	std::expected<EngineLibrary, LoadLibraryError> load_library(const char* library_name);
+	void unload_library() const;
 	bool library_file_has_been_modified() const;
 };
 
@@ -189,9 +189,10 @@ std::expected<EngineLibrary, LoadLibraryError> EngineLibraryLoader::load_library
 	}
 
 	/* Load copied DLL*/
-	m_copied_library = LoadLibrary(m_copied_library_name);
+	std::string copied_library_name = std::string(library_name) + "-copy";
+	m_copied_library = LoadLibrary(copied_library_name.c_str());
 	if (!m_copied_library) {
-		fprintf(stderr, "error: LoadLibrary(\"%s\") failed: ", m_copied_library_name);
+		fprintf(stderr, "error: LoadLibrary(\"%s\") failed: ", copied_library_name.c_str());
 		print_last_winapi_error();
 		return std::unexpected(LoadLibraryError::FailedToLoadCopiedLibrary);
 	}
@@ -225,6 +226,20 @@ bool EngineLibraryLoader::library_file_has_been_modified() const {
 		return CompareFileTime(&library_write.value(), &m_last_library_write) != 0;
 	}
 	return false;
+}
+
+void EngineLibraryLoader::unload_library() const {
+	/* Free copied engine DLL */
+	if (!FreeLibrary(m_copied_library)) {
+		fprintf(stderr, "error: FreeLibrary failed: ");
+		print_last_winapi_error();
+	}
+
+	/* Delete copied engine DLL */
+	if (!DeleteFile(m_copied_library_path.c_str())) {
+		fprintf(stderr, "error: DeleteFile(\"%s\") failed: ", m_copied_library_path.c_str());
+		print_last_winapi_error();
+	}
 }
 
 int main(int /* argc */, char** /* args */) {
@@ -366,19 +381,19 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Load engine DLL */
-	EngineLibraryLoader loader;
-	loader.m_library_name = "GameEngine2024";
-	loader.m_copied_library_name = "GameEngine2024-copy.dll";
-
+	const char* library_name = "GameEngine2024";
+	EngineLibraryLoader library_loader;
 	EngineLibrary engine_library;
-	std::expected<EngineLibrary, LoadLibraryError> load_result = loader.load_library("GameEngine2024");
-	if (load_result.has_value()) {
-		engine_library = load_result.value();
-	} else {
-		fprintf(stderr, "error: EngineLibraryLoader::load_library(%s) failed with: %s\n", "GameEngine2024", load_library_error_to_string(load_result.error()));
-		exit(1);
+	{
+		std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
+		if (load_result.has_value()) {
+			engine_library = load_result.value();
+		} else {
+			fprintf(stderr, "error: EngineLibraryLoader::load_library(%s) failed with: %s\n", library_name, load_library_error_to_string(load_result.error()));
+			exit(1);
+		}
 	}
-	printf("Engine DLL loaded\n");
+	printf("Engine library loaded\n");
 
 	/* Main loop */
 	timing::Timer hot_reload_timer;
@@ -388,46 +403,15 @@ int main(int /* argc */, char** /* args */) {
 		/* Hot reloading */
 		if (hot_reload_timer.elapsed_ms() >= 1000) {
 			hot_reload_timer.reset();
-
-			// try to read timestamp, if we fail try again later
-			if (loader.library_file_has_been_modified()) {
-				printf("Detected updated engine DLL\n");
-
-				loader.m_last_library_write = file_last_modified(loader.m_library_path.c_str()).value(); // value() is a temporary hack until this is moved into loader class
-
-				/* Free now old engine DLL copy */
-				if (!FreeLibrary(loader.m_copied_library)) {
-					fprintf(stderr, "error: FreeLibrary(loader.m_copied_library) failed: ");
-					print_last_winapi_error();
+			if (library_loader.library_file_has_been_modified()) {
+				library_loader.unload_library();
+				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
+				if (load_result.has_value()) {
+					engine_library = load_result.value();
+					printf("Engine library reloaded\n");
+				} else {
+					fprintf(stderr, "error: Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s\n", library_name, load_library_error_to_string(load_result.error()));
 				}
-
-				/* Create a copy of the updated DLL */
-				const bool fail_if_already_exists = false;
-				if (!CopyFile(loader.m_library_path.c_str(), loader.m_copied_library_path.c_str(), fail_if_already_exists)) {
-					fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed:", loader.m_library_path.c_str(), loader.m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false");
-					print_last_winapi_error();
-					exit(1);
-				}
-
-				/* Reload updated DLL copy */
-				loader.m_copied_library = LoadLibrary(loader.m_copied_library_name);
-				if (!loader.m_copied_library) {
-					fprintf(stderr, "error: LoadLibrary(\"%s\") returned null. Does the DLL exist?\n", loader.m_copied_library_name);
-					exit(1);
-				}
-
-				/* Read functions */
-				{
-					const char* fn_name = "engine_update";
-					EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(loader.m_copied_library, fn_name));
-					if (!fn) {
-						fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
-						exit(1);
-					}
-					engine_library.engine_update = fn;
-				}
-
-				printf("Engine DLL succesfully reloaded\n");
 			}
 		}
 
@@ -464,19 +448,7 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Unload and delete copied engine DLL */
-	{
-		/* Free copied engine DLL */
-		if (!FreeLibrary(loader.m_copied_library)) {
-			fprintf(stderr, "error: FreeLibrary(loader.m_copied_library) failed: ");
-			print_last_winapi_error();
-		}
-
-		/* Delete copied engine DLL */
-		if (!DeleteFile(loader.m_copied_library_path.c_str())) {
-			fprintf(stderr, "error: DeleteFile(\"%s\") failed: ", loader.m_copied_library_path.c_str());
-			print_last_winapi_error();
-		}
-	}
+	library_loader.unload_library();
 
 	/* Shutdown SDL + OpenGL */
 	{
