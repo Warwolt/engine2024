@@ -43,7 +43,7 @@ target_link_libraries(${MAIN_BINARY} PRIVATE ${LIB})
 
 # Set compile options for targets
 foreach(TARGET IN ITEMS ${MAIN_BINARY})
-    set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 20)
+    set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
