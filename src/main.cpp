@@ -16,6 +16,13 @@
 
 using EngineUpdateFn = void(engine::EngineState*);
 
+struct EngineLibrary {
+	std::function<EngineUpdateFn> update = [](engine::EngineState*) {};
+};
+
+// load engine library
+// reload engine library
+
 namespace DebugConfig {
 	constexpr bool PRINT_TIMESTAMP_ON_DLL_LOAD = true;
 } // namespace DebugConfig
@@ -118,7 +125,7 @@ std::string filetime_to_string(const FILETIME* filetime) {
 	return std::string(buffer);
 }
 
-int main(int /*argc*/, char** /*args*/) {
+int main(int /* argc */, char** /* args */) {
 	printf("Game Engine 2024 Initializing\n");
 
 	/* Initialize SDL + OpenGL*/
@@ -262,7 +269,7 @@ int main(int /*argc*/, char** /*args*/) {
 	std::string copied_dll_path = {};
 	HMODULE engine_dll = {};
 	FILETIME prev_dll_write_timestamp = {};
-	std::function<EngineUpdateFn> engine_update = [](engine::EngineState*) {};
+	EngineLibrary engine;
 	{
 		/* Load original DLL */
 		const char* original_dll_name = "GameEngine2024.dll";
@@ -316,7 +323,7 @@ int main(int /*argc*/, char** /*args*/) {
 				fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
 				exit(1);
 			}
-			engine_update = fn;
+			engine.update = fn;
 		}
 
 		/* Unload original DLL */
@@ -342,8 +349,6 @@ int main(int /*argc*/, char** /*args*/) {
 				if (std::optional<FILETIME> dll_write_timestamp = file_last_modified(original_dll_path.c_str())) {
 					std::string filetime_str = filetime_to_string(&dll_write_timestamp.value());
 					std::string prev_filetime_str = filetime_to_string(&prev_dll_write_timestamp);
-
-					printf("filetime_str: %s\n", filetime_str.c_str());
 
 					if (CompareFileTime(&dll_write_timestamp.value(), &prev_dll_write_timestamp)) {
 						printf("Detected updated engine DLL\n");
@@ -378,7 +383,7 @@ int main(int /*argc*/, char** /*args*/) {
 								fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
 								exit(1);
 							}
-							engine_update = fn;
+							engine.update = fn;
 						}
 
 						printf("Engine DLL succesfully reloaded\n");
@@ -399,7 +404,7 @@ int main(int /*argc*/, char** /*args*/) {
 		}
 
 		/* Update */
-		engine_update(&engine_state);
+		engine.update(&engine_state);
 
 		/* Render */
 		{
