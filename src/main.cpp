@@ -20,7 +20,7 @@ struct EngineLibrary {
 	std::function<EngineUpdateFn> update = [](engine::EngineState*) {};
 };
 
-class LibraryLoader {
+class EngineLibraryLoader {
 public:
 	const char* m_library_name;
 	const char* m_copied_library_name;
@@ -28,7 +28,15 @@ public:
 	std::string m_copied_library_path;
 	FILETIME m_last_library_write;
 	HMODULE m_copied_library;
+
+	EngineLibrary load_library(const char* library_name);
 };
+
+EngineLibrary EngineLibraryLoader::load_library(const char* /*library_name*/) {
+	EngineLibrary engine_library;
+
+	return engine_library;
+}
 
 // load engine library
 // reload engine library
@@ -274,7 +282,7 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Load engine DLL */
-	LibraryLoader loader;
+	EngineLibraryLoader loader;
 	loader.m_library_name = "GameEngine2024.dll";
 	loader.m_copied_library_name = "GameEngine2024-copy.dll";
 
@@ -408,6 +416,10 @@ int main(int /* argc */, char** /* args */) {
 				switch (event.type) {
 					case SDL_QUIT:
 						quit = true;
+					case SDL_KEYDOWN:
+						if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+							quit = true;
+						}
 				}
 			}
 		}
