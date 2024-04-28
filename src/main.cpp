@@ -165,10 +165,9 @@ std::string filetime_to_string(const FILETIME* filetime) {
 
 std::expected<EngineLibrary, LoadLibraryError> EngineLibraryLoader::load_library(const char* library_name) {
 	/* Load library */
-	std::string file_name = std::string(library_name) + ".dll";
-	HMODULE library = LoadLibrary(file_name.c_str());
+	HMODULE library = LoadLibrary(library_name);
 	if (!library) {
-		fprintf(stderr, "error: LoadLibrary(\"%s\") failed:", file_name.c_str());
+		fprintf(stderr, "error: LoadLibrary(\"%s\") failed: ", library_name);
 		print_last_winapi_error();
 		return std::unexpected(LoadLibraryError::FileDoesNotExist);
 	}
@@ -183,7 +182,7 @@ std::expected<EngineLibrary, LoadLibraryError> EngineLibraryLoader::load_library
 	/* Create a copy of library, so original file can still be modified */
 	const bool fail_if_already_exists = false; // overwrite file if already exists
 	if (!CopyFile(m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists)) {
-		fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed:", m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false");
+		fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed: ", m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false");
 		print_last_winapi_error();
 		return std::unexpected(LoadLibraryError::FailedToCopyLibrary);
 	}
@@ -191,7 +190,7 @@ std::expected<EngineLibrary, LoadLibraryError> EngineLibraryLoader::load_library
 	/* Load copied DLL*/
 	m_copied_library = LoadLibrary(m_copied_library_name);
 	if (!m_copied_library) {
-		fprintf(stderr, "error: LoadLibrary(\"%s\") failed:", m_copied_library_name);
+		fprintf(stderr, "error: LoadLibrary(\"%s\") failed: ", m_copied_library_name);
 		print_last_winapi_error();
 		return std::unexpected(LoadLibraryError::FailedToLoadCopiedLibrary);
 	}
@@ -368,7 +367,7 @@ int main(int /* argc */, char** /* args */) {
 	if (load_result.has_value()) {
 		engine_library = load_result.value();
 	} else {
-		fprintf(stderr, "error: EngineLibraryLoader::load_library(%s) failed with: %s", "GameEngine2024", load_library_error_to_string(load_result.error()));
+		fprintf(stderr, "error: EngineLibraryLoader::load_library(%s) failed with: %s\n", "GameEngine2024", load_library_error_to_string(load_result.error()));
 		exit(1);
 	}
 	printf("Engine DLL loaded\n");
