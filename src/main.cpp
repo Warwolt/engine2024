@@ -20,6 +20,16 @@ struct EngineLibrary {
 	std::function<EngineUpdateFn> update = [](engine::EngineState*) {};
 };
 
+class LibraryLoader {
+public:
+	const char* m_library_name;
+	const char* m_copied_library_name;
+	std::string m_library_path;
+	std::string m_copied_library_path;
+	FILETIME m_last_library_write;
+	HMODULE m_copied_library;
+};
+
 // load engine library
 // reload engine library
 
@@ -264,11 +274,10 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Load engine DLL */
-	const char* copied_dll_name = "GameEngine2024-copy.dll";
-	std::string original_dll_path = {};
-	std::string copied_dll_path = {};
-	HMODULE engine_dll = {};
-	FILETIME prev_dll_write_timestamp = {};
+	LibraryLoader loader;
+	loader.m_library_name = "GameEngine2024.dll";
+	loader.m_copied_library_name = "GameEngine2024-copy.dll";
+
 	EngineLibrary engine;
 	{
 		/* Load original DLL */
@@ -280,45 +289,45 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Get path of original DLL */
-		original_dll_path = get_dll_full_path(original_engine_dll);
-		if (original_dll_path.empty()) {
+		loader.m_library_path = get_dll_full_path(original_engine_dll);
+		if (loader.m_library_path.empty()) {
 			fprintf(stderr, "error: failed to get full path of engine DLL");
 			exit(1);
 		}
-		copied_dll_path = original_dll_path.substr(0, original_dll_path.size() - 4) + "-copy.dll";
+		loader.m_copied_library_path = loader.m_library_path.substr(0, loader.m_library_path.size() - 4) + "-copy.dll";
 
 		/* Create a copy of the DLL */
 		const bool fail_if_already_exists = false;
-		if (!CopyFile(original_dll_path.c_str(), copied_dll_path.c_str(), fail_if_already_exists)) {
-			fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed:", original_dll_path.c_str(), copied_dll_path.c_str(), fail_if_already_exists ? "true" : "false");
+		if (!CopyFile(loader.m_library_path.c_str(), loader.m_copied_library_path.c_str(), fail_if_already_exists)) {
+			fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed:", loader.m_library_path.c_str(), loader.m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false");
 			print_last_winapi_error();
 			exit(1);
 		}
 
 		/* Load copied DLL*/
-		engine_dll = LoadLibrary(copied_dll_name);
-		if (!engine_dll) {
-			fprintf(stderr, "error: LoadLibrary(\"%s\") returned null. Does the DLL exist?\n", copied_dll_name);
+		loader.m_copied_library = LoadLibrary(loader.m_copied_library_name);
+		if (!loader.m_copied_library) {
+			fprintf(stderr, "error: LoadLibrary(\"%s\") returned null. Does the DLL exist?\n", loader.m_copied_library_name);
 			exit(1);
 		}
 
 		/* Read last write timestamp */
-		std::optional<FILETIME> timestamp = file_last_modified(original_dll_path.c_str());
+		std::optional<FILETIME> timestamp = file_last_modified(loader.m_library_path.c_str());
 		if (!timestamp.has_value()) {
-			fprintf(stderr, "error: file_last_modified() failed for \"%s\"\n", original_dll_path.c_str());
+			fprintf(stderr, "error: file_last_modified() failed for \"%s\"\n", loader.m_library_path.c_str());
 			exit(1);
 		}
-		prev_dll_write_timestamp = timestamp.value();
+		loader.m_last_library_write = timestamp.value();
 
 		if (DebugConfig::PRINT_TIMESTAMP_ON_DLL_LOAD) {
-			std::string filetime_str = filetime_to_string(&prev_dll_write_timestamp);
+			std::string filetime_str = filetime_to_string(&loader.m_last_library_write);
 			printf("Last file write to %s: %s\n", original_dll_name, filetime_str.c_str());
 		}
 
 		/* Read functions */
 		{
 			const char* fn_name = "engine_update";
-			EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(engine_dll, fn_name));
+			EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(loader.m_copied_library, fn_name));
 			if (!fn) {
 				fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
 				exit(1);
@@ -346,39 +355,39 @@ int main(int /* argc */, char** /* args */) {
 				timer.reset();
 
 				// try to read timestamp, if we fail try again later
-				if (std::optional<FILETIME> dll_write_timestamp = file_last_modified(original_dll_path.c_str())) {
+				if (std::optional<FILETIME> dll_write_timestamp = file_last_modified(loader.m_library_path.c_str())) {
 					std::string filetime_str = filetime_to_string(&dll_write_timestamp.value());
-					std::string prev_filetime_str = filetime_to_string(&prev_dll_write_timestamp);
+					std::string prev_filetime_str = filetime_to_string(&loader.m_last_library_write);
 
-					if (CompareFileTime(&dll_write_timestamp.value(), &prev_dll_write_timestamp)) {
+					if (CompareFileTime(&dll_write_timestamp.value(), &loader.m_last_library_write)) {
 						printf("Detected updated engine DLL\n");
-						prev_dll_write_timestamp = dll_write_timestamp.value();
+						loader.m_last_library_write = dll_write_timestamp.value();
 
 						/* Free now old engine DLL copy */
-						if (!FreeLibrary(engine_dll)) {
-							fprintf(stderr, "error: FreeLibrary(engine_dll) failed: ");
+						if (!FreeLibrary(loader.m_copied_library)) {
+							fprintf(stderr, "error: FreeLibrary(loader.m_copied_library) failed: ");
 							print_last_winapi_error();
 						}
 
 						/* Create a copy of the updated DLL */
 						const bool fail_if_already_exists = false;
-						if (!CopyFile(original_dll_path.c_str(), copied_dll_path.c_str(), fail_if_already_exists)) {
-							fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed:", original_dll_path.c_str(), copied_dll_path.c_str(), fail_if_already_exists ? "true" : "false");
+						if (!CopyFile(loader.m_library_path.c_str(), loader.m_copied_library_path.c_str(), fail_if_already_exists)) {
+							fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed:", loader.m_library_path.c_str(), loader.m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false");
 							print_last_winapi_error();
 							exit(1);
 						}
 
 						/* Reload updated DLL copy */
-						engine_dll = LoadLibrary(copied_dll_name);
-						if (!engine_dll) {
-							fprintf(stderr, "error: LoadLibrary(\"%s\") returned null. Does the DLL exist?\n", copied_dll_name);
+						loader.m_copied_library = LoadLibrary(loader.m_copied_library_name);
+						if (!loader.m_copied_library) {
+							fprintf(stderr, "error: LoadLibrary(\"%s\") returned null. Does the DLL exist?\n", loader.m_copied_library_name);
 							exit(1);
 						}
 
 						/* Read functions */
 						{
 							const char* fn_name = "engine_update";
-							EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(engine_dll, fn_name));
+							EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(loader.m_copied_library, fn_name));
 							if (!fn) {
 								fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
 								exit(1);
@@ -423,14 +432,14 @@ int main(int /* argc */, char** /* args */) {
 	/* Unload and delete copied engine DLL */
 	{
 		/* Free copied engine DLL */
-		if (!FreeLibrary(engine_dll)) {
-			fprintf(stderr, "error: FreeLibrary(engine_dll) failed: ");
+		if (!FreeLibrary(loader.m_copied_library)) {
+			fprintf(stderr, "error: FreeLibrary(loader.m_copied_library) failed: ");
 			print_last_winapi_error();
 		}
 
 		/* Delete copied engine DLL */
-		if (!DeleteFile(copied_dll_path.c_str())) {
-			fprintf(stderr, "error: DeleteFile(\"%s\") failed: ", copied_dll_path.c_str());
+		if (!DeleteFile(loader.m_copied_library_path.c_str())) {
+			fprintf(stderr, "error: DeleteFile(\"%s\") failed: ", loader.m_copied_library_path.c_str());
 			print_last_winapi_error();
 		}
 	}
