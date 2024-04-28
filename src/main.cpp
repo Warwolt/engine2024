@@ -75,20 +75,39 @@ std::string get_dll_full_path(HMODULE dll_module) {
 	return std::string(dll_full_path);
 }
 
-std::optional<FILETIME> read_dll_timestamp(HMODULE dll_module) {
-	std::string dll_full_path = get_dll_full_path(dll_module);
-	WIN32_FILE_ATTRIBUTE_DATA data;
+std::optional<FILETIME> file_last_modified(const char* file_path) {
+	/* Open file */
+	HANDLE file = CreateFileA(
+		file_path,
+		GENERIC_READ,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
 
-	if (!GetFileAttributesEx(dll_full_path.c_str(), GetFileExInfoStandard, &data)) {
-		fprintf(stderr, "error: GetFileAttributesEx(\"%s\") failed: ", dll_full_path.c_str());
+	/* Read time modified */
+	FILETIME create_time, access_time, write_time;
+	if (!GetFileTime(file, &create_time, &access_time, &write_time)) {
+		fprintf(stderr, "error: GetFileTime failed: ");
 		print_last_winapi_error();
-		return {};
+		goto file_last_modified_error;
 	}
 
-	FILETIME localized_dll_timestamp;
-	FileTimeToLocalFileTime(&data.ftLastWriteTime, &localized_dll_timestamp);
+	FILETIME localized_write_time;
+	if (!FileTimeToLocalFileTime(&write_time, &localized_write_time)) {
+		fprintf(stderr, "error: FileTimeToLocalFileTime failed: ");
+		print_last_winapi_error();
+		goto file_last_modified_error;
+	}
 
-	return localized_dll_timestamp;
+	CloseHandle(file);
+	return localized_write_time;
+
+file_last_modified_error:
+	CloseHandle(file);
+	return {};
 }
 
 std::string filetime_to_string(const FILETIME* filetime) {
@@ -238,6 +257,7 @@ int main(int /*argc*/, char** /*args*/) {
 	}
 
 	/* Load engine DLL */
+	std::string original_dll_path = {};
 	std::string copied_dll_path = {};
 	HMODULE engine_dll = {};
 	FILETIME prev_dll_write_timestamp = {};
@@ -252,7 +272,7 @@ int main(int /*argc*/, char** /*args*/) {
 		}
 
 		/* Get path of original DLL */
-		const std::string original_dll_path = get_dll_full_path(original_engine_dll);
+		original_dll_path = get_dll_full_path(original_engine_dll);
 		if (original_dll_path.empty()) {
 			fprintf(stderr, "error: failed to get full path of engine DLL");
 			exit(1);
@@ -276,9 +296,9 @@ int main(int /*argc*/, char** /*args*/) {
 		}
 
 		/* Read last write timestamp */
-		std::optional<FILETIME> timestamp = read_dll_timestamp(engine_dll);
+		std::optional<FILETIME> timestamp = file_last_modified(original_dll_path.c_str());
 		if (!timestamp.has_value()) {
-			fprintf(stderr, "error: read_dll_timestamp() failed for \"%s\"\n", original_dll_name);
+			fprintf(stderr, "error: file_last_modified() failed for \"%s\"\n", original_dll_path.c_str());
 			exit(1);
 		}
 		prev_dll_write_timestamp = timestamp.value();
@@ -309,19 +329,28 @@ int main(int /*argc*/, char** /*args*/) {
 	printf("Engine DLL loaded\n");
 
 	/* Main loop */
+	timing::Timer timer;
 	engine::EngineState engine_state;
 	bool quit = false;
 	while (!quit) {
 		/* Hot reloading */
 		{
-			if (std::optional<FILETIME> dll_write_timestamp = read_dll_timestamp(engine_dll)) {
-				std::string filetime_str = filetime_to_string(&dll_write_timestamp.value());
-				printf("Last file write to GameEngine2024-copy.dll: %s\n", filetime_str.c_str());
-				if (CompareFileTime(&dll_write_timestamp.value(), &prev_dll_write_timestamp)) {
-					printf("Library re-built");
+			if (timer.elapsed_ms() >= 1000) {
+				timer.reset();
+
+				// try to read timestamp, if we fail try again later
+				if (std::optional<FILETIME> dll_write_timestamp = file_last_modified(original_dll_path.c_str())) {
+					std::string filetime_str = filetime_to_string(&dll_write_timestamp.value());
+					std::string prev_filetime_str = filetime_to_string(&prev_dll_write_timestamp);
+
+					printf("filetime_str: %s\n", filetime_str.c_str());
+
+					if (CompareFileTime(&dll_write_timestamp.value(), &prev_dll_write_timestamp)) {
+						printf("Library re-built\n");
+						printf("prev_filetime_str: %s\n", prev_filetime_str.c_str());
+						prev_dll_write_timestamp = dll_write_timestamp.value();
+					}
 				}
-			} else {
-				fprintf(stderr, "error: read_dll_timestamp(engine_dll) in main loop failed\n");
 			}
 		}
 
