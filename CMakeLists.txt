@@ -8,14 +8,15 @@ set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/glew)
 
 set(INC
     src
-    src/platform
     ${GLEW_DIR}/include
-    ${SDL_DIR}/include)
+    ${SDL_DIR}/include
+)
 
 set(SRC
     src/platform/library_loader.cpp
+    src/platform/timing.cpp
     src/engine.cpp
-    src/timing.cpp)
+)
 
 set(LIB
     opengl32
@@ -25,14 +26,16 @@ set(LIB
     ${SDL_DIR}/lib/SDL2.lib
     ${SDL_DIR}/lib/SDL2_image.lib
     ${SDL_DIR}/lib/SDL2_mixer.lib
-    ${SDL_DIR}/lib/SDL2_ttf.lib)
+    ${SDL_DIR}/lib/SDL2_ttf.lib
+)
 
 set(DLLS
     ${GLEW_DIR}/lib/glew32.dll
     ${SDL_DIR}/lib/SDL2.dll
     ${SDL_DIR}/lib/SDL2_image.dll
     ${SDL_DIR}/lib/SDL2_mixer.dll
-    ${SDL_DIR}/lib/SDL2_ttf.dll)
+    ${SDL_DIR}/lib/SDL2_ttf.dll
+)
 
 add_library(${MAIN_LIBRARY} SHARED ${SRC})
 set_property(TARGET ${MAIN_LIBRARY} PROPERTY OUTPUT_NAME ${MAIN_BINARY})

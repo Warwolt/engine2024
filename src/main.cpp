@@ -1,5 +1,6 @@
 #include <engine.h>
-#include <library_loader.h>
+#include <platform/library_loader.h>
+#include <platform/timing.h>
 
 #include <GL/glew.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <timing.h>
+#include <platform/timing.h>
 
 #include <stdint.h>
 
