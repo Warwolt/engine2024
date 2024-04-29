@@ -1,3 +1,7 @@
+#include <engine.h>
+#include <platform/library_loader.h>
+#include <platform/timing.h>
+
 #include <GL/glew.h>
 
 #include <GL/glu.h>
@@ -6,6 +10,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+using EngineLibrary = platform::EngineLibrary;
+using EngineLibraryLoader = platform::EngineLibraryLoader;
+using LoadLibraryError = platform::LoadLibraryError;
 
 const char* vertex_shader_src =
 	"#version 330 core\n"
@@ -37,16 +45,14 @@ void GLAPIENTRY on_opengl_error(
 	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
 }
 
-int main(int /*argc*/, char** /*args*/) {
-	printf("Game Engine 2024 Start\n");
-
+int main(int /* argc */, char** /* args */) {
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
 	SDL_GLContext gl_context;
 	{
 		/* Initialize SDL */
 		if (SDL_Init(SDL_INIT_VIDEO)) {
-			fprintf(stderr, "SDL_Init failed with error: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_Init failed: %s\n", SDL_GetError());
 			exit(1);
 		}
 
@@ -66,21 +72,27 @@ int main(int /*argc*/, char** /*args*/) {
 			SDL_WINDOW_OPENGL
 		);
 		if (!window) {
-			fprintf(stderr, "SDL_CreateWindow failed with error: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_CreateWindow failed: %s\n", SDL_GetError());
 			exit(1);
 		}
 
 		/* Create GL Context */
 		gl_context = SDL_GL_CreateContext(window);
 		if (!gl_context) {
-			fprintf(stderr, "SDL_GL_CreateContext failed with error: %s\n", SDL_GetError());
+			fprintf(stderr, "error: SDL_GL_CreateContext failed: %s\n", SDL_GetError());
 			exit(1);
 		}
 
 		/* Initialize GLEW */
 		const GLenum glewError = glewInit();
 		if (glewError != GLEW_OK) {
-			fprintf(stderr, "glewInit failed with error: %s\n", glewGetErrorString(glewError));
+			fprintf(stderr, "error: glewInit failed: %s\n", glewGetErrorString(glewError));
+			exit(1);
+		}
+
+		/* Set VSync */
+		if (SDL_GL_SetSwapInterval(1)) {
+			fprintf(stderr, "error: SDL_GL_SetSwapInterval failed: %s\n", SDL_GetError());
 		}
 
 		/* Set OpenGL error callback */
@@ -102,7 +114,7 @@ int main(int /*argc*/, char** /*args*/) {
 		if (vertex_shader_compiled != GL_TRUE) {
 			char info_log[512] = { 0 };
 			glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-			fprintf(stderr, "Vertex shader failed to compile:\n%s\n", info_log);
+			fprintf(stderr, "error: Vertex shader failed to compile:\n%s\n", info_log);
 			exit(1);
 		}
 		glAttachShader(shader_program, vertex_shader);
@@ -116,7 +128,7 @@ int main(int /*argc*/, char** /*args*/) {
 		if (fragment_shader_compiled != GL_TRUE) {
 			char info_log[512] = { 0 };
 			glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-			fprintf(stderr, "Fragment shader failed to compile:\n%s\n", info_log);
+			fprintf(stderr, "error: Fragment shader failed to compile:\n%s\n", info_log);
 			exit(1);
 		}
 		glAttachShader(shader_program, fragment_shader);
@@ -128,7 +140,7 @@ int main(int /*argc*/, char** /*args*/) {
 		if (shader_program_linked != GL_TRUE) {
 			char info_log[512] = { 0 };
 			glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-			fprintf(stderr, "Shader program failed to link:\n%s\n", info_log);
+			fprintf(stderr, "error: Shader program failed to link:\n%s\n", info_log);
 			exit(1);
 		}
 
@@ -169,20 +181,65 @@ int main(int /*argc*/, char** /*args*/) {
 		glBindVertexArray(NULL);
 	}
 
+	/* Load engine DLL */
+	const char* library_name = "GameEngine2024";
+	EngineLibraryLoader library_loader;
+	EngineLibrary engine_library;
+	{
+		std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
+		if (load_result.has_value()) {
+			engine_library = load_result.value();
+		} else {
+			fprintf(stderr, "error: EngineLibraryLoader::load_library(%s) failed with: %s\n", library_name, load_library_error_to_string(load_result.error()));
+			exit(1);
+		}
+	}
+	printf("Engine library loaded\n");
+
 	/* Main loop */
+	timing::Timer frame_timer;
+	timing::Timer hot_reload_timer;
+	engine::EngineState engine_state;
 	bool quit = false;
 	while (!quit) {
+		const uint64_t delta_ms = frame_timer.elapsed_ms();
+		frame_timer.reset();
+
+		/* Hot reloading */
+		if (hot_reload_timer.elapsed_ms() >= 1000) {
+			hot_reload_timer.reset();
+
+			if (library_loader.library_file_has_been_modified()) {
+				library_loader.unload_library();
+
+				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
+				if (load_result.has_value()) {
+					engine_library = load_result.value();
+					printf("Engine library reloaded\n");
+				} else {
+					fprintf(stderr, "error: Failed to reload engine library, ");
+					fprintf(stderr, "EngineLibraryLoader::load_library(%s) failed with: %s\n", library_name, load_library_error_to_string(load_result.error()));
+				}
+			}
+		}
+
 		/* Input */
 		{
 			SDL_Event event;
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
 					case SDL_QUIT:
-					case SDL_KEYDOWN:
 						quit = true;
+					case SDL_KEYDOWN:
+						if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+							quit = true;
+						}
 				}
 			}
 		}
+
+		/* Update */
+		engine_library.engine_update(&engine_state, delta_ms);
 
 		/* Render */
 		{
@@ -198,7 +255,10 @@ int main(int /*argc*/, char** /*args*/) {
 		}
 	}
 
-	/* Shutdown */
+	/* Unload and delete copied engine DLL */
+	library_loader.unload_library();
+
+	/* Shutdown SDL + OpenGL */
 	{
 		glDeleteBuffers(1, &vbo);
 		glDeleteProgram(shader_program);
