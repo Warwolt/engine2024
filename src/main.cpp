@@ -1,5 +1,6 @@
 #include <engine.h>
 #include <platform/library_loader.h>
+#include <platform/logging.h>
 #include <platform/timing.h>
 
 #include <GL/glew.h>
@@ -46,6 +47,9 @@ void GLAPIENTRY on_opengl_error(
 }
 
 int main(int /* argc */, char** /* args */) {
+	platform::init_logging();
+	LOG_INFO("Game Engine 2024 initializing");
+
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
 	SDL_GLContext gl_context;

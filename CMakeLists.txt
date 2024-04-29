@@ -8,6 +8,7 @@ set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/glew)
 
 set(INC
     src
+    libs/plog/include
     ${GLEW_DIR}/include
     ${SDL_DIR}/include
 )
@@ -18,6 +19,7 @@ set(ENGINE_SRC
 
 set(PLATFORM_SRC
     src/platform/library_loader.cpp
+    src/platform/logging.cpp
     src/platform/timing.cpp
 )
 

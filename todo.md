@@ -1,5 +1,4 @@
 ## TODO
-- Add logging
 - Add ImGui
 - Add Google Test
 - Render Command API (draw line, shapes etc. as data that doesn't depend on OpenGL)
@@ -7,6 +6,7 @@
   - https://v8.dev/docs/embed
 
 ## Doing
+- Add logging
 
 ## Done
 - Add DLL based hot reloading
