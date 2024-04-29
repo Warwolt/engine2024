@@ -54,7 +54,7 @@ public:
 	std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
 
 	SDL_GLContext m_gl_context = nullptr;
-	std::vector<GLuint> m_shader_programs;
+	std::vector<ShaderProgram> m_shader_programs;
 };
 
 const char* VERTEX_SHADER_SRC =
@@ -126,13 +126,15 @@ Renderer::Renderer(SDL_Window* window) {
 }
 
 Renderer::~Renderer() {
-	for (GLuint program : m_shader_programs) {
-		glDeleteProgram(program);
+	for (const ShaderProgram& shader_program : m_shader_programs) {
+		glDeleteVertexArrays(1, &shader_program.vao);
+		glDeleteBuffers(1, &shader_program.vbo);
+		glDeleteProgram(shader_program.id);
 	}
 }
 
 std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const char* vertex_src, const char* fragment_src) {
-	GLuint shader_program = glCreateProgram();
+	GLuint shader_program_id = glCreateProgram();
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 
@@ -147,7 +149,7 @@ std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const cha
 		LOG_ERROR("Vertex shader failed to compile:\n%s", info_log);
 		return std::unexpected(ShaderProgramError::VertexShaderFailedToCompile);
 	}
-	glAttachShader(shader_program, vertex_shader);
+	glAttachShader(shader_program_id, vertex_shader);
 
 	/* Fragment shader */
 	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -161,15 +163,15 @@ std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const cha
 		LOG_ERROR("Fragment shader failed to compile:\n%s", info_log);
 		return std::unexpected(ShaderProgramError::FragmentShaderFailedToCompile);
 	}
-	glAttachShader(shader_program, fragment_shader);
+	glAttachShader(shader_program_id, fragment_shader);
 
 	/* Shader program */
-	glLinkProgram(shader_program);
+	glLinkProgram(shader_program_id);
 	GLint shader_program_linked = GL_FALSE;
-	glGetProgramiv(shader_program, GL_LINK_STATUS, &shader_program_linked);
+	glGetProgramiv(shader_program_id, GL_LINK_STATUS, &shader_program_linked);
 	if (shader_program_linked != GL_TRUE) {
 		char info_log[512] = { 0 };
-		glGetProgramInfoLog(shader_program, 512, NULL, info_log);
+		glGetProgramInfoLog(shader_program_id, 512, NULL, info_log);
 		LOG_ERROR("Shader program failed to link:\n%s", info_log);
 		return std::unexpected(ShaderProgramError::ShaderProgramFailedToLink);
 	}
@@ -197,7 +199,9 @@ std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const cha
 	glBindBuffer(GL_ARRAY_BUFFER, NULL);
 	glBindVertexArray(NULL);
 
-	return ShaderProgram { shader_program, vao, vbo };
+	ShaderProgram shader_program = { shader_program_id, vao, vbo };
+	m_shader_programs.push_back(shader_program);
+	return shader_program;
 }
 
 int main(int /* argc */, char** /* args */) {
@@ -343,12 +347,6 @@ int main(int /* argc */, char** /* args */) {
 	/* Unload and delete copied engine DLL */
 	// FIXME: `unload_library` should be called in the destructor of LibraryLoader
 	library_loader.unload_library();
-
-	/* Shutdown OpenGL */
-	{
-		glDeleteVertexArrays(1, &shader_program.vao);
-		glDeleteBuffers(1, &shader_program.vbo);
-	}
 
 	/* Shutdown SDL */
 	{
