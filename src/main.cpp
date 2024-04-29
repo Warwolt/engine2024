@@ -17,7 +17,26 @@ using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
 using LoadLibraryError = platform::LoadLibraryError;
 
+#include <expected>
 #include <vector>
+
+enum class ShaderProgramError {
+	VertexShaderFailedToCompile,
+	FragmentShaderFailedToCompile,
+	ShaderProgramFailedToLink,
+};
+
+const char* shader_program_error_to_string(ShaderProgramError error) {
+	switch (error) {
+		case ShaderProgramError::VertexShaderFailedToCompile:
+			return "ShaderProgramError::VertexShaderFailedToCompile";
+		case ShaderProgramError::FragmentShaderFailedToCompile:
+			return "ShaderProgramError::FragmentShaderFailedToCompile";
+		case ShaderProgramError::ShaderProgramFailedToLink:
+			return "ShaderProgramError::ShaderProgramFailedToLink";
+	}
+	return "";
+}
 
 struct ShaderProgram {
 	GLuint id;
@@ -30,7 +49,7 @@ public:
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
 
-	ShaderProgram add_program(const char* vertex_shader_src, const char* fragment_shader_src);
+	std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
 
 	SDL_GLContext m_gl_context = nullptr;
 	std::vector<GLuint> m_shader_programs;
@@ -110,14 +129,13 @@ Renderer::~Renderer() {
 	}
 }
 
-// TODO return std::expected here instead of exit(1)
-ShaderProgram Renderer::add_program(const char* vertex_shader_src, const char* fragment_shader_src) {
+std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const char* vertex_src, const char* fragment_src) {
 	GLuint shader_program = glCreateProgram();
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 
 	/* Vertex shader */
-	glShaderSource(vertex_shader, 1, &vertex_shader_src, NULL);
+	glShaderSource(vertex_shader, 1, &vertex_src, NULL);
 	glCompileShader(vertex_shader);
 	GLint vertex_shader_compiled = GL_FALSE;
 	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &vertex_shader_compiled);
@@ -125,13 +143,13 @@ ShaderProgram Renderer::add_program(const char* vertex_shader_src, const char* f
 		char info_log[512] = { 0 };
 		glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
 		LOG_ERROR("Vertex shader failed to compile:\n%s", info_log);
-		exit(1);
+		return std::unexpected(ShaderProgramError::VertexShaderFailedToCompile);
 	}
 	glAttachShader(shader_program, vertex_shader);
 
 	/* Fragment shader */
 	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
+	glShaderSource(fragment_shader, 1, &fragment_src, NULL);
 	glCompileShader(fragment_shader);
 	GLint fragment_shader_compiled = GL_FALSE;
 	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fragment_shader_compiled);
@@ -139,7 +157,7 @@ ShaderProgram Renderer::add_program(const char* vertex_shader_src, const char* f
 		char info_log[512] = { 0 };
 		glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
 		LOG_ERROR("Fragment shader failed to compile:\n%s", info_log);
-		exit(1);
+		return std::unexpected(ShaderProgramError::FragmentShaderFailedToCompile);
 	}
 	glAttachShader(shader_program, fragment_shader);
 
@@ -151,7 +169,7 @@ ShaderProgram Renderer::add_program(const char* vertex_shader_src, const char* f
 		char info_log[512] = { 0 };
 		glGetProgramInfoLog(shader_program, 512, NULL, info_log);
 		LOG_ERROR("Shader program failed to link:\n%s", info_log);
-		exit(1);
+		return std::unexpected(ShaderProgramError::ShaderProgramFailedToLink);
 	}
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
@@ -198,7 +216,16 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Initialize OpenGL */
 	Renderer renderer = Renderer(window);
-	ShaderProgram shader_program = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
+	ShaderProgram shader_program;
+	{
+		std::expected<ShaderProgram, ShaderProgramError> add_result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
+		if (add_result.has_value()) {
+			shader_program = add_result.value();
+		} else {
+			LOG_ERROR("Renderer::add_program() failed with: %s", shader_program_error_to_string(add_result.error()));
+			exit(1);
+		}
+	}
 
 	/* Setup render data */
 	GLuint vao = 0;
