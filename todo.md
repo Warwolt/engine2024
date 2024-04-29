@@ -1,5 +1,4 @@
 ## TODO
-- Add logging
 - Add ImGui
 - Add Google Test
 - Render Command API (draw line, shapes etc. as data that doesn't depend on OpenGL)
@@ -9,6 +8,7 @@
 ## Doing
 
 ## Done
+- Add logging
 - Add DLL based hot reloading
 - Add OpenGL
 - Add build github action

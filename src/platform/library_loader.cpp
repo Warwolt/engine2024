@@ -1,5 +1,7 @@
 #include <platform/library_loader.h>
 
+#include <platform/logging.h>
+
 namespace platform {
 
 	const char* load_library_error_to_string(LoadLibraryError err) {
@@ -18,7 +20,7 @@ namespace platform {
 		return ""; // unreachable
 	}
 
-	void print_last_winapi_error() {
+	std::string get_winapi_error() {
 		DWORD err_code = GetLastError();
 		char* err_msg;
 		if (!FormatMessage(
@@ -30,20 +32,22 @@ namespace platform {
 				0,
 				NULL
 			)) {
-			return;
+			return "";
 		}
 
 		static char buffer[1024];
 		_snprintf_s(buffer, sizeof(buffer), "%s", err_msg);
-		fprintf(stderr, "%s", buffer);
+		LOG_ERROR("%s", buffer);
 		LocalFree(err_msg);
+
+		return std::string(buffer);
 	}
 
 	std::optional<std::string> get_dll_full_path(HMODULE dll_module) {
 		char dll_full_path[MAX_PATH];
 		if (GetModuleFileName(dll_module, dll_full_path, sizeof(dll_full_path)) == 0) {
-			fprintf(stderr, "error: GetModuleFileName failed: ");
-			print_last_winapi_error();
+			std::string error = get_winapi_error();
+			LOG_ERROR("GetModuleFileName failed: %s", error.c_str());
 			return {};
 		}
 		return std::string(dll_full_path);
@@ -64,16 +68,16 @@ namespace platform {
 		/* Read time modified */
 		FILETIME create_time, access_time, write_time;
 		if (!GetFileTime(file, &create_time, &access_time, &write_time)) {
-			fprintf(stderr, "error: GetFileTime failed: ");
-			print_last_winapi_error();
+			std::string error = get_winapi_error();
+			LOG_ERROR("GetFileTime failed: %s", error.c_str());
 			CloseHandle(file);
 			return {};
 		}
 
 		FILETIME localized_write_time;
 		if (!FileTimeToLocalFileTime(&write_time, &localized_write_time)) {
-			fprintf(stderr, "error: FileTimeToLocalFileTime failed: ");
-			print_last_winapi_error();
+			std::string error = get_winapi_error();
+			LOG_ERROR("FileTimeToLocalFileTime failed: %s", error.c_str());
 			CloseHandle(file);
 			return {};
 		}
@@ -94,8 +98,8 @@ namespace platform {
 		/* Load library */
 		HMODULE library = LoadLibrary(library_name);
 		if (!library) {
-			fprintf(stderr, "error: LoadLibrary(\"%s\") failed: ", library_name);
-			print_last_winapi_error();
+			std::string error = get_winapi_error();
+			LOG_ERROR("LoadLibrary(\"%s\") failed: %s", library_name, error.c_str());
 			return std::unexpected(LoadLibraryError::FileDoesNotExist);
 		}
 
@@ -109,8 +113,8 @@ namespace platform {
 		/* Create a copy of library, so original file can still be modified */
 		const bool fail_if_already_exists = false; // overwrite file if already exists
 		if (!CopyFile(m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists)) {
-			fprintf(stderr, "error: CopyFile(\"%s\", \"%s\", %s) failed: ", m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false");
-			print_last_winapi_error();
+			std::string error = get_winapi_error();
+			LOG_ERROR("CopyFile(\"%s\", \"%s\", %s) failed: ", m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false", error.c_str());
 			return std::unexpected(LoadLibraryError::FailedToCopyLibrary);
 		}
 
@@ -118,15 +122,16 @@ namespace platform {
 		std::string copied_library_name = std::string(library_name) + "-copy";
 		m_copied_library = LoadLibrary(copied_library_name.c_str());
 		if (!m_copied_library) {
-			fprintf(stderr, "error: LoadLibrary(\"%s\") failed: ", copied_library_name.c_str());
-			print_last_winapi_error();
+			std::string error = get_winapi_error();
+			LOG_ERROR("LoadLibrary(\"%s\") failed: ", copied_library_name.c_str(), error.c_str());
 			return std::unexpected(LoadLibraryError::FailedToLoadCopiedLibrary);
 		}
 
 		/* Read last write timestamp */
 		std::optional<FILETIME> timestamp = file_last_modified(m_library_path.c_str());
 		if (!timestamp.has_value()) {
-			fprintf(stderr, "error: file_last_modified() failed for \"%s\"\n", m_library_path.c_str());
+			std::string error = get_winapi_error();
+			LOG_ERROR("file_last_modified() failed for \"%s\"", m_library_path.c_str(), error.c_str());
 			return std::unexpected(LoadLibraryError::FailedToReadLastModifiedTime);
 		}
 		m_last_library_write = timestamp.value();
@@ -138,7 +143,7 @@ namespace platform {
 			const char* fn_name = "engine_update";
 			EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(m_copied_library, fn_name));
 			if (!fn) {
-				fprintf(stderr, "error: GetProcAddress(\"%s\") returned null. Does the function exist?\n", fn_name);
+				LOG_ERROR("GetProcAddress(\"%s\") returned null. Does the function exist?", fn_name);
 				exit(1);
 			}
 			engine_library.engine_update = fn;
@@ -157,14 +162,14 @@ namespace platform {
 	void EngineLibraryLoader::unload_library() const {
 		/* Free copied engine DLL */
 		if (!FreeLibrary(m_copied_library)) {
-			fprintf(stderr, "error: FreeLibrary failed: ");
-			print_last_winapi_error();
+			std::string error = get_winapi_error();
+			LOG_ERROR("FreeLibrary failed: %s", error.c_str());
 		}
 
 		/* Delete copied engine DLL */
 		if (!DeleteFile(m_copied_library_path.c_str())) {
-			fprintf(stderr, "error: DeleteFile(\"%s\") failed: ", m_copied_library_path.c_str());
-			print_last_winapi_error();
+			std::string error = get_winapi_error();
+			LOG_ERROR("DeleteFile(\"%s\") failed: %s", m_copied_library_path.c_str(), error.c_str());
 		}
 	}
 

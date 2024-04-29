@@ -1,5 +1,6 @@
 #include <engine.h>
 #include <platform/library_loader.h>
+#include <platform/logging.h>
 #include <platform/timing.h>
 
 #include <GL/glew.h>
@@ -7,9 +8,6 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-
-#include <stdio.h>
-#include <stdlib.h>
 
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
@@ -33,26 +31,43 @@ const char* fragment_shader_src =
 	"    FragColor = vertexColor;\n"
 	"}";
 
+plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
+	switch (severity) {
+		case GL_DEBUG_SEVERITY_HIGH:
+			return plog::Severity::error;
+		case GL_DEBUG_SEVERITY_MEDIUM:
+		case GL_DEBUG_SEVERITY_LOW:
+			return plog::Severity::warning;
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			return plog::Severity::verbose;
+	}
+	return plog::none;
+}
+
 void GLAPIENTRY on_opengl_error(
 	GLenum /*source*/,
-	GLenum type,
+	GLenum /*type*/,
 	GLuint /*id*/,
-	GLenum severity,
+	GLenum gl_severity,
 	GLsizei /*length*/,
 	const GLchar* message,
 	const void* /*userParam*/
 ) {
-	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+	plog::Severity log_severity = opengl_severity_to_plog_severity(gl_severity);
+	LOG(log_severity, "%s", message);
 }
 
 int main(int /* argc */, char** /* args */) {
+	platform::init_logging();
+	LOG_INFO("Game Engine 2024 initializing");
+
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
 	SDL_GLContext gl_context;
 	{
 		/* Initialize SDL */
 		if (SDL_Init(SDL_INIT_VIDEO)) {
-			fprintf(stderr, "error: SDL_Init failed: %s\n", SDL_GetError());
+			LOG_ERROR("SDL_Init failed: %s", SDL_GetError());
 			exit(1);
 		}
 
@@ -72,27 +87,27 @@ int main(int /* argc */, char** /* args */) {
 			SDL_WINDOW_OPENGL
 		);
 		if (!window) {
-			fprintf(stderr, "error: SDL_CreateWindow failed: %s\n", SDL_GetError());
+			LOG_ERROR("SDL_CreateWindow failed: %s", SDL_GetError());
 			exit(1);
 		}
 
 		/* Create GL Context */
 		gl_context = SDL_GL_CreateContext(window);
 		if (!gl_context) {
-			fprintf(stderr, "error: SDL_GL_CreateContext failed: %s\n", SDL_GetError());
+			LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
 			exit(1);
 		}
 
 		/* Initialize GLEW */
 		const GLenum glewError = glewInit();
 		if (glewError != GLEW_OK) {
-			fprintf(stderr, "error: glewInit failed: %s\n", glewGetErrorString(glewError));
+			LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
 			exit(1);
 		}
 
 		/* Set VSync */
 		if (SDL_GL_SetSwapInterval(1)) {
-			fprintf(stderr, "error: SDL_GL_SetSwapInterval failed: %s\n", SDL_GetError());
+			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
 		}
 
 		/* Set OpenGL error callback */
@@ -114,7 +129,7 @@ int main(int /* argc */, char** /* args */) {
 		if (vertex_shader_compiled != GL_TRUE) {
 			char info_log[512] = { 0 };
 			glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-			fprintf(stderr, "error: Vertex shader failed to compile:\n%s\n", info_log);
+			LOG_ERROR("Vertex shader failed to compile:\n%s", info_log);
 			exit(1);
 		}
 		glAttachShader(shader_program, vertex_shader);
@@ -128,7 +143,7 @@ int main(int /* argc */, char** /* args */) {
 		if (fragment_shader_compiled != GL_TRUE) {
 			char info_log[512] = { 0 };
 			glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-			fprintf(stderr, "error: Fragment shader failed to compile:\n%s\n", info_log);
+			LOG_ERROR("Fragment shader failed to compile:\n%s", info_log);
 			exit(1);
 		}
 		glAttachShader(shader_program, fragment_shader);
@@ -140,7 +155,7 @@ int main(int /* argc */, char** /* args */) {
 		if (shader_program_linked != GL_TRUE) {
 			char info_log[512] = { 0 };
 			glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-			fprintf(stderr, "error: Shader program failed to link:\n%s\n", info_log);
+			LOG_ERROR("Shader program failed to link:\n%s", info_log);
 			exit(1);
 		}
 
@@ -190,11 +205,11 @@ int main(int /* argc */, char** /* args */) {
 		if (load_result.has_value()) {
 			engine_library = load_result.value();
 		} else {
-			fprintf(stderr, "error: EngineLibraryLoader::load_library(%s) failed with: %s\n", library_name, load_library_error_to_string(load_result.error()));
+			LOG_ERROR("EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
 			exit(1);
 		}
 	}
-	printf("Engine library loaded\n");
+	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
 	timing::Timer frame_timer;
@@ -215,10 +230,9 @@ int main(int /* argc */, char** /* args */) {
 				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
 				if (load_result.has_value()) {
 					engine_library = load_result.value();
-					printf("Engine library reloaded\n");
+					LOG_INFO("Engine library reloaded");
 				} else {
-					fprintf(stderr, "error: Failed to reload engine library, ");
-					fprintf(stderr, "EngineLibraryLoader::load_library(%s) failed with: %s\n", library_name, load_library_error_to_string(load_result.error()));
+					LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
 				}
 			}
 		}
