@@ -20,6 +20,19 @@ using LoadLibraryError = platform::LoadLibraryError;
 #include <expected>
 #include <vector>
 
+struct RendererVertex {
+	struct {
+		float x;
+		float y;
+		float z;
+	} pos;
+	struct {
+		float r;
+		float g;
+		float b;
+	} color;
+};
+
 enum class ShaderProgramError {
 	VertexShaderFailedToCompile,
 	FragmentShaderFailedToCompile,
@@ -258,17 +271,18 @@ int main(int /* argc */, char** /* args */) {
 	{
 		/* Set buffer data */
 		// clang-format off
-		float vertices[] = {
+		RendererVertex vertices[] = {
 			// positions         // colors
-			0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   // bottom right
-			-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-			0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f    // top
+			{.pos = {0.5f, -0.5f, 0.0f},   .color = {1.0f, 0.0f, 0.0f}},   // bottom right
+			{.pos = {-0.5f, -0.5f, 0.0f},  .color = {0.0f, 1.0f, 0.0f}},   // bottom left
+			{.pos = {0.0f,  0.5f, 0.0f},   .color = {0.0f, 0.0f, 1.0f}},    // top
 		};
 		// clang-format on
 
 		glBindVertexArray(shader_program.vao);
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		// TODO actuall compute `18 * sizeof(float)` instead of hardcoding it
+		glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(float), vertices, GL_STATIC_DRAW);
 	}
 
 	/* Load engine DLL */
