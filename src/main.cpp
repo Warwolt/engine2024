@@ -227,25 +227,15 @@ int main(int /* argc */, char** /* args */) {
 		}
 	}
 
-	/* Setup render data */
+	/* Create VAO and VBO */
 	GLuint vao = 0;
 	GLuint vbo = 0;
 	{
 		glGenVertexArrays(1, &vao);
 		glGenBuffers(1, &vbo);
 
-		/* Set buffer data */
-		// clang-format off
-		float vertices[] = {
-			// positions         // colors
-			0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   // bottom right
-			-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-			0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f    // top
-		};
-		// clang-format on
 		glBindVertexArray(vao);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 		/* Configure vertex attributes */
 		// position
@@ -258,6 +248,23 @@ int main(int /* argc */, char** /* args */) {
 		/* Unbind */
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
+	}
+
+	/* Upload vertices */
+	{
+		/* Set buffer data */
+		// clang-format off
+		float vertices[] = {
+			// positions         // colors
+			0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   // bottom right
+			-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+			0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f    // top
+		};
+		// clang-format on
+
+		glBindVertexArray(vao);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	}
 
 	/* Load engine DLL */
