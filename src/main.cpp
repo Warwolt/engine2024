@@ -8,7 +8,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
-#include <optional>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -198,21 +197,28 @@ int main(int /* argc */, char** /* args */) {
 	printf("Engine library loaded\n");
 
 	/* Main loop */
+	timing::Timer frame_timer;
 	timing::Timer hot_reload_timer;
 	engine::EngineState engine_state;
 	bool quit = false;
 	while (!quit) {
+		const uint64_t delta_ms = frame_timer.elapsed_ms();
+		frame_timer.reset();
+
 		/* Hot reloading */
 		if (hot_reload_timer.elapsed_ms() >= 1000) {
 			hot_reload_timer.reset();
+
 			if (library_loader.library_file_has_been_modified()) {
 				library_loader.unload_library();
+
 				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
 				if (load_result.has_value()) {
 					engine_library = load_result.value();
 					printf("Engine library reloaded\n");
 				} else {
-					fprintf(stderr, "error: Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s\n", library_name, load_library_error_to_string(load_result.error()));
+					fprintf(stderr, "error: Failed to reload engine library, ");
+					fprintf(stderr, "EngineLibraryLoader::load_library(%s) failed with: %s\n", library_name, load_library_error_to_string(load_result.error()));
 				}
 			}
 		}
@@ -233,7 +239,7 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Update */
-		engine_library.engine_update(&engine_state);
+		engine_library.engine_update(&engine_state, delta_ms);
 
 		/* Render */
 		{

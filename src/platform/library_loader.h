@@ -7,14 +7,15 @@
 
 #include <expected>
 #include <functional>
+#include <optional>
 #include <string>
 
 namespace platform {
 
-	using EngineUpdateFn = void(engine::EngineState*);
+	using EngineUpdateFn = void(engine::EngineState*, uint64_t);
 
 	struct EngineLibrary {
-		std::function<EngineUpdateFn> engine_update = [](engine::EngineState*) {};
+		std::function<EngineUpdateFn> engine_update;
 	};
 
 	enum class LoadLibraryError {

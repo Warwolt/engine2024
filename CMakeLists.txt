@@ -12,10 +12,13 @@ set(INC
     ${SDL_DIR}/include
 )
 
-set(SRC
+set(ENGINE_SRC
+    src/engine.cpp
+)
+
+set(PLATFORM_SRC
     src/platform/library_loader.cpp
     src/platform/timing.cpp
-    src/engine.cpp
 )
 
 set(LIB
@@ -37,12 +40,12 @@ set(DLLS
     ${SDL_DIR}/lib/SDL2_ttf.dll
 )
 
-add_library(${MAIN_LIBRARY} SHARED ${SRC})
+add_library(${MAIN_LIBRARY} SHARED ${ENGINE_SRC})
 set_property(TARGET ${MAIN_LIBRARY} PROPERTY OUTPUT_NAME ${MAIN_BINARY})
 target_include_directories(${MAIN_LIBRARY} PRIVATE ${INC})
 target_compile_definitions(${MAIN_LIBRARY} PRIVATE ENGINE24_EXPORTS)
 
-add_executable(${MAIN_BINARY} src/main.cpp ${SRC})
+add_executable(${MAIN_BINARY} src/main.cpp ${PLATFORM_SRC})
 target_include_directories(${MAIN_BINARY} PRIVATE ${INC})
 target_link_libraries(${MAIN_BINARY} PRIVATE ${LIB})
 
