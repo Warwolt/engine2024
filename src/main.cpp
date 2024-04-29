@@ -17,7 +17,26 @@ using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
 using LoadLibraryError = platform::LoadLibraryError;
 
-const char* vertex_shader_src =
+#include <vector>
+
+struct ShaderProgram {
+	GLuint id;
+};
+
+class Renderer {
+public:
+	Renderer(SDL_Window* window);
+	~Renderer();
+	Renderer(const Renderer&) = delete;
+	Renderer& operator=(const Renderer&) = delete;
+
+	ShaderProgram add_program(const char* vertex_shader_src, const char* fragment_shader_src);
+
+	SDL_GLContext m_gl_context = nullptr;
+	std::vector<GLuint> m_shader_programs;
+};
+
+const char* VERTEX_SHADER_SRC =
 	"#version 330 core\n"
 	"layout (location = 0) in vec3 aPos;\n"
 	"layout (location = 1) in vec3 aColor;\n"
@@ -27,7 +46,7 @@ const char* vertex_shader_src =
 	"    vertexColor = vec4(aColor, 1.0);\n"
 	"}";
 
-const char* fragment_shader_src =
+const char* FRAGMENT_SHADER_SRC =
 	"#version 330 core\n"
 	"out vec4 FragColor;\n"
 	"in vec4 vertexColor;\n"
@@ -61,6 +80,85 @@ void GLAPIENTRY on_opengl_error(
 	LOG(log_severity, "%s", message);
 }
 
+Renderer::Renderer(SDL_Window* window) {
+	/* Create GL Context */
+	m_gl_context = SDL_GL_CreateContext(window);
+	if (!m_gl_context) {
+		LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
+		exit(1);
+	}
+
+	/* Initialize GLEW */
+	const GLenum glewError = glewInit();
+	if (glewError != GLEW_OK) {
+		LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
+		exit(1);
+	}
+
+	/* Set OpenGL error callback */
+	glDebugMessageCallback(on_opengl_error, 0);
+
+	/* Enable v-sync */
+	if (SDL_GL_SetSwapInterval(1)) {
+		LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
+	}
+}
+
+Renderer::~Renderer() {
+	for (GLuint program : m_shader_programs) {
+		glDeleteProgram(program);
+	}
+}
+
+// TODO return std::expected here instead of exit(1)
+ShaderProgram Renderer::add_program(const char* vertex_shader_src, const char* fragment_shader_src) {
+	GLuint shader_program = glCreateProgram();
+	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+
+	/* Vertex shader */
+	glShaderSource(vertex_shader, 1, &vertex_shader_src, NULL);
+	glCompileShader(vertex_shader);
+	GLint vertex_shader_compiled = GL_FALSE;
+	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &vertex_shader_compiled);
+	if (vertex_shader_compiled != GL_TRUE) {
+		char info_log[512] = { 0 };
+		glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
+		LOG_ERROR("Vertex shader failed to compile:\n%s", info_log);
+		exit(1);
+	}
+	glAttachShader(shader_program, vertex_shader);
+
+	/* Fragment shader */
+	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
+	glCompileShader(fragment_shader);
+	GLint fragment_shader_compiled = GL_FALSE;
+	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fragment_shader_compiled);
+	if (fragment_shader_compiled != GL_TRUE) {
+		char info_log[512] = { 0 };
+		glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
+		LOG_ERROR("Fragment shader failed to compile:\n%s", info_log);
+		exit(1);
+	}
+	glAttachShader(shader_program, fragment_shader);
+
+	/* Shader program */
+	glLinkProgram(shader_program);
+	GLint shader_program_linked = GL_FALSE;
+	glGetProgramiv(shader_program, GL_LINK_STATUS, &shader_program_linked);
+	if (shader_program_linked != GL_TRUE) {
+		char info_log[512] = { 0 };
+		glGetProgramInfoLog(shader_program, 512, NULL, info_log);
+		LOG_ERROR("Shader program failed to link:\n%s", info_log);
+		exit(1);
+	}
+	glDeleteShader(vertex_shader);
+	glDeleteShader(fragment_shader);
+
+	return ShaderProgram { shader_program };
+}
+
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -70,7 +168,6 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
-	SDL_GLContext gl_context;
 	{
 		/* Initialize SDL */
 		if (SDL_Init(SDL_INIT_VIDEO)) {
@@ -97,78 +194,11 @@ int main(int /* argc */, char** /* args */) {
 			LOG_ERROR("SDL_CreateWindow failed: %s", SDL_GetError());
 			exit(1);
 		}
-
-		/* Create GL Context */
-		gl_context = SDL_GL_CreateContext(window);
-		if (!gl_context) {
-			LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
-			exit(1);
-		}
-
-		/* Initialize GLEW */
-		const GLenum glewError = glewInit();
-		if (glewError != GLEW_OK) {
-			LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
-			exit(1);
-		}
-
-		/* Set VSync */
-		if (SDL_GL_SetSwapInterval(1)) {
-			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
-		}
-
-		/* Set OpenGL error callback */
-		glDebugMessageCallback(on_opengl_error, 0);
 	}
 
-	/* Initialize shader */
-	GLuint shader_program = 0;
-	{
-		shader_program = glCreateProgram();
-		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-
-		/* Vertex shader */
-		glShaderSource(vertex_shader, 1, &vertex_shader_src, NULL);
-		glCompileShader(vertex_shader);
-		GLint vertex_shader_compiled = GL_FALSE;
-		glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &vertex_shader_compiled);
-		if (vertex_shader_compiled != GL_TRUE) {
-			char info_log[512] = { 0 };
-			glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-			LOG_ERROR("Vertex shader failed to compile:\n%s", info_log);
-			exit(1);
-		}
-		glAttachShader(shader_program, vertex_shader);
-
-		/* Fragment shader */
-		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
-		glCompileShader(fragment_shader);
-		GLint fragment_shader_compiled = GL_FALSE;
-		glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fragment_shader_compiled);
-		if (fragment_shader_compiled != GL_TRUE) {
-			char info_log[512] = { 0 };
-			glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-			LOG_ERROR("Fragment shader failed to compile:\n%s", info_log);
-			exit(1);
-		}
-		glAttachShader(shader_program, fragment_shader);
-
-		/* Shader program */
-		glLinkProgram(shader_program);
-		GLint shader_program_linked = GL_FALSE;
-		glGetProgramiv(shader_program, GL_LINK_STATUS, &shader_program_linked);
-		if (shader_program_linked != GL_TRUE) {
-			char info_log[512] = { 0 };
-			glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-			LOG_ERROR("Shader program failed to link:\n%s", info_log);
-			exit(1);
-		}
-
-		glDeleteShader(vertex_shader);
-		glDeleteShader(fragment_shader);
-	}
+	/* Initialize OpenGL */
+	Renderer renderer = Renderer(window);
+	ShaderProgram shader_program = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
 
 	/* Setup render data */
 	GLuint vao = 0;
@@ -266,7 +296,7 @@ int main(int /* argc */, char** /* args */) {
 		{
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
-			glUseProgram(shader_program);
+			glUseProgram(shader_program.id);
 			glBindVertexArray(vao);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindBuffer(GL_ARRAY_BUFFER, NULL);
@@ -277,12 +307,16 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Unload and delete copied engine DLL */
+	// FIXME: `unload_library` should be called in the destructor of LibraryLoader
 	library_loader.unload_library();
 
-	/* Shutdown SDL + OpenGL */
+	/* Shutdown OpenGL */
 	{
 		glDeleteBuffers(1, &vbo);
-		glDeleteProgram(shader_program);
+	}
+
+	/* Shutdown SDL */
+	{
 		SDL_DestroyWindow(window);
 		SDL_Quit();
 	}
