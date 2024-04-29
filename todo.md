@@ -1,11 +1,12 @@
 ## TODO
 - Add ImGui
 - Add Google Test
-- Render Command API (draw line, shapes etc. as data that doesn't depend on OpenGL)
+- Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Add TypeScript (maybe)
   - https://v8.dev/docs/embed
 
 ## Doing
+- Render APIs
 
 ## Done
 - Add logging
