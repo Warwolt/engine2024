@@ -6,9 +6,9 @@
   - https://v8.dev/docs/embed
 
 ## Doing
-- Add logging
 
 ## Done
+- Add logging
 - Add DLL based hot reloading
 - Add OpenGL
 - Add build github action
