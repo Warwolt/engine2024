@@ -40,6 +40,8 @@ const char* shader_program_error_to_string(ShaderProgramError error) {
 
 struct ShaderProgram {
 	GLuint id;
+	GLuint vao;
+	GLuint vbo;
 };
 
 class Renderer {
@@ -174,7 +176,28 @@ std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const cha
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
 
-	return ShaderProgram { shader_program };
+	/* Create VAO and VBO */
+	GLuint vao = 0;
+	GLuint vbo = 0;
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	/* Configure vertex attributes */
+	// position
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));
+	glEnableVertexAttribArray(0);
+	// color
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	/* Unbind */
+	glBindBuffer(GL_ARRAY_BUFFER, NULL);
+	glBindVertexArray(NULL);
+
+	return ShaderProgram { shader_program, vao, vbo };
 }
 
 int main(int /* argc */, char** /* args */) {
@@ -227,29 +250,6 @@ int main(int /* argc */, char** /* args */) {
 		}
 	}
 
-	/* Create VAO and VBO */
-	GLuint vao = 0;
-	GLuint vbo = 0;
-	{
-		glGenVertexArrays(1, &vao);
-		glGenBuffers(1, &vbo);
-
-		glBindVertexArray(vao);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-		/* Configure vertex attributes */
-		// position
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));
-		glEnableVertexAttribArray(0);
-		// color
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-
-		/* Unbind */
-		glBindBuffer(GL_ARRAY_BUFFER, NULL);
-		glBindVertexArray(NULL);
-	}
-
 	/* Upload vertices */
 	{
 		/* Set buffer data */
@@ -262,8 +262,8 @@ int main(int /* argc */, char** /* args */) {
 		};
 		// clang-format on
 
-		glBindVertexArray(vao);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBindVertexArray(shader_program.vao);
+		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	}
 
@@ -331,7 +331,7 @@ int main(int /* argc */, char** /* args */) {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 			glUseProgram(shader_program.id);
-			glBindVertexArray(vao);
+			glBindVertexArray(shader_program.vao);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindBuffer(GL_ARRAY_BUFFER, NULL);
 			glBindVertexArray(NULL);
@@ -346,7 +346,8 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Shutdown OpenGL */
 	{
-		glDeleteBuffers(1, &vbo);
+		glDeleteVertexArrays(1, &shader_program.vao);
+		glDeleteBuffers(1, &shader_program.vbo);
 	}
 
 	/* Shutdown SDL */
