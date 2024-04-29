@@ -11,6 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+using EngineLibrary = platform::EngineLibrary;
+using EngineLibraryLoader = platform::EngineLibraryLoader;
+using LoadLibraryError = platform::LoadLibraryError;
+
 const char* vertex_shader_src =
 	"#version 330 core\n"
 	"layout (location = 0) in vec3 aPos;\n"
@@ -42,8 +46,6 @@ void GLAPIENTRY on_opengl_error(
 }
 
 int main(int /* argc */, char** /* args */) {
-	printf("Game Engine 2024 Initializing\n");
-
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
 	SDL_GLContext gl_context;
@@ -181,10 +183,10 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Load engine DLL */
 	const char* library_name = "GameEngine2024";
-	platform::EngineLibraryLoader library_loader;
-	platform::EngineLibrary engine_library;
+	EngineLibraryLoader library_loader;
+	EngineLibrary engine_library;
 	{
-		std::expected<platform::EngineLibrary, platform::LoadLibraryError> load_result = library_loader.load_library(library_name);
+		std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
 		if (load_result.has_value()) {
 			engine_library = load_result.value();
 		} else {
@@ -204,7 +206,7 @@ int main(int /* argc */, char** /* args */) {
 			hot_reload_timer.reset();
 			if (library_loader.library_file_has_been_modified()) {
 				library_loader.unload_library();
-				std::expected<platform::EngineLibrary, platform::LoadLibraryError> load_result = library_loader.load_library(library_name);
+				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
 				if (load_result.has_value()) {
 					engine_library = load_result.value();
 					printf("Engine library reloaded\n");
