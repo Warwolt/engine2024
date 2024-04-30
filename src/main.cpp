@@ -65,6 +65,8 @@ public:
 	Renderer& operator=(const Renderer&) = delete;
 
 	std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
+	void clear_screen();
+	void render(SDL_Window* window);
 
 	SDL_GLContext m_gl_context = nullptr;
 	std::vector<ShaderProgram> m_shader_programs;
@@ -217,6 +219,15 @@ std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const cha
 	return shader_program;
 }
 
+void Renderer::clear_screen() {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void Renderer::render(SDL_Window* window) {
+	SDL_GL_SwapWindow(window);
+}
+
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -343,15 +354,15 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Render */
 		{
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
+			renderer.clear_screen();
+
 			glUseProgram(shader_program.id);
 			glBindVertexArray(shader_program.vao);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindBuffer(GL_ARRAY_BUFFER, NULL);
 			glBindVertexArray(NULL);
 
-			SDL_GL_SwapWindow(window);
+			renderer.render(window);
 		}
 	}
 
