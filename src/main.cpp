@@ -129,13 +129,12 @@ int main(int /* argc */, char** /* args */) {
 	Renderer renderer;
 	ShaderProgram shader_program;
 	{
-		std::expected<ShaderProgram, ShaderProgramError> add_result = renderer.add_program(gl_context, VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
-		if (add_result.has_value()) {
-			shader_program = add_result.value();
-		} else {
-			LOG_ERROR("Renderer::add_program() failed with: %s", platform::shader_program_error_to_string(add_result.error()));
+		std::expected<ShaderProgram, ShaderProgramError> result = renderer.add_program(gl_context, VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
+		if (!result.has_value()) {
+			LOG_ERROR("Renderer::add_program() failed with: %s", platform::shader_program_error_to_string(result.error()));
 			exit(1);
 		}
+		shader_program = result.value();
 	}
 
 	/* Load engine DLL */
@@ -144,13 +143,13 @@ int main(int /* argc */, char** /* args */) {
 	EngineLibrary engine_library;
 	{
 		std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
-		if (load_result.has_value()) {
-			engine_library = load_result.value();
-		} else {
-			LOG_ERROR("EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
+		if (!load_result.has_value()) {
+			const char* error_str = load_library_error_to_string(load_result.error());
+			LOG_ERROR("EngineLibraryLoader::load_library(%s) failed with: %s", library_name, error_str);
 			exit(1);
 		}
-	}
+		engine_library = load_result.value();
+	};
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
@@ -169,13 +168,15 @@ int main(int /* argc */, char** /* args */) {
 
 			if (library_loader.library_file_has_been_modified()) {
 				library_loader.unload_library();
+				{
+					std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
+					if (!load_result.has_value()) {
+						LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
 
-				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
-				if (load_result.has_value()) {
-					engine_library = load_result.value();
-					LOG_INFO("Engine library reloaded");
-				} else {
-					LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
+					} else {
+						LOG_INFO("Engine library reloaded");
+						engine_library = load_result.value();
+					}
 				}
 			}
 		}

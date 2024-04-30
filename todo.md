@@ -1,4 +1,5 @@
 ## TODO
+- Add ASSERT macro that logs error, debug breaks, then exits
 - Only use warnings as errors in CI build, not local
 - Render textures
 - Add ImGui
