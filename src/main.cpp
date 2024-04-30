@@ -58,6 +58,8 @@ struct ShaderProgram {
 
 class RenderAPI {
 public:
+	// draw_rect(p0, p1, color)
+
 	std::vector<Vertex> vertices;
 	std::vector<VertexSection> sections;
 };
