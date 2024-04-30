@@ -63,23 +63,26 @@ namespace platform {
 		m_sections.clear();
 	}
 
-	void DrawData::draw_rect(glm::vec3 p0, glm::vec3 p1, glm::vec3 color) {
-		// float x0 = p0.x;
-		// float x1 = p1.x;
-		// float y0 = p0.y;
-		// float y1 = p1.y;
+	void DrawData::draw_rect_fill(glm::vec3 p0, glm::vec3 p1, glm::vec3 color) {
+		// (x0, y0) ------ (x1, y0)
+		//     |              |
+		//     |              |
+		//     |              |
+		// (x0, y1) ------ (x1, y1)
+		float x0 = p0.x;
+		float x1 = p1.x;
+		float y0 = p0.y;
+		float y1 = p1.y;
 
-		// m_vertices.push_back()
+		// first triangle
+		m_vertices.push_back({ .pos = { x0, y0 }, .color = color });
+		m_vertices.push_back({ .pos = { x0, y1 }, .color = color });
+		m_vertices.push_back({ .pos = { x1, y0 }, .color = color });
 
-		// (x0, y0) -------- (x1, y0)
-		//     |                |
-		//     |                |
-		//     |                |
-		// (x0, y1) -------- (x1, y1)
-		(void)(p0);
-		(void)(p1);
-		(void)(color);
-		//
+		// second triangle
+		m_vertices.push_back({ .pos = { x0, y1 }, .color = color });
+		m_vertices.push_back({ .pos = { x1, y0 }, .color = color });
+		m_vertices.push_back({ .pos = { x1, y1 }, .color = color });
 	}
 
 	Renderer::Renderer(SDL_Window* window) {
@@ -170,10 +173,10 @@ namespace platform {
 
 		/* Configure vertex attributes */
 		// position
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(0));
 		glEnableVertexAttribArray(0);
 		// color
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
 		glEnableVertexAttribArray(1);
 
 		/* Unbind */

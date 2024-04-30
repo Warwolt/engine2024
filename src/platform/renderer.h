@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
 #include <expected>
@@ -10,7 +11,7 @@
 namespace platform {
 
 	struct Vertex {
-		glm::vec3 pos;
+		glm::vec2 pos;
 		glm::vec3 color;
 	};
 
@@ -44,7 +45,7 @@ namespace platform {
 	class DrawData {
 	public:
 		void clear();
-		void draw_rect(glm::vec3 p0, glm::vec3 p1, glm::vec3 color);
+		void draw_rect_fill(glm::vec3 p0, glm::vec3 p1, glm::vec3 color);
 
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;

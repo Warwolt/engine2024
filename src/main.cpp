@@ -24,11 +24,11 @@ using VertexSection = platform::VertexSection;
 
 const char* VERTEX_SHADER_SRC =
 	"#version 330 core\n"
-	"layout (location = 0) in vec3 aPos;\n"
+	"layout (location = 0) in vec2 aPos;\n"
 	"layout (location = 1) in vec3 aColor;\n"
 	"out vec4 vertexColor;\n"
 	"void main() {\n"
-	"    gl_Position = vec4(aPos, 1.0);\n"
+	"    gl_Position = vec4(aPos, 0.0, 1.0);\n"
 	"    vertexColor = vec4(aColor, 1.0);\n"
 	"}";
 
@@ -149,13 +149,13 @@ int main(int /* argc */, char** /* args */) {
 		// set vertices
 		draw_data.m_vertices = {
 			// triangle 1
-			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
-			{ .pos = { 0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top right
-			{ .pos = { -0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
+			{ .pos = { 0.5f, -0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
+			{ .pos = { 0.5f, 0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // top right
+			{ .pos = { -0.5f, 0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
 			// triangle 2
-			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
-			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom left
-			{ .pos = { -0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
+			{ .pos = { 0.5f, -0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
+			{ .pos = { -0.5f, -0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom left
+			{ .pos = { -0.5f, 0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
 		};
 		draw_data.m_sections = {
 			{ .primitive = Primitive::Triangle, .length = 3 },
