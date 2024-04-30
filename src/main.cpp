@@ -270,19 +270,16 @@ int main(int /* argc */, char** /* args */) {
 	/* Upload vertices */
 	{
 		/* Set buffer data */
-		// clang-format off
 		RendererVertex vertices[] = {
 			// positions         // colors
-			{.pos = {0.5f, -0.5f, 0.0f},   .color = {1.0f, 0.0f, 0.0f}},   // bottom right
-			{.pos = {-0.5f, -0.5f, 0.0f},  .color = {0.0f, 1.0f, 0.0f}},   // bottom left
-			{.pos = {0.0f,  0.5f, 0.0f},   .color = {0.0f, 0.0f, 1.0f}},    // top
+			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.0f, 0.0f } }, // bottom right
+			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 0.0f, 1.0f, 0.0f } }, // bottom left
+			{ .pos = { 0.0f, 0.5f, 0.0f }, .color = { 0.0f, 0.0f, 1.0f } }, // top
 		};
-		// clang-format on
 
 		glBindVertexArray(shader_program.vao);
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
-		// TODO actuall compute `18 * sizeof(float)` instead of hardcoding it
-		glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(float), vertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	}
 
 	/* Load engine DLL */
