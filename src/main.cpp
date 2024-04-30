@@ -56,17 +56,11 @@ struct ShaderProgram {
 	GLuint vbo;
 };
 
-GLenum primitive_to_draw_array_mode(Primitive primitive) {
-	switch (primitive) {
-		case Primitive::Point:
-			return GL_POINTS;
-		case Primitive::Line:
-			return GL_LINES;
-		case Primitive::Triangle:
-			return GL_TRIANGLES;
-	}
-	return 0;
-}
+class RenderAPI {
+public:
+	std::vector<Vertex> vertices;
+	std::vector<VertexSection> sections;
+};
 
 GLenum primitive_to_draw_array_mode(Primitive primitive) {
 	switch (primitive) {
@@ -329,6 +323,7 @@ int main(int /* argc */, char** /* args */) {
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
+	RenderAPI render_api;
 	timing::Timer frame_timer;
 	timing::Timer hot_reload_timer;
 	engine::EngineState engine_state;
@@ -372,7 +367,7 @@ int main(int /* argc */, char** /* args */) {
 		/* Update */
 		engine_library.engine_update(&engine_state, delta_ms);
 		// set vertices
-		Vertex vertices[] = {
+		render_api.vertices = {
 			// triangle 1
 			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.0f, 0.0f } }, // bottom right
 			{ .pos = { 0.5f, 0.5f, 0.0f }, .color = { 0.0f, 1.0f, 0.0f } }, // top right
@@ -382,7 +377,7 @@ int main(int /* argc */, char** /* args */) {
 			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 0.0f, 1.0f, 0.0f } }, // bottom left
 			{ .pos = { -0.5f, 0.5f, 0.0f }, .color = { 0.0f, 0.0f, 1.0f } }, // top left
 		};
-		VertexSection sections[] = {
+		render_api.sections = {
 			{ .primitive = Primitive::Triangle, .length = 3 },
 			{ .primitive = Primitive::Triangle, .length = 3 },
 		};
@@ -396,7 +391,7 @@ int main(int /* argc */, char** /* args */) {
 			glBindVertexArray(shader_program.vao);
 			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
 			{
-				glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+				glBufferData(GL_ARRAY_BUFFER, render_api.vertices.size() * sizeof(Vertex), render_api.vertices.data(), GL_STATIC_DRAW);
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, NULL);
 			glBindVertexArray(NULL);
@@ -408,7 +403,7 @@ int main(int /* argc */, char** /* args */) {
 			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
 			{
 				GLint offset = 0;
-				for (const VertexSection& section : sections) {
+				for (const VertexSection& section : render_api.sections) {
 					GLenum mode = primitive_to_draw_array_mode(section.primitive);
 					glDrawArrays(mode, offset, section.length);
 					offset += section.length;
