@@ -94,10 +94,24 @@ namespace platform {
 
 		/* Configure vertex attributes */
 		// position
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(0));
+		glVertexAttribPointer(
+			0,
+			sizeof(Vertex::pos) / sizeof(float),
+			GL_FLOAT,
+			GL_FALSE,
+			sizeof(Vertex),
+			(void*)(0)
+		);
 		glEnableVertexAttribArray(0);
 		// color
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+		glVertexAttribPointer(
+			1,
+			sizeof(Vertex::color) / sizeof(float),
+			GL_FLOAT,
+			GL_FALSE,
+			sizeof(Vertex),
+			(void*)(sizeof(Vertex::pos))
+		);
 		glEnableVertexAttribArray(1);
 
 		/* Unbind */
