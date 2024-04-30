@@ -8,6 +8,7 @@ set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/glew)
 
 set(INC
     src
+    libs/glm
     libs/plog/include
     ${GLEW_DIR}/include
     ${SDL_DIR}/include
