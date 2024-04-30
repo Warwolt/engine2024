@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <glm/vec3.hpp>
 
 #include <expected>
 #include <vector>
@@ -9,16 +10,8 @@
 namespace platform {
 
 	struct Vertex {
-		struct {
-			float x;
-			float y;
-			float z;
-		} pos;
-		struct {
-			float r;
-			float g;
-			float b;
-		} color;
+		glm::vec3 pos;
+		glm::vec3 color;
 	};
 
 	enum class Primitive {
@@ -50,10 +43,11 @@ namespace platform {
 
 	class DrawData {
 	public:
-		// draw_rect(p0, p1, color)
+		void clear();
+		void draw_rect(glm::vec3 p0, glm::vec3 p1, glm::vec3 color);
 
-		std::vector<Vertex> vertices;
-		std::vector<VertexSection> sections;
+		std::vector<Vertex> m_vertices;
+		std::vector<VertexSection> m_sections;
 	};
 
 	class Renderer {

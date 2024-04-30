@@ -58,6 +58,30 @@ namespace platform {
 		return "";
 	}
 
+	void DrawData::clear() {
+		m_vertices.clear();
+		m_sections.clear();
+	}
+
+	void DrawData::draw_rect(glm::vec3 p0, glm::vec3 p1, glm::vec3 color) {
+		// float x0 = p0.x;
+		// float x1 = p1.x;
+		// float y0 = p0.y;
+		// float y1 = p1.y;
+
+		// m_vertices.push_back()
+
+		// (x0, y0) -------- (x1, y0)
+		//     |                |
+		//     |                |
+		//     |                |
+		// (x0, y1) -------- (x1, y1)
+		(void)(p0);
+		(void)(p1);
+		(void)(color);
+		//
+	}
+
 	Renderer::Renderer(SDL_Window* window) {
 		/* Create GL Context */
 		m_gl_context = SDL_GL_CreateContext(window);
@@ -172,13 +196,13 @@ namespace platform {
 
 		// upload vertices
 		{
-			glBufferData(GL_ARRAY_BUFFER, draw_data->vertices.size() * sizeof(Vertex), draw_data->vertices.data(), GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, draw_data->m_vertices.size() * sizeof(Vertex), draw_data->m_vertices.data(), GL_STATIC_DRAW);
 		}
 
 		// draw vertices
 		{
 			GLint offset = 0;
-			for (const VertexSection& section : draw_data->sections) {
+			for (const VertexSection& section : draw_data->m_sections) {
 				GLenum mode = platform::primitive_to_draw_array_mode(section.primitive);
 				glDrawArrays(mode, offset, section.length);
 				offset += section.length;

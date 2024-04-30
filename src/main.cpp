@@ -147,7 +147,7 @@ int main(int /* argc */, char** /* args */) {
 		/* Update */
 		engine_library.engine_update(&engine_state, delta_ms);
 		// set vertices
-		draw_data.vertices = {
+		draw_data.m_vertices = {
 			// triangle 1
 			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
 			{ .pos = { 0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top right
@@ -157,7 +157,7 @@ int main(int /* argc */, char** /* args */) {
 			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom left
 			{ .pos = { -0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
 		};
-		draw_data.sections = {
+		draw_data.m_sections = {
 			{ .primitive = Primitive::Triangle, .length = 3 },
 			{ .primitive = Primitive::Triangle, .length = 3 },
 		};

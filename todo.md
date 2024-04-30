@@ -1,4 +1,5 @@
 ## TODO
+- Only use warnings as errors in CI build, not local
 - Render textures
 - Add ImGui
 - Add Google Test
