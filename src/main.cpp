@@ -1,107 +1,26 @@
+#include <GL/glew.h>
+
 #include <engine.h>
 #include <platform/library_loader.h>
 #include <platform/logging.h>
+#include <platform/renderer.h>
 #include <platform/timing.h>
-
-#include <GL/glew.h>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
 
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include <glm/vec3.hpp>
 
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
 using LoadLibraryError = platform::LoadLibraryError;
 
-#include <expected>
-#include <vector>
-
-struct Vertex {
-	struct {
-		float x;
-		float y;
-		float z;
-	} pos;
-	struct {
-		float r;
-		float g;
-		float b;
-	} color;
-};
-
-enum class Primitive {
-	Point,
-	Line,
-	Triangle,
-};
-
-struct VertexSection {
-	Primitive primitive;
-	uint16_t length;
-};
-
-enum class ShaderProgramError {
-	VertexShaderFailedToCompile,
-	FragmentShaderFailedToCompile,
-	ShaderProgramFailedToLink,
-};
-
-struct ShaderProgram {
-	GLuint id;
-	GLuint vao;
-	GLuint vbo;
-};
-
-class RenderAPI {
-public:
-	// draw_rect(p0, p1, color)
-
-	std::vector<Vertex> vertices;
-	std::vector<VertexSection> sections;
-};
-
-GLenum primitive_to_draw_array_mode(Primitive primitive) {
-	switch (primitive) {
-		case Primitive::Point:
-			return GL_POINTS;
-		case Primitive::Line:
-			return GL_LINES;
-		case Primitive::Triangle:
-			return GL_TRIANGLES;
-	}
-	return 0;
-}
-
-const char* shader_program_error_to_string(ShaderProgramError error) {
-	switch (error) {
-		case ShaderProgramError::VertexShaderFailedToCompile:
-			return "ShaderProgramError::VertexShaderFailedToCompile";
-		case ShaderProgramError::FragmentShaderFailedToCompile:
-			return "ShaderProgramError::FragmentShaderFailedToCompile";
-		case ShaderProgramError::ShaderProgramFailedToLink:
-			return "ShaderProgramError::ShaderProgramFailedToLink";
-	}
-	return "";
-}
-
-class Renderer {
-public:
-	Renderer(SDL_Window* window);
-	~Renderer();
-	Renderer(const Renderer&) = delete;
-	Renderer& operator=(const Renderer&) = delete;
-
-	std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
-	void clear_screen();
-	void render(SDL_Window* window);
-
-	SDL_GLContext m_gl_context = nullptr;
-	std::vector<ShaderProgram> m_shader_programs;
-};
+using Primitive = platform::Primitive;
+using Renderer = platform::Renderer;
+using RenderAPI = platform::RenderAPI;
+using ShaderProgram = platform::ShaderProgram;
+using ShaderProgramError = platform::ShaderProgramError;
+using Vertex = platform::Vertex;
+using VertexSection = platform::VertexSection;
 
 const char* VERTEX_SHADER_SRC =
 	"#version 330 core\n"
@@ -121,150 +40,9 @@ const char* FRAGMENT_SHADER_SRC =
 	"    FragColor = vertexColor;\n"
 	"}";
 
-plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
-	switch (severity) {
-		case GL_DEBUG_SEVERITY_HIGH:
-			return plog::Severity::error;
-		case GL_DEBUG_SEVERITY_MEDIUM:
-		case GL_DEBUG_SEVERITY_LOW:
-			return plog::Severity::warning;
-		case GL_DEBUG_SEVERITY_NOTIFICATION:
-			return plog::Severity::verbose;
-	}
-	return plog::none;
-}
-
-void GLAPIENTRY on_opengl_error(
-	GLenum /*source*/,
-	GLenum /*type*/,
-	GLuint /*id*/,
-	GLenum gl_severity,
-	GLsizei /*length*/,
-	const GLchar* message,
-	const void* /*userParam*/
-) {
-	plog::Severity log_severity = opengl_severity_to_plog_severity(gl_severity);
-	LOG(log_severity, "%s", message);
-}
-
-Renderer::Renderer(SDL_Window* window) {
-	/* Create GL Context */
-	m_gl_context = SDL_GL_CreateContext(window);
-	if (!m_gl_context) {
-		LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
-		exit(1);
-	}
-
-	/* Initialize GLEW */
-	const GLenum glewError = glewInit();
-	if (glewError != GLEW_OK) {
-		LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
-		exit(1);
-	}
-
-	/* Set OpenGL error callback */
-	glDebugMessageCallback(on_opengl_error, 0);
-
-	/* Enable v-sync */
-	if (SDL_GL_SetSwapInterval(1)) {
-		LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
-	}
-}
-
-Renderer::~Renderer() {
-	for (const ShaderProgram& shader_program : m_shader_programs) {
-		glDeleteVertexArrays(1, &shader_program.vao);
-		glDeleteBuffers(1, &shader_program.vbo);
-		glDeleteProgram(shader_program.id);
-	}
-}
-
-std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const char* vertex_src, const char* fragment_src) {
-	GLuint shader_program_id = glCreateProgram();
-	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-
-	/* Vertex shader */
-	glShaderSource(vertex_shader, 1, &vertex_src, NULL);
-	glCompileShader(vertex_shader);
-	GLint vertex_shader_compiled = GL_FALSE;
-	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &vertex_shader_compiled);
-	if (vertex_shader_compiled != GL_TRUE) {
-		char info_log[512] = { 0 };
-		glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-		LOG_ERROR("Vertex shader failed to compile:\n%s", info_log);
-		return std::unexpected(ShaderProgramError::VertexShaderFailedToCompile);
-	}
-	glAttachShader(shader_program_id, vertex_shader);
-
-	/* Fragment shader */
-	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, &fragment_src, NULL);
-	glCompileShader(fragment_shader);
-	GLint fragment_shader_compiled = GL_FALSE;
-	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fragment_shader_compiled);
-	if (fragment_shader_compiled != GL_TRUE) {
-		char info_log[512] = { 0 };
-		glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-		LOG_ERROR("Fragment shader failed to compile:\n%s", info_log);
-		return std::unexpected(ShaderProgramError::FragmentShaderFailedToCompile);
-	}
-	glAttachShader(shader_program_id, fragment_shader);
-
-	/* Shader program */
-	glLinkProgram(shader_program_id);
-	GLint shader_program_linked = GL_FALSE;
-	glGetProgramiv(shader_program_id, GL_LINK_STATUS, &shader_program_linked);
-	if (shader_program_linked != GL_TRUE) {
-		char info_log[512] = { 0 };
-		glGetProgramInfoLog(shader_program_id, 512, NULL, info_log);
-		LOG_ERROR("Shader program failed to link:\n%s", info_log);
-		return std::unexpected(ShaderProgramError::ShaderProgramFailedToLink);
-	}
-	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);
-
-	/* Create VAO and VBO */
-	GLuint vao = 0;
-	GLuint vbo = 0;
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
-
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-	/* Configure vertex attributes */
-	// position
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));
-	glEnableVertexAttribArray(0);
-	// color
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	/* Unbind */
-	glBindBuffer(GL_ARRAY_BUFFER, NULL);
-	glBindVertexArray(NULL);
-
-	ShaderProgram shader_program = { shader_program_id, vao, vbo };
-	m_shader_programs.push_back(shader_program);
-	return shader_program;
-}
-
-void Renderer::clear_screen() {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void Renderer::render(SDL_Window* window) {
-	SDL_GL_SwapWindow(window);
-}
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
-
-	glm::vec3 vec = glm::vec3(1.0, 2.0, 3.0);
-	LOG_INFO("vec = %s", glm::to_string(vec).c_str());
 
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
@@ -304,7 +82,7 @@ int main(int /* argc */, char** /* args */) {
 		if (add_result.has_value()) {
 			shader_program = add_result.value();
 		} else {
-			LOG_ERROR("Renderer::add_program() failed with: %s", shader_program_error_to_string(add_result.error()));
+			LOG_ERROR("Renderer::add_program() failed with: %s", platform::shader_program_error_to_string(add_result.error()));
 			exit(1);
 		}
 	}
@@ -406,7 +184,7 @@ int main(int /* argc */, char** /* args */) {
 			{
 				GLint offset = 0;
 				for (const VertexSection& section : render_api.sections) {
-					GLenum mode = primitive_to_draw_array_mode(section.primitive);
+					GLenum mode = platform::primitive_to_draw_array_mode(section.primitive);
 					glDrawArrays(mode, offset, section.length);
 					offset += section.length;
 				}
