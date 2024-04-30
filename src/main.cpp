@@ -20,7 +20,7 @@ using LoadLibraryError = platform::LoadLibraryError;
 #include <expected>
 #include <vector>
 
-struct RendererVertex {
+struct Vertex {
 	struct {
 		float x;
 		float y;
@@ -31,6 +31,29 @@ struct RendererVertex {
 		float g;
 		float b;
 	} color;
+};
+
+enum class Primitive {
+	Point,
+	Line,
+	Triangle,
+};
+
+GLenum primitive_to_draw_array_mode(Primitive primitive) {
+	switch (primitive) {
+		case Primitive::Point:
+			return GL_POINTS;
+		case Primitive::Line:
+			return GL_LINES;
+		case Primitive::Triangle:
+			return GL_TRIANGLES;
+	}
+	return 0;
+}
+
+struct VertexSection {
+	Primitive primitive;
+	uint16_t length;
 };
 
 enum class ShaderProgramError {
@@ -337,11 +360,14 @@ int main(int /* argc */, char** /* args */) {
 		/* Update */
 		engine_library.engine_update(&engine_state, delta_ms);
 		// set vertices
-		RendererVertex vertices[] = {
+		Vertex vertices[] = {
 			// positions         // colors
 			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.0f, 0.0f } }, // bottom right
 			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 0.0f, 1.0f, 0.0f } }, // bottom left
 			{ .pos = { 0.0f, 0.5f, 0.0f }, .color = { 0.0f, 0.0f, 1.0f } }, // top
+		};
+		VertexSection sections[] = {
+			{ .primitive = Primitive::Triangle, .length = 3 }
 		};
 
 		/* Render */
@@ -355,10 +381,25 @@ int main(int /* argc */, char** /* args */) {
 			// upload vertices
 			glBindVertexArray(shader_program.vao);
 			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+			{
+				glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+			}
+			glBindBuffer(GL_ARRAY_BUFFER, NULL);
+			glBindVertexArray(NULL);
+
+			// TODO create a data structure that allows one contigious array of
+			// vertices to be split up into sections that are drawn with glDrawArrays
+			// each section defines (GL_POINTS or GL_LINES or GL_TRIANGLES, number of vertices)
 
 			// draw
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(shader_program.vao);
+			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
+			GLint offset = 0;
+			for (const VertexSection& section : sections) {
+				GLenum mode = primitive_to_draw_array_mode(section.primitive);
+				glDrawArrays(mode, offset, section.length);
+				offset += section.length;
+			}
 			glBindBuffer(GL_ARRAY_BUFFER, NULL);
 			glBindVertexArray(NULL);
 
