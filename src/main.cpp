@@ -40,12 +40,41 @@ const char* FRAGMENT_SHADER_SRC =
 	"    FragColor = vertexColor;\n"
 	"}";
 
+namespace {
+	plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
+		switch (severity) {
+			case GL_DEBUG_SEVERITY_HIGH:
+				return plog::Severity::error;
+			case GL_DEBUG_SEVERITY_MEDIUM:
+			case GL_DEBUG_SEVERITY_LOW:
+				return plog::Severity::warning;
+			case GL_DEBUG_SEVERITY_NOTIFICATION:
+				return plog::Severity::verbose;
+		}
+		return plog::none;
+	}
+
+	void GLAPIENTRY on_opengl_error(
+		GLenum /*source*/,
+		GLenum /*type*/,
+		GLuint /*id*/,
+		GLenum gl_severity,
+		GLsizei /*length*/,
+		const GLchar* message,
+		const void* /*userParam*/
+	) {
+		plog::Severity log_severity = opengl_severity_to_plog_severity(gl_severity);
+		LOG(log_severity, "%s", message);
+	}
+}
+
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
 
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
+	SDL_GLContext gl_context;
 	{
 		/* Initialize SDL */
 		if (SDL_Init(SDL_INIT_VIDEO)) {
@@ -72,13 +101,35 @@ int main(int /* argc */, char** /* args */) {
 			LOG_ERROR("SDL_CreateWindow failed: %s", SDL_GetError());
 			exit(1);
 		}
+
+		/* Create GL Context */
+		gl_context = SDL_GL_CreateContext(window);
+		if (!gl_context) {
+			LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
+			exit(1);
+		}
+
+		/* Initialize GLEW */
+		const GLenum glewError = glewInit();
+		if (glewError != GLEW_OK) {
+			LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
+			exit(1);
+		}
+
+		/* Set OpenGL error callback */
+		glDebugMessageCallback(on_opengl_error, 0);
+
+		/* Enable v-sync */
+		if (SDL_GL_SetSwapInterval(1)) {
+			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
+		}
 	}
 
 	/* Initialize OpenGL */
-	Renderer renderer = Renderer(window);
+	Renderer renderer;
 	ShaderProgram shader_program;
 	{
-		std::expected<ShaderProgram, ShaderProgramError> add_result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
+		std::expected<ShaderProgram, ShaderProgramError> add_result = renderer.add_program(gl_context, VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
 		if (add_result.has_value()) {
 			shader_program = add_result.value();
 		} else {
@@ -149,7 +200,7 @@ int main(int /* argc */, char** /* args */) {
 		draw_data.draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f });
 
 		/* Render */
-		renderer.render(window, shader_program, &draw_data);
+		renderer.render(window, gl_context, shader_program, &draw_data);
 		draw_data.clear();
 	}
 

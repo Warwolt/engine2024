@@ -53,16 +53,15 @@ namespace platform {
 
 	class Renderer {
 	public:
-		Renderer(SDL_Window* window);
+		Renderer() = default;
 		~Renderer();
 		Renderer(const Renderer&) = delete;
 		Renderer& operator=(const Renderer&) = delete;
 
-		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
-		void render(SDL_Window* window, ShaderProgram shader_program, const DrawData* draw_data);
+		std::expected<ShaderProgram, ShaderProgramError> add_program(SDL_GLContext gl_context, const char* vertex_src, const char* fragment_src);
+		void render(SDL_Window* window, SDL_GLContext gl_context, ShaderProgram shader_program, const DrawData* draw_data);
 
 	private:
-		SDL_GLContext m_gl_context = nullptr;
 		std::vector<ShaderProgram> m_shader_programs;
 	};
 

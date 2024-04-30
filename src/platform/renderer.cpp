@@ -4,34 +4,6 @@
 
 #include <platform/logging.h>
 
-namespace {
-	plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
-		switch (severity) {
-			case GL_DEBUG_SEVERITY_HIGH:
-				return plog::Severity::error;
-			case GL_DEBUG_SEVERITY_MEDIUM:
-			case GL_DEBUG_SEVERITY_LOW:
-				return plog::Severity::warning;
-			case GL_DEBUG_SEVERITY_NOTIFICATION:
-				return plog::Severity::verbose;
-		}
-		return plog::none;
-	}
-
-	void GLAPIENTRY on_opengl_error(
-		GLenum /*source*/,
-		GLenum /*type*/,
-		GLuint /*id*/,
-		GLenum gl_severity,
-		GLsizei /*length*/,
-		const GLchar* message,
-		const void* /*userParam*/
-	) {
-		plog::Severity log_severity = opengl_severity_to_plog_severity(gl_severity);
-		LOG(log_severity, "%s", message);
-	}
-}
-
 namespace platform {
 
 	GLenum primitive_to_draw_array_mode(Primitive primitive) {
@@ -64,11 +36,10 @@ namespace platform {
 	}
 
 	void DrawData::draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color) {
-		// (x0, y0) ------ (x1, y0)
-		//     |              |
-		//     |              |
-		//     |              |
-		// (x0, y1) ------ (x1, y1)
+		// (x0, y0) ---- (x1, y0)
+		//     |            |
+		//     |            |
+		// (x0, y1) ---- (x1, y1)
 		float x0 = p0.x;
 		float x1 = p1.x;
 		float y0 = p0.y;
@@ -88,30 +59,6 @@ namespace platform {
 		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6 });
 	}
 
-	Renderer::Renderer(SDL_Window* window) {
-		/* Create GL Context */
-		m_gl_context = SDL_GL_CreateContext(window);
-		if (!m_gl_context) {
-			LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
-			exit(1);
-		}
-
-		/* Initialize GLEW */
-		const GLenum glewError = glewInit();
-		if (glewError != GLEW_OK) {
-			LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
-			exit(1);
-		}
-
-		/* Set OpenGL error callback */
-		glDebugMessageCallback(on_opengl_error, 0);
-
-		/* Enable v-sync */
-		if (SDL_GL_SetSwapInterval(1)) {
-			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
-		}
-	}
-
 	Renderer::~Renderer() {
 		for (const ShaderProgram& shader_program : m_shader_programs) {
 			glDeleteVertexArrays(1, &shader_program.vao);
@@ -120,7 +67,11 @@ namespace platform {
 		}
 	}
 
-	std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const char* vertex_src, const char* fragment_src) {
+	std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(
+		SDL_GLContext /* gl_context */,
+		const char* vertex_src,
+		const char* fragment_src
+	) {
 		GLuint shader_program_id = glCreateProgram();
 		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -191,7 +142,12 @@ namespace platform {
 		return shader_program;
 	}
 
-	void Renderer::render(SDL_Window* window, ShaderProgram shader_program, const DrawData* draw_data) {
+	void Renderer::render(
+		SDL_Window* window,
+		SDL_GLContext /* gl_context */,
+		ShaderProgram shader_program,
+		const DrawData* draw_data
+	) {
 		// clear screen
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
