@@ -39,6 +39,23 @@ enum class Primitive {
 	Triangle,
 };
 
+struct VertexSection {
+	Primitive primitive;
+	uint16_t length;
+};
+
+enum class ShaderProgramError {
+	VertexShaderFailedToCompile,
+	FragmentShaderFailedToCompile,
+	ShaderProgramFailedToLink,
+};
+
+struct ShaderProgram {
+	GLuint id;
+	GLuint vao;
+	GLuint vbo;
+};
+
 GLenum primitive_to_draw_array_mode(Primitive primitive) {
 	switch (primitive) {
 		case Primitive::Point:
@@ -51,16 +68,17 @@ GLenum primitive_to_draw_array_mode(Primitive primitive) {
 	return 0;
 }
 
-struct VertexSection {
-	Primitive primitive;
-	uint16_t length;
-};
-
-enum class ShaderProgramError {
-	VertexShaderFailedToCompile,
-	FragmentShaderFailedToCompile,
-	ShaderProgramFailedToLink,
-};
+GLenum primitive_to_draw_array_mode(Primitive primitive) {
+	switch (primitive) {
+		case Primitive::Point:
+			return GL_POINTS;
+		case Primitive::Line:
+			return GL_LINES;
+		case Primitive::Triangle:
+			return GL_TRIANGLES;
+	}
+	return 0;
+}
 
 const char* shader_program_error_to_string(ShaderProgramError error) {
 	switch (error) {
@@ -73,12 +91,6 @@ const char* shader_program_error_to_string(ShaderProgramError error) {
 	}
 	return "";
 }
-
-struct ShaderProgram {
-	GLuint id;
-	GLuint vao;
-	GLuint vbo;
-};
 
 class Renderer {
 public:
