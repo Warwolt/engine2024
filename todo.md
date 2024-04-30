@@ -9,9 +9,9 @@
   - https://v8.dev/docs/embed
 
 ## Doing
-- Render APIs
 
 ## Done
+- Render APIs
 - Add logging
 - Add DLL based hot reloading
 - Add OpenGL
