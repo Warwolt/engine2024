@@ -5,9 +5,13 @@
 
 #include <GL/glew.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <glm/vec3.hpp>
 
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
@@ -60,6 +64,9 @@ void GLAPIENTRY on_opengl_error(
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
+
+	glm::vec3 vec = glm::vec3(1.0, 2.0, 3.0);
+	LOG_INFO("vec = %s", glm::to_string(vec).c_str());
 
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
