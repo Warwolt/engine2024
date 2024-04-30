@@ -21,6 +21,7 @@ set(ENGINE_SRC
 set(PLATFORM_SRC
     src/platform/library_loader.cpp
     src/platform/logging.cpp
+    src/platform/renderer.cpp
     src/platform/timing.cpp
 )
 

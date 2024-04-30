@@ -1,33 +1,37 @@
+#include <GL/glew.h>
+
 #include <engine.h>
 #include <platform/library_loader.h>
 #include <platform/logging.h>
+#include <platform/renderer.h>
 #include <platform/timing.h>
-
-#include <GL/glew.h>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
 
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include <glm/vec3.hpp>
 
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
 using LoadLibraryError = platform::LoadLibraryError;
 
-const char* vertex_shader_src =
+using Primitive = platform::Primitive;
+using Renderer = platform::Renderer;
+using ShaderProgram = platform::ShaderProgram;
+using ShaderProgramError = platform::ShaderProgramError;
+using Vertex = platform::Vertex;
+using VertexSection = platform::VertexSection;
+
+const char* VERTEX_SHADER_SRC =
 	"#version 330 core\n"
-	"layout (location = 0) in vec3 aPos;\n"
+	"layout (location = 0) in vec2 aPos;\n"
 	"layout (location = 1) in vec3 aColor;\n"
 	"out vec4 vertexColor;\n"
 	"void main() {\n"
-	"    gl_Position = vec4(aPos, 1.0);\n"
+	"    gl_Position = vec4(aPos, 0.0, 1.0);\n"
 	"    vertexColor = vec4(aColor, 1.0);\n"
 	"}";
 
-const char* fragment_shader_src =
+const char* FRAGMENT_SHADER_SRC =
 	"#version 330 core\n"
 	"out vec4 FragColor;\n"
 	"in vec4 vertexColor;\n"
@@ -35,38 +39,37 @@ const char* fragment_shader_src =
 	"    FragColor = vertexColor;\n"
 	"}";
 
-plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
-	switch (severity) {
-		case GL_DEBUG_SEVERITY_HIGH:
-			return plog::Severity::error;
-		case GL_DEBUG_SEVERITY_MEDIUM:
-		case GL_DEBUG_SEVERITY_LOW:
-			return plog::Severity::warning;
-		case GL_DEBUG_SEVERITY_NOTIFICATION:
-			return plog::Severity::verbose;
+namespace {
+	plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
+		switch (severity) {
+			case GL_DEBUG_SEVERITY_HIGH:
+				return plog::Severity::error;
+			case GL_DEBUG_SEVERITY_MEDIUM:
+			case GL_DEBUG_SEVERITY_LOW:
+				return plog::Severity::warning;
+			case GL_DEBUG_SEVERITY_NOTIFICATION:
+				return plog::Severity::verbose;
+		}
+		return plog::none;
 	}
-	return plog::none;
-}
 
-void GLAPIENTRY on_opengl_error(
-	GLenum /*source*/,
-	GLenum /*type*/,
-	GLuint /*id*/,
-	GLenum gl_severity,
-	GLsizei /*length*/,
-	const GLchar* message,
-	const void* /*userParam*/
-) {
-	plog::Severity log_severity = opengl_severity_to_plog_severity(gl_severity);
-	LOG(log_severity, "%s", message);
+	void GLAPIENTRY on_opengl_error(
+		GLenum /*source*/,
+		GLenum /*type*/,
+		GLuint /*id*/,
+		GLenum gl_severity,
+		GLsizei /*length*/,
+		const GLchar* message,
+		const void* /*userParam*/
+	) {
+		plog::Severity log_severity = opengl_severity_to_plog_severity(gl_severity);
+		LOG(log_severity, "%s", message);
+	}
 }
 
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
-
-	glm::vec3 vec = glm::vec3(1.0, 2.0, 3.0);
-	LOG_INFO("vec = %s", glm::to_string(vec).c_str());
 
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
@@ -112,95 +115,26 @@ int main(int /* argc */, char** /* args */) {
 			exit(1);
 		}
 
-		/* Set VSync */
+		/* Set OpenGL error callback */
+		glDebugMessageCallback(on_opengl_error, 0);
+
+		/* Enable v-sync */
 		if (SDL_GL_SetSwapInterval(1)) {
 			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
 		}
-
-		/* Set OpenGL error callback */
-		glDebugMessageCallback(on_opengl_error, 0);
 	}
 
-	/* Initialize shader */
-	GLuint shader_program = 0;
+	/* Initialize OpenGL */
+	Renderer renderer;
+	ShaderProgram shader_program;
 	{
-		shader_program = glCreateProgram();
-		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-
-		/* Vertex shader */
-		glShaderSource(vertex_shader, 1, &vertex_shader_src, NULL);
-		glCompileShader(vertex_shader);
-		GLint vertex_shader_compiled = GL_FALSE;
-		glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &vertex_shader_compiled);
-		if (vertex_shader_compiled != GL_TRUE) {
-			char info_log[512] = { 0 };
-			glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-			LOG_ERROR("Vertex shader failed to compile:\n%s", info_log);
+		std::expected<ShaderProgram, ShaderProgramError> result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
+		if (!result.has_value()) {
+			const char* error_msg = platform::shader_program_error_to_string(result.error());
+			LOG_ERROR("Renderer::add_program() failed with: %s", error_msg);
 			exit(1);
 		}
-		glAttachShader(shader_program, vertex_shader);
-
-		/* Fragment shader */
-		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
-		glCompileShader(fragment_shader);
-		GLint fragment_shader_compiled = GL_FALSE;
-		glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fragment_shader_compiled);
-		if (fragment_shader_compiled != GL_TRUE) {
-			char info_log[512] = { 0 };
-			glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-			LOG_ERROR("Fragment shader failed to compile:\n%s", info_log);
-			exit(1);
-		}
-		glAttachShader(shader_program, fragment_shader);
-
-		/* Shader program */
-		glLinkProgram(shader_program);
-		GLint shader_program_linked = GL_FALSE;
-		glGetProgramiv(shader_program, GL_LINK_STATUS, &shader_program_linked);
-		if (shader_program_linked != GL_TRUE) {
-			char info_log[512] = { 0 };
-			glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-			LOG_ERROR("Shader program failed to link:\n%s", info_log);
-			exit(1);
-		}
-
-		glDeleteShader(vertex_shader);
-		glDeleteShader(fragment_shader);
-	}
-
-	/* Setup render data */
-	GLuint vao = 0;
-	GLuint vbo = 0;
-	{
-		glGenVertexArrays(1, &vao);
-		glGenBuffers(1, &vbo);
-
-		/* Set buffer data */
-		// clang-format off
-		float vertices[] = {
-			// positions         // colors
-			0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   // bottom right
-			-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-			0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f    // top
-		};
-		// clang-format on
-		glBindVertexArray(vao);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-		/* Configure vertex attributes */
-		// position
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));
-		glEnableVertexAttribArray(0);
-		// color
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-
-		/* Unbind */
-		glBindBuffer(GL_ARRAY_BUFFER, NULL);
-		glBindVertexArray(NULL);
+		shader_program = result.value();
 	}
 
 	/* Load engine DLL */
@@ -209,13 +143,13 @@ int main(int /* argc */, char** /* args */) {
 	EngineLibrary engine_library;
 	{
 		std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
-		if (load_result.has_value()) {
-			engine_library = load_result.value();
-		} else {
-			LOG_ERROR("EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
+		if (!load_result.has_value()) {
+			const char* error_str = load_library_error_to_string(load_result.error());
+			LOG_ERROR("EngineLibraryLoader::load_library(%s) failed with: %s", library_name, error_str);
 			exit(1);
 		}
-	}
+		engine_library = load_result.value();
+	};
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
@@ -233,13 +167,16 @@ int main(int /* argc */, char** /* args */) {
 
 			if (library_loader.library_file_has_been_modified()) {
 				library_loader.unload_library();
+				{
+					std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
+					if (!load_result.has_value()) {
+						const char* error_msg = load_library_error_to_string(load_result.error());
+						LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", library_name, error_msg);
 
-				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
-				if (load_result.has_value()) {
-					engine_library = load_result.value();
-					LOG_INFO("Engine library reloaded");
-				} else {
-					LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
+					} else {
+						LOG_INFO("Engine library reloaded");
+						engine_library = load_result.value();
+					}
 				}
 			}
 		}
@@ -261,28 +198,18 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Update */
 		engine_library.engine_update(&engine_state, delta_ms);
+		renderer.draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f });
 
 		/* Render */
-		{
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glUseProgram(shader_program);
-			glBindVertexArray(vao);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindBuffer(GL_ARRAY_BUFFER, NULL);
-			glBindVertexArray(NULL);
-
-			SDL_GL_SwapWindow(window);
-		}
+		renderer.render(window, shader_program);
 	}
 
 	/* Unload and delete copied engine DLL */
+	// FIXME: `unload_library` should be called in the destructor of LibraryLoader
 	library_loader.unload_library();
 
-	/* Shutdown SDL + OpenGL */
+	/* Shutdown SDL */
 	{
-		glDeleteBuffers(1, &vbo);
-		glDeleteProgram(shader_program);
 		SDL_DestroyWindow(window);
 		SDL_Quit();
 	}

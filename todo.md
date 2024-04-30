@@ -1,13 +1,17 @@
 ## TODO
+- Add ASSERT macro that logs error, debug breaks, then exits
+- Only use warnings as errors in CI build, not local
+- Render textures
 - Add ImGui
 - Add Google Test
-- Render Command API (draw line, shapes etc. as data that doesn't depend on OpenGL)
+- Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Add TypeScript (maybe)
   - https://v8.dev/docs/embed
 
 ## Doing
 
 ## Done
+- Render APIs
 - Add logging
 - Add DLL based hot reloading
 - Add OpenGL
