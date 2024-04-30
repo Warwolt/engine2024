@@ -128,7 +128,7 @@ int main(int /* argc */, char** /* args */) {
 	Renderer renderer;
 	ShaderProgram shader_program;
 	{
-		std::expected<ShaderProgram, ShaderProgramError> result = renderer.add_program(gl_context, VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
+		std::expected<ShaderProgram, ShaderProgramError> result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
 		if (!result.has_value()) {
 			LOG_ERROR("Renderer::add_program() failed with: %s", platform::shader_program_error_to_string(result.error()));
 			exit(1);
@@ -199,7 +199,7 @@ int main(int /* argc */, char** /* args */) {
 		renderer.draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f });
 
 		/* Render */
-		renderer.render(window, gl_context, shader_program);
+		renderer.render(window, shader_program);
 	}
 
 	/* Unload and delete copied engine DLL */

@@ -38,11 +38,7 @@ namespace platform {
 		}
 	}
 
-	std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(
-		SDL_GLContext /* gl_context */,
-		const char* vertex_src,
-		const char* fragment_src
-	) {
+	std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const char* vertex_src, const char* fragment_src) {
 		GLuint shader_program_id = glCreateProgram();
 		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -113,11 +109,7 @@ namespace platform {
 		return shader_program;
 	}
 
-	void Renderer::render(
-		SDL_Window* window,
-		SDL_GLContext /* gl_context */,
-		ShaderProgram shader_program
-	) {
+	void Renderer::render(SDL_Window* window, ShaderProgram shader_program) {
 		// clear screen
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);

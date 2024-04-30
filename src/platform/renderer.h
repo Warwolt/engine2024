@@ -49,8 +49,8 @@ namespace platform {
 		Renderer(const Renderer&) = delete;
 		Renderer& operator=(const Renderer&) = delete;
 
-		std::expected<ShaderProgram, ShaderProgramError> add_program(SDL_GLContext gl_context, const char* vertex_src, const char* fragment_src);
-		void render(SDL_Window* window, SDL_GLContext gl_context, ShaderProgram shader_program);
+		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
+		void render(SDL_Window* window, ShaderProgram shader_program);
 
 		void draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color);
 
