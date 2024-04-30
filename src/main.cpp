@@ -278,21 +278,6 @@ int main(int /* argc */, char** /* args */) {
 		}
 	}
 
-	/* Upload vertices */
-	{
-		/* Set buffer data */
-		RendererVertex vertices[] = {
-			// positions         // colors
-			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.0f, 0.0f } }, // bottom right
-			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 0.0f, 1.0f, 0.0f } }, // bottom left
-			{ .pos = { 0.0f, 0.5f, 0.0f }, .color = { 0.0f, 0.0f, 1.0f } }, // top
-		};
-
-		glBindVertexArray(shader_program.vao);
-		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	}
-
 	/* Load engine DLL */
 	const char* library_name = "GameEngine2024";
 	EngineLibraryLoader library_loader;
@@ -351,13 +336,28 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Update */
 		engine_library.engine_update(&engine_state, delta_ms);
+		// set vertices
+		RendererVertex vertices[] = {
+			// positions         // colors
+			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.0f, 0.0f } }, // bottom right
+			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 0.0f, 1.0f, 0.0f } }, // bottom left
+			{ .pos = { 0.0f, 0.5f, 0.0f }, .color = { 0.0f, 0.0f, 1.0f } }, // top
+		};
 
 		/* Render */
 		{
 			renderer.clear_screen();
 
+			// use program
 			glUseProgram(shader_program.id);
 			glBindVertexArray(shader_program.vao);
+
+			// upload vertices
+			glBindVertexArray(shader_program.vao);
+			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+			// draw
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindBuffer(GL_ARRAY_BUFFER, NULL);
 			glBindVertexArray(NULL);
