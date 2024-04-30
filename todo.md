@@ -1,4 +1,5 @@
 ## TODO
+- Render textures
 - Add ImGui
 - Add Google Test
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
