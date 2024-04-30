@@ -16,7 +16,7 @@ using LoadLibraryError = platform::LoadLibraryError;
 
 using Primitive = platform::Primitive;
 using Renderer = platform::Renderer;
-using RenderAPI = platform::RenderAPI;
+using DrawData = platform::DrawData;
 using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 using Vertex = platform::Vertex;
@@ -103,7 +103,7 @@ int main(int /* argc */, char** /* args */) {
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
-	RenderAPI render_api;
+	DrawData draw_data;
 	timing::Timer frame_timer;
 	timing::Timer hot_reload_timer;
 	engine::EngineState engine_state;
@@ -147,7 +147,7 @@ int main(int /* argc */, char** /* args */) {
 		/* Update */
 		engine_library.engine_update(&engine_state, delta_ms);
 		// set vertices
-		render_api.vertices = {
+		draw_data.vertices = {
 			// triangle 1
 			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
 			{ .pos = { 0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top right
@@ -157,13 +157,13 @@ int main(int /* argc */, char** /* args */) {
 			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom left
 			{ .pos = { -0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
 		};
-		render_api.sections = {
+		draw_data.sections = {
 			{ .primitive = Primitive::Triangle, .length = 3 },
 			{ .primitive = Primitive::Triangle, .length = 3 },
 		};
 
 		/* Render */
-		renderer.render(window, shader_program, &render_api);
+		renderer.render(window, shader_program, &draw_data);
 	}
 
 	/* Unload and delete copied engine DLL */

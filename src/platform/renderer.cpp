@@ -161,7 +161,7 @@ namespace platform {
 		return shader_program;
 	}
 
-	void Renderer::render(SDL_Window* window, ShaderProgram shader_program, RenderAPI* render_api) {
+	void Renderer::render(SDL_Window* window, ShaderProgram shader_program, const DrawData* draw_data) {
 		// clear screen
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -172,13 +172,13 @@ namespace platform {
 
 		// upload vertices
 		{
-			glBufferData(GL_ARRAY_BUFFER, render_api->vertices.size() * sizeof(Vertex), render_api->vertices.data(), GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, draw_data->vertices.size() * sizeof(Vertex), draw_data->vertices.data(), GL_STATIC_DRAW);
 		}
 
 		// draw vertices
 		{
 			GLint offset = 0;
-			for (const VertexSection& section : render_api->sections) {
+			for (const VertexSection& section : draw_data->sections) {
 				GLenum mode = platform::primitive_to_draw_array_mode(section.primitive);
 				glDrawArrays(mode, offset, section.length);
 				offset += section.length;

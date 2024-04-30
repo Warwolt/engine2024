@@ -48,7 +48,7 @@ namespace platform {
 		GLuint vbo;
 	};
 
-	class RenderAPI {
+	class DrawData {
 	public:
 		// draw_rect(p0, p1, color)
 
@@ -64,7 +64,7 @@ namespace platform {
 		Renderer& operator=(const Renderer&) = delete;
 
 		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
-		void render(SDL_Window* window, ShaderProgram shader_program, RenderAPI* render_api);
+		void render(SDL_Window* window, ShaderProgram shader_program, const DrawData* draw_data);
 
 		SDL_GLContext m_gl_context = nullptr;
 		std::vector<ShaderProgram> m_shader_programs;
