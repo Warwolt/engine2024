@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.24.2)
 project(GameEngine2024)
 
+option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
+
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
 set(MAIN_LIBRARY ${CMAKE_PROJECT_NAME}Lib)
 set(SDL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2)
@@ -57,8 +59,13 @@ target_link_libraries(${MAIN_BINARY} PRIVATE ${LIB})
 foreach(TARGET IN ITEMS ${MAIN_BINARY} ${MAIN_LIBRARY})
     set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PRIVATE
-        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
-        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
+        $<$<CXX_COMPILER_ID:MSVC>: /W4>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wall -Wextra -Wpedantic>)
+    if (WARNINGS_AS_ERRORS)
+        target_compile_options(${TARGET} PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>: /WX>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Werror>)
+    endif()
 endforeach()
 
 # Copy DLLs
