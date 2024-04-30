@@ -28,6 +28,12 @@ namespace platform {
 		uint16_t length;
 	};
 
+	struct ShaderProgram {
+		GLuint id;
+		GLuint vao;
+		GLuint vbo;
+	};
+
 	enum class ShaderProgramError {
 		VertexShaderFailedToCompile,
 		FragmentShaderFailedToCompile,
@@ -35,12 +41,6 @@ namespace platform {
 	};
 
 	const char* shader_program_error_to_string(ShaderProgramError error);
-
-	struct ShaderProgram {
-		GLuint id;
-		GLuint vao;
-		GLuint vbo;
-	};
 
 	class Renderer {
 	public:
