@@ -371,13 +371,13 @@ int main(int /* argc */, char** /* args */) {
 		// set vertices
 		render_api.vertices = {
 			// triangle 1
-			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.0f, 0.0f } }, // bottom right
-			{ .pos = { 0.5f, 0.5f, 0.0f }, .color = { 0.0f, 1.0f, 0.0f } }, // top right
-			{ .pos = { -0.5f, 0.5f, 0.0f }, .color = { 0.0f, 0.0f, 1.0f } }, // top left
+			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
+			{ .pos = { 0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top right
+			{ .pos = { -0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
 			// triangle 2
-			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.0f, 0.0f } }, // bottom right
-			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 0.0f, 1.0f, 0.0f } }, // bottom left
-			{ .pos = { -0.5f, 0.5f, 0.0f }, .color = { 0.0f, 0.0f, 1.0f } }, // top left
+			{ .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
+			{ .pos = { -0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom left
+			{ .pos = { -0.5f, 0.5f, 0.0f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
 		};
 		render_api.sections = {
 			{ .primitive = Primitive::Triangle, .length = 3 },
