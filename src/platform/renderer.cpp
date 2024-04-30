@@ -63,7 +63,7 @@ namespace platform {
 		m_sections.clear();
 	}
 
-	void DrawData::draw_rect_fill(glm::vec3 p0, glm::vec3 p1, glm::vec3 color) {
+	void DrawData::draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color) {
 		// (x0, y0) ------ (x1, y0)
 		//     |              |
 		//     |              |
@@ -75,14 +75,17 @@ namespace platform {
 		float y1 = p1.y;
 
 		// first triangle
-		m_vertices.push_back({ .pos = { x0, y0 }, .color = color });
-		m_vertices.push_back({ .pos = { x0, y1 }, .color = color });
-		m_vertices.push_back({ .pos = { x1, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
 
 		// second triangle
-		m_vertices.push_back({ .pos = { x0, y1 }, .color = color });
-		m_vertices.push_back({ .pos = { x1, y0 }, .color = color });
-		m_vertices.push_back({ .pos = { x1, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
+
+		// sections
+		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6 });
 	}
 
 	Renderer::Renderer(SDL_Window* window) {

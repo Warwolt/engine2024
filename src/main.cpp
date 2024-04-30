@@ -146,24 +146,11 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Update */
 		engine_library.engine_update(&engine_state, delta_ms);
-		// set vertices
-		draw_data.m_vertices = {
-			// triangle 1
-			{ .pos = { 0.5f, -0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
-			{ .pos = { 0.5f, 0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // top right
-			{ .pos = { -0.5f, 0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
-			// triangle 2
-			{ .pos = { 0.5f, -0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom right
-			{ .pos = { -0.5f, -0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // bottom left
-			{ .pos = { -0.5f, 0.5f }, .color = { 1.0f, 0.5f, 0.0f } }, // top left
-		};
-		draw_data.m_sections = {
-			{ .primitive = Primitive::Triangle, .length = 3 },
-			{ .primitive = Primitive::Triangle, .length = 3 },
-		};
+		draw_data.draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f });
 
 		/* Render */
 		renderer.render(window, shader_program, &draw_data);
+		draw_data.clear();
 	}
 
 	/* Unload and delete copied engine DLL */

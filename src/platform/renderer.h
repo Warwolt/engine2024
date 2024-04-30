@@ -45,7 +45,7 @@ namespace platform {
 	class DrawData {
 	public:
 		void clear();
-		void draw_rect_fill(glm::vec3 p0, glm::vec3 p1, glm::vec3 color);
+		void draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color);
 
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
