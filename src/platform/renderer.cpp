@@ -30,35 +30,6 @@ namespace platform {
 		return "";
 	}
 
-	void DrawData::clear() {
-		m_vertices.clear();
-		m_sections.clear();
-	}
-
-	void DrawData::draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color) {
-		// (x0, y0) ---- (x1, y0)
-		//     |            |
-		//     |            |
-		// (x0, y1) ---- (x1, y1)
-		float x0 = p0.x;
-		float x1 = p1.x;
-		float y0 = p0.y;
-		float y1 = p1.y;
-
-		// first triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
-
-		// second triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
-
-		// sections
-		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6 });
-	}
-
 	Renderer::~Renderer() {
 		for (const ShaderProgram& shader_program : m_shader_programs) {
 			glDeleteVertexArrays(1, &shader_program.vao);
@@ -145,8 +116,7 @@ namespace platform {
 	void Renderer::render(
 		SDL_Window* window,
 		SDL_GLContext /* gl_context */,
-		ShaderProgram shader_program,
-		const DrawData* draw_data
+		ShaderProgram shader_program
 	) {
 		// clear screen
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -158,24 +128,51 @@ namespace platform {
 
 		// upload vertices
 		{
-			glBufferData(GL_ARRAY_BUFFER, draw_data->m_vertices.size() * sizeof(Vertex), draw_data->m_vertices.data(), GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
 		}
 
 		// draw vertices
 		{
 			GLint offset = 0;
-			for (const VertexSection& section : draw_data->m_sections) {
+			for (const VertexSection& section : m_sections) {
 				GLenum mode = platform::primitive_to_draw_array_mode(section.primitive);
 				glDrawArrays(mode, offset, section.length);
 				offset += section.length;
 			}
 		}
 
+		m_vertices.clear();
+		m_sections.clear();
+
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 		glUseProgram(NULL);
 
 		SDL_GL_SwapWindow(window);
+	}
+
+	void Renderer::draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color) {
+		// (x0, y0) ---- (x1, y0)
+		//     |            |
+		//     |            |
+		// (x0, y1) ---- (x1, y1)
+		float x0 = p0.x;
+		float x1 = p1.x;
+		float y0 = p0.y;
+		float y1 = p1.y;
+
+		// first triangle
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
+
+		// second triangle
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
+
+		// sections
+		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6 });
 	}
 
 } // namespace platform

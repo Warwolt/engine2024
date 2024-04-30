@@ -16,7 +16,6 @@ using LoadLibraryError = platform::LoadLibraryError;
 
 using Primitive = platform::Primitive;
 using Renderer = platform::Renderer;
-using DrawData = platform::DrawData;
 using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 using Vertex = platform::Vertex;
@@ -153,7 +152,6 @@ int main(int /* argc */, char** /* args */) {
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
-	DrawData draw_data;
 	timing::Timer frame_timer;
 	timing::Timer hot_reload_timer;
 	engine::EngineState engine_state;
@@ -198,11 +196,10 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Update */
 		engine_library.engine_update(&engine_state, delta_ms);
-		draw_data.draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f });
+		renderer.draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f });
 
 		/* Render */
-		renderer.render(window, gl_context, shader_program, &draw_data);
-		draw_data.clear();
+		renderer.render(window, gl_context, shader_program);
 	}
 
 	/* Unload and delete copied engine DLL */

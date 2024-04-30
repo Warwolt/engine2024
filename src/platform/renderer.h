@@ -42,15 +42,6 @@ namespace platform {
 		GLuint vbo;
 	};
 
-	class DrawData {
-	public:
-		void clear();
-		void draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color);
-
-		std::vector<Vertex> m_vertices;
-		std::vector<VertexSection> m_sections;
-	};
-
 	class Renderer {
 	public:
 		Renderer() = default;
@@ -59,10 +50,14 @@ namespace platform {
 		Renderer& operator=(const Renderer&) = delete;
 
 		std::expected<ShaderProgram, ShaderProgramError> add_program(SDL_GLContext gl_context, const char* vertex_src, const char* fragment_src);
-		void render(SDL_Window* window, SDL_GLContext gl_context, ShaderProgram shader_program, const DrawData* draw_data);
+		void render(SDL_Window* window, SDL_GLContext gl_context, ShaderProgram shader_program);
+
+		void draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color);
 
 	private:
 		std::vector<ShaderProgram> m_shader_programs;
+		std::vector<Vertex> m_vertices;
+		std::vector<VertexSection> m_sections;
 	};
 
 } // namespace platform
