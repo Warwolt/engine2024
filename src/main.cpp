@@ -163,38 +163,7 @@ int main(int /* argc */, char** /* args */) {
 		};
 
 		/* Render */
-		{
-			renderer.clear_screen();
-
-			// upload vertices
-			glUseProgram(shader_program.id);
-			glBindVertexArray(shader_program.vao);
-			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
-			{
-				glBufferData(GL_ARRAY_BUFFER, render_api.vertices.size() * sizeof(Vertex), render_api.vertices.data(), GL_STATIC_DRAW);
-			}
-			glBindBuffer(GL_ARRAY_BUFFER, NULL);
-			glBindVertexArray(NULL);
-			glUseProgram(NULL);
-
-			// draw
-			glUseProgram(shader_program.id);
-			glBindVertexArray(shader_program.vao);
-			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
-			{
-				GLint offset = 0;
-				for (const VertexSection& section : render_api.sections) {
-					GLenum mode = platform::primitive_to_draw_array_mode(section.primitive);
-					glDrawArrays(mode, offset, section.length);
-					offset += section.length;
-				}
-			}
-			glBindBuffer(GL_ARRAY_BUFFER, NULL);
-			glBindVertexArray(NULL);
-			glUseProgram(NULL);
-
-			renderer.render(window);
-		}
+		renderer.render(window, shader_program, &render_api);
 	}
 
 	/* Unload and delete copied engine DLL */

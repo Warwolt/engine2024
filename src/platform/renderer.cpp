@@ -161,12 +161,34 @@ namespace platform {
 		return shader_program;
 	}
 
-	void Renderer::clear_screen() {
+	void Renderer::render(SDL_Window* window, ShaderProgram shader_program, RenderAPI* render_api) {
+		// clear screen
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-	}
 
-	void Renderer::render(SDL_Window* window) {
+		glUseProgram(shader_program.id);
+		glBindVertexArray(shader_program.vao);
+		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
+
+		// upload vertices
+		{
+			glBufferData(GL_ARRAY_BUFFER, render_api->vertices.size() * sizeof(Vertex), render_api->vertices.data(), GL_STATIC_DRAW);
+		}
+
+		// draw vertices
+		{
+			GLint offset = 0;
+			for (const VertexSection& section : render_api->sections) {
+				GLenum mode = platform::primitive_to_draw_array_mode(section.primitive);
+				glDrawArrays(mode, offset, section.length);
+				offset += section.length;
+			}
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, NULL);
+		glBindVertexArray(NULL);
+		glUseProgram(NULL);
+
 		SDL_GL_SwapWindow(window);
 	}
 
