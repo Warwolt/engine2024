@@ -71,8 +71,6 @@ int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
 
-	int x = 123;
-
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
 	SDL_GLContext gl_context;
