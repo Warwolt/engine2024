@@ -1,6 +1,4 @@
 ## TODO
-- Add ASSERT macro that logs error, debug breaks, then exits
-- Only use warnings as errors in CI build, not local
 - Render textures
 - Add ImGui
 - Add Google Test
@@ -9,8 +7,11 @@
   - https://v8.dev/docs/embed
 
 ## Doing
+- Move init stuff into platform
 
 ## Done
+- Add ASSERT macro that logs error, debug breaks, then exits
+- Only use warnings as errors in CI build, not local
 - Render APIs
 - Add logging
 - Add DLL based hot reloading

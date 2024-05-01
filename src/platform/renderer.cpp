@@ -30,6 +30,9 @@ namespace platform {
 		return "";
 	}
 
+	Renderer::Renderer(SDL_GLContext /* gl_context */) {
+	}
+
 	Renderer::~Renderer() {
 		for (const ShaderProgram& shader_program : m_shader_programs) {
 			glDeleteVertexArrays(1, &shader_program.vao);

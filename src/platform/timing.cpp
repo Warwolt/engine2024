@@ -1,6 +1,6 @@
 #include <platform/timing.h>
 
-namespace timing {
+namespace platform {
 
 	Timer::Timer() {
 		m_start = m_clock.now();
@@ -14,4 +14,4 @@ namespace timing {
 		return std::chrono::duration_cast<std::chrono::milliseconds>(m_clock.now() - m_start).count();
 	}
 
-} // namespace timing
+} // namespace platform

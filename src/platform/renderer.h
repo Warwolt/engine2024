@@ -44,7 +44,7 @@ namespace platform {
 
 	class Renderer {
 	public:
-		Renderer() = default;
+		Renderer(SDL_GLContext gl_context);
 		~Renderer();
 		Renderer(const Renderer&) = delete;
 		Renderer& operator=(const Renderer&) = delete;
