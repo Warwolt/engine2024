@@ -1,7 +1,11 @@
 #include <platform/logging.h>
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <algorithm>
 #include <cstring>
+#include <debugapi.h>
 #include <iomanip>
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <plog/Formatters/MessageOnlyFormatter.h>
@@ -32,7 +36,12 @@ namespace plog {
 			ss << PLOG_NSTR("[") << pretty_file_name(record.getFile()).c_str() << PLOG_NSTR(":") << record.getLine() << PLOG_NSTR("] ");
 			ss << record.getMessage() << PLOG_NSTR("\n");
 
-			return ss.str();
+			std::wstring str = ss.str();
+
+			// log to Visual Studio debug log
+			OutputDebugStringW(str.c_str());
+
+			return str;
 		}
 	};
 
