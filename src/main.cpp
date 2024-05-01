@@ -72,8 +72,6 @@ int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
 
-	ASSERT(2 + 2 == 5, "Hello assert!");
-
 	/* Initialize SDL + OpenGL*/
 	SDL_Window* window;
 	SDL_GLContext gl_context;
