@@ -18,7 +18,6 @@ set(INC
 )
 
 set(ENGINE_SRC
-    src/platform/platform.cpp
     src/engine.cpp
 )
 
