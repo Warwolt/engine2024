@@ -7,6 +7,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
+#include <optional>
+
 #define UNUSED(x) (void)(x)
 
 using EngineLibrary = platform::EngineLibrary;
@@ -19,6 +21,8 @@ using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 using Vertex = platform::Vertex;
 using VertexSection = platform::VertexSection;
+
+const char* LIBRARY_NAME = "GameEngine2024";
 
 const char* VERTEX_SHADER_SRC =
 	"#version 330 core\n"
@@ -37,6 +41,26 @@ const char* FRAGMENT_SHADER_SRC =
 	"void main() {\n"
 	"    FragColor = vertexColor;\n"
 	"}";
+
+std::optional<EngineLibrary> check_engine_hot_reloading(platform::Timer* hot_reload_timer, EngineLibraryLoader* library_loader) {
+	if (hot_reload_timer->elapsed_ms() >= 1000) {
+		hot_reload_timer->reset();
+
+		if (library_loader->library_file_has_been_modified()) {
+			library_loader->unload_library();
+			{
+				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader->load_library(LIBRARY_NAME);
+				if (!load_result.has_value()) {
+					const char* error_msg = load_library_error_to_string(load_result.error());
+					LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, error_msg);
+					return {};
+				}
+				return load_result.value();
+			}
+		}
+	}
+	return {};
+}
 
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
@@ -63,10 +87,9 @@ int main(int /* argc */, char** /* args */) {
 	ShaderProgram shader_program = add_program_result.value();
 
 	/* Load engine DLL */
-	const char* library_name = "GameEngine2024";
 	EngineLibraryLoader library_loader;
-	std::expected<EngineLibrary, LoadLibraryError> load_library_result = library_loader.load_library(library_name);
-	ASSERT(load_library_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_library_result.error()));
+	std::expected<EngineLibrary, LoadLibraryError> load_library_result = library_loader.load_library(LIBRARY_NAME);
+	ASSERT(load_library_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, load_library_error_to_string(load_library_result.error()));
 	EngineLibrary engine = load_library_result.value();
 	engine.on_load(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
@@ -81,23 +104,10 @@ int main(int /* argc */, char** /* args */) {
 		frame_timer.reset();
 
 		/* Hot reloading */
-		if (hot_reload_timer.elapsed_ms() >= 1000) {
-			hot_reload_timer.reset();
-
-			if (library_loader.library_file_has_been_modified()) {
-				library_loader.unload_library();
-				{
-					std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
-					if (!load_result.has_value()) {
-						const char* error_msg = load_library_error_to_string(load_result.error());
-						LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", library_name, error_msg);
-					} else {
-						LOG_INFO("Engine library reloaded");
-						engine = load_result.value();
-						engine.on_load(plog::verbose, plog::get());
-					}
-				}
-			}
+		if (std::optional<EngineLibrary> hot_reloaded_engine = check_engine_hot_reloading(&hot_reload_timer, &library_loader)) {
+			LOG_INFO("Engine library reloaded");
+			engine = hot_reloaded_engine.value();
+			engine.on_load(plog::verbose, plog::get());
 		}
 
 		/* Input */
