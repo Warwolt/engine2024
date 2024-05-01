@@ -21,6 +21,7 @@ namespace platform {
 	const char* create_gl_context_error_to_string(CreateGLContextError error);
 
 	bool initialize();
+	void deinitialize(SDL_Window* window);
 	SDL_Window* create_window();
 	std::expected<SDL_GLContext, CreateGLContextError> create_gl_context(SDL_Window* window);
 

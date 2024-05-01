@@ -121,11 +121,6 @@ int main(int /* argc */, char** /* args */) {
 		renderer.render(window, shader_program);
 	}
 
-	/* Shutdown SDL */
-	{
-		SDL_DestroyWindow(window);
-		SDL_Quit();
-	}
-
+	platform::deinitialize(window);
 	return 0;
 }

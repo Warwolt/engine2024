@@ -60,6 +60,11 @@ namespace platform {
 		return true;
 	}
 
+	void deinitialize(SDL_Window* window) {
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+	}
+
 	SDL_Window* create_window() {
 		/* Create window */
 		SDL_Window* window = SDL_CreateWindow(
