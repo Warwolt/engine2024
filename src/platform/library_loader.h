@@ -12,9 +12,11 @@
 
 namespace platform {
 
+	using EngineOnLoadFn = void(plog::Severity, plog::IAppender*);
 	using EngineUpdateFn = void(engine::EngineState*, uint64_t);
 
 	struct EngineLibrary {
+		std::function<EngineOnLoadFn> engine_on_load;
 		std::function<EngineUpdateFn> engine_update;
 	};
 

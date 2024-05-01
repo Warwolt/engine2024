@@ -38,7 +38,6 @@ namespace platform {
 
 		static char buffer[1024];
 		_snprintf_s(buffer, sizeof(buffer), "%s", err_msg);
-		LOG_ERROR("%s", buffer);
 		LocalFree(err_msg);
 
 		return std::string(buffer);
@@ -144,6 +143,12 @@ namespace platform {
 
 		/* Read functions */
 		EngineLibrary engine_library;
+		{
+			const char* fn_name = "engine_on_load";
+			EngineOnLoadFn* fn = (EngineOnLoadFn*)(GetProcAddress(m_copied_library, fn_name));
+			ASSERT(fn != nullptr, "GetProcAddress(\"%s\") returned null. Does the function exist?", fn_name);
+			engine_library.engine_on_load = fn;
+		}
 		{
 			const char* fn_name = "engine_update";
 			EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(m_copied_library, fn_name));

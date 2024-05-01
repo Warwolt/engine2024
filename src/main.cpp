@@ -68,6 +68,7 @@ int main(int /* argc */, char** /* args */) {
 	std::expected<EngineLibrary, LoadLibraryError> load_library_result = library_loader.load_library(library_name);
 	ASSERT(load_library_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_library_result.error()));
 	EngineLibrary engine_library = load_library_result.value();
+	engine_library.engine_on_load(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
@@ -93,6 +94,7 @@ int main(int /* argc */, char** /* args */) {
 					} else {
 						LOG_INFO("Engine library reloaded");
 						engine_library = load_result.value();
+						engine_library.engine_on_load(plog::verbose, plog::get());
 					}
 				}
 			}
