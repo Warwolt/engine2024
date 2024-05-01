@@ -126,10 +126,7 @@ int main(int /* argc */, char** /* args */) {
 	ShaderProgram shader_program;
 	{
 		std::expected<ShaderProgram, ShaderProgramError> result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
-		if (!result.has_value()) {
-			const char* error_msg = platform::shader_program_error_to_string(result.error());
-			EXIT("Renderer::add_program() failed with: %s", error_msg);
-		}
+		ASSERT(result.has_value(), "Renderer::add_program() returned %s", platform::shader_program_error_to_string(result.error()));
 		shader_program = result.value();
 	}
 
@@ -139,10 +136,7 @@ int main(int /* argc */, char** /* args */) {
 	EngineLibrary engine_library;
 	{
 		std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
-		if (!load_result.has_value()) {
-			const char* error_str = load_library_error_to_string(load_result.error());
-			EXIT("EngineLibraryLoader::load_library(%s) failed with: %s", library_name, error_str);
-		}
+		ASSERT(load_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
 		engine_library = load_result.value();
 	};
 	LOG_INFO("Engine library loaded");
@@ -167,7 +161,6 @@ int main(int /* argc */, char** /* args */) {
 					if (!load_result.has_value()) {
 						const char* error_msg = load_library_error_to_string(load_result.error());
 						LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", library_name, error_msg);
-
 					} else {
 						LOG_INFO("Engine library reloaded");
 						engine_library = load_result.value();
