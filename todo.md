@@ -7,9 +7,10 @@
   - https://v8.dev/docs/embed
 
 ## Doing
-- Move init stuff into platform
 
 ## Done
+- Add render function to engine
+- Move init stuff into platform
 - Add ASSERT macro that logs error, debug breaks, then exits
 - Only use warnings as errors in CI build, not local
 - Render APIs

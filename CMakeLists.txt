@@ -4,7 +4,8 @@ project(GameEngine2024)
 option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
 
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
-set(MAIN_LIBRARY ${CMAKE_PROJECT_NAME}Lib)
+set(ENGINE_LIB ${CMAKE_PROJECT_NAME}Engine)
+set(PLATFORM_LIB ${CMAKE_PROJECT_NAME}Platform)
 set(SDL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2)
 set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/glew)
 
@@ -17,6 +18,7 @@ set(INC
 )
 
 set(ENGINE_SRC
+    src/platform/platform.cpp
     src/engine.cpp
 )
 
@@ -28,7 +30,7 @@ set(PLATFORM_SRC
     src/platform/timing.cpp
 )
 
-set(LIB
+set(EXTERNAL_LIBS
     opengl32
     glu32
     ${GLEW_DIR}/lib/glew32.lib
@@ -47,17 +49,23 @@ set(DLLS
     ${SDL_DIR}/lib/SDL2_ttf.dll
 )
 
-add_library(${MAIN_LIBRARY} SHARED ${ENGINE_SRC})
-set_property(TARGET ${MAIN_LIBRARY} PROPERTY OUTPUT_NAME ${MAIN_BINARY})
-target_include_directories(${MAIN_LIBRARY} PRIVATE ${INC})
-target_compile_definitions(${MAIN_LIBRARY} PRIVATE ENGINE24_EXPORTS)
+# Platform
+add_library(${PLATFORM_LIB} STATIC ${PLATFORM_SRC})
+target_include_directories(${PLATFORM_LIB} PRIVATE ${INC})
 
-add_executable(${MAIN_BINARY} src/main.cpp ${PLATFORM_SRC})
+# Engine
+add_library(${ENGINE_LIB} SHARED ${ENGINE_SRC})
+set_property(TARGET ${ENGINE_LIB} PROPERTY OUTPUT_NAME ${MAIN_BINARY})
+target_include_directories(${ENGINE_LIB} PRIVATE ${INC})
+target_link_libraries(${ENGINE_LIB} PRIVATE ${PLATFORM_LIB} ${EXTERNAL_LIBS})
+
+# Main
+add_executable(${MAIN_BINARY} src/main.cpp)
 target_include_directories(${MAIN_BINARY} PRIVATE ${INC})
-target_link_libraries(${MAIN_BINARY} PRIVATE ${LIB})
+target_link_libraries(${MAIN_BINARY} PRIVATE ${PLATFORM_LIB} ${EXTERNAL_LIBS})
 
 # Set compile options for targets
-foreach(TARGET IN ITEMS ${MAIN_BINARY} ${MAIN_LIBRARY})
+foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB})
     set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>: /W4>

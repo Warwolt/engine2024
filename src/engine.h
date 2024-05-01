@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include <platform/logging.h>
+#include <platform/renderer.h>
 
 namespace engine {
 
@@ -13,5 +14,6 @@ namespace engine {
 
 	extern "C" __declspec(dllexport) void on_load(plog::Severity severity, plog::IAppender* appender);
 	extern "C" __declspec(dllexport) void update(EngineState* engine, uint64_t delta_ms);
+	extern "C" __declspec(dllexport) void render(platform::Renderer* renderer, const EngineState* engine);
 
 } // namespace engine
