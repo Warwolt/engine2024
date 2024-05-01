@@ -11,7 +11,7 @@ namespace engine {
 		uint64_t millis = 0;
 	};
 
-	extern "C" __declspec(dllexport) void engine_on_load(plog::Severity severity, plog::IAppender* appender);
-	extern "C" __declspec(dllexport) void engine_update(EngineState* engine, uint64_t delta_ms);
+	extern "C" __declspec(dllexport) void on_load(plog::Severity severity, plog::IAppender* appender);
+	extern "C" __declspec(dllexport) void update(EngineState* engine, uint64_t delta_ms);
 
 } // namespace engine

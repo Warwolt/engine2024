@@ -16,8 +16,8 @@ namespace platform {
 	using EngineUpdateFn = void(engine::EngineState*, uint64_t);
 
 	struct EngineLibrary {
-		std::function<EngineOnLoadFn> engine_on_load;
-		std::function<EngineUpdateFn> engine_update;
+		std::function<EngineOnLoadFn> on_load;
+		std::function<EngineUpdateFn> update;
 	};
 
 	enum class LoadLibraryError {
