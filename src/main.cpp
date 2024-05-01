@@ -1,15 +1,13 @@
 #include <GL/glew.h>
 
 #include <engine.h>
-#include <platform/assert.h>
-#include <platform/library_loader.h>
-#include <platform/logging.h>
-#include <platform/renderer.h>
-#include <platform/timing.h>
+#include <platform/platform.h>
 
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+
+#define UNUSED(x) (void)(x)
 
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
@@ -40,110 +38,40 @@ const char* FRAGMENT_SHADER_SRC =
 	"    FragColor = vertexColor;\n"
 	"}";
 
-namespace {
-	plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
-		switch (severity) {
-			case GL_DEBUG_SEVERITY_HIGH:
-				return plog::Severity::error;
-			case GL_DEBUG_SEVERITY_MEDIUM:
-			case GL_DEBUG_SEVERITY_LOW:
-				return plog::Severity::warning;
-			case GL_DEBUG_SEVERITY_NOTIFICATION:
-				return plog::Severity::verbose;
-		}
-		return plog::none;
-	}
-
-	void GLAPIENTRY on_opengl_error(
-		GLenum /*source*/,
-		GLenum /*type*/,
-		GLuint /*id*/,
-		GLenum gl_severity,
-		GLsizei /*length*/,
-		const GLchar* message,
-		const void* /*userParam*/
-	) {
-		plog::Severity log_severity = opengl_severity_to_plog_severity(gl_severity);
-		LOG(log_severity, "%s", message);
-	}
-}
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
 
-	/* Initialize SDL + OpenGL*/
-	SDL_Window* window;
-	SDL_GLContext gl_context;
-	{
-		/* Initialize SDL */
-		if (SDL_Init(SDL_INIT_VIDEO)) {
-			EXIT("SDL_Init failed: %s", SDL_GetError());
-		}
-
-		/* Initialize OpenGL */
-		glEnable(GL_DEBUG_OUTPUT);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-		/* Create window */
-		window = SDL_CreateWindow(
-			"Game Engine 2024",
-			SDL_WINDOWPOS_CENTERED,
-			SDL_WINDOWPOS_CENTERED,
-			680,
-			480,
-			SDL_WINDOW_OPENGL
-		);
-		if (!window) {
-			EXIT("SDL_CreateWindow failed: %s", SDL_GetError());
-		}
-
-		/* Create GL Context */
-		gl_context = SDL_GL_CreateContext(window);
-		if (!gl_context) {
-			EXIT("SDL_GL_CreateContext failed: %s", SDL_GetError());
-		}
-
-		/* Initialize GLEW */
-		const GLenum glewError = glewInit();
-		if (glewError != GLEW_OK) {
-			EXIT("glewInit failed: %s", glewGetErrorString(glewError));
-		}
-
-		/* Set OpenGL error callback */
-		glDebugMessageCallback(on_opengl_error, 0);
-
-		/* Enable v-sync */
-		if (SDL_GL_SetSwapInterval(1)) {
-			EXIT("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
-		}
+	/* Initialize SDL */
+	if (!platform::initialize()) {
+		EXIT("platform::initialize() failed");
 	}
+
+	/* Create window */
+	SDL_Window* window = platform::create_window();
+	ASSERT(window, "platform::create_window() returned null");
+
+	/* Create OpenGL context */
+	std::expected<SDL_GLContext, platform::CreateGLContextError> gl_context_result = platform::create_gl_context(window);
+	ASSERT(gl_context_result.has_value(), "platform::create_gl_context() returned %s", create_gl_context_error_to_string(gl_context_result.error()));
 
 	/* Initialize OpenGL */
 	Renderer renderer;
-	ShaderProgram shader_program;
-	{
-		std::expected<ShaderProgram, ShaderProgramError> result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
-		ASSERT(result.has_value(), "Renderer::add_program() returned %s", platform::shader_program_error_to_string(result.error()));
-		shader_program = result.value();
-	}
+	std::expected<ShaderProgram, ShaderProgramError> add_program_result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
+	ASSERT(add_program_result.has_value(), "Renderer::add_program() returned %s", platform::shader_program_error_to_string(add_program_result.error()));
+	ShaderProgram shader_program = add_program_result.value();
 
 	/* Load engine DLL */
 	const char* library_name = "GameEngine2024";
 	EngineLibraryLoader library_loader;
-	EngineLibrary engine_library;
-	{
-		std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
-		ASSERT(load_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
-		engine_library = load_result.value();
-	};
+	std::expected<EngineLibrary, LoadLibraryError> load_library_result = library_loader.load_library(library_name);
+	ASSERT(load_library_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_library_result.error()));
+	EngineLibrary engine_library = load_library_result.value();
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
-	timing::Timer frame_timer;
-	timing::Timer hot_reload_timer;
+	platform::Timer frame_timer;
+	platform::Timer hot_reload_timer;
 	engine::EngineState engine_state;
 	bool quit = false;
 	while (!quit) {

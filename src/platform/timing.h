@@ -3,7 +3,7 @@
 #include <chrono>
 #include <stdint.h>
 
-namespace timing {
+namespace platform {
 
 	class Timer {
 	public:
@@ -17,4 +17,4 @@ namespace timing {
 		std::chrono::high_resolution_clock m_clock;
 	};
 
-} // namespace timing
+} // namespace platform
