@@ -95,6 +95,10 @@ namespace platform {
 		return std::string(buffer);
 	}
 
+	EngineLibraryLoader::~EngineLibraryLoader() {
+		unload_library();
+	}
+
 	std::expected<EngineLibrary, LoadLibraryError> EngineLibraryLoader::load_library(const char* library_name) {
 		/* Load library */
 		HMODULE library = LoadLibrary(library_name);
