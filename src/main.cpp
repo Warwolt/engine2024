@@ -54,9 +54,10 @@ int main(int /* argc */, char** /* args */) {
 	/* Create OpenGL context */
 	std::expected<SDL_GLContext, platform::CreateGLContextError> gl_context_result = platform::create_gl_context(window);
 	ASSERT(gl_context_result.has_value(), "platform::create_gl_context() returned %s", create_gl_context_error_to_string(gl_context_result.error()));
+	SDL_GLContext gl_context = gl_context_result.value();
 
 	/* Initialize OpenGL */
-	Renderer renderer;
+	Renderer renderer = Renderer(gl_context);
 	std::expected<ShaderProgram, ShaderProgramError> add_program_result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
 	ASSERT(add_program_result.has_value(), "Renderer::add_program() returned %s", platform::shader_program_error_to_string(add_program_result.error()));
 	ShaderProgram shader_program = add_program_result.value();
