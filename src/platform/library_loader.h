@@ -30,6 +30,9 @@ namespace platform {
 
 	class EngineLibraryLoader {
 	public:
+		EngineLibraryLoader() = default;
+		~EngineLibraryLoader();
+
 		std::expected<EngineLibrary, LoadLibraryError> load_library(const char* library_name);
 		void unload_library() const;
 		bool library_file_has_been_modified() const;

@@ -121,10 +121,6 @@ int main(int /* argc */, char** /* args */) {
 		renderer.render(window, shader_program);
 	}
 
-	/* Unload and delete copied engine DLL */
-	// FIXME: `unload_library` should be called in the destructor of LibraryLoader
-	library_loader.unload_library();
-
 	/* Shutdown SDL */
 	{
 		SDL_DestroyWindow(window);
