@@ -1,5 +1,6 @@
 #include <platform/library_loader.h>
 
+#include <platform/assert.h>
 #include <platform/logging.h>
 
 namespace platform {
@@ -142,10 +143,7 @@ namespace platform {
 		{
 			const char* fn_name = "engine_update";
 			EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(m_copied_library, fn_name));
-			if (!fn) {
-				LOG_ERROR("GetProcAddress(\"%s\") returned null. Does the function exist?", fn_name);
-				exit(1);
-			}
+			ASSERT(fn != nullptr, "GetProcAddress(\"%s\") returned null. Does the function exist?", fn_name);
 			engine_library.engine_update = fn;
 		}
 

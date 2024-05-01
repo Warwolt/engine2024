@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 
 #include <engine.h>
+#include <platform/assert.h>
 #include <platform/library_loader.h>
 #include <platform/logging.h>
 #include <platform/renderer.h>
@@ -77,8 +78,7 @@ int main(int /* argc */, char** /* args */) {
 	{
 		/* Initialize SDL */
 		if (SDL_Init(SDL_INIT_VIDEO)) {
-			LOG_ERROR("SDL_Init failed: %s", SDL_GetError());
-			exit(1);
+			EXIT("SDL_Init failed: %s", SDL_GetError());
 		}
 
 		/* Initialize OpenGL */
@@ -97,22 +97,19 @@ int main(int /* argc */, char** /* args */) {
 			SDL_WINDOW_OPENGL
 		);
 		if (!window) {
-			LOG_ERROR("SDL_CreateWindow failed: %s", SDL_GetError());
-			exit(1);
+			EXIT("SDL_CreateWindow failed: %s", SDL_GetError());
 		}
 
 		/* Create GL Context */
 		gl_context = SDL_GL_CreateContext(window);
 		if (!gl_context) {
-			LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
-			exit(1);
+			EXIT("SDL_GL_CreateContext failed: %s", SDL_GetError());
 		}
 
 		/* Initialize GLEW */
 		const GLenum glewError = glewInit();
 		if (glewError != GLEW_OK) {
-			LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
-			exit(1);
+			EXIT("glewInit failed: %s", glewGetErrorString(glewError));
 		}
 
 		/* Set OpenGL error callback */
@@ -120,7 +117,7 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Enable v-sync */
 		if (SDL_GL_SetSwapInterval(1)) {
-			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
+			EXIT("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
 		}
 	}
 
@@ -129,11 +126,7 @@ int main(int /* argc */, char** /* args */) {
 	ShaderProgram shader_program;
 	{
 		std::expected<ShaderProgram, ShaderProgramError> result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
-		if (!result.has_value()) {
-			const char* error_msg = platform::shader_program_error_to_string(result.error());
-			LOG_ERROR("Renderer::add_program() failed with: %s", error_msg);
-			exit(1);
-		}
+		ASSERT(result.has_value(), "Renderer::add_program() returned %s", platform::shader_program_error_to_string(result.error()));
 		shader_program = result.value();
 	}
 
@@ -143,11 +136,7 @@ int main(int /* argc */, char** /* args */) {
 	EngineLibrary engine_library;
 	{
 		std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader.load_library(library_name);
-		if (!load_result.has_value()) {
-			const char* error_str = load_library_error_to_string(load_result.error());
-			LOG_ERROR("EngineLibraryLoader::load_library(%s) failed with: %s", library_name, error_str);
-			exit(1);
-		}
+		ASSERT(load_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_result.error()));
 		engine_library = load_result.value();
 	};
 	LOG_INFO("Engine library loaded");
@@ -172,7 +161,6 @@ int main(int /* argc */, char** /* args */) {
 					if (!load_result.has_value()) {
 						const char* error_msg = load_library_error_to_string(load_result.error());
 						LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", library_name, error_msg);
-
 					} else {
 						LOG_INFO("Engine library reloaded");
 						engine_library = load_result.value();
