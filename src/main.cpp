@@ -117,9 +117,9 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Update */
 		engine_library.update(&engine_state, delta_ms);
-		renderer.draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f });
 
 		/* Render */
+		engine_library.render(&renderer, &engine_state);
 		renderer.render(window, shader_program);
 	}
 

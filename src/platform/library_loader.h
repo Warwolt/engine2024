@@ -2,7 +2,6 @@
 
 #include <engine.h>
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include <expected>
@@ -14,10 +13,12 @@ namespace platform {
 
 	using EngineOnLoadFn = void(plog::Severity, plog::IAppender*);
 	using EngineUpdateFn = void(engine::EngineState*, uint64_t);
+	using EngineRenderFn = void(platform::Renderer*, engine::EngineState*);
 
 	struct EngineLibrary {
 		std::function<EngineOnLoadFn> on_load;
 		std::function<EngineUpdateFn> update;
+		std::function<EngineRenderFn> render;
 	};
 
 	enum class LoadLibraryError {

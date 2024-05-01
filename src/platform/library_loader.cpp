@@ -153,6 +153,11 @@ namespace platform {
 			ASSERT(fn != nullptr, "GetProcAddress(\"update\") returned null. Does that function exist?");
 			engine_library.update = fn;
 		}
+		{
+			EngineRenderFn* fn = (EngineRenderFn*)(GetProcAddress(m_copied_library, "render"));
+			ASSERT(fn != nullptr, "GetProcAddress(\"render\") returned null. Does that function exist?");
+			engine_library.render = fn;
+		}
 
 		return engine_library;
 	}
