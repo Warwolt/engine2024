@@ -67,8 +67,8 @@ int main(int /* argc */, char** /* args */) {
 	EngineLibraryLoader library_loader;
 	std::expected<EngineLibrary, LoadLibraryError> load_library_result = library_loader.load_library(library_name);
 	ASSERT(load_library_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", library_name, load_library_error_to_string(load_library_result.error()));
-	EngineLibrary engine_library = load_library_result.value();
-	engine_library.on_load(plog::verbose, plog::get());
+	EngineLibrary engine = load_library_result.value();
+	engine.on_load(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
@@ -93,8 +93,8 @@ int main(int /* argc */, char** /* args */) {
 						LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", library_name, error_msg);
 					} else {
 						LOG_INFO("Engine library reloaded");
-						engine_library = load_result.value();
-						engine_library.on_load(plog::verbose, plog::get());
+						engine = load_result.value();
+						engine.on_load(plog::verbose, plog::get());
 					}
 				}
 			}
@@ -116,10 +116,10 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Update */
-		engine_library.update(&engine_state, delta_ms);
+		engine.update(&engine_state, delta_ms);
 
 		/* Render */
-		engine_library.render(&renderer, &engine_state);
+		engine.render(&renderer, &engine_state);
 		renderer.render(window, shader_program);
 	}
 
