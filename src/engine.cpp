@@ -9,7 +9,9 @@ namespace engine {
 		plog::init(severity, appender);
 	}
 
-	bool update(EngineState* engine, const platform::Input* input) {
+	platform::Commands update(EngineState* engine, const platform::Input* input) {
+		platform::Commands commands = { 0 };
+
 		engine->millis += input->delta_ms;
 		if (engine->millis >= 1000) {
 			engine->millis -= 1000;
@@ -17,7 +19,11 @@ namespace engine {
 			LOG_INFO("%zu", engine->tick);
 		}
 
-		return input->quit_signal_received || input->escape_key_pressed;
+		if (input->quit_signal_received || input->escape_key_pressed) {
+			commands.quit();
+		}
+
+		return commands;
 	}
 
 	void render(platform::Renderer* renderer, const EngineState* /* engine */) {

@@ -2,6 +2,7 @@
 
 #include <engine.h>
 #include <platform/assert.h>
+#include <platform/commands.h>
 #include <platform/input.h>
 #include <platform/library_loader.h>
 #include <platform/logging.h>
@@ -117,10 +118,10 @@ int main(int /* argc */, char** /* args */) {
 		platform::Input input = platform::read_input();
 		input.delta_ms = frame_timer.elapsed_ms();
 		frame_timer.reset();
-		quit = input.quit_signal_received || input.escape_key_pressed;
 
 		/* Update */
-		quit = engine.update(&state, &input);
+		platform::Commands commands = engine.update(&state, &input);
+		quit = commands.m_quit;
 
 		/* Render */
 		engine.render(&renderer, &state);
