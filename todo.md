@@ -1,5 +1,4 @@
 ## TODO
-- Update CMakeLists to set VS startup project
 - Keyboard input
 - Opaque reloadable engine state
   - Serialize before DLL reload, deserialize after
@@ -14,6 +13,7 @@
 - Add Google Test
 
 ## Done
+- Update CMakeLists to set VS startup project
 - Process input into a struct that's passed to engine::update
 - Add render function to engine
 - Move init stuff into platform
