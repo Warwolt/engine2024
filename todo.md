@@ -12,9 +12,9 @@
   - https://v8.dev/docs/embed
 
 ## Doing
-- Process input into a struct that's passed to engine::update
 
 ## Done
+- Process input into a struct that's passed to engine::update
 - Add render function to engine
 - Move init stuff into platform
 - Add ASSERT macro that logs error, debug breaks, then exits
