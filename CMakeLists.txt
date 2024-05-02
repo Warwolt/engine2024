@@ -27,7 +27,7 @@ set(ENGINE_SRC
 
 set(PLATFORM_SRC
     src/platform/commands.cpp
-    src/platform/input.cpp
+    src/platform/input/input.cpp
     src/platform/input/timing.cpp
     src/platform/library_loader.cpp
     src/platform/logging.cpp
