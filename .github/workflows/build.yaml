@@ -17,3 +17,6 @@ jobs:
 
       - name: Build
         run: cmake --build build
+
+      - name: Test
+        run: ./build/Debug/unit_tests.exe
