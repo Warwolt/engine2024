@@ -14,6 +14,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
+#include <expected>
+#include <functional>
 #include <optional>
 
 using EngineLibrary = platform::EngineLibrary;
@@ -46,6 +48,19 @@ const char* FRAGMENT_SHADER_SRC =
 	"void main() {\n"
 	"    FragColor = vertexColor;\n"
 	"}";
+
+namespace util {
+
+	template<typename T, typename E, typename F>
+	T unwrap(std::expected<T, E> result, F on_error) {
+		if (!result.has_value()) {
+			on_error(result.error());
+			EXIT("util::unwrap called with std::expected not holding a value");
+		}
+		return result.value();
+	}
+
+} // namespace util
 
 std::optional<EngineLibrary> check_engine_hot_reloading(platform::Timer* hot_reload_timer, EngineLibraryLoader* library_loader) {
 	if (hot_reload_timer->elapsed_ms() >= 1000) {
@@ -81,9 +96,9 @@ int main(int /* argc */, char** /* args */) {
 	ASSERT(window, "platform::create_window() returned null");
 
 	/* Create OpenGL context */
-	std::expected<SDL_GLContext, platform::CreateGLContextError> gl_context_result = platform::create_gl_context(window);
-	ASSERT(gl_context_result.has_value(), "platform::create_gl_context() returned %s", create_gl_context_error_to_string(gl_context_result.error()));
-	SDL_GLContext gl_context = gl_context_result.value();
+	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window), [](platform::CreateGLContextError error) {
+		EXIT("platform::create_gl_context() returned %s", create_gl_context_error_to_string(error));
+	});
 
 	/* Initialize OpenGL */
 	Renderer renderer = Renderer(gl_context);
