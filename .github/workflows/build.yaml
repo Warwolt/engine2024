@@ -19,4 +19,4 @@ jobs:
         run: cmake --build build
 
       - name: Test
-        run: GTEST_COLOR=1 ./build/Debug/unit_tests.exe
+        run: $env:GTEST_COLOR=1; ./build/Debug/unit_tests.exe
