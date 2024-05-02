@@ -12,8 +12,8 @@
 namespace platform {
 
 	using EngineOnLoadFn = void(plog::Severity, plog::IAppender*);
-	using EngineUpdateFn = void(engine::EngineState*, uint64_t);
-	using EngineRenderFn = void(platform::Renderer*, engine::EngineState*);
+	using EngineUpdateFn = platform::Commands(engine::State*, const platform::Input*);
+	using EngineRenderFn = void(platform::Renderer*, engine::State*);
 
 	struct EngineLibrary {
 		std::function<EngineOnLoadFn> on_load;

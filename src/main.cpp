@@ -1,7 +1,14 @@
 #include <GL/glew.h>
 
 #include <engine.h>
+#include <platform/assert.h>
+#include <platform/commands.h>
+#include <platform/input.h>
+#include <platform/library_loader.h>
+#include <platform/logging.h>
 #include <platform/platform.h>
+#include <platform/renderer.h>
+#include <platform/timing.h>
 
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
@@ -97,12 +104,9 @@ int main(int /* argc */, char** /* args */) {
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Timer hot_reload_timer;
-	engine::EngineState engine_state;
-	bool quit = false;
-	while (!quit) {
-		const uint64_t delta_ms = frame_timer.elapsed_ms();
-		frame_timer.reset();
-
+	platform::Input input = { 0 };
+	engine::State state;
+	while (true) {
 		/* Hot reloading */
 		if (std::optional<EngineLibrary> hot_reloaded_engine = check_engine_hot_reloading(&hot_reload_timer, &library_loader)) {
 			LOG_INFO("Engine library reloaded");
@@ -111,25 +115,18 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Input */
-		{
-			SDL_Event event;
-			while (SDL_PollEvent(&event)) {
-				switch (event.type) {
-					case SDL_QUIT:
-						quit = true;
-					case SDL_KEYDOWN:
-						if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-							quit = true;
-						}
-				}
-			}
-		}
+		platform::read_input(&input);
+		input.delta_ms = frame_timer.elapsed_ms();
+		frame_timer.reset();
 
 		/* Update */
-		engine.update(&engine_state, delta_ms);
+		platform::Commands commands = engine.update(&state, &input);
+		if (commands.m_quit) {
+			break;
+		}
 
 		/* Render */
-		engine.render(&renderer, &engine_state);
+		engine.render(&renderer, &state);
 		renderer.render(window, shader_program);
 	}
 

@@ -2,11 +2,6 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include <platform/assert.h>
-#include <platform/library_loader.h>
-#include <platform/logging.h>
-#include <platform/renderer.h>
-#include <platform/timing.h>
 
 #include <expected>
 

@@ -2,6 +2,8 @@
 
 #include <platform/platform.h>
 
+#include <platform/logging.h>
+
 namespace {
 	plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
 		switch (severity) {
