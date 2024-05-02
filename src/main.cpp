@@ -1,11 +1,11 @@
 #include <GL/glew.h>
 
 #include <engine.h>
-#include <platform/platform.h>
 #include <platform/assert.h>
 #include <platform/input.h>
 #include <platform/library_loader.h>
 #include <platform/logging.h>
+#include <platform/platform.h>
 #include <platform/renderer.h>
 #include <platform/timing.h>
 
@@ -106,9 +106,6 @@ int main(int /* argc */, char** /* args */) {
 	engine::EngineState engine_state;
 	bool quit = false;
 	while (!quit) {
-		const uint64_t delta_ms = frame_timer.elapsed_ms();
-		frame_timer.reset();
-
 		/* Hot reloading */
 		if (std::optional<EngineLibrary> hot_reloaded_engine = check_engine_hot_reloading(&hot_reload_timer, &library_loader)) {
 			LOG_INFO("Engine library reloaded");
@@ -118,10 +115,12 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Input */
 		platform::Input input = platform::read_input();
+		input.delta_ms = frame_timer.elapsed_ms();
+		frame_timer.reset();
 		quit = input.quit_signal_received || input.escape_key_pressed;
 
 		/* Update */
-		engine.update(&engine_state, delta_ms);
+		engine.update(&engine_state, input.delta_ms);
 
 		/* Render */
 		engine.render(&renderer, &engine_state);
