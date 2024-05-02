@@ -6,12 +6,12 @@
   - Keep state inside of DLL
 - Render textures
 - Add ImGui
-- Add Google Test
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Add TypeScript (maybe)
   - https://v8.dev/docs/embed
 
 ## Doing
+- Add Google Test
 
 ## Done
 - Process input into a struct that's passed to engine::update
