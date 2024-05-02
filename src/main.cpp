@@ -14,6 +14,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
+#include <expected>
+#include <functional>
 #include <optional>
 
 using EngineLibrary = platform::EngineLibrary;
@@ -26,6 +28,7 @@ using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 using Vertex = platform::Vertex;
 using VertexSection = platform::VertexSection;
+using CreateGLContextError = platform::CreateGLContextError;
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
@@ -46,6 +49,19 @@ const char* FRAGMENT_SHADER_SRC =
 	"void main() {\n"
 	"    FragColor = vertexColor;\n"
 	"}";
+
+namespace util {
+
+	template<typename T, typename E, typename F>
+	T unwrap(std::expected<T, E> result, F on_error) {
+		if (!result.has_value()) {
+			on_error(result.error());
+			ABORT("util::unwrap called with std::expected not holding a value");
+		}
+		return result.value();
+	}
+
+} // namespace util
 
 std::optional<EngineLibrary> check_engine_hot_reloading(platform::Timer* hot_reload_timer, EngineLibraryLoader* library_loader) {
 	if (hot_reload_timer->elapsed_ms() >= 1000) {
@@ -73,7 +89,7 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Initialize SDL */
 	if (!platform::initialize()) {
-		EXIT("platform::initialize() failed");
+		ABORT("platform::initialize() failed");
 	}
 
 	/* Create window */
@@ -81,21 +97,21 @@ int main(int /* argc */, char** /* args */) {
 	ASSERT(window, "platform::create_window() returned null");
 
 	/* Create OpenGL context */
-	std::expected<SDL_GLContext, platform::CreateGLContextError> gl_context_result = platform::create_gl_context(window);
-	ASSERT(gl_context_result.has_value(), "platform::create_gl_context() returned %s", create_gl_context_error_to_string(gl_context_result.error()));
-	SDL_GLContext gl_context = gl_context_result.value();
+	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window), [](CreateGLContextError error) {
+		ABORT("platform::create_gl_context() returned %s", platform::create_gl_context_error_to_string(error));
+	});
 
 	/* Initialize OpenGL */
 	Renderer renderer = Renderer(gl_context);
-	std::expected<ShaderProgram, ShaderProgramError> add_program_result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
-	ASSERT(add_program_result.has_value(), "Renderer::add_program() returned %s", platform::shader_program_error_to_string(add_program_result.error()));
-	ShaderProgram shader_program = add_program_result.value();
+	ShaderProgram shader_program = util::unwrap(renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC), [](ShaderProgramError error) {
+		ABORT("Renderer::add_program() returned %s", platform::shader_program_error_to_string(error));
+	});
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
-	std::expected<EngineLibrary, LoadLibraryError> load_library_result = library_loader.load_library(LIBRARY_NAME);
-	ASSERT(load_library_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, load_library_error_to_string(load_library_result.error()));
-	EngineLibrary engine = load_library_result.value();
+	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
+		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, load_library_error_to_string(error));
+	});
 	engine.on_load(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
