@@ -22,6 +22,7 @@ set(ENGINE_SRC
 )
 
 set(PLATFORM_SRC
+    src/platform/input.cpp
     src/platform/library_loader.cpp
     src/platform/logging.cpp
     src/platform/platform.cpp
