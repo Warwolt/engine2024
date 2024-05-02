@@ -12,11 +12,11 @@ namespace engine {
 	platform::Commands update(State* state, const platform::Input* input) {
 		platform::Commands commands = { 0 };
 
-		engine->millis += input->delta_ms;
-		if (engine->millis >= 1000) {
-			engine->millis -= 1000;
-			engine->tick += 1;
-			LOG_INFO("%zu", engine->tick);
+		state->millis += input->delta_ms;
+		if (state->millis >= 1000) {
+			state->millis -= 1000;
+			state->tick += 1;
+			LOG_INFO("%zu", state->tick);
 		}
 
 		if (input->quit_signal_received || input->escape_key_pressed) {
