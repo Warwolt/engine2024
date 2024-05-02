@@ -27,6 +27,20 @@ TEST(keyboard, ButtonReleased_DownEvent_IsPressedNow) {
 	EXPECT_EQ(keyboard.key_released_now(KEY), false);
 }
 
+TEST(keyboard, ButtonPressed_UpEvent_IsReleasedNow) {
+	platform::Keyboard keyboard;
+
+	keyboard.register_event(KEY, ButtonEvent::Down);
+	keyboard.update();
+	keyboard.register_event(KEY, ButtonEvent::Up);
+	keyboard.update();
+
+	EXPECT_EQ(keyboard.key_pressed(KEY), false);
+	EXPECT_EQ(keyboard.key_pressed_now(KEY), false);
+	EXPECT_EQ(keyboard.key_released(KEY), true);
+	EXPECT_EQ(keyboard.key_released_now(KEY), true);
+}
+
 // released, down -> pressed now
 // pressed, up -> released now
 // {released now, released}, {up, none} -> released (P_TEST)
