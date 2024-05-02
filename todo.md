@@ -1,4 +1,5 @@
 ## TODO
+- Update CMakeLists to set VS startup project
 - Keyboard input
 - Opaque reloadable engine state
   - Serialize before DLL reload, deserialize after

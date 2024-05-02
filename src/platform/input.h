@@ -10,6 +10,6 @@ namespace platform {
 		bool escape_key_pressed;
 	};
 
-	Input read_input();
+	void read_input(Input* input);
 
 } // namespace platform

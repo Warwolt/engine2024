@@ -104,6 +104,7 @@ int main(int /* argc */, char** /* args */) {
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Timer hot_reload_timer;
+	platform::Input input = { 0 };
 	engine::EngineState state;
 	while (true) {
 		/* Hot reloading */
@@ -114,7 +115,7 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Input */
-		platform::Input input = platform::read_input();
+		platform::read_input(&input);
 		input.delta_ms = frame_timer.elapsed_ms();
 		frame_timer.reset();
 
