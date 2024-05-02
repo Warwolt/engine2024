@@ -9,13 +9,13 @@
 
 namespace engine {
 
-	struct EngineState {
+	struct State {
 		uint64_t tick = 0;
 		uint64_t millis = 0;
 	};
 
 	extern "C" __declspec(dllexport) void on_load(plog::Severity severity, plog::IAppender* appender);
-	extern "C" __declspec(dllexport) platform::Commands update(EngineState* engine, const platform::Input* input);
-	extern "C" __declspec(dllexport) void render(platform::Renderer* renderer, const EngineState* engine);
+	extern "C" __declspec(dllexport) platform::Commands update(State* state, const platform::Input* input);
+	extern "C" __declspec(dllexport) void render(platform::Renderer* renderer, const State* engine);
 
 } // namespace engine

@@ -105,7 +105,7 @@ int main(int /* argc */, char** /* args */) {
 	platform::Timer frame_timer;
 	platform::Timer hot_reload_timer;
 	platform::Input input = { 0 };
-	engine::EngineState state;
+	engine::State state;
 	while (true) {
 		/* Hot reloading */
 		if (std::optional<EngineLibrary> hot_reloaded_engine = check_engine_hot_reloading(&hot_reload_timer, &library_loader)) {

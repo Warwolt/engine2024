@@ -9,7 +9,7 @@ namespace engine {
 		plog::init(severity, appender);
 	}
 
-	platform::Commands update(EngineState* engine, const platform::Input* input) {
+	platform::Commands update(State* state, const platform::Input* input) {
 		platform::Commands commands = { 0 };
 
 		engine->millis += input->delta_ms;
@@ -26,7 +26,7 @@ namespace engine {
 		return commands;
 	}
 
-	void render(platform::Renderer* renderer, const EngineState* /* engine */) {
+	void render(platform::Renderer* renderer, const State* /* state */) {
 		renderer->draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f });
 	}
 
