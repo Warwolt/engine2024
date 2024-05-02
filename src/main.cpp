@@ -42,6 +42,29 @@ const char* FRAGMENT_SHADER_SRC =
 	"    FragColor = vertexColor;\n"
 	"}";
 
+struct Input {
+	bool quit_signal_received;
+	bool escape_key_pressed;
+};
+
+Input read_input() {
+	Input input = { 0 };
+	SDL_Event event;
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+			case SDL_QUIT:
+				input.quit_signal_received = true;
+				break;
+			case SDL_KEYDOWN:
+				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+					input.escape_key_pressed = true;
+				}
+				break;
+		}
+	}
+	return input;
+}
+
 std::optional<EngineLibrary> check_engine_hot_reloading(platform::Timer* hot_reload_timer, EngineLibraryLoader* library_loader) {
 	if (hot_reload_timer->elapsed_ms() >= 1000) {
 		hot_reload_timer->reset();
@@ -111,19 +134,8 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Input */
-		{
-			SDL_Event event;
-			while (SDL_PollEvent(&event)) {
-				switch (event.type) {
-					case SDL_QUIT:
-						quit = true;
-					case SDL_KEYDOWN:
-						if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-							quit = true;
-						}
-				}
-			}
-		}
+		Input input = read_input();
+		quit = input.quit_signal_received || input.escape_key_pressed;
 
 		/* Update */
 		engine.update(&engine_state, delta_ms);

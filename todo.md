@@ -1,4 +1,5 @@
 ## TODO
+- Process input into a struct that's passed to engine::update
 - Render textures
 - Add ImGui
 - Add Google Test
