@@ -1,4 +1,4 @@
-#include <platform/input.h>
+#include <platform/input/input.h>
 
 #include <SDL2/SDL.h>
 
@@ -12,12 +12,14 @@ namespace platform {
 					input->quit_signal_received = true;
 					break;
 				case SDL_KEYDOWN:
-					if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-						input->escape_key_pressed = true;
-					}
+					input->keyboard.register_event(event.key.keysym.scancode, ButtonEvent::Down);
+					break;
+				case SDL_KEYUP:
+					input->keyboard.register_event(event.key.keysym.scancode, ButtonEvent::Up);
 					break;
 			}
 		}
+		input->keyboard.update();
 	}
 
 } // namespace platform

@@ -1,5 +1,6 @@
 ## TODO
-- Keyboard input
+- Add Google Test
+- Update CMakeLists to set VS startup project
 - Opaque reloadable engine state
   - Serialize before DLL reload, deserialize after
   - Keep state inside of DLL
@@ -10,9 +11,10 @@
   - https://v8.dev/docs/embed
 
 ## Doing
-- Add Google Test
 
 ## Done
+- Keyboard input
+- Add Google Test
 - Update CMakeLists to set VS startup project
 - Process input into a struct that's passed to engine::update
 - Add render function to engine

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <platform/commands.h>
-#include <platform/input.h>
+#include <platform/input/input.h>
 #include <platform/logging.h>
 #include <platform/renderer.h>
 

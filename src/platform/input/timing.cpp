@@ -1,4 +1,4 @@
-#include <platform/timing.h>
+#include <platform/input/timing.h>
 
 namespace platform {
 

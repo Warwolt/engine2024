@@ -27,16 +27,17 @@ set(ENGINE_SRC
 
 set(PLATFORM_SRC
     src/platform/commands.cpp
-    src/platform/input.cpp
+    src/platform/input/input.cpp
+    src/platform/input/timing.cpp
+    src/platform/input/keyboard.cpp
     src/platform/library_loader.cpp
     src/platform/logging.cpp
     src/platform/platform.cpp
     src/platform/renderer.cpp
-    src/platform/timing.cpp
 )
 
 set(TEST_SRC
-    test/dummy_test.cpp
+    test/keyboard_tests.cpp
 )
 
 set(EXTERNAL_LIBS
@@ -79,7 +80,7 @@ target_include_directories(${UNIT_TESTS} PUBLIC test)
 target_link_libraries(${UNIT_TESTS} PUBLIC gtest ${PLATFORM_LIB})
 
 # Set compile options for targets
-foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB})
+foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
     set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PUBLIC
         $<$<CXX_COMPILER_ID:MSVC>: /W4>
