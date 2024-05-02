@@ -9,13 +9,15 @@ namespace engine {
 		plog::init(severity, appender);
 	}
 
-	void update(EngineState* engine, uint64_t delta_ms) {
-		engine->millis += delta_ms;
+	bool update(EngineState* engine, const platform::Input* input) {
+		engine->millis += input->delta_ms;
 		if (engine->millis >= 1000) {
 			engine->millis -= 1000;
 			engine->tick += 1;
 			LOG_INFO("%zu", engine->tick);
 		}
+
+		return input->quit_signal_received || input->escape_key_pressed;
 	}
 
 	void render(platform::Renderer* renderer, const EngineState* /* engine */) {

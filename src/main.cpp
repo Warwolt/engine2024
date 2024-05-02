@@ -103,7 +103,7 @@ int main(int /* argc */, char** /* args */) {
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Timer hot_reload_timer;
-	engine::EngineState engine_state;
+	engine::EngineState state;
 	bool quit = false;
 	while (!quit) {
 		/* Hot reloading */
@@ -120,10 +120,10 @@ int main(int /* argc */, char** /* args */) {
 		quit = input.quit_signal_received || input.escape_key_pressed;
 
 		/* Update */
-		engine.update(&engine_state, input.delta_ms);
+		quit = engine.update(&state, &input);
 
 		/* Render */
-		engine.render(&renderer, &engine_state);
+		engine.render(&renderer, &state);
 		renderer.render(window, shader_program);
 	}
 

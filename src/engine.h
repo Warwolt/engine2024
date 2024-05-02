@@ -14,7 +14,7 @@ namespace engine {
 	};
 
 	extern "C" __declspec(dllexport) void on_load(plog::Severity severity, plog::IAppender* appender);
-	extern "C" __declspec(dllexport) void update(EngineState* engine, uint64_t delta_ms);
+	extern "C" __declspec(dllexport) bool update(EngineState* engine, const platform::Input* input);
 	extern "C" __declspec(dllexport) void render(platform::Renderer* renderer, const EngineState* engine);
 
 } // namespace engine
