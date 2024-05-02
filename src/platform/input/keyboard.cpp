@@ -1,5 +1,15 @@
 #include <platform/input/keyboard.h>
 
+namespace util {
+
+	template<typename K, typename V>
+	std::optional<V> map_get(const std::unordered_map<K, V>& map, const K& key) {
+		auto it = map.find(key);
+		return it == map.cend() ? std::nullopt : std::make_optional(it->second);
+	}
+
+}
+
 namespace platform {
 
 	Button update_button(Button button, ButtonEvent event) {
@@ -35,39 +45,29 @@ namespace platform {
 
 		/* Process events */
 		for (auto& [keycode, state] : m_keys) {
-			ButtonEvent event = _get_event(keycode).value_or(ButtonEvent::None);
+			ButtonEvent event = util::map_get(m_events, keycode).value_or(ButtonEvent::None);
 			state = update_button(state, event);
 		}
 	}
 
 	bool Keyboard::key_pressed(int keycode) const {
-		Button key = _get_key(keycode).value_or(Button { 0 });
+		Button key = util::map_get(m_keys, keycode).value_or(Button { 0 });
 		return key.pressed;
 	}
 
 	bool Keyboard::key_pressed_now(int keycode) const {
-		Button key = _get_key(keycode).value_or(Button { 0 });
+		Button key = util::map_get(m_keys, keycode).value_or(Button { 0 });
 		return key.pressed && key.changed;
 	}
 
 	bool Keyboard::key_released(int keycode) const {
-		Button key = _get_key(keycode).value_or(Button { 0 });
+		Button key = util::map_get(m_keys, keycode).value_or(Button { 0 });
 		return !key.pressed;
 	}
 
 	bool Keyboard::key_released_now(int keycode) const {
-		Button key = _get_key(keycode).value_or(Button { 0 });
+		Button key = util::map_get(m_keys, keycode).value_or(Button { 0 });
 		return !key.pressed && key.changed;
-	}
-
-	std::optional<ButtonEvent> Keyboard::_get_event(int keycode) const {
-		auto it = m_events.find(keycode);
-		return it == m_events.cend() ? std::nullopt : std::make_optional(it->second);
-	}
-
-	std::optional<Button> Keyboard::_get_key(int keycode) const {
-		auto it = m_keys.find(keycode);
-		return it == m_keys.cend() ? std::nullopt : std::make_optional(it->second);
 	}
 
 } // namespace platform
