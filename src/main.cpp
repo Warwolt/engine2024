@@ -28,6 +28,7 @@ using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 using Vertex = platform::Vertex;
 using VertexSection = platform::VertexSection;
+using CreateGLContextError = platform::CreateGLContextError;
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
@@ -96,21 +97,21 @@ int main(int /* argc */, char** /* args */) {
 	ASSERT(window, "platform::create_window() returned null");
 
 	/* Create OpenGL context */
-	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window), [](platform::CreateGLContextError error) {
+	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window), [](CreateGLContextError error) {
 		EXIT("platform::create_gl_context() returned %s", create_gl_context_error_to_string(error));
 	});
 
 	/* Initialize OpenGL */
 	Renderer renderer = Renderer(gl_context);
-	std::expected<ShaderProgram, ShaderProgramError> add_program_result = renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC);
-	ASSERT(add_program_result.has_value(), "Renderer::add_program() returned %s", platform::shader_program_error_to_string(add_program_result.error()));
-	ShaderProgram shader_program = add_program_result.value();
+	ShaderProgram shader_program = util::unwrap(renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC), [](ShaderProgramError error) {
+		EXIT("Renderer::add_program() returned %s", platform::shader_program_error_to_string(error));
+	});
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
-	std::expected<EngineLibrary, LoadLibraryError> load_library_result = library_loader.load_library(LIBRARY_NAME);
-	ASSERT(load_library_result.has_value(), "EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, load_library_error_to_string(load_library_result.error()));
-	EngineLibrary engine = load_library_result.value();
+	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
+		EXIT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, load_library_error_to_string(error));
+	});
 	engine.on_load(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
