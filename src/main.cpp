@@ -4,11 +4,11 @@
 #include <platform/assert.h>
 #include <platform/commands.h>
 #include <platform/input.h>
+#include <platform/input/timing.h>
 #include <platform/library_loader.h>
 #include <platform/logging.h>
 #include <platform/platform.h>
 #include <platform/renderer.h>
-#include <platform/timing.h>
 
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
