@@ -105,8 +105,7 @@ int main(int /* argc */, char** /* args */) {
 	platform::Timer frame_timer;
 	platform::Timer hot_reload_timer;
 	engine::EngineState state;
-	bool quit = false;
-	while (!quit) {
+	while (true) {
 		/* Hot reloading */
 		if (std::optional<EngineLibrary> hot_reloaded_engine = check_engine_hot_reloading(&hot_reload_timer, &library_loader)) {
 			LOG_INFO("Engine library reloaded");
@@ -121,7 +120,9 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Update */
 		platform::Commands commands = engine.update(&state, &input);
-		quit = commands.m_quit;
+		if (commands.m_quit) {
+			break;
+		}
 
 		/* Render */
 		engine.render(&renderer, &state);

@@ -3,10 +3,7 @@
 namespace platform {
 
 	struct Commands {
-		void quit() {
-			m_quit = true;
-		}
-
+		void quit();
 		bool m_quit;
 	};
 
