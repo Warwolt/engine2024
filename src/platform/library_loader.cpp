@@ -128,9 +128,9 @@ namespace platform {
 		/* Read functions */
 		EngineLibrary engine_library;
 		{
-			EngineOnLoadFn* fn = (EngineOnLoadFn*)(GetProcAddress(m_copied_library, "on_load"));
-			ASSERT(fn != nullptr, "GetProcAddress(\"on_load\") returned null. Does that function exist?");
-			engine_library.on_load = fn;
+			EngineInitLoggingFn* fn = (EngineInitLoggingFn*)(GetProcAddress(m_copied_library, "init_logging"));
+			ASSERT(fn != nullptr, "GetProcAddress(\"init_logging\") returned null. Does that function exist?");
+			engine_library.init_logging = fn;
 		}
 		{
 			EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(m_copied_library, "update"));

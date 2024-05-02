@@ -1,6 +1,4 @@
 ## TODO
-- Add Google Test
-- Update CMakeLists to set VS startup project
 - Opaque reloadable engine state
   - Serialize before DLL reload, deserialize after
   - Keep state inside of DLL

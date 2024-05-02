@@ -14,7 +14,7 @@ namespace engine {
 		uint64_t millis = 0;
 	};
 
-	extern "C" __declspec(dllexport) void on_load(plog::Severity severity, plog::IAppender* appender);
+	extern "C" __declspec(dllexport) void init_logging(plog::Severity severity, plog::IAppender* appender);
 	extern "C" __declspec(dllexport) platform::Commands update(State* state, const platform::Input* input);
 	extern "C" __declspec(dllexport) void render(platform::Renderer* renderer, const State* engine);
 

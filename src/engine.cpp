@@ -5,7 +5,7 @@
 
 namespace engine {
 
-	void on_load(plog::Severity severity, plog::IAppender* appender) {
+	void init_logging(plog::Severity severity, plog::IAppender* appender) {
 		plog::init(severity, appender);
 	}
 

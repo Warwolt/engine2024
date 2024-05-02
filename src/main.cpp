@@ -118,7 +118,7 @@ int main(int /* argc */, char** /* args */) {
 	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
-	engine.on_load(plog::verbose, plog::get());
+	engine.init_logging(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
@@ -131,7 +131,7 @@ int main(int /* argc */, char** /* args */) {
 		if (std::optional<EngineLibrary> hot_reloaded_engine = check_engine_hot_reloading(&hot_reload_timer, &library_loader)) {
 			LOG_INFO("Engine library reloaded");
 			engine = hot_reloaded_engine.value();
-			engine.on_load(plog::verbose, plog::get());
+			engine.init_logging(plog::verbose, plog::get());
 		}
 
 		/* Input */
