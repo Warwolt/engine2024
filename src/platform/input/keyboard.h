@@ -10,7 +10,7 @@ namespace platform {
 	};
 
 	enum class ButtonEvent {
-        None,
+		None,
 		Down,
 		Up,
 	};
@@ -25,7 +25,7 @@ namespace platform {
 		bool key_pressed_now(int key) const;
 
 	private:
-		std::unordered_map<int, Button>;
+		std::unordered_map<int, Button> m_keys;
 	};
 
 } // namespace platform

@@ -7,19 +7,19 @@ namespace platform {
 			return Button {
 				.pressed = true,
 				.changed = !button.pressed
-			}
+			};
 		}
 		if (event == ButtonEvent::Up) {
 			return Button {
 				.pressed = false,
 				.changed = button.pressed
-			}
+			};
 		}
 		else {
 			return Button {
 				.pressed = button.pressed,
 				.changed = false,
-			}
+			};
 		}
 	}
 
