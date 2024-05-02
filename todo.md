@@ -11,9 +11,9 @@
   - https://v8.dev/docs/embed
 
 ## Doing
-- Keyboard input
 
 ## Done
+- Keyboard input
 - Add Google Test
 - Update CMakeLists to set VS startup project
 - Process input into a struct that's passed to engine::update

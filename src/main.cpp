@@ -16,8 +16,6 @@
 
 #include <optional>
 
-#define UNUSED(x) (void)(x)
-
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
 using LoadLibraryError = platform::LoadLibraryError;

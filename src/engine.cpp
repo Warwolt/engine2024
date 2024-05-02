@@ -19,7 +19,7 @@ namespace engine {
 			LOG_INFO("%zu", state->tick);
 		}
 
-		if (input->quit_signal_received || input->escape_key_pressed) {
+		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDL_SCANCODE_ESCAPE)) {
 			commands.quit();
 		}
 
