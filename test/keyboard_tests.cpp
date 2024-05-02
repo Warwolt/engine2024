@@ -2,10 +2,32 @@
 
 #include <platform/input/keyboard.h>
 
-TEST(keyboard, button_initially_released) {
-	platform::Keyboard keyboard;
-	int key = 1234;
+using ButtonEvent = platform::ButtonEvent;
 
-	EXPECT_FALSE(keyboard.key_pressed(key));
-	EXPECT_TRUE(keyboard.key_released(key));
+constexpr int KEY = 1234;
+
+TEST(keyboard, ButtonInitiallyReleased) {
+	platform::Keyboard keyboard;
+
+	EXPECT_EQ(keyboard.key_pressed(KEY), false);
+	EXPECT_EQ(keyboard.key_pressed_now(KEY), false);
+	EXPECT_EQ(keyboard.key_released(KEY), true);
+	EXPECT_EQ(keyboard.key_released_now(KEY), false);
 }
+
+TEST(keyboard, ButtonReleased_DownEvent_IsPressedNow) {
+	platform::Keyboard keyboard;
+
+	keyboard.register_event(KEY, ButtonEvent::Down);
+	keyboard.update();
+
+	EXPECT_EQ(keyboard.key_pressed(KEY), true);
+	EXPECT_EQ(keyboard.key_pressed_now(KEY), true);
+	EXPECT_EQ(keyboard.key_released(KEY), false);
+	EXPECT_EQ(keyboard.key_released_now(KEY), false);
+}
+
+// released, down -> pressed now
+// pressed, up -> released now
+// {released now, released}, {up, none} -> released (P_TEST)
+// {pressed now, pressed}, {down, none} -> pressed

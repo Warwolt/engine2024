@@ -80,7 +80,7 @@ target_include_directories(${UNIT_TESTS} PUBLIC test)
 target_link_libraries(${UNIT_TESTS} PUBLIC gtest ${PLATFORM_LIB})
 
 # Set compile options for targets
-foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB})
+foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
     set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PUBLIC
         $<$<CXX_COMPILER_ID:MSVC>: /W4>
