@@ -1,19 +1,19 @@
 ## TODO
-- Update CMakeLists to set VS startup project
 - Keyboard input
 - Opaque reloadable engine state
   - Serialize before DLL reload, deserialize after
   - Keep state inside of DLL
 - Render textures
 - Add ImGui
-- Add Google Test
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Add TypeScript (maybe)
   - https://v8.dev/docs/embed
 
 ## Doing
+- Add Google Test
 
 ## Done
+- Update CMakeLists to set VS startup project
 - Process input into a struct that's passed to engine::update
 - Add render function to engine
 - Move init stuff into platform
