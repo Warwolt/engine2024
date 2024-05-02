@@ -23,4 +23,20 @@ namespace platform {
 		}
 	}
 
+	bool Keyboard::key_pressed(int key) const {
+		return false;
+	}
+
+	bool Keyboard::key_pressed_now(int key) const {
+		return false;
+	}
+
+	bool Keyboard::key_released(int key) const {
+		return true;
+	}
+
+	bool Keyboard::key_released_now(int key) const {
+		return false;
+	}
+
 } // namespace platform

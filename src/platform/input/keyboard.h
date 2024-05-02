@@ -20,9 +20,12 @@ namespace platform {
 	class Keyboard {
 	public:
 		void register_event(int key, ButtonEvent event);
+		void update();
 
 		bool key_pressed(int key) const;
 		bool key_pressed_now(int key) const;
+		bool key_released(int key) const;
+		bool key_released_now(int key) const;
 
 	private:
 		std::unordered_map<int, Button> m_keys;

@@ -37,7 +37,7 @@ set(PLATFORM_SRC
 )
 
 set(TEST_SRC
-    test/dummy_test.cpp
+    test/keyboard_tests.cpp
 )
 
 set(EXTERNAL_LIBS
