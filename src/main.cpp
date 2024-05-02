@@ -2,6 +2,12 @@
 
 #include <engine.h>
 #include <platform/platform.h>
+#include <platform/assert.h>
+#include <platform/input.h>
+#include <platform/library_loader.h>
+#include <platform/logging.h>
+#include <platform/renderer.h>
+#include <platform/timing.h>
 
 #include <GL/glu.h>
 #include <SDL2/SDL.h>

@@ -1,5 +1,7 @@
 ## TODO
-- Process input into a struct that's passed to engine::update
+- Opaque reloadable engine state
+  - Serialize before DLL reload, deserialize after
+  - Keep state inside of DLL
 - Render textures
 - Add ImGui
 - Add Google Test
@@ -8,6 +10,7 @@
   - https://v8.dev/docs/embed
 
 ## Doing
+- Process input into a struct that's passed to engine::update
 
 ## Done
 - Add render function to engine

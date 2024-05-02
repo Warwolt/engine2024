@@ -1,9 +1,10 @@
 #pragma once
 
-#include <stdint.h>
-
+#include <platform/input.h>
 #include <platform/logging.h>
 #include <platform/renderer.h>
+
+#include <stdint.h>
 
 namespace engine {
 
