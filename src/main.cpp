@@ -13,6 +13,7 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <json/json.hpp>
 #include <magic_enum/magic_enum.h>
 
 #include <expected>
