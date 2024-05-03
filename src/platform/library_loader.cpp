@@ -3,6 +3,13 @@
 #include <platform/assert.h>
 #include <platform/logging.h>
 
+#define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                          \
+	do {                                                                                                                               \
+		decltype(engine_library.function_name) fn = (decltype(engine_library.function_name))(GetProcAddress(hmodule, #function_name)); \
+		ASSERT(fn != nullptr, "GetProcAddress(\"" #function_name "\") returned null. Is the function name correct?");                  \
+		engine_library.function_name = fn;                                                                                             \
+	} while (0)
+
 namespace platform {
 
 	std::string get_winapi_error() {
@@ -127,21 +134,9 @@ namespace platform {
 
 		/* Read functions */
 		EngineLibrary engine_library;
-		{
-			EngineOnLoadFn* fn = (EngineOnLoadFn*)(GetProcAddress(m_copied_library, "on_load"));
-			ASSERT(fn != nullptr, "GetProcAddress(\"on_load\") returned null. Does that function exist?");
-			engine_library.on_load = fn;
-		}
-		{
-			EngineUpdateFn* fn = (EngineUpdateFn*)(GetProcAddress(m_copied_library, "update"));
-			ASSERT(fn != nullptr, "GetProcAddress(\"update\") returned null. Does that function exist?");
-			engine_library.update = fn;
-		}
-		{
-			EngineRenderFn* fn = (EngineRenderFn*)(GetProcAddress(m_copied_library, "render"));
-			ASSERT(fn != nullptr, "GetProcAddress(\"render\") returned null. Does that function exist?");
-			engine_library.render = fn;
-		}
+		LOAD_FUNCTION(m_copied_library, engine_library, on_load);
+		LOAD_FUNCTION(m_copied_library, engine_library, update);
+		LOAD_FUNCTION(m_copied_library, engine_library, render);
 
 		return engine_library;
 	}

@@ -5,7 +5,6 @@
 #include <windows.h>
 
 #include <expected>
-#include <functional>
 #include <optional>
 #include <string>
 
@@ -16,9 +15,9 @@ namespace platform {
 	using EngineRenderFn = void(platform::Renderer*, engine::State*);
 
 	struct EngineLibrary {
-		std::function<EngineOnLoadFn> on_load;
-		std::function<EngineUpdateFn> update;
-		std::function<EngineRenderFn> render;
+		EngineOnLoadFn* on_load;
+		EngineUpdateFn* update;
+		EngineRenderFn* render;
 	};
 
 	enum class LoadLibraryError {
