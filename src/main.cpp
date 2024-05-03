@@ -126,7 +126,17 @@ int main(int /* argc */, char** /* args */) {
 	platform::Timer frame_timer;
 	platform::Timer hot_reload_timer;
 	platform::Input input = { 0 };
+
+	// json object
+	nlohmann::json j;
+	j["tick"] = 1;
+	j["millis"] = 0;
+
+	// json -> state
 	engine::State state;
+	state.tick = j["tick"];
+	state.millis = j["millis"];
+
 	while (true) {
 		/* Hot reloading */
 		if (std::optional<EngineLibrary> hot_reloaded_engine = check_engine_hot_reloading(&hot_reload_timer, &library_loader)) {
