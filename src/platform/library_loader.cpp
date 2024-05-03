@@ -126,7 +126,19 @@ namespace platform {
 		FreeLibrary(library); // done with original DLL, free it now
 
 		/* Read functions */
+		// FIXME can we create some kind of template / macro magic here to clean this up?
+		// LOAD_FUNCTION(engine_library, m_copied_library, save_state);
 		EngineLibrary engine_library;
+		{
+			EngineSaveStateFn* fn = (EngineSaveStateFn*)(GetProcAddress(m_copied_library, "save_state"));
+			ASSERT(fn != nullptr, "GetProcAddress(\"save_state\") returned null. Does that function exist?");
+			engine_library.save_state = fn;
+		}
+		{
+			EngineLoadStateFn* fn = (EngineLoadStateFn*)(GetProcAddress(m_copied_library, "load_state"));
+			ASSERT(fn != nullptr, "GetProcAddress(\"load_state\") returned null. Does that function exist?");
+			engine_library.load_state = fn;
+		}
 		{
 			EngineInitLoggingFn* fn = (EngineInitLoggingFn*)(GetProcAddress(m_copied_library, "init_logging"));
 			ASSERT(fn != nullptr, "GetProcAddress(\"init_logging\") returned null. Does that function exist?");

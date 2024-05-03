@@ -70,26 +70,6 @@ namespace util {
 
 } // namespace util
 
-std::optional<EngineLibrary> check_engine_hot_reloading(platform::Timer* hot_reload_timer, EngineLibraryLoader* library_loader) {
-	if (hot_reload_timer->elapsed_ms() >= 1000) {
-		hot_reload_timer->reset();
-
-		if (library_loader->library_file_has_been_modified()) {
-			library_loader->unload_library();
-			{
-				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader->load_library(LIBRARY_NAME);
-				if (!load_result.has_value()) {
-					const char* error_msg = util::enum_to_string(load_result.error());
-					LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, error_msg);
-					return {};
-				}
-				return load_result.value();
-			}
-		}
-	}
-	return {};
-}
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -127,21 +107,29 @@ int main(int /* argc */, char** /* args */) {
 	platform::Timer hot_reload_timer;
 	platform::Input input = { 0 };
 
-	// json object
-	nlohmann::json j;
-	j["tick"] = 1;
-	j["millis"] = 0;
-
-	// json -> state
-	engine::State state;
-	engine::from_json(j, state);
-
 	while (true) {
 		/* Hot reloading */
-		if (std::optional<EngineLibrary> hot_reloaded_engine = check_engine_hot_reloading(&hot_reload_timer, &library_loader)) {
-			LOG_INFO("Engine library reloaded");
-			engine = hot_reloaded_engine.value();
-			engine.init_logging(plog::verbose, plog::get());
+		if (hot_reload_timer.elapsed_ms() >= 1000) {
+			hot_reload_timer.reset();
+
+			if (library_loader.library_file_has_been_modified()) {
+				nlohmann::json state;
+
+				engine.save_state(&state);
+				library_loader.unload_library();
+
+				std::expected<EngineLibrary, LoadLibraryError> load_library_result = library_loader.load_library(LIBRARY_NAME);
+				if (!load_library_result.has_value()) {
+					const char* error_msg = util::enum_to_string(load_library_result.error());
+					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, error_msg);
+				}
+
+				engine = load_library_result.value();
+				engine.load_state(&state);
+				engine.init_logging(plog::verbose, plog::get());
+
+				LOG_INFO("Engine library reloaded");
+			}
 		}
 
 		/* Input */
@@ -150,13 +138,13 @@ int main(int /* argc */, char** /* args */) {
 		frame_timer.reset();
 
 		/* Update */
-		platform::Commands commands = engine.update(&state, &input);
+		platform::Commands commands = engine.update(&input);
 		if (commands.m_quit) {
 			break;
 		}
 
 		/* Render */
-		engine.render(&renderer, &state);
+		engine.render(&renderer);
 		renderer.render(window, shader_program);
 	}
 

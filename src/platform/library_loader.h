@@ -11,11 +11,15 @@
 
 namespace platform {
 
+	using EngineSaveStateFn = void(nlohmann::json*);
+	using EngineLoadStateFn = void(nlohmann::json*);
 	using EngineInitLoggingFn = void(plog::Severity, plog::IAppender*);
-	using EngineUpdateFn = platform::Commands(engine::State*, const platform::Input*);
-	using EngineRenderFn = void(platform::Renderer*, engine::State*);
+	using EngineUpdateFn = platform::Commands(const platform::Input*);
+	using EngineRenderFn = void(platform::Renderer*);
 
 	struct EngineLibrary {
+		std::function<EngineSaveStateFn> save_state;
+		std::function<EngineLoadStateFn> load_state;
 		std::function<EngineInitLoggingFn> init_logging;
 		std::function<EngineUpdateFn> update;
 		std::function<EngineRenderFn> render;
