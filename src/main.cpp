@@ -134,8 +134,7 @@ int main(int /* argc */, char** /* args */) {
 
 	// json -> state
 	engine::State state;
-	state.tick = j["tick"];
-	state.millis = j["millis"];
+	engine::from_json(j, state);
 
 	while (true) {
 		/* Hot reloading */
