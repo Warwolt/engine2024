@@ -3,11 +3,11 @@
 #include <platform/assert.h>
 #include <platform/logging.h>
 
-#define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                                    \
-	do {                                                                                                                                         \
-		decltype(engine_library.function_name) fn = (decltype(engine_library.function_name))(GetProcAddress(m_copied_library, #function_name)); \
-		ASSERT(fn != nullptr, "GetProcAddress(\"" #function_name "\") returned null. Is the function name correct?");                            \
-		engine_library.function_name = fn;                                                                                                       \
+#define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                          \
+	do {                                                                                                                               \
+		decltype(engine_library.function_name) fn = (decltype(engine_library.function_name))(GetProcAddress(hmodule, #function_name)); \
+		ASSERT(fn != nullptr, "GetProcAddress(\"" #function_name "\") returned null. Is the function name correct?");                  \
+		engine_library.function_name = fn;                                                                                             \
 	} while (0)
 
 namespace platform {
