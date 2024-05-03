@@ -1,14 +1,11 @@
 ## TODO
-- Add Google Test
-- Update CMakeLists to set VS startup project
-- Opaque reloadable engine state
-  - Serialize before DLL reload, deserialize after
-  - Keep state inside of DLL
 - Render textures
 - Add ImGui
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Add TypeScript (maybe)
   - https://v8.dev/docs/embed
+- Allow data to change between hot reloading (Serialize state before DLL reload, deserialize after)
+  - Tried this, would be too error prone to update serialization definition manually
 
 ## Doing
 
