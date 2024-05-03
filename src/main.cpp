@@ -13,6 +13,7 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <magic_enum/magic_enum.h>
 
 #include <expected>
 #include <functional>
@@ -52,13 +53,18 @@ const char* FRAGMENT_SHADER_SRC =
 
 namespace util {
 
-	template<typename T, typename E, typename F>
+	template <typename T, typename E, typename F>
 	T unwrap(std::expected<T, E> result, F on_error) {
 		if (!result.has_value()) {
 			on_error(result.error());
 			ABORT("util::unwrap called with std::expected not holding a value");
 		}
 		return result.value();
+	}
+
+	template <typename T>
+	const char* enum_to_string(T value) {
+		return magic_enum::enum_name(value).data();
 	}
 
 } // namespace util
@@ -72,7 +78,7 @@ std::optional<EngineLibrary> check_engine_hot_reloading(platform::Timer* hot_rel
 			{
 				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader->load_library(LIBRARY_NAME);
 				if (!load_result.has_value()) {
-					const char* error_msg = load_library_error_to_string(load_result.error());
+					const char* error_msg = util::enum_to_string(load_result.error());
 					LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, error_msg);
 					return {};
 				}
@@ -98,19 +104,19 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Create OpenGL context */
 	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window), [](CreateGLContextError error) {
-		ABORT("platform::create_gl_context() returned %s", platform::create_gl_context_error_to_string(error));
+		ABORT("platform::create_gl_context() returned %s", util::enum_to_string(error));
 	});
 
 	/* Initialize OpenGL */
 	Renderer renderer = Renderer(gl_context);
 	ShaderProgram shader_program = util::unwrap(renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC), [](ShaderProgramError error) {
-		ABORT("Renderer::add_program() returned %s", platform::shader_program_error_to_string(error));
+		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
 	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
-		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, load_library_error_to_string(error));
+		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
 	engine.on_load(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");

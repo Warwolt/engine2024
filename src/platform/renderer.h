@@ -40,8 +40,6 @@ namespace platform {
 		ShaderProgramFailedToLink,
 	};
 
-	const char* shader_program_error_to_string(ShaderProgramError error);
-
 	class Renderer {
 	public:
 		Renderer(SDL_GLContext gl_context);

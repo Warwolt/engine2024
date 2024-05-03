@@ -5,22 +5,6 @@
 
 namespace platform {
 
-	const char* load_library_error_to_string(LoadLibraryError err) {
-		switch (err) {
-			case LoadLibraryError::FileDoesNotExist:
-				return "LoadLibraryError::FileDoesNotExist";
-			case LoadLibraryError::FailedToGetLibraryFullPath:
-				return "LoadLibraryError::FailedToGetLibraryFullPath";
-			case LoadLibraryError::FailedToCopyLibrary:
-				return "LoadLibraryError::FailedToCopyLibrary";
-			case LoadLibraryError::FailedToLoadCopiedLibrary:
-				return "LoadLibraryError::FailedToLoadCopiedLibrary";
-			case LoadLibraryError::FailedToReadLastModifiedTime:
-				return "LoadLibraryError::FailedToReadLastModifiedTime";
-		}
-		return ""; // unreachable
-	}
-
 	std::string get_winapi_error() {
 		DWORD err_code = GetLastError();
 		char* err_msg;

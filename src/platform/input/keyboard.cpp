@@ -2,7 +2,7 @@
 
 namespace util {
 
-	template<typename K, typename V>
+	template <typename K, typename V>
 	std::optional<V> map_get(const std::unordered_map<K, V>& map, const K& key) {
 		auto it = map.find(key);
 		return it == map.cend() ? std::nullopt : std::make_optional(it->second);

@@ -17,6 +17,7 @@ set(INC
     src
     libs/glm
     libs/plog/include
+    libs/magic_enum/include
     ${GLEW_DIR}/include
     ${SDL_DIR}/include
 )
