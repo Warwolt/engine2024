@@ -105,6 +105,16 @@ namespace platform {
 			(void*)(sizeof(Vertex::pos))
 		);
 		glEnableVertexAttribArray(1);
+		// texture coordinates
+		glVertexAttribPointer(
+			2,
+			sizeof(Vertex::uv) / sizeof(float),
+			GL_FLOAT,
+			GL_FALSE,
+			sizeof(Vertex),
+			(void*)(sizeof(Vertex::pos) + sizeof(Vertex::color))
+		);
+		glEnableVertexAttribArray(2);
 
 		/* Unbind */
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
@@ -113,6 +123,32 @@ namespace platform {
 		ShaderProgram shader_program = { shader_program_id, vao, vbo };
 		m_shader_programs.push_back(shader_program);
 		return shader_program;
+	}
+
+	std::expected<Texture, AddTextureError> Renderer::add_texture(const char* img_path) {
+		// load image
+		int width, height, num_channels;
+		unsigned char* img_data = stbi_load(img_path, &width, &height, &num_channels, 0);
+		if (!img_data) {
+			return std::unexpected(AddTextureError::CouldNotLoadImage);
+		}
+		LOG_INFO("img_data = %p, width = %d, height = %d, num_channels = %d", img_data, width, height, num_channels);
+
+		// create gl texture from image
+		GLuint texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data);
+		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
+
+		stbi_image_free(img_data);
+		return Texture { texture };
 	}
 
 	void Renderer::render(SDL_Window* window, ShaderProgram shader_program) {

@@ -13,6 +13,7 @@ namespace platform {
 	struct Vertex {
 		glm::vec2 pos;
 		glm::vec3 color;
+		glm::vec2 uv;
 	};
 
 	enum class Primitive {
@@ -40,6 +41,14 @@ namespace platform {
 		ShaderProgramFailedToLink,
 	};
 
+	struct Texture {
+		GLuint id;
+	};
+
+	enum class AddTextureError {
+		CouldNotLoadImage,
+	};
+
 	class Renderer {
 	public:
 		Renderer(SDL_GLContext gl_context);
@@ -48,6 +57,7 @@ namespace platform {
 		Renderer& operator=(const Renderer&) = delete;
 
 		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
+		std::expected<Texture, AddTextureError> add_texture(const char* img_path);
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
 		void draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color);

@@ -113,3 +113,10 @@ endif()
 # Set main binary to be default target for Visual Studio
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${MAIN_BINARY})
 set_target_properties(${MAIN_BINARY} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:${MAIN_BINARY}>)
+
+# Copy resource files
+add_custom_target(CopyResourceFiles ALL
+    COMMENT "Copying resource files"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/resources
+    $<TARGET_FILE_DIR:${MAIN_BINARY}>/resources)
