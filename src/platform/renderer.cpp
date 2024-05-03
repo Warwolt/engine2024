@@ -23,6 +23,10 @@ namespace platform {
 	}
 
 	Renderer::~Renderer() {
+		for (const Texture& texture : m_textures) {
+			glDeleteTextures(1, &texture.id);
+		}
+
 		for (const ShaderProgram& shader_program : m_shader_programs) {
 			glDeleteVertexArrays(1, &shader_program.vao);
 			glDeleteBuffers(1, &shader_program.vbo);
@@ -126,7 +130,7 @@ namespace platform {
 	}
 
 	std::expected<Texture, AddTextureError> Renderer::add_texture(const char* img_path) {
-		// load image
+		/* Load image */
 		int width, height, num_channels;
 		unsigned char* img_data = stbi_load(img_path, &width, &height, &num_channels, 0);
 		if (!img_data) {
@@ -134,7 +138,7 @@ namespace platform {
 		}
 		LOG_INFO("img_data = %p, width = %d, height = %d, num_channels = %d", img_data, width, height, num_channels);
 
-		// create gl texture from image
+		/* Create texture from image */
 		GLuint texture;
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -146,6 +150,8 @@ namespace platform {
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data);
 		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
+
+		m_textures.push_back(Texture { texture });
 
 		stbi_image_free(img_data);
 		return Texture { texture };
