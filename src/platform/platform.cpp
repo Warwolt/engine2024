@@ -34,18 +34,6 @@ namespace {
 
 namespace platform {
 
-	const char* create_gl_context_error_to_string(CreateGLContextError error) {
-		switch (error) {
-			case CreateGLContextError::FailedToCreateContext:
-				return "CreateGLContextError::FailedToCreateContext";
-			case CreateGLContextError::FailedToInitializeGlew:
-				return "CreateGLContextError::FailedToInitializeGlew";
-			case CreateGLContextError::FailedToSetVSync:
-				return "CreateGLContextError::FailedToSetVSync";
-		}
-		return "";
-	}
-
 	bool initialize() {
 		/* Initialize SDL */
 		if (SDL_Init(SDL_INIT_VIDEO)) {

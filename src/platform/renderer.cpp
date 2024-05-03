@@ -18,18 +18,6 @@ namespace platform {
 		return 0;
 	}
 
-	const char* shader_program_error_to_string(ShaderProgramError error) {
-		switch (error) {
-			case ShaderProgramError::VertexShaderFailedToCompile:
-				return "ShaderProgramError::VertexShaderFailedToCompile";
-			case ShaderProgramError::FragmentShaderFailedToCompile:
-				return "ShaderProgramError::FragmentShaderFailedToCompile";
-			case ShaderProgramError::ShaderProgramFailedToLink:
-				return "ShaderProgramError::ShaderProgramFailedToLink";
-		}
-		return "";
-	}
-
 	Renderer::Renderer(SDL_GLContext /* gl_context */) {
 	}
 

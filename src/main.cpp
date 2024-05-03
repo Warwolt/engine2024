@@ -104,13 +104,13 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Create OpenGL context */
 	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window), [](CreateGLContextError error) {
-		ABORT("platform::create_gl_context() returned %s", platform::create_gl_context_error_to_string(error));
+		ABORT("platform::create_gl_context() returned %s", util::enum_to_string(error));
 	});
 
 	/* Initialize OpenGL */
 	Renderer renderer = Renderer(gl_context);
 	ShaderProgram shader_program = util::unwrap(renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC), [](ShaderProgramError error) {
-		ABORT("Renderer::add_program() returned %s", platform::shader_program_error_to_string(error));
+		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
 
 	/* Load engine DLL */
