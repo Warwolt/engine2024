@@ -35,24 +35,6 @@ using CreateGLContextError = platform::CreateGLContextError;
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
-const char* VERTEX_SHADER_SRC =
-	"#version 330 core\n"
-	"layout (location = 0) in vec2 aPos;\n"
-	"layout (location = 1) in vec3 aColor;\n"
-	"out vec4 vertexColor;\n"
-	"void main() {\n"
-	"    gl_Position = vec4(aPos, 0.0, 1.0);\n"
-	"    vertexColor = vec4(aColor, 1.0);\n"
-	"}";
-
-const char* FRAGMENT_SHADER_SRC =
-	"#version 330 core\n"
-	"out vec4 FragColor;\n"
-	"in vec4 vertexColor;\n"
-	"void main() {\n"
-	"    FragColor = vertexColor;\n"
-	"}";
-
 std::optional<std::string> read_file(const char* path) {
 	std::string line, text;
 	std::ifstream in(path);
@@ -85,13 +67,17 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
+	const char* fragment_shader_path = "resources/shaders/shader.frag";
 	std::string vertex_shader_src = util::unwrap(read_file(vertex_shader_path), [&] {
 		ABORT("Failed to open vertex shader \"%s\"", vertex_shader_path);
+	});
+	std::string fragment_shader_src = util::unwrap(read_file(fragment_shader_path), [&] {
+		ABORT("Failed to open fragment shader \"%s\"", fragment_shader_path);
 	});
 
 	/* Initialize OpenGL */
 	Renderer renderer = Renderer(gl_context);
-	ShaderProgram shader_program = util::unwrap(renderer.add_program(vertex_shader_src.c_str(), FRAGMENT_SHADER_SRC), [](ShaderProgramError error) {
+	ShaderProgram shader_program = util::unwrap(renderer.add_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
 
