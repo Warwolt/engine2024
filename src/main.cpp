@@ -20,8 +20,8 @@
 
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
+using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
 using LoadLibraryError = platform::LoadLibraryError;
-
 using Primitive = platform::Primitive;
 using Renderer = platform::Renderer;
 using ShaderProgram = platform::ShaderProgram;
@@ -50,35 +50,6 @@ const char* FRAGMENT_SHADER_SRC =
 	"    FragColor = vertexColor;\n"
 	"}";
 
-class EngineLibraryHotReloader {
-public:
-	EngineLibraryHotReloader(EngineLibraryLoader* library_loader);
-	void check_hot_reloading(EngineLibrary* engine_library);
-
-private:
-	EngineLibraryLoader* m_library_loader;
-	platform::Timer m_hot_reload_timer;
-};
-
-EngineLibraryHotReloader::EngineLibraryHotReloader(EngineLibraryLoader* library_loader)
-	: m_library_loader(library_loader) {
-}
-
-void EngineLibraryHotReloader::check_hot_reloading(EngineLibrary* engine_library) {
-	if (m_hot_reload_timer.elapsed_ms() >= 1000) {
-		m_hot_reload_timer.reset();
-
-		if (m_library_loader->library_file_has_been_modified()) {
-			m_library_loader->unload_library();
-			*engine_library = util::unwrap(m_library_loader->load_library(LIBRARY_NAME), [](LoadLibraryError error) {
-				ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
-			});
-			engine_library->on_load(plog::verbose, plog::get());
-			LOG_INFO("Engine library reloaded");
-		}
-	}
-}
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -105,7 +76,7 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
-	EngineLibraryHotReloader hot_reloader = EngineLibraryHotReloader(&library_loader);
+	EngineLibraryHotReloader hot_reloader = EngineLibraryHotReloader(&library_loader, LIBRARY_NAME);
 	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
