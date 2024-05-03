@@ -2,6 +2,7 @@
 
 #include <platform/assert.h>
 #include <platform/logging.h>
+#include <util.h>
 
 #define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                          \
 	do {                                                                                                                               \
@@ -159,6 +160,26 @@ namespace platform {
 		if (!DeleteFile(m_copied_library_path.c_str())) {
 			std::string error = get_winapi_error();
 			LOG_ERROR("DeleteFile(\"%s\") failed: %s", m_copied_library_path.c_str(), error.c_str());
+		}
+	}
+
+	EngineLibraryHotReloader::EngineLibraryHotReloader(EngineLibraryLoader* library_loader, const char* library_name)
+		: m_library_loader(library_loader)
+		, m_library_name(library_name) {
+	}
+
+	void EngineLibraryHotReloader::check_hot_reloading(EngineLibrary* engine_library) {
+		if (m_hot_reload_timer.elapsed_ms() >= 1000) {
+			m_hot_reload_timer.reset();
+
+			if (m_library_loader->library_file_has_been_modified()) {
+				m_library_loader->unload_library();
+				*engine_library = util::unwrap(m_library_loader->load_library(m_library_name.c_str()), [&](LoadLibraryError error) {
+					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", m_library_name.c_str(), util::enum_to_string(error));
+				});
+				engine_library->on_load(plog::verbose, plog::get());
+				LOG_INFO("Engine library reloaded");
+			}
 		}
 	}
 

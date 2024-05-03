@@ -1,5 +1,4 @@
 ## TODO
-- Render textures
 - Add ImGui
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Add TypeScript (maybe)
@@ -8,6 +7,7 @@
   - Tried this, would be too error prone to update serialization definition manually
 
 ## Doing
+- Render textures
 
 ## Done
 - Keyboard input

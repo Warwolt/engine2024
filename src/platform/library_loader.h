@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine.h>
+#include <platform/input/timing.h>
 
 #include <windows.h>
 
@@ -43,6 +44,17 @@ namespace platform {
 		std::string m_copied_library_path;
 		FILETIME m_last_library_write;
 		HMODULE m_copied_library;
+	};
+
+	class EngineLibraryHotReloader {
+	public:
+		EngineLibraryHotReloader(EngineLibraryLoader* library_loader, const char* library_name);
+		void check_hot_reloading(EngineLibrary* engine_library);
+
+	private:
+		std::string m_library_name;
+		EngineLibraryLoader* m_library_loader;
+		platform::Timer m_hot_reload_timer;
 	};
 
 } // namespace platform

@@ -9,20 +9,19 @@
 #include <platform/logging.h>
 #include <platform/platform.h>
 #include <platform/renderer.h>
+#include <util.h>
 
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include <magic_enum/magic_enum.h>
 
 #include <expected>
-#include <functional>
 #include <optional>
 
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
+using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
 using LoadLibraryError = platform::LoadLibraryError;
-
 using Primitive = platform::Primitive;
 using Renderer = platform::Renderer;
 using ShaderProgram = platform::ShaderProgram;
@@ -51,44 +50,6 @@ const char* FRAGMENT_SHADER_SRC =
 	"    FragColor = vertexColor;\n"
 	"}";
 
-namespace util {
-
-	template <typename T, typename E, typename F>
-	T unwrap(std::expected<T, E> result, F on_error) {
-		if (!result.has_value()) {
-			on_error(result.error());
-			ABORT("util::unwrap called with std::expected not holding a value");
-		}
-		return result.value();
-	}
-
-	template <typename T>
-	const char* enum_to_string(T value) {
-		return magic_enum::enum_name(value).data();
-	}
-
-} // namespace util
-
-std::optional<EngineLibrary> check_engine_hot_reloading(platform::Timer* hot_reload_timer, EngineLibraryLoader* library_loader) {
-	if (hot_reload_timer->elapsed_ms() >= 1000) {
-		hot_reload_timer->reset();
-
-		if (library_loader->library_file_has_been_modified()) {
-			library_loader->unload_library();
-			{
-				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader->load_library(LIBRARY_NAME);
-				if (!load_result.has_value()) {
-					const char* error_msg = util::enum_to_string(load_result.error());
-					LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, error_msg);
-					return {};
-				}
-				return load_result.value();
-			}
-		}
-	}
-	return {};
-}
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -115,6 +76,7 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
+	EngineLibraryHotReloader hot_reloader = EngineLibraryHotReloader(&library_loader, LIBRARY_NAME);
 	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
@@ -123,16 +85,11 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Main loop */
 	platform::Timer frame_timer;
-	platform::Timer hot_reload_timer;
 	platform::Input input = { 0 };
 	engine::State state;
 	while (true) {
 		/* Hot reloading */
-		if (std::optional<EngineLibrary> hot_reloaded_engine = check_engine_hot_reloading(&hot_reload_timer, &library_loader)) {
-			LOG_INFO("Engine library reloaded");
-			engine = hot_reloaded_engine.value();
-			engine.on_load(plog::verbose, plog::get());
-		}
+		hot_reloader.check_hot_reloading(&engine);
 
 		/* Input */
 		platform::read_input(&input);
