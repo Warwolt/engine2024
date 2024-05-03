@@ -29,8 +29,6 @@ namespace platform {
 		FailedToReadLastModifiedTime,
 	};
 
-	const char* load_library_error_to_string(LoadLibraryError err);
-
 	class EngineLibraryLoader {
 	public:
 		EngineLibraryLoader() = default;

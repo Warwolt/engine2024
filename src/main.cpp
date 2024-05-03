@@ -13,6 +13,7 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <magic_enum/magic_enum.h>
 
 #include <expected>
 #include <functional>
@@ -61,6 +62,11 @@ namespace util {
 		return result.value();
 	}
 
+	template<typename T>
+	const char* enum_to_string(T value) {
+		return magic_enum::enum_name(value).data();
+	}
+
 } // namespace util
 
 std::optional<EngineLibrary> check_engine_hot_reloading(platform::Timer* hot_reload_timer, EngineLibraryLoader* library_loader) {
@@ -72,7 +78,7 @@ std::optional<EngineLibrary> check_engine_hot_reloading(platform::Timer* hot_rel
 			{
 				std::expected<EngineLibrary, LoadLibraryError> load_result = library_loader->load_library(LIBRARY_NAME);
 				if (!load_result.has_value()) {
-					const char* error_msg = load_library_error_to_string(load_result.error());
+					const char* error_msg = util::enum_to_string(load_result.error());
 					LOG_ERROR("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, error_msg);
 					return {};
 				}
@@ -110,7 +116,7 @@ int main(int /* argc */, char** /* args */) {
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
 	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
-		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, load_library_error_to_string(error));
+		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
 	engine.on_load(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
