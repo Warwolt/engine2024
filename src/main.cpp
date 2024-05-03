@@ -53,7 +53,7 @@ const char* FRAGMENT_SHADER_SRC =
 
 namespace util {
 
-	template<typename T, typename E, typename F>
+	template <typename T, typename E, typename F>
 	T unwrap(std::expected<T, E> result, F on_error) {
 		if (!result.has_value()) {
 			on_error(result.error());
@@ -62,7 +62,7 @@ namespace util {
 		return result.value();
 	}
 
-	template<typename T>
+	template <typename T>
 	const char* enum_to_string(T value) {
 		return magic_enum::enum_name(value).data();
 	}
