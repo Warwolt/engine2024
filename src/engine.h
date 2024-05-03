@@ -5,6 +5,8 @@
 #include <platform/logging.h>
 #include <platform/renderer.h>
 
+#include <nlohmann/json.hpp>
+
 #include <stdint.h>
 
 namespace engine {
