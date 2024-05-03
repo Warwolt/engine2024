@@ -11,8 +11,7 @@ namespace engine {
 		uint64_t tick = 0;
 		uint64_t millis = 0;
 	};
-
-	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(State, tick, millis)
+	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(State, tick, millis)
 
 	static State g_state;
 

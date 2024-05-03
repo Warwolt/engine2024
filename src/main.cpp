@@ -117,14 +117,9 @@ int main(int /* argc */, char** /* args */) {
 
 				engine.save_state(&state);
 				library_loader.unload_library();
-
-				std::expected<EngineLibrary, LoadLibraryError> load_library_result = library_loader.load_library(LIBRARY_NAME);
-				if (!load_library_result.has_value()) {
-					const char* error_msg = util::enum_to_string(load_library_result.error());
-					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, error_msg);
-				}
-
-				engine = load_library_result.value();
+				engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
+					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
+				});
 				engine.load_state(&state);
 				engine.init_logging(plog::verbose, plog::get());
 
