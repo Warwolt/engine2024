@@ -5,6 +5,7 @@ option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
 
 # Include Google Test
 add_subdirectory(libs/google-test)
+add_subdirectory(libs/stb_image)
 
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
 set(UNIT_TESTS unit_tests)
@@ -44,6 +45,7 @@ set(TEST_SRC
 set(EXTERNAL_LIBS
     opengl32
     glu32
+    stb_image
     ${GLEW_DIR}/lib/glew32.lib
     ${SDL_DIR}/lib/SDL2main.lib
     ${SDL_DIR}/lib/SDL2.lib
@@ -63,6 +65,7 @@ set(DLLS
 # Platform
 add_library(${PLATFORM_LIB} STATIC ${PLATFORM_SRC})
 target_include_directories(${PLATFORM_LIB} PUBLIC ${INC})
+target_link_libraries(${PLATFORM_LIB} PUBLIC ${EXTERNAL_LIBS})
 
 # Engine
 add_library(${ENGINE_LIB} SHARED ${ENGINE_SRC})

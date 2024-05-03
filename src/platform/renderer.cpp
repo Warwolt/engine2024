@@ -3,6 +3,7 @@
 #include <platform/renderer.h>
 
 #include <platform/logging.h>
+#include <stb_image/stb_image.h>
 
 namespace platform {
 
