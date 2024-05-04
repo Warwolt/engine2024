@@ -160,9 +160,11 @@ namespace platform {
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
 
 		// upload vertices
-		{
-			glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
-		}
+		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
+
+		// bind texture
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_white_texture.id);
 
 		// draw vertices
 		{
