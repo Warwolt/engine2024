@@ -90,6 +90,11 @@ int main(int /* argc */, char** /* args */) {
 	engine.on_load(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
+	const char* img_path = "resources/textures/container.jpg";
+	platform::Texture texture = util::unwrap(renderer.add_texture(img_path), [&](platform::AddTextureError error) {
+		ABORT("Renderer::load_texture(%s) failed with: %s", img_path, util::enum_to_string(error));
+	});
+
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Input input = { 0 };
@@ -111,6 +116,7 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Render */
 		engine.render(&renderer, &state);
+		glBindTexture(GL_TEXTURE_2D, texture.id);
 		renderer.render(window, shader_program);
 	}
 

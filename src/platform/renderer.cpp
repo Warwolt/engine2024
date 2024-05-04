@@ -136,7 +136,6 @@ namespace platform {
 		if (!img_data) {
 			return std::unexpected(AddTextureError::CouldNotLoadImage);
 		}
-		LOG_INFO("img_data = %p, width = %d, height = %d, num_channels = %d", img_data, width, height, num_channels);
 
 		/* Create texture from image */
 		GLuint texture;
@@ -153,6 +152,7 @@ namespace platform {
 
 		m_textures.push_back(Texture { texture });
 
+		glBindTexture(GL_TEXTURE_2D, NULL);
 		stbi_image_free(img_data);
 		return Texture { texture };
 	}
@@ -202,14 +202,14 @@ namespace platform {
 		float y1 = p1.y;
 
 		// first triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color, .uv = { 0.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { 1.0f, 1.0f } });
 
 		// second triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { 1.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { 1.0f, 0.0f } });
 
 		// sections
 		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6 });
