@@ -62,8 +62,6 @@ namespace platform {
 		void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture);
 
 	private:
-		std::vector<ShaderProgram> m_shader_programs;
-		std::vector<Texture> m_textures;
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;
