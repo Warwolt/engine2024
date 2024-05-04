@@ -21,17 +21,8 @@ namespace platform {
 		GLuint id;
 	};
 
-	// What the fuck is the point of this? Why not just store the GLenum
-	// directly since we're just using it privately in the implementation anywy?
-	enum class Primitive {
-		Point,
-		Line,
-		LineLoop,
-		Triangle,
-	};
-
 	struct VertexSection {
-		Primitive primitive;
+		GLenum mode;
 		uint16_t length;
 		Texture texture;
 	};

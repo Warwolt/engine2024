@@ -7,20 +7,6 @@
 
 namespace platform {
 
-	static GLenum primitive_to_draw_array_mode(Primitive primitive) {
-		switch (primitive) {
-			case Primitive::Point:
-				return GL_POINTS;
-			case Primitive::Line:
-				return GL_LINES;
-			case Primitive::LineLoop:
-				return GL_LINE_LOOP;
-			case Primitive::Triangle:
-				return GL_TRIANGLES;
-		}
-		return 0;
-	}
-
 	Texture add_texture(const unsigned char* data, int width, int height) {
 		GLuint texture;
 		glGenTextures(1, &texture);
@@ -168,11 +154,9 @@ namespace platform {
 		/* Draw vertices */
 		GLint offset = 0;
 		for (const VertexSection& section : m_sections) {
-			GLenum mode = primitive_to_draw_array_mode(section.primitive);
-
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, section.texture.id);
-			glDrawArrays(mode, offset, section.length);
+			glDrawArrays(section.mode, offset, section.length);
 
 			offset += section.length;
 		}
@@ -190,13 +174,13 @@ namespace platform {
 
 	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {
 		m_vertices.push_back(Vertex { .pos = point, .color = color });
-		m_sections.push_back(VertexSection { .primitive = Primitive::Point, .length = 1, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 1, .texture = m_white_texture });
 	}
 
 	void Renderer::draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color) {
 		m_vertices.push_back(Vertex { .pos = start, .color = color });
 		m_vertices.push_back(Vertex { .pos = end, .color = color });
-		m_sections.push_back(VertexSection { .primitive = Primitive::Line, .length = 2, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture });
 	}
 
 	void Renderer::draw_rect(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
@@ -214,7 +198,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
 		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
 
-		m_sections.push_back(VertexSection { .primitive = Primitive::LineLoop, .length = 4, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture });
 	}
 
 	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
@@ -238,7 +222,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { 1.0f, 0.0f } });
 
 		// sections
-		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = m_white_texture });
 	}
 
 	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
@@ -264,7 +248,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = white, .uv = { 1.0f, 0.0f } });
 
 		// sections
-		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6, .texture = texture });
+		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture });
 	}
 
 } // namespace platform
