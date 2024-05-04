@@ -105,7 +105,8 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Render */
 		engine.render(&renderer, &state);
-		renderer.draw_texture({ -0.5f, 0.5f }, { 0.5f, -0.5f }, texture);
+		glm::vec2 offset = { -0.05f, 0.05f };
+		renderer.draw_texture(glm::vec2 { -0.5f, 0.5f } + offset, glm::vec2 { 0.5f, -0.5f } + offset, texture);
 		renderer.render(window, shader_program);
 	}
 

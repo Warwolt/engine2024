@@ -220,7 +220,7 @@ namespace platform {
 		float x1 = bottom_right.x;
 		float y1 = bottom_right.y;
 
-		glm::vec4 white = { 0xFF, 0xFF, 0xFF, 0xFF };
+		glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 		// first triangle
 		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = white, .uv = { 0.0f, 1.0f } });
