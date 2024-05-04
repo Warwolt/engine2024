@@ -3,6 +3,8 @@
 #include <engine.h>
 #include <platform/assert.h>
 #include <platform/commands.h>
+#include <platform/file.h>
+#include <platform/image.h>
 #include <platform/input/input.h>
 #include <platform/input/timing.h>
 #include <platform/library_loader.h>
@@ -32,24 +34,6 @@ using CreateGLContextError = platform::CreateGLContextError;
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
-const char* VERTEX_SHADER_SRC =
-	"#version 330 core\n"
-	"layout (location = 0) in vec2 aPos;\n"
-	"layout (location = 1) in vec3 aColor;\n"
-	"out vec4 vertexColor;\n"
-	"void main() {\n"
-	"    gl_Position = vec4(aPos, 0.0, 1.0);\n"
-	"    vertexColor = vec4(aColor, 1.0);\n"
-	"}";
-
-const char* FRAGMENT_SHADER_SRC =
-	"#version 330 core\n"
-	"out vec4 FragColor;\n"
-	"in vec4 vertexColor;\n"
-	"void main() {\n"
-	"    FragColor = vertexColor;\n"
-	"}";
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -68,9 +52,19 @@ int main(int /* argc */, char** /* args */) {
 		ABORT("platform::create_gl_context() returned %s", util::enum_to_string(error));
 	});
 
+	/* Read shader sources */
+	const char* vertex_shader_path = "resources/shaders/shader.vert";
+	const char* fragment_shader_path = "resources/shaders/shader.frag";
+	std::string vertex_shader_src = util::unwrap(platform::read_file(vertex_shader_path), [&] {
+		ABORT("Failed to open vertex shader \"%s\"", vertex_shader_path);
+	});
+	std::string fragment_shader_src = util::unwrap(platform::read_file(fragment_shader_path), [&] {
+		ABORT("Failed to open fragment shader \"%s\"", fragment_shader_path);
+	});
+
 	/* Initialize OpenGL */
 	Renderer renderer = Renderer(gl_context);
-	ShaderProgram shader_program = util::unwrap(renderer.add_program(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC), [](ShaderProgramError error) {
+	ShaderProgram shader_program = util::unwrap(renderer.add_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
 
@@ -80,13 +74,14 @@ int main(int /* argc */, char** /* args */) {
 	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
-	engine.on_load(plog::verbose, plog::get());
+	engine.set_logger(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Input input = { 0 };
 	engine::State state;
+	engine.initialize(&state);
 	while (true) {
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
@@ -107,6 +102,7 @@ int main(int /* argc */, char** /* args */) {
 		renderer.render(window, shader_program);
 	}
 
+	engine.deinitialize(&state);
 	platform::deinitialize(window);
 	return 0;
 }

@@ -3,10 +3,11 @@
 #include <platform/renderer.h>
 
 #include <platform/logging.h>
+#include <stb_image/stb_image.h>
 
 namespace platform {
 
-	GLenum primitive_to_draw_array_mode(Primitive primitive) {
+	static GLenum primitive_to_draw_array_mode(Primitive primitive) {
 		switch (primitive) {
 			case Primitive::Point:
 				return GL_POINTS;
@@ -18,7 +19,30 @@ namespace platform {
 		return 0;
 	}
 
+	Texture add_texture(const unsigned char* data, int width, int height) {
+		GLuint texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
+
+		glBindTexture(GL_TEXTURE_2D, NULL);
+		return Texture { texture };
+	}
+
+	void free_texture(Texture texture) {
+		glDeleteTextures(1, &texture.id);
+	}
+
 	Renderer::Renderer(SDL_GLContext /* gl_context */) {
+		unsigned char data[] = { 0xFF, 0xFF, 0xFF };
+		m_white_texture = add_texture(data, 1, 1);
 	}
 
 	Renderer::~Renderer() {
@@ -104,6 +128,16 @@ namespace platform {
 			(void*)(sizeof(Vertex::pos))
 		);
 		glEnableVertexAttribArray(1);
+		// texture coordinates
+		glVertexAttribPointer(
+			2,
+			sizeof(Vertex::uv) / sizeof(float),
+			GL_FLOAT,
+			GL_FALSE,
+			sizeof(Vertex),
+			(void*)(sizeof(Vertex::pos) + sizeof(Vertex::color))
+		);
+		glEnableVertexAttribArray(2);
 
 		/* Unbind */
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
@@ -124,16 +158,18 @@ namespace platform {
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
 
 		// upload vertices
-		{
-			glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
-		}
+		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
 
 		// draw vertices
 		{
 			GLint offset = 0;
 			for (const VertexSection& section : m_sections) {
-				GLenum mode = platform::primitive_to_draw_array_mode(section.primitive);
+				GLenum mode = primitive_to_draw_array_mode(section.primitive);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, section.texture.id);
 				glDrawArrays(mode, offset, section.length);
+
 				offset += section.length;
 			}
 		}
@@ -148,28 +184,54 @@ namespace platform {
 		SDL_GL_SwapWindow(window);
 	}
 
-	void Renderer::draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color) {
+	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
 		// (x0, y1) ---- (x1, y1)
-		float x0 = p0.x;
-		float x1 = p1.x;
-		float y0 = p0.y;
-		float y1 = p1.y;
+		float x0 = top_left.x;
+		float y0 = top_left.y;
+		float x1 = bottom_right.x;
+		float y1 = bottom_right.y;
 
 		// first triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color, .uv = { 0.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { 1.0f, 1.0f } });
 
 		// second triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
-		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { 1.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { 1.0f, 0.0f } });
 
 		// sections
-		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6 });
+		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6, .texture = m_white_texture });
+	}
+
+	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
+		// (x0, y0) ---- (x1, y0)
+		//     |            |
+		//     |            |
+		// (x0, y1) ---- (x1, y1)
+		float x0 = top_left.x;
+		float y0 = top_left.y;
+		float x1 = bottom_right.x;
+		float y1 = bottom_right.y;
+
+		glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+		// first triangle
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = white, .uv = { 0.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } });
+
+		// second triangle
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = white, .uv = { 1.0f, 0.0f } });
+
+		// sections
+		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6, .texture = texture });
 	}
 
 } // namespace platform

@@ -6,19 +6,18 @@
 #include <windows.h>
 
 #include <expected>
+#include <functional>
 #include <optional>
 #include <string>
 
 namespace platform {
 
-	using EngineOnLoadFn = void(plog::Severity, plog::IAppender*);
-	using EngineUpdateFn = platform::Commands(engine::State*, const platform::Input*);
-	using EngineRenderFn = void(platform::Renderer*, engine::State*);
-
 	struct EngineLibrary {
-		EngineOnLoadFn* on_load;
-		EngineUpdateFn* update;
-		EngineRenderFn* render;
+		void (*set_logger)(plog::Severity, plog::IAppender*);
+		void (*initialize)(engine::State*);
+		void (*deinitialize)(engine::State*);
+		platform::Commands (*update)(engine::State*, const platform::Input*);
+		void (*render)(platform::Renderer*, engine::State*);
 	};
 
 	enum class LoadLibraryError {

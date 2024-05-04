@@ -12,9 +12,12 @@ namespace engine {
 	struct State {
 		uint64_t tick = 0;
 		uint64_t millis = 0;
+		platform::Texture texture;
 	};
 
-	extern "C" __declspec(dllexport) void on_load(plog::Severity severity, plog::IAppender* appender);
+	extern "C" __declspec(dllexport) void set_logger(plog::Severity severity, plog::IAppender* appender);
+	extern "C" __declspec(dllexport) void initialize(State* state);
+	extern "C" __declspec(dllexport) void deinitialize(State* state);
 	extern "C" __declspec(dllexport) platform::Commands update(State* state, const platform::Input* input);
 	extern "C" __declspec(dllexport) void render(platform::Renderer* renderer, const State* engine);
 

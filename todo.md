@@ -1,4 +1,5 @@
 ## TODO
+- Render using pixel coordinates instead of normalized coordinates
 - Add ImGui
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Add TypeScript (maybe)
@@ -7,9 +8,9 @@
   - Tried this, would be too error prone to update serialization definition manually
 
 ## Doing
-- Render textures
 
 ## Done
+- Render textures
 - Keyboard input
 - Add Google Test
 - Update CMakeLists to set VS startup project

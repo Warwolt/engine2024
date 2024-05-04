@@ -5,6 +5,7 @@ option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
 
 # Include Google Test
 add_subdirectory(libs/google-test)
+add_subdirectory(libs/stb_image)
 
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
 set(UNIT_TESTS unit_tests)
@@ -28,9 +29,11 @@ set(ENGINE_SRC
 
 set(PLATFORM_SRC
     src/platform/commands.cpp
+    src/platform/file.cpp
+    src/platform/image.cpp
     src/platform/input/input.cpp
-    src/platform/input/timing.cpp
     src/platform/input/keyboard.cpp
+    src/platform/input/timing.cpp
     src/platform/library_loader.cpp
     src/platform/logging.cpp
     src/platform/platform.cpp
@@ -39,11 +42,13 @@ set(PLATFORM_SRC
 
 set(TEST_SRC
     test/keyboard_tests.cpp
+    test/resource_handler_tests.cpp
 )
 
 set(EXTERNAL_LIBS
     opengl32
     glu32
+    stb_image
     ${GLEW_DIR}/lib/glew32.lib
     ${SDL_DIR}/lib/SDL2main.lib
     ${SDL_DIR}/lib/SDL2.lib
@@ -63,6 +68,7 @@ set(DLLS
 # Platform
 add_library(${PLATFORM_LIB} STATIC ${PLATFORM_SRC})
 target_include_directories(${PLATFORM_LIB} PUBLIC ${INC})
+target_link_libraries(${PLATFORM_LIB} PUBLIC ${EXTERNAL_LIBS})
 
 # Engine
 add_library(${ENGINE_LIB} SHARED ${ENGINE_SRC})
@@ -78,7 +84,7 @@ target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${EXTERNAL_LIBS})
 # Tests
 add_executable(${UNIT_TESTS} test/main.cpp ${TEST_SRC})
 target_include_directories(${UNIT_TESTS} PUBLIC test)
-target_link_libraries(${UNIT_TESTS} PUBLIC gtest ${PLATFORM_LIB})
+target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB})
 
 # Set compile options for targets
 foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
@@ -110,3 +116,10 @@ endif()
 # Set main binary to be default target for Visual Studio
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${MAIN_BINARY})
 set_target_properties(${MAIN_BINARY} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:${MAIN_BINARY}>)
+
+# Copy resource files
+add_custom_target(CopyResourceFiles ALL
+    COMMENT "Copying resource files"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/resources
+    $<TARGET_FILE_DIR:${MAIN_BINARY}>/resources)
