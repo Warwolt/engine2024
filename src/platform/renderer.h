@@ -31,6 +31,7 @@ namespace platform {
 	struct VertexSection {
 		Primitive primitive;
 		uint16_t length;
+		Texture texture;
 	};
 
 	struct ShaderProgram {
@@ -54,11 +55,10 @@ namespace platform {
 
 		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
 		Texture add_texture(const unsigned char* data, int width, int height);
+
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
 		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec3 color);
-
-		// TODO
 		// void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture)
 
 	private:

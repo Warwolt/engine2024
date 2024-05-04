@@ -7,7 +7,7 @@
 
 namespace platform {
 
-	GLenum primitive_to_draw_array_mode(Primitive primitive) {
+	static GLenum primitive_to_draw_array_mode(Primitive primitive) {
 		switch (primitive) {
 			case Primitive::Point:
 				return GL_POINTS;
@@ -162,15 +162,14 @@ namespace platform {
 		// upload vertices
 		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
 
-		// bind texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_white_texture.id);
-
 		// draw vertices
 		{
 			GLint offset = 0;
 			for (const VertexSection& section : m_sections) {
-				GLenum mode = platform::primitive_to_draw_array_mode(section.primitive);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, section.texture.id);
+
+				GLenum mode = primitive_to_draw_array_mode(section.primitive);
 				glDrawArrays(mode, offset, section.length);
 				offset += section.length;
 			}
@@ -207,7 +206,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { 1.0f, 0.0f } });
 
 		// sections
-		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6 });
+		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6, .texture = m_white_texture });
 	}
 
 } // namespace platform
