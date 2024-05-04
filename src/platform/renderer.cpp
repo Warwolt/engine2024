@@ -166,11 +166,12 @@ namespace platform {
 		{
 			GLint offset = 0;
 			for (const VertexSection& section : m_sections) {
+				GLenum mode = primitive_to_draw_array_mode(section.primitive);
+
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, section.texture.id);
-
-				GLenum mode = primitive_to_draw_array_mode(section.primitive);
 				glDrawArrays(mode, offset, section.length);
+
 				offset += section.length;
 			}
 		}
@@ -185,7 +186,7 @@ namespace platform {
 		SDL_GL_SwapWindow(window);
 	}
 
-	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec3 color) {
+	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
@@ -219,7 +220,7 @@ namespace platform {
 		float x1 = bottom_right.x;
 		float y1 = bottom_right.y;
 
-		glm::vec3 white = { 0xFF, 0xFF, 0xFF };
+		glm::vec4 white = { 0xFF, 0xFF, 0xFF, 0xFF };
 
 		// first triangle
 		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = white, .uv = { 0.0f, 1.0f } });

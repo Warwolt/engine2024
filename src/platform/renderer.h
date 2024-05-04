@@ -6,6 +6,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 #include <expected>
 #include <vector>
@@ -14,7 +15,7 @@ namespace platform {
 
 	struct Vertex {
 		glm::vec2 pos;
-		glm::vec3 color;
+		glm::vec4 color;
 		glm::vec2 uv;
 	};
 
@@ -58,7 +59,7 @@ namespace platform {
 
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
-		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec3 color);
+		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color);
 		void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture);
 
 	private:

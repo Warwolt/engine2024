@@ -27,7 +27,7 @@ namespace engine {
 	}
 
 	void render(platform::Renderer* renderer, const State* /* state */) {
-		renderer->draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f });
+		renderer->draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, { 1.0f, 0.5f, 0.0f, 1.0f });
 	}
 
 } // namespace engine
