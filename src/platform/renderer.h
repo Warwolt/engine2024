@@ -1,5 +1,7 @@
 #pragma once
 
+#include <platform/image.h>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <glm/vec2.hpp>
@@ -45,10 +47,6 @@ namespace platform {
 		GLuint id;
 	};
 
-	enum class AddTextureError {
-		CouldNotLoadImage,
-	};
-
 	class Renderer {
 	public:
 		Renderer(SDL_GLContext gl_context);
@@ -57,7 +55,7 @@ namespace platform {
 		Renderer& operator=(const Renderer&) = delete;
 
 		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
-		std::expected<Texture, AddTextureError> add_texture(const char* img_path);
+		Texture add_texture(const Image* image);
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
 		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec3 color);

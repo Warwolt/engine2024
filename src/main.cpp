@@ -4,6 +4,7 @@
 #include <platform/assert.h>
 #include <platform/commands.h>
 #include <platform/file.h>
+#include <platform/image.h>
 #include <platform/input/input.h>
 #include <platform/input/timing.h>
 #include <platform/library_loader.h>
@@ -77,9 +78,10 @@ int main(int /* argc */, char** /* args */) {
 	LOG_INFO("Engine library loaded");
 
 	const char* img_path = "resources/textures/container.jpg";
-	platform::Texture texture = util::unwrap(renderer.add_texture(img_path), [&](platform::AddTextureError error) {
-		ABORT("Renderer::load_texture(%s) failed with: %s", img_path, util::enum_to_string(error));
+	platform::Image image = util::unwrap(platform::read_image(img_path), [&] {
+		ABORT("read_file(%s) failed", img_path);
 	});
+	platform::Texture texture = renderer.add_texture(&image);
 
 	/* Main loop */
 	platform::Timer frame_timer;

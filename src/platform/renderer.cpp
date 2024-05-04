@@ -129,15 +129,7 @@ namespace platform {
 		return shader_program;
 	}
 
-	std::expected<Texture, AddTextureError> Renderer::add_texture(const char* img_path) {
-		/* Load image */
-		int width, height, num_channels;
-		unsigned char* img_data = stbi_load(img_path, &width, &height, &num_channels, 0);
-		if (!img_data) {
-			return std::unexpected(AddTextureError::CouldNotLoadImage);
-		}
-
-		/* Create texture from image */
+	Texture Renderer::add_texture(const Image* image) {
 		GLuint texture;
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -147,13 +139,13 @@ namespace platform {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data);
 		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
 
 		m_textures.push_back(Texture { texture });
 
 		glBindTexture(GL_TEXTURE_2D, NULL);
-		stbi_image_free(img_data);
+		stbi_image_free(image->data);
 		return Texture { texture };
 	}
 
