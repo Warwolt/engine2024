@@ -17,7 +17,7 @@ namespace engine {
 			ABORT("read_file(%s) failed", img_path);
 		});
 		state->initialized = true;
-		// state->texture = renderer.add_texture(image.data.get(), image.width, image.height);
+		state->texture = platform::add_texture(image.data.get(), image.width, image.height);
 	}
 
 	platform::Commands update(State* state, const platform::Input* input) {
@@ -41,9 +41,14 @@ namespace engine {
 		return commands;
 	}
 
-	void render(platform::Renderer* renderer, const State* /* state */) {
+	void render(platform::Renderer* renderer, const State* state) {
+		// draw shadow
 		glm::vec4 color = { 70.f / 255, 55.f / 255, 56.f / 255, 1.0f };
 		renderer->draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, color);
+
+		// draw box
+		glm::vec2 offset = { -0.05f, 0.05f };
+		renderer->draw_texture(glm::vec2 { -0.5f, 0.5f } + offset, glm::vec2 { 0.5f, -0.5f } + offset, state->texture);
 	}
 
 } // namespace engine

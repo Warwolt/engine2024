@@ -77,12 +77,6 @@ int main(int /* argc */, char** /* args */) {
 	engine.on_load(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
-	const char* img_path = "resources/textures/container.jpg";
-	platform::Image image = util::unwrap(platform::read_image(img_path), [&] {
-		ABORT("read_file(%s) failed", img_path);
-	});
-	platform::Texture texture = platform::add_texture(image.data.get(), image.width, image.height);
-
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Input input = { 0 };
@@ -105,12 +99,8 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Render */
 		engine.render(&renderer, &state);
-		glm::vec2 offset = { -0.05f, 0.05f };
-		renderer.draw_texture(glm::vec2 { -0.5f, 0.5f } + offset, glm::vec2 { 0.5f, -0.5f } + offset, texture);
 		renderer.render(window, shader_program);
 	}
-
-	platform::free_texture(texture);
 
 	platform::deinitialize(window);
 	return 0;
