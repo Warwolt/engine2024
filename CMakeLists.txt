@@ -42,6 +42,7 @@ set(PLATFORM_SRC
 
 set(TEST_SRC
     test/keyboard_tests.cpp
+    test/resource_handler_tests.cpp
 )
 
 set(EXTERNAL_LIBS
@@ -83,7 +84,7 @@ target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${EXTERNAL_LIBS})
 # Tests
 add_executable(${UNIT_TESTS} test/main.cpp ${TEST_SRC})
 target_include_directories(${UNIT_TESTS} PUBLIC test)
-target_link_libraries(${UNIT_TESTS} PUBLIC gtest ${PLATFORM_LIB})
+target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB})
 
 # Set compile options for targets
 foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
