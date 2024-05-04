@@ -192,6 +192,12 @@ namespace platform {
 		m_sections.push_back(VertexSection { .primitive = Primitive::Point, .length = 1, .texture = m_white_texture });
 	}
 
+	void Renderer::draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color) {
+		m_vertices.push_back(Vertex { .pos = start, .color = color, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = end, .color = color, .uv = { 0.0f, 0.0f } });
+		m_sections.push_back(VertexSection { .primitive = Primitive::Line, .length = 2, .texture = m_white_texture });
+	}
+
 	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
