@@ -47,6 +47,9 @@ namespace platform {
 		ShaderProgramFailedToLink,
 	};
 
+	Texture add_texture(const unsigned char* data, int width, int height);
+	void free_texture(Texture texture);
+
 	class Renderer {
 	public:
 		Renderer(SDL_GLContext gl_context);
@@ -55,7 +58,6 @@ namespace platform {
 		Renderer& operator=(const Renderer&) = delete;
 
 		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
-		Texture add_texture(const unsigned char* data, int width, int height);
 
 		void render(SDL_Window* window, ShaderProgram shader_program);
 

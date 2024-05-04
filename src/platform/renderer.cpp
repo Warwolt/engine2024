@@ -19,16 +19,33 @@ namespace platform {
 		return 0;
 	}
 
+	Texture add_texture(const unsigned char* data, int width, int height) {
+		GLuint texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
+
+		glBindTexture(GL_TEXTURE_2D, NULL);
+		return Texture { texture };
+	}
+
+	void free_texture(Texture texture) {
+		glDeleteTextures(1, &texture.id);
+	}
+
 	Renderer::Renderer(SDL_GLContext /* gl_context */) {
 		unsigned char data[] = { 0xFF, 0xFF, 0xFF };
 		m_white_texture = add_texture(data, 1, 1);
 	}
 
 	Renderer::~Renderer() {
-		for (const Texture& texture : m_textures) {
-			glDeleteTextures(1, &texture.id);
-		}
-
 		for (const ShaderProgram& shader_program : m_shader_programs) {
 			glDeleteVertexArrays(1, &shader_program.vao);
 			glDeleteBuffers(1, &shader_program.vbo);
@@ -129,25 +146,6 @@ namespace platform {
 		ShaderProgram shader_program = { shader_program_id, vao, vbo };
 		m_shader_programs.push_back(shader_program);
 		return shader_program;
-	}
-
-	Texture Renderer::add_texture(const unsigned char* data, int width, int height) {
-		GLuint texture;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
-
-		m_textures.push_back(Texture { texture });
-
-		glBindTexture(GL_TEXTURE_2D, NULL);
-		return Texture { texture };
 	}
 
 	void Renderer::render(SDL_Window* window, ShaderProgram shader_program) {

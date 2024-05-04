@@ -81,7 +81,7 @@ int main(int /* argc */, char** /* args */) {
 	platform::Image image = util::unwrap(platform::read_image(img_path), [&] {
 		ABORT("read_file(%s) failed", img_path);
 	});
-	platform::Texture texture = renderer.add_texture(image.data.get(), image.width, image.height);
+	platform::Texture texture = platform::add_texture(image.data.get(), image.width, image.height);
 
 	/* Main loop */
 	platform::Timer frame_timer;
@@ -109,6 +109,8 @@ int main(int /* argc */, char** /* args */) {
 		renderer.draw_texture(glm::vec2 { -0.5f, 0.5f } + offset, glm::vec2 { 0.5f, -0.5f } + offset, texture);
 		renderer.render(window, shader_program);
 	}
+
+	platform::free_texture(texture);
 
 	platform::deinitialize(window);
 	return 0;
