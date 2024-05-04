@@ -74,14 +74,14 @@ int main(int /* argc */, char** /* args */) {
 	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
-	engine.on_load(plog::verbose, plog::get());
+	engine.set_logger(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Input input = { 0 };
 	engine::State state;
-
+	engine.initialize(&state);
 	while (true) {
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
@@ -102,6 +102,7 @@ int main(int /* argc */, char** /* args */) {
 		renderer.render(window, shader_program);
 	}
 
+	engine.deinitialize(&state);
 	platform::deinitialize(window);
 	return 0;
 }

@@ -7,24 +7,24 @@
 
 namespace engine {
 
-	void on_load(plog::Severity severity, plog::IAppender* appender) {
+	void set_logger(plog::Severity severity, plog::IAppender* appender) {
 		plog::init(severity, appender);
 	}
 
-	void initialize_state(State* state) {
+	void initialize(State* state) {
 		const char* img_path = "resources/textures/container.jpg";
 		platform::Image image = util::unwrap(platform::read_image(img_path), [&] {
 			ABORT("read_file(%s) failed", img_path);
 		});
-		state->initialized = true;
 		state->texture = platform::add_texture(image.data.get(), image.width, image.height);
 	}
 
+	void deinitialize(State* state) {
+		platform::free_texture(state->texture);
+	}
+
 	platform::Commands update(State* state, const platform::Input* input) {
-		if (!state->initialized) {
-			initialize_state(state);
-			return { 0 };
-		}
+		platform::Commands commands = { 0 };
 
 		state->millis += input->delta_ms;
 		if (state->millis >= 1000) {
@@ -33,7 +33,6 @@ namespace engine {
 			LOG_INFO("%zu", state->tick);
 		}
 
-		platform::Commands commands = { 0 };
 		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDL_SCANCODE_ESCAPE)) {
 			commands.quit();
 		}
