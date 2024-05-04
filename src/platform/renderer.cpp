@@ -187,6 +187,11 @@ namespace platform {
 		SDL_GL_SwapWindow(window);
 	}
 
+	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {
+		m_vertices.push_back(Vertex { .pos = point, .color = color, .uv = { 0.0f, 0.0f } });
+		m_sections.push_back(VertexSection { .primitive = Primitive::Point, .length = 1, .texture = m_white_texture });
+	}
+
 	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |

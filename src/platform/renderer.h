@@ -58,6 +58,7 @@ namespace platform {
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
+		void draw_point(glm::vec2 point, glm::vec4 color);
 		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color);
 		void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture);
 
