@@ -87,6 +87,7 @@ int main(int /* argc */, char** /* args */) {
 	platform::Timer frame_timer;
 	platform::Input input = { 0 };
 	engine::State state;
+
 	while (true) {
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
