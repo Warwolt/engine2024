@@ -139,13 +139,12 @@ namespace platform {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data.get());
 		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
 
 		m_textures.push_back(Texture { texture });
 
 		glBindTexture(GL_TEXTURE_2D, NULL);
-		stbi_image_free(image->data);
 		return Texture { texture };
 	}
 
