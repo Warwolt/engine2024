@@ -40,20 +40,7 @@ namespace platform {
 		glDeleteTextures(1, &texture.id);
 	}
 
-	Renderer::Renderer(SDL_GLContext /* gl_context */) {
-		unsigned char data[] = { 0xFF, 0xFF, 0xFF };
-		m_white_texture = add_texture(data, 1, 1);
-	}
-
-	Renderer::~Renderer() {
-		for (const ShaderProgram& shader_program : m_shader_programs) {
-			glDeleteVertexArrays(1, &shader_program.vao);
-			glDeleteBuffers(1, &shader_program.vbo);
-			glDeleteProgram(shader_program.id);
-		}
-	}
-
-	std::expected<ShaderProgram, ShaderProgramError> Renderer::add_program(const char* vertex_src, const char* fragment_src) {
+	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src) {
 		GLuint shader_program_id = glCreateProgram();
 		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -144,9 +131,18 @@ namespace platform {
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 
-		ShaderProgram shader_program = { shader_program_id, vao, vbo };
-		m_shader_programs.push_back(shader_program);
-		return shader_program;
+		return ShaderProgram { shader_program_id, vao, vbo };
+	}
+
+	void free_shader_program(ShaderProgram shader_program) {
+		glDeleteVertexArrays(1, &shader_program.vao);
+		glDeleteBuffers(1, &shader_program.vbo);
+		glDeleteProgram(shader_program.id);
+	}
+
+	Renderer::Renderer(SDL_GLContext /* gl_context */) {
+		unsigned char data[] = { 0xFF, 0xFF, 0xFF };
+		m_white_texture = add_texture(data, 1, 1);
 	}
 
 	void Renderer::set_projection(ShaderProgram shader_program, glm::mat4 projection) {

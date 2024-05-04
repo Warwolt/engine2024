@@ -45,17 +45,16 @@ namespace platform {
 		ShaderProgramFailedToLink,
 	};
 
+	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
+	void free_shader_program(ShaderProgram shader_program);
+
 	Texture add_texture(const unsigned char* data, int width, int height);
 	void free_texture(Texture texture);
 
 	class Renderer {
 	public:
 		Renderer(SDL_GLContext gl_context);
-		~Renderer();
-		Renderer(const Renderer&) = delete;
-		Renderer& operator=(const Renderer&) = delete;
 
-		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
