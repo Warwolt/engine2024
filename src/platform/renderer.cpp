@@ -13,6 +13,8 @@ namespace platform {
 				return GL_POINTS;
 			case Primitive::Line:
 				return GL_LINES;
+			case Primitive::LineLoop:
+				return GL_LINE_LOOP;
 			case Primitive::Triangle:
 				return GL_TRIANGLES;
 		}
@@ -152,50 +154,67 @@ namespace platform {
 	}
 
 	void Renderer::render(SDL_Window* window, ShaderProgram shader_program) {
-		// clear screen
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
 		glUseProgram(shader_program.id);
 		glBindVertexArray(shader_program.vao);
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
 
-		// upload vertices
+		/* Clear screen */
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		/* Upload vertices */
 		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
 
-		// draw vertices
-		{
-			GLint offset = 0;
-			for (const VertexSection& section : m_sections) {
-				GLenum mode = primitive_to_draw_array_mode(section.primitive);
+		/* Draw vertices */
+		GLint offset = 0;
+		for (const VertexSection& section : m_sections) {
+			GLenum mode = primitive_to_draw_array_mode(section.primitive);
 
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, section.texture.id);
-				glDrawArrays(mode, offset, section.length);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, section.texture.id);
+			glDrawArrays(mode, offset, section.length);
 
-				offset += section.length;
-			}
+			offset += section.length;
 		}
+		SDL_GL_SwapWindow(window);
 
+		/* Clear render data */
 		m_vertices.clear();
 		m_sections.clear();
 
+		/* Unbind */
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 		glUseProgram(NULL);
-
-		SDL_GL_SwapWindow(window);
 	}
 
 	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {
-		m_vertices.push_back(Vertex { .pos = point, .color = color, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = point, .color = color });
 		m_sections.push_back(VertexSection { .primitive = Primitive::Point, .length = 1, .texture = m_white_texture });
 	}
 
 	void Renderer::draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color) {
-		m_vertices.push_back(Vertex { .pos = start, .color = color, .uv = { 0.0f, 0.0f } });
-		m_vertices.push_back(Vertex { .pos = end, .color = color, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = start, .color = color });
+		m_vertices.push_back(Vertex { .pos = end, .color = color });
 		m_sections.push_back(VertexSection { .primitive = Primitive::Line, .length = 2, .texture = m_white_texture });
+	}
+
+	void Renderer::draw_rect(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
+		// (x0, y0) ---- (x1, y0)
+		//     |            |
+		//     |            |
+		// (x0, y1) ---- (x1, y1)
+		float x0 = top_left.x;
+		float y0 = top_left.y;
+		float x1 = bottom_right.x;
+		float y1 = bottom_right.y;
+
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
+
+		m_sections.push_back(VertexSection { .primitive = Primitive::LineLoop, .length = 4, .texture = m_white_texture });
 	}
 
 	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {

@@ -21,9 +21,12 @@ namespace platform {
 		GLuint id;
 	};
 
+	// What the fuck is the point of this? Why not just store the GLenum
+	// directly since we're just using it privately in the implementation anywy?
 	enum class Primitive {
 		Point,
 		Line,
+		LineLoop,
 		Triangle,
 	};
 
@@ -60,6 +63,7 @@ namespace platform {
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
 		void draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color);
+		void draw_rect(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color);
 		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color);
 		void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture);
 
