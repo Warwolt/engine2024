@@ -16,8 +16,8 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include <glm/ext.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp> // glm::ortho
 
 #include <expected>
 #include <optional>
@@ -71,6 +71,9 @@ int main(int /* argc */, char** /* args */) {
 	ShaderProgram shader_program = util::unwrap(renderer.add_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
+	// set projection matrix to use screen coordinates
+	glm::mat4 projection = glm::ortho(0.0f, (float)window_width, (float)window_height, 0.0f, -1.0f, 100.0f);
+	renderer.set_projection(shader_program, projection);
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
@@ -80,12 +83,6 @@ int main(int /* argc */, char** /* args */) {
 	});
 	engine.set_logger(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
-
-	// Set projection matrix
-	glUseProgram(shader_program.id);
-	GLint projection_uniform = glGetUniformLocation(shader_program.id, "projection");
-	glm::mat4 projection = glm::ortho(0.0f, (float)window_width, (float)window_height, 0.0f, -1.0f, 100.0f);
-	glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
 
 	/* Main loop */
 	platform::Timer frame_timer;

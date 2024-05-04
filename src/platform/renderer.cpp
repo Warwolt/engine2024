@@ -149,6 +149,12 @@ namespace platform {
 		return shader_program;
 	}
 
+	void Renderer::set_projection(ShaderProgram shader_program, glm::mat4 projection) {
+		glUseProgram(shader_program.id);
+		GLint projection_uniform = glGetUniformLocation(shader_program.id, "projection");
+		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
+	}
+
 	void Renderer::render(SDL_Window* window, ShaderProgram shader_program) {
 		// clear screen
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
