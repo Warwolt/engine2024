@@ -41,13 +41,14 @@ namespace engine {
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
-		// draw shadow
-		glm::vec4 color = { 70.f / 255, 55.f / 255, 56.f / 255, 1.0f };
-		renderer->draw_rect_fill({ -0.5f, 0.5f }, { 0.5f, -0.5f }, color);
+		glm::vec2 window_size = { 640.0f, 480.0f };
 
-		// draw box
-		glm::vec2 offset = { -0.05f, 0.05f };
-		renderer->draw_texture(glm::vec2 { -0.5f, 0.5f } + offset, glm::vec2 { 0.5f, -0.5f } + offset, state->texture);
+		glm::vec4 color = { 70.f / 255, 55.f / 255, 56.f / 255, 1.0f };
+		glm::vec2 box_size = { 256.0f, 256.0f };
+		glm::vec2 top_left = (window_size - box_size) / 2.0f;
+		glm::vec2 offset = { 10.0f, 10.0f };
+		renderer->draw_rect_fill(top_left + offset, top_left + box_size + offset, color); // shadow
+		renderer->draw_texture(top_left, top_left + box_size, state->texture); // box
 	}
 
 } // namespace engine

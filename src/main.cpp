@@ -16,6 +16,8 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <glm/ext.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <expected>
 #include <optional>
@@ -44,7 +46,9 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	SDL_Window* window = platform::create_window();
+	const int window_width = 680;
+	const int window_height = 480;
+	SDL_Window* window = platform::create_window(window_width, window_height);
 	ASSERT(window, "platform::create_window() returned null");
 
 	/* Create OpenGL context */
@@ -76,6 +80,12 @@ int main(int /* argc */, char** /* args */) {
 	});
 	engine.set_logger(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
+
+	// Set projection matrix
+	glUseProgram(shader_program.id);
+	GLint projection_uniform = glGetUniformLocation(shader_program.id, "projection");
+	glm::mat4 projection = glm::ortho(0.0f, (float)window_width, (float)window_height, 0.0f, -1.0f, 100.0f);
+	glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
 
 	/* Main loop */
 	platform::Timer frame_timer;

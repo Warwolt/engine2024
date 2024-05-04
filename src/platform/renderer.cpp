@@ -140,6 +140,7 @@ namespace platform {
 		glEnableVertexAttribArray(2);
 
 		/* Unbind */
+		glUseProgram(NULL);
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 

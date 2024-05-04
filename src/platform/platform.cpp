@@ -55,14 +55,14 @@ namespace platform {
 		SDL_Quit();
 	}
 
-	SDL_Window* create_window() {
+	SDL_Window* create_window(int width, int height) {
 		/* Create window */
 		SDL_Window* window = SDL_CreateWindow(
 			"Game Engine 2024",
 			SDL_WINDOWPOS_CENTERED,
 			SDL_WINDOWPOS_CENTERED,
-			680,
-			480,
+			width,
+			height,
 			SDL_WINDOW_OPENGL
 		);
 		if (!window) {
