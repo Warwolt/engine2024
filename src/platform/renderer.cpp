@@ -209,4 +209,30 @@ namespace platform {
 		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6, .texture = m_white_texture });
 	}
 
+	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
+		// (x0, y0) ---- (x1, y0)
+		//     |            |
+		//     |            |
+		// (x0, y1) ---- (x1, y1)
+		float x0 = top_left.x;
+		float y0 = top_left.y;
+		float x1 = bottom_right.x;
+		float y1 = bottom_right.y;
+
+		glm::vec3 white = { 0xFF, 0xFF, 0xFF };
+
+		// first triangle
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = white, .uv = { 0.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } });
+
+		// second triangle
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = white, .uv = { 1.0f, 0.0f } });
+
+		// sections
+		m_sections.push_back(VertexSection { .primitive = Primitive::Triangle, .length = 6, .texture = texture });
+	}
+
 } // namespace platform

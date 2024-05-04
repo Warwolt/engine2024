@@ -103,7 +103,8 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Render */
-		engine.render(&renderer, &state);
+		// engine.render(&renderer, &state);
+		renderer.draw_texture({ -0.5f, 0.5f }, { 0.5f, -0.5f }, texture);
 		renderer.render(window, shader_program);
 	}
 

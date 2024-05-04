@@ -59,7 +59,7 @@ namespace platform {
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
 		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec3 color);
-		// void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture)
+		void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture);
 
 	private:
 		std::vector<ShaderProgram> m_shader_programs;
