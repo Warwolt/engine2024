@@ -18,13 +18,15 @@ namespace platform {
 		glm::vec2 uv;
 	};
 
+	struct Texture {
+		GLuint id;
+	};
+
 	enum class Primitive {
 		Point,
 		Line,
 		Triangle,
 	};
-
-	GLenum primitive_to_draw_array_mode(Primitive primitive);
 
 	struct VertexSection {
 		Primitive primitive;
@@ -43,10 +45,6 @@ namespace platform {
 		ShaderProgramFailedToLink,
 	};
 
-	struct Texture {
-		GLuint id;
-	};
-
 	class Renderer {
 	public:
 		Renderer(SDL_GLContext gl_context);
@@ -59,6 +57,9 @@ namespace platform {
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
 		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec3 color);
+
+		// TODO
+		// void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture)
 
 	private:
 		std::vector<ShaderProgram> m_shader_programs;
