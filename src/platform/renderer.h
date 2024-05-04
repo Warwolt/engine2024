@@ -55,7 +55,7 @@ namespace platform {
 		Renderer& operator=(const Renderer&) = delete;
 
 		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
-		Texture add_texture(const Image* image);
+		Texture add_texture(const unsigned char* data, int width, int height);
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
 		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec3 color);
@@ -65,6 +65,7 @@ namespace platform {
 		std::vector<Texture> m_textures;
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
+		Texture m_white_texture;
 	};
 
 } // namespace platform

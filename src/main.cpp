@@ -81,7 +81,7 @@ int main(int /* argc */, char** /* args */) {
 	platform::Image image = util::unwrap(platform::read_image(img_path), [&] {
 		ABORT("read_file(%s) failed", img_path);
 	});
-	platform::Texture texture = renderer.add_texture(&image);
+	platform::Texture texture = renderer.add_texture(image.data.get(), image.width, image.height);
 
 	/* Main loop */
 	platform::Timer frame_timer;
