@@ -16,6 +16,8 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp> // glm::ortho
 
 #include <expected>
 #include <optional>
@@ -44,7 +46,9 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	SDL_Window* window = platform::create_window();
+	const int window_width = 680;
+	const int window_height = 480;
+	SDL_Window* window = platform::create_window(window_width, window_height);
 	ASSERT(window, "platform::create_window() returned null");
 
 	/* Create OpenGL context */
@@ -67,6 +71,9 @@ int main(int /* argc */, char** /* args */) {
 	ShaderProgram shader_program = util::unwrap(renderer.add_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
+	// set projection matrix to use screen coordinates
+	glm::mat4 projection = glm::ortho(0.0f, (float)window_width, (float)window_height, 0.0f, -1.0f, 100.0f);
+	renderer.set_projection(shader_program, projection);
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;

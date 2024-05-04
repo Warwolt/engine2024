@@ -140,12 +140,19 @@ namespace platform {
 		glEnableVertexAttribArray(2);
 
 		/* Unbind */
+		glUseProgram(NULL);
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 
 		ShaderProgram shader_program = { shader_program_id, vao, vbo };
 		m_shader_programs.push_back(shader_program);
 		return shader_program;
+	}
+
+	void Renderer::set_projection(ShaderProgram shader_program, glm::mat4 projection) {
+		glUseProgram(shader_program.id);
+		GLint projection_uniform = glGetUniformLocation(shader_program.id, "projection");
+		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
 	}
 
 	void Renderer::render(SDL_Window* window, ShaderProgram shader_program) {
