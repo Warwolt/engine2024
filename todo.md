@@ -8,9 +8,9 @@
   - Tried this, would be too error prone to update serialization definition manually
 
 ## Doing
-- Render textures
 
 ## Done
+- Render textures
 - Keyboard input
 - Add Google Test
 - Update CMakeLists to set VS startup project
