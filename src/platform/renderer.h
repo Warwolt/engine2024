@@ -60,7 +60,7 @@ namespace platform {
 		std::expected<Texture, AddTextureError> add_texture(const char* img_path);
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
-		void draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color);
+		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec3 color);
 
 	private:
 		std::vector<ShaderProgram> m_shader_programs;

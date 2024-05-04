@@ -191,15 +191,15 @@ namespace platform {
 		SDL_GL_SwapWindow(window);
 	}
 
-	void Renderer::draw_rect_fill(glm::vec2 p0, glm::vec2 p1, glm::vec3 color) {
+	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec3 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
 		// (x0, y1) ---- (x1, y1)
-		float x0 = p0.x;
-		float x1 = p1.x;
-		float y0 = p0.y;
-		float y1 = p1.y;
+		float x0 = top_left.x;
+		float y0 = top_left.y;
+		float x1 = bottom_right.x;
+		float y1 = bottom_right.y;
 
 		// first triangle
 		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color, .uv = { 0.0f, 1.0f } });

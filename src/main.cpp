@@ -116,6 +116,7 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Render */
 		engine.render(&renderer, &state);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture.id);
 		renderer.render(window, shader_program);
 	}
