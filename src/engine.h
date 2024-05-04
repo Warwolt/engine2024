@@ -10,8 +10,10 @@
 namespace engine {
 
 	struct State {
+		bool initialized = false;
 		uint64_t tick = 0;
 		uint64_t millis = 0;
+		platform::Texture texture;
 	};
 
 	extern "C" __declspec(dllexport) void on_load(plog::Severity severity, plog::IAppender* appender);
