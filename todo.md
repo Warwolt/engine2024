@@ -1,4 +1,5 @@
 ## TODO
+- Render using pixel coordinates instead of normalized coordinates
 - Add ImGui
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Add TypeScript (maybe)

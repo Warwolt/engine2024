@@ -3,6 +3,7 @@
 #include <engine.h>
 #include <platform/assert.h>
 #include <platform/commands.h>
+#include <platform/file.h>
 #include <platform/input/input.h>
 #include <platform/input/timing.h>
 #include <platform/library_loader.h>
@@ -18,9 +19,6 @@
 #include <expected>
 #include <optional>
 
-#include <fstream>
-#include <string>
-
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
 using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
@@ -34,18 +32,6 @@ using VertexSection = platform::VertexSection;
 using CreateGLContextError = platform::CreateGLContextError;
 
 const char* LIBRARY_NAME = "GameEngine2024";
-
-std::optional<std::string> read_file(const char* path) {
-	std::string line, text;
-	std::ifstream in(path);
-	if (!in.is_open()) {
-		return {};
-	}
-	while (std::getline(in, line)) {
-		text += line + "\n";
-	}
-	return text;
-}
 
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
@@ -68,10 +54,10 @@ int main(int /* argc */, char** /* args */) {
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
 	const char* fragment_shader_path = "resources/shaders/shader.frag";
-	std::string vertex_shader_src = util::unwrap(read_file(vertex_shader_path), [&] {
+	std::string vertex_shader_src = util::unwrap(platform::read_file(vertex_shader_path), [&] {
 		ABORT("Failed to open vertex shader \"%s\"", vertex_shader_path);
 	});
-	std::string fragment_shader_src = util::unwrap(read_file(fragment_shader_path), [&] {
+	std::string fragment_shader_src = util::unwrap(platform::read_file(fragment_shader_path), [&] {
 		ABORT("Failed to open fragment shader \"%s\"", fragment_shader_path);
 	});
 
