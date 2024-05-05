@@ -35,6 +35,15 @@ using CreateGLContextError = platform::CreateGLContextError;
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
+void on_window_resize(Renderer* renderer, ShaderProgram shader_program, float width, float height) {
+	renderer->set_canvas_size(width, height);
+
+	glm::mat4 projection = glm::ortho(0.5f, width + 0.5f, height + 0.5f, 0.5f, -1.0f, 1.0f);
+	renderer->set_projection(shader_program, projection);
+
+	glViewport(0, 0, (int)width, (int)height);
+}
+
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -66,15 +75,11 @@ int main(int /* argc */, char** /* args */) {
 	});
 
 	/* Initialize Renderer */
-	Renderer renderer = Renderer(gl_context);
+	Renderer renderer = Renderer(gl_context, window_width, window_height);
 	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
-
-	// set projection matrix to use screen coordinates
-	// offset all corners by 0.5f to make sure rectangles don't render with any missing corners
-	glm::mat4 projection = glm::ortho(0.5f, (float)window_width + 0.5f, (float)window_height + 0.5f, 0.5f, -1.0f, 1.0f);
-	renderer.set_projection(shader_program, projection);
+	on_window_resize(&renderer, shader_program, (float)window_width, (float)window_height);
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
@@ -98,6 +103,9 @@ int main(int /* argc */, char** /* args */) {
 		platform::read_input(&input);
 		input.delta_ms = frame_timer.elapsed_ms();
 		frame_timer.reset();
+		if (input.window_resized) {
+			on_window_resize(&renderer, shader_program, input.window_resized->x, input.window_resized->y);
+		}
 
 		/* Update */
 		platform::Commands commands = engine.update(&state, &input);

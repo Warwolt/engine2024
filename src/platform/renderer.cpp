@@ -10,9 +10,6 @@
 #include <set>
 #include <vector>
 
-#include <platform/assert.h> // DEBUGGING
-#include <platform/logging.h> // DEBUGGING
-
 namespace platform {
 
 	static std::vector<glm::vec2> circle_octant_points(float radius) {
@@ -166,15 +163,24 @@ namespace platform {
 		glDeleteProgram(shader_program.id);
 	}
 
-	Renderer::Renderer(SDL_GLContext /* gl_context */) {
+	Renderer::Renderer(SDL_GLContext /* gl_context */, int canvas_width, int canvas_height) {
 		unsigned char data[] = { 0xFF, 0xFF, 0xFF };
 		m_white_texture = add_texture(data, 1, 1);
+		m_canvas_size = glm::vec2 { (float)canvas_width, (float)canvas_height };
 	}
 
 	void Renderer::set_projection(ShaderProgram shader_program, glm::mat4 projection) {
 		glUseProgram(shader_program.id);
 		GLint projection_uniform = glGetUniformLocation(shader_program.id, "projection");
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
+	}
+
+	void Renderer::set_canvas_size(float width, float height) {
+		m_canvas_size = glm::vec2 { width, height };
+	}
+
+	glm::vec2 Renderer::canvas_size() const {
+		return m_canvas_size;
 	}
 
 	void Renderer::render(SDL_Window* window, ShaderProgram shader_program) {

@@ -63,7 +63,7 @@ namespace platform {
 			SDL_WINDOWPOS_CENTERED,
 			width,
 			height,
-			SDL_WINDOW_OPENGL
+			SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
 		);
 		if (!window) {
 			LOG_ERROR("SDL_CreateWindow failed: %s", SDL_GetError());

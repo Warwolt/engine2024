@@ -47,9 +47,12 @@ namespace platform {
 
 	class Renderer {
 	public:
-		Renderer(SDL_GLContext gl_context);
+		Renderer(SDL_GLContext gl_context, int canvas_width, int canvas_height);
 
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
+		void set_canvas_size(float width, float height);
+		glm::vec2 canvas_size() const;
+
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
@@ -64,6 +67,7 @@ namespace platform {
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;
+		glm::vec2 m_canvas_size;
 	};
 
 } // namespace platform
