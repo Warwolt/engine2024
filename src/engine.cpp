@@ -46,6 +46,7 @@ namespace engine {
 		glm::vec4 color = { 70.f / 255, 55.f / 255, 56.f / 255, 1.0f };
 		glm::vec2 box_size = { 256.0f, 256.0f };
 		glm::vec2 top_left = (window_size - box_size) / 2.0f;
+		glm::vec2 box_center = top_left + (box_size / 2.0f);
 		glm::vec2 offset = { 10.0f, 10.0f };
 		renderer->draw_rect_fill(top_left + offset, top_left + box_size + offset, color); // shadow
 		renderer->draw_texture(top_left, top_left + box_size, state->texture); // box
@@ -53,6 +54,7 @@ namespace engine {
 		renderer->draw_line(top_left, top_left + box_size, { 1.0f, 0.0f, 0.0f, 1.0f });
 		renderer->draw_point(top_left, { 0.0f, 1.0f, 0.0f, 1.0f });
 		renderer->draw_rect(top_left, top_left + box_size, { 0.0f, 1.0f, 0.0f, 1.0f });
+		renderer->draw_circle(box_center, box_size.x, { 0.0f, 0.0f, 1.0f, 1.0f });
 	}
 
 } // namespace engine

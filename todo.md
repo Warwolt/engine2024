@@ -1,4 +1,5 @@
 ## TODO
+- Add alpha blending to renderer
 - Add ImGui
 - Add TypeScript (maybe)
   - https://v8.dev/docs/embed

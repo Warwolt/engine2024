@@ -5,6 +5,8 @@
 #include <platform/logging.h>
 #include <stb_image/stb_image.h>
 
+#include <math.h>
+
 namespace platform {
 
 	Texture add_texture(const unsigned char* data, int width, int height) {
@@ -212,17 +214,54 @@ namespace platform {
 		float y1 = bottom_right.y;
 
 		// first triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color, .uv = { 0.0f, 1.0f } });
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { 0.0f, 0.0f } });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { 1.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
 
 		// second triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { 0.0f, 0.0f } });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { 1.0f, 1.0f } });
-		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { 1.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
 
 		// sections
 		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = m_white_texture });
+	}
+
+	void Renderer::draw_circle(glm::vec2 center, float radius, glm::vec4 color) {
+		// 1. compute points in  first quadrant (90 deg to 45 deg)
+		std::vector<glm::vec2> quadrant_points;
+		{
+			glm::vec2 point = { 0.0f, radius };
+			while (point.x <= point.y) {
+				quadrant_points.push_back(point);
+
+				glm::vec2 mid_point = { point.x + 1, point.y - 0.5f };
+				if (pow(mid_point.x, 2) + pow(mid_point.y, 2) > pow(radius, 2)) {
+					point.y -= 1;
+				}
+				point.x += 1;
+			}
+		}
+
+		// 2. for each point, push vertices for all quadrants
+		for (const glm::vec2& point : quadrant_points) {
+			glm::vec2 translated_point = point + center;
+			float x = translated_point.x;
+			float y = translated_point.y;
+			m_vertices.push_back(Vertex { .pos = { x, y }, .color = color });
+			m_vertices.push_back(Vertex { .pos = { y, x }, .color = color });
+			m_vertices.push_back(Vertex { .pos = { y, -x }, .color = color });
+			m_vertices.push_back(Vertex { .pos = { x, -y }, .color = color });
+			m_vertices.push_back(Vertex { .pos = { -x, -y }, .color = color });
+			m_vertices.push_back(Vertex { .pos = { -y, -x }, .color = color });
+			m_vertices.push_back(Vertex { .pos = { -y, x }, .color = color });
+			m_vertices.push_back(Vertex { .pos = { -x, y }, .color = color });
+		}
+
+		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = (GLsizei)quadrant_points.size() * 8, .texture = m_white_texture });
+
+		// filled circles:
+		// https: //stackoverflow.com/questions/10878209/midpoint-circle-algorithm-for-filled-circles
 	}
 
 	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
