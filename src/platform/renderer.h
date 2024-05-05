@@ -57,6 +57,7 @@ namespace platform {
 		void draw_rect(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color);
 		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color);
 		void draw_circle(glm::vec2 center, float radius, glm::vec4 color);
+		void draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color);
 		void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture);
 
 	private:

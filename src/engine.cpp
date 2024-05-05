@@ -56,6 +56,7 @@ namespace engine {
 		renderer->draw_rect(top_left, top_left + box_size, { 0.0f, 1.0f, 0.0f, 1.0f });
 
 		renderer->draw_circle(window_center, box_size.x / 2.0f, { 0.0f, 0.5f, 1.0f, 1.0f });
+		renderer->draw_circle_fill(window_center, box_size.x / 2.0f, { 0.0f, 0.5f, 1.0f, 1.0f });
 	}
 
 } // namespace engine

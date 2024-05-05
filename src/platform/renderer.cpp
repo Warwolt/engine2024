@@ -9,6 +9,36 @@
 
 namespace platform {
 
+	static std::vector<glm::vec2> circle_octant_points(float radius) {
+		/* Compute points in first octant */
+		//              90°
+		//         , - ~ ~ ~ - ,
+		//     , '       |       ' , 45°
+		//   ,           |       ⟋   ,
+		//  ,            |    ⟋       ,
+		// ,             | ⟋           ,
+		// ,             o             ,
+		// ,                           ,
+		//  ,                         ,
+		//   ,                       ,
+		//     ,                  , '
+		//       ' - , _ _ _ ,  '
+		std::vector<glm::vec2> quadrant_points;
+		{
+			glm::vec2 point = { 0.0f, radius };
+			while (point.x <= point.y) {
+				quadrant_points.push_back(point);
+
+				glm::vec2 mid_point = { point.x + 1, point.y - 0.5f };
+				if (pow(mid_point.x, 2) + pow(mid_point.y, 2) > pow(radius, 2)) {
+					point.y -= 1;
+				}
+				point.x += 1;
+			}
+		}
+		return quadrant_points;
+	}
+
 	Texture add_texture(const unsigned char* data, int width, int height) {
 		GLuint texture;
 		glGenTextures(1, &texture);
@@ -228,34 +258,7 @@ namespace platform {
 	}
 
 	void Renderer::draw_circle(glm::vec2 center, float radius, glm::vec4 color) {
-		/* Compute points in first octant */
-		//              90°
-		//         , - ~ ~ ~ - ,
-		//     , '       |       ' , 45°
-		//   ,           |       ⟋   ,
-		//  ,            |    ⟋       ,
-		// ,             | ⟋           ,
-		// ,             o             ,
-		// ,                           ,
-		//  ,                         ,
-		//   ,                       ,
-		//     ,                  , '
-		//       ' - , _ _ _ ,  '
-		std::vector<glm::vec2> quadrant_points;
-		{
-			glm::vec2 point = { 0.0f, radius };
-			while (point.x <= point.y) {
-				quadrant_points.push_back(point);
-
-				glm::vec2 mid_point = { point.x + 1, point.y - 0.5f };
-				if (pow(mid_point.x, 2) + pow(mid_point.y, 2) > pow(radius, 2)) {
-					point.y -= 1;
-				}
-				point.x += 1;
-			}
-		}
-
-		/* Use symmetries to draw points of all 8 octants */
+		std::vector<glm::vec2> quadrant_points = circle_octant_points(radius);
 		for (const glm::vec2& point : quadrant_points) {
 			float x = point.x;
 			float y = point.y;
@@ -269,7 +272,31 @@ namespace platform {
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, y }, .color = color });
 		}
 
-		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = (GLsizei)quadrant_points.size() * 8, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture });
+	}
+
+	void Renderer::draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color) {
+		/* Get points vertical half circle */
+		std::vector<glm::vec2> quadrant_points = circle_octant_points(radius);
+		std::vector<glm::vec2> half_circle_points;
+		for (const glm::vec2& point : quadrant_points) {
+			float x = point.x;
+			float y = point.y;
+			half_circle_points.push_back(glm::vec2 { x, y });
+			half_circle_points.push_back(glm::vec2 { y, x });
+			half_circle_points.push_back(glm::vec2 { y, -x });
+			half_circle_points.push_back(glm::vec2 { x, -y });
+		}
+
+		/* Draw lines by mirroring the half circle */
+		for (const glm::vec2& point : half_circle_points) {
+			float x = point.x;
+			float y = point.y;
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, y }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, y }, .color = color });
+		}
+
+		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture });
 	}
 
 	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
