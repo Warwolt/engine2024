@@ -66,13 +66,12 @@ int main(int /* argc */, char** /* args */) {
 	});
 
 	/* Initialize Renderer */
-	Renderer renderer = Renderer(gl_context);
+	Renderer renderer = Renderer(gl_context, window_width, window_height);
 	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
-
-	// set projection matrix to use screen coordinates
-	// offset all corners by 0.5f to make sure rectangles don't render with any missing corners
+	// Set projection matrix to use screen coordinates.
+	// Offset all corners by 0.5f to make sure rectangles don't render with any missing corners.
 	glm::mat4 projection = glm::ortho(0.5f, (float)window_width + 0.5f, (float)window_height + 0.5f, 0.5f, -1.0f, 1.0f);
 	renderer.set_projection(shader_program, projection);
 
@@ -98,6 +97,14 @@ int main(int /* argc */, char** /* args */) {
 		platform::read_input(&input);
 		input.delta_ms = frame_timer.elapsed_ms();
 		frame_timer.reset();
+		if (input.window_resized) {
+			renderer.set_canvas_size(input.window_resized->x, input.window_resized->y);
+
+			glm::mat4 projection = glm::ortho(0.5f, input.window_resized->x + 0.5f, input.window_resized->y + 0.5f, 0.5f, -1.0f, 1.0f);
+			renderer.set_projection(shader_program, projection);
+
+			glViewport(0, 0, (int)input.window_resized->x, (int)input.window_resized->y);
+		}
 
 		/* Update */
 		platform::Commands commands = engine.update(&state, &input);

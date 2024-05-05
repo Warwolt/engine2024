@@ -1,4 +1,5 @@
 ## TODO
+- Fixed resolution (integer scaling to fit window)
 - Add ImGui
 - Add TypeScript (maybe)
   - https://v8.dev/docs/embed
@@ -6,9 +7,10 @@
   - Tried this, would be too error prone to update serialization definition manually
 
 ## Doing
-- Add alpha blending to renderer
+- Resizable window
 
 ## Done
+- Add alpha blending to renderer
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Render using pixel coordinates instead of normalized coordinates
 - Render textures
