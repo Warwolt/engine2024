@@ -245,17 +245,16 @@ namespace platform {
 
 		// 2. for each point, push vertices for all quadrants
 		for (const glm::vec2& point : quadrant_points) {
-			glm::vec2 translated_point = point + center;
-			float x = translated_point.x;
-			float y = translated_point.y;
-			m_vertices.push_back(Vertex { .pos = { x, y }, .color = color });
-			m_vertices.push_back(Vertex { .pos = { y, x }, .color = color });
-			m_vertices.push_back(Vertex { .pos = { y, -x }, .color = color });
-			m_vertices.push_back(Vertex { .pos = { x, -y }, .color = color });
-			m_vertices.push_back(Vertex { .pos = { -x, -y }, .color = color });
-			m_vertices.push_back(Vertex { .pos = { -y, -x }, .color = color });
-			m_vertices.push_back(Vertex { .pos = { -y, x }, .color = color });
-			m_vertices.push_back(Vertex { .pos = { -x, y }, .color = color });
+			float x = point.x;
+			float y = point.y;
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, y }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { y, x }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { y, -x }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, -y }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, -y }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -y, -x }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -y, x }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, y }, .color = color });
 		}
 
 		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = (GLsizei)quadrant_points.size() * 8, .texture = m_white_texture });
