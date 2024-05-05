@@ -30,7 +30,7 @@ namespace engine {
 		if (state->millis >= 1000) {
 			state->millis -= 1000;
 			state->tick += 1;
-			// LOG_INFO("%zu", state->tick);
+			LOG_INFO("%zu", state->tick);
 		}
 
 		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDL_SCANCODE_ESCAPE)) {
