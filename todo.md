@@ -1,5 +1,4 @@
 ## TODO
-- Add alpha blending to renderer
 - Add ImGui
 - Add TypeScript (maybe)
   - https://v8.dev/docs/embed
@@ -7,9 +6,10 @@
   - Tried this, would be too error prone to update serialization definition manually
 
 ## Doing
-- Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
+- Add alpha blending to renderer
 
 ## Done
+- Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Render using pixel coordinates instead of normalized coordinates
 - Render textures
 - Keyboard input
