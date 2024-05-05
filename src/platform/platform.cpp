@@ -47,10 +47,6 @@ namespace platform {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-		/* Enable alpha channel */
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		return true;
 	}
 
@@ -98,6 +94,10 @@ namespace platform {
 			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
 			return std::unexpected(CreateGLContextError::FailedToSetVSync);
 		}
+
+		/* Enable alpha channel */
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		return gl_context;
 	}
