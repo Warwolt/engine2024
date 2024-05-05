@@ -1,15 +1,21 @@
+Goal:
+- Simple level editor
+  - Tilemap based environment
+  - Place out game objects in environment
+  - "Mario maker" style
+
 ## TODO
-- Fixed resolution (integer scaling to fit window)
+- Render fonts
 - Add ImGui
-- Add TypeScript (maybe)
+- Add TypeScript for game scripting
   - https://v8.dev/docs/embed
-- Allow data to change between hot reloading (Serialize state before DLL reload, deserialize after)
-  - Tried this, would be too error prone to update serialization definition manually
 
 ## Doing
-- Resizable window
+- Fixed resolution (integer scaling to fit window)
+  - https://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 
 ## Done
+- Resizable window
 - Add alpha blending to renderer
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Render using pixel coordinates instead of normalized coordinates
