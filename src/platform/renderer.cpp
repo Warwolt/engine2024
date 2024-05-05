@@ -5,7 +5,13 @@
 #include <platform/logging.h>
 #include <stb_image/stb_image.h>
 
+#include <algorithm>
 #include <math.h>
+#include <set>
+#include <vector>
+
+#include <platform/assert.h> // DEBUGGING
+#include <platform/logging.h> // DEBUGGING
 
 namespace platform {
 
@@ -276,38 +282,39 @@ namespace platform {
 	}
 
 	void Renderer::draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color) {
-		/* Get points of first quadrant */
+		/* Get points of upper half circle */
 		std::vector<glm::vec2> quadrant_points = circle_octant_points(radius);
-		std::vector<glm::vec2> quarter_circle_points;
+		std::vector<glm::vec2> half_circle_points;
 		for (const glm::vec2& point : quadrant_points) {
 			float x = point.x;
 			float y = point.y;
-			quarter_circle_points.push_back(glm::vec2 { x, y });
-			quarter_circle_points.push_back(glm::vec2 { y, x });
+			half_circle_points.push_back(glm::vec2 { x, y });
+			half_circle_points.push_back(glm::vec2 { y, x });
+			half_circle_points.push_back(glm::vec2 { -x, y });
+			half_circle_points.push_back(glm::vec2 { -y, x });
 		}
 
-		/* Draw lines by mirroring quadrants */
-		float last_x = 0.0f; // avoids drawing multiple lines on same y
-		for (const glm::vec2& point : quarter_circle_points) {
+		/* Remove points with overlapping x-coordinates to avoid overdraw */
+		{
+			std::vector<glm::vec2>& p = half_circle_points;
+			std::sort(p.begin(), p.end(), [](const glm::vec2& lhs, const glm::vec2& rhs) { return lhs.x < rhs.x; });
+			p.erase(std::unique(p.begin(), p.end(), [](const glm::vec2& lhs, const glm::vec2& rhs) { return lhs.x == rhs.x; }), p.end());
+		}
+
+		/* Draw vertical lines */
+		for (const glm::vec2& point : half_circle_points) {
 			float x = point.x;
 			float y = point.y;
-			if (x == last_x) {
-				continue;
-			}
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, y }, .color = color });
-			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, y }, .color = color });
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, -y }, .color = color });
-			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, -y }, .color = color });
-			last_x = x;
 		}
-
-		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture });
 	}
 
 	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
-		//     |            |
+		//     |            |<
 		// (x0, y1) ---- (x1, y1)
 		float x0 = top_left.x;
 		float y0 = top_left.y;

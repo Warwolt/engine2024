@@ -30,7 +30,7 @@ namespace engine {
 		if (state->millis >= 1000) {
 			state->millis -= 1000;
 			state->tick += 1;
-			LOG_INFO("%zu", state->tick);
+			// LOG_INFO("%zu", state->tick);
 		}
 
 		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDL_SCANCODE_ESCAPE)) {
@@ -48,15 +48,20 @@ namespace engine {
 		glm::vec2 top_left = (window_size - box_size) / 2.0f;
 		glm::vec2 window_center = window_size / 2.0f;
 		glm::vec2 offset = { 10.0f, 10.0f };
-		renderer->draw_rect_fill(top_left + offset, top_left + box_size + offset, color); // shadow
-		renderer->draw_texture(top_left, top_left + box_size, state->texture); // box
+		// renderer->draw_rect_fill(top_left + offset, top_left + box_size + offset, color); // shadow
+		// renderer->draw_texture(top_left, top_left + box_size, state->texture); // box
 
-		renderer->draw_line(top_left, top_left + box_size, { 1.0f, 0.0f, 0.0f, 1.0f });
-		renderer->draw_point(top_left, { 0.0f, 1.0f, 0.0f, 1.0f });
-		renderer->draw_rect(top_left, top_left + box_size, { 0.0f, 1.0f, 0.0f, 1.0f });
+		// renderer->draw_line(top_left, top_left + box_size, { 1.0f, 0.0f, 0.0f, 1.0f });
+		// renderer->draw_point(top_left, { 0.0f, 1.0f, 0.0f, 1.0f });
+		// renderer->draw_rect(top_left, top_left + box_size, { 0.0f, 1.0f, 0.0f, 1.0f });
 
-		renderer->draw_circle(window_center, box_size.x / 2.0f, { 0.0f, 0.5f, 1.0f, 1.0f });
-		renderer->draw_circle_fill(window_center, box_size.x / 2.0f, { 0.0f, 0.5f, 1.0f, 1.0f });
+		// renderer->draw_circle(window_center, box_size.x / 2.0f, { 0.0f, 0.5f, 1.0f, 1.0f });
+		// renderer->draw_circle_fill(window_center, box_size.x / 2.0f, { 0.0f, 0.5f, 1.0f, 0.5f });
+		float offset2 = 64.0f;
+		renderer->draw_circle_fill(window_center - glm::vec2 { offset2, 0.0f }, 128, { 0.0f, 1.0f, 0.0f, 0.5f });
+		renderer->draw_circle_fill(window_center + glm::vec2 { offset2, 0.0f }, 128, { 0.0f, 0.5f, 1.0f, 0.5f });
+		renderer->draw_circle(window_center - glm::vec2 { offset2, 0.0f }, 128, { 0.0f, 1.0f, 0.0f, 1.0f });
+		renderer->draw_circle(window_center + glm::vec2 { offset2, 0.0f }, 128, { 0.0f, 0.5f, 1.0f, 1.0f });
 	}
 
 } // namespace engine

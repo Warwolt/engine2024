@@ -84,6 +84,9 @@ int main(int /* argc */, char** /* args */) {
 	engine.set_logger(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Input input = { 0 };
