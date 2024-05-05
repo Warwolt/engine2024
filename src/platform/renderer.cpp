@@ -10,9 +10,6 @@
 #include <set>
 #include <vector>
 
-#include <platform/assert.h> // DEBUGGING
-#include <platform/logging.h> // DEBUGGING
-
 namespace platform {
 
 	static std::vector<glm::vec2> circle_octant_points(float radius) {
