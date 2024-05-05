@@ -276,24 +276,29 @@ namespace platform {
 	}
 
 	void Renderer::draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color) {
-		/* Get points vertical half circle */
+		/* Get points of first quadrant */
 		std::vector<glm::vec2> quadrant_points = circle_octant_points(radius);
-		std::vector<glm::vec2> half_circle_points;
+		std::vector<glm::vec2> quarter_circle_points;
 		for (const glm::vec2& point : quadrant_points) {
 			float x = point.x;
 			float y = point.y;
-			half_circle_points.push_back(glm::vec2 { x, y });
-			half_circle_points.push_back(glm::vec2 { y, x });
-			half_circle_points.push_back(glm::vec2 { y, -x });
-			half_circle_points.push_back(glm::vec2 { x, -y });
+			quarter_circle_points.push_back(glm::vec2 { x, y });
+			quarter_circle_points.push_back(glm::vec2 { y, x });
 		}
 
-		/* Draw lines by mirroring the half circle */
-		for (const glm::vec2& point : half_circle_points) {
+		/* Draw lines by mirroring quadrants */
+		float last_x = 0.0f; // avoids drawing multiple lines on same y
+		for (const glm::vec2& point : quarter_circle_points) {
 			float x = point.x;
 			float y = point.y;
+			if (x == last_x) {
+				continue;
+			}
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, y }, .color = color });
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, y }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, -y }, .color = color });
+			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, -y }, .color = color });
+			last_x = x;
 		}
 
 		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture });
