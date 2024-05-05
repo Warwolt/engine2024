@@ -228,7 +228,19 @@ namespace platform {
 	}
 
 	void Renderer::draw_circle(glm::vec2 center, float radius, glm::vec4 color) {
-		// 1. compute points in  first quadrant (90 deg to 45 deg)
+		/* Compute points in first octant */
+		//              90°
+		//         , - ~ ~ ~ - ,
+		//     , '       |       ' , 45°
+		//   ,           |       ⟋   ,
+		//  ,            |    ⟋       ,
+		// ,             | ⟋           ,
+		// ,             o             ,
+		// ,                           ,
+		//  ,                         ,
+		//   ,                       ,
+		//     ,                  , '
+		//       ' - , _ _ _ ,  '
 		std::vector<glm::vec2> quadrant_points;
 		{
 			glm::vec2 point = { 0.0f, radius };
@@ -243,7 +255,7 @@ namespace platform {
 			}
 		}
 
-		// 2. for each point, push vertices for all quadrants
+		/* Use symmetries to draw points of all 8 octants */
 		for (const glm::vec2& point : quadrant_points) {
 			float x = point.x;
 			float y = point.y;
@@ -258,9 +270,6 @@ namespace platform {
 		}
 
 		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = (GLsizei)quadrant_points.size() * 8, .texture = m_white_texture });
-
-		// filled circles:
-		// https: //stackoverflow.com/questions/10878209/midpoint-circle-algorithm-for-filled-circles
 	}
 
 	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
