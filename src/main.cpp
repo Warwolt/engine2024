@@ -26,7 +26,6 @@ using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryLoader = platform::EngineLibraryLoader;
 using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
 using LoadLibraryError = platform::LoadLibraryError;
-using Primitive = platform::Primitive;
 using Renderer = platform::Renderer;
 using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
@@ -68,11 +67,12 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Initialize OpenGL */
 	Renderer renderer = Renderer(gl_context);
-	ShaderProgram shader_program = util::unwrap(renderer.add_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
+	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
 	// set projection matrix to use screen coordinates
-	glm::mat4 projection = glm::ortho(0.0f, (float)window_width, (float)window_height, 0.0f, -1.0f, 100.0f);
+	// offset all corners by 0.5f to make sure rectangles don't render with any missing corners
+	glm::mat4 projection = glm::ortho(0.5f, (float)window_width + 0.5f, (float)window_height + 0.5f, 0.5f, -1.0f, 1.0f);
 	renderer.set_projection(shader_program, projection);
 
 	/* Load engine DLL */
@@ -109,6 +109,7 @@ int main(int /* argc */, char** /* args */) {
 		renderer.render(window, shader_program);
 	}
 
+	platform::free_shader_program(shader_program);
 	engine.deinitialize(&state);
 	platform::deinitialize(window);
 	return 0;

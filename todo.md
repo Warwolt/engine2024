@@ -1,15 +1,16 @@
 ## TODO
-- Render using pixel coordinates instead of normalized coordinates
+- Add alpha blending to renderer
 - Add ImGui
-- Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Add TypeScript (maybe)
   - https://v8.dev/docs/embed
 - Allow data to change between hot reloading (Serialize state before DLL reload, deserialize after)
   - Tried this, would be too error prone to update serialization definition manually
 
 ## Doing
+- Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 
 ## Done
+- Render using pixel coordinates instead of normalized coordinates
 - Render textures
 - Keyboard input
 - Add Google Test

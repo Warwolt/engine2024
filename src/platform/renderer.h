@@ -21,15 +21,9 @@ namespace platform {
 		GLuint id;
 	};
 
-	enum class Primitive {
-		Point,
-		Line,
-		Triangle,
-	};
-
 	struct VertexSection {
-		Primitive primitive;
-		uint16_t length;
+		GLenum mode;
+		GLsizei length;
 		Texture texture;
 	};
 
@@ -45,26 +39,28 @@ namespace platform {
 		ShaderProgramFailedToLink,
 	};
 
+	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
+	void free_shader_program(ShaderProgram shader_program);
+
 	Texture add_texture(const unsigned char* data, int width, int height);
 	void free_texture(Texture texture);
 
 	class Renderer {
 	public:
 		Renderer(SDL_GLContext gl_context);
-		~Renderer();
-		Renderer(const Renderer&) = delete;
-		Renderer& operator=(const Renderer&) = delete;
 
-		std::expected<ShaderProgram, ShaderProgramError> add_program(const char* vertex_src, const char* fragment_src);
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
 		void render(SDL_Window* window, ShaderProgram shader_program);
 
+		void draw_point(glm::vec2 point, glm::vec4 color);
+		void draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color);
+		void draw_rect(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color);
 		void draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color);
+		void draw_circle(glm::vec2 center, float radius, glm::vec4 color);
+		void draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color);
 		void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture);
 
 	private:
-		std::vector<ShaderProgram> m_shader_programs;
-		std::vector<Texture> m_textures;
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;
