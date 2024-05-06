@@ -178,7 +178,7 @@ int main(int /* argc */, char** /* args */) {
 		// set normalized device coordinates projection
 		if (1) {
 			glViewport(0, 0, window_width, window_height);
-			glm::mat4 projection = glm::ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
+			glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 			renderer.set_projection(shader_program, projection);
 		}
 
