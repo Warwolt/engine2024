@@ -35,16 +35,6 @@ using CreateGLContextError = platform::CreateGLContextError;
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
-void on_window_resize(Renderer* renderer, ShaderProgram shader_program, float width, float height) {
-	renderer->set_canvas_size(width, height);
-
-	float grid_offset = 0.375f; // used to avoid missing pixels
-	glm::mat4 projection = glm::ortho(grid_offset, width + grid_offset, height + grid_offset, grid_offset, -1.0f, 1.0f);
-	renderer->set_projection(shader_program, projection);
-
-	glViewport(0, 0, (int)width, (int)height);
-}
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -55,8 +45,8 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	const int window_width = 680;
-	const int window_height = 480;
+	int window_width = 680;
+	int window_height = 480;
 	SDL_Window* window = platform::create_window(window_width, window_height);
 	ASSERT(window, "platform::create_window() returned null");
 
@@ -80,7 +70,7 @@ int main(int /* argc */, char** /* args */) {
 	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
-	on_window_resize(&renderer, shader_program, (float)window_width, (float)window_height);
+	// set_canvas_size(&renderer, shader_program, (float)window_width, (float)window_height);
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
@@ -133,6 +123,10 @@ int main(int /* argc */, char** /* args */) {
 	platform::Input input = { 0 };
 	engine::State state;
 	engine.initialize(&state);
+
+	int canvas_width = window_width;
+	int canvas_height = window_height;
+
 	while (true) {
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
@@ -142,7 +136,8 @@ int main(int /* argc */, char** /* args */) {
 		input.delta_ms = frame_timer.elapsed_ms();
 		frame_timer.reset();
 		if (input.window_resized) {
-			on_window_resize(&renderer, shader_program, input.window_resized->x, input.window_resized->y);
+			window_width = (int)input.window_resized->x;
+			window_height = (int)input.window_resized->y;
 		}
 
 		/* Update */
@@ -158,9 +153,9 @@ int main(int /* argc */, char** /* args */) {
 		}
 		// set pixel coordinate projection
 		{
-			glViewport(0, 0, window_width, window_height);
+			glViewport(0, 0, canvas_width, canvas_height);
 			float grid_offset = 0.375f; // used to avoid missing pixels
-			glm::mat4 projection = glm::ortho(grid_offset, window_width + grid_offset, window_height + grid_offset, grid_offset, -1.0f, 1.0f);
+			glm::mat4 projection = glm::ortho(grid_offset, canvas_width + grid_offset, canvas_height + grid_offset, grid_offset, -1.0f, 1.0f);
 			renderer.set_projection(shader_program, projection);
 		}
 
