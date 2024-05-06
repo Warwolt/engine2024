@@ -155,7 +155,7 @@ int main(int /* argc */, char** /* args */) {
 		{
 			glViewport(0, 0, canvas_width, canvas_height);
 			float grid_offset = 0.375f; // used to avoid missing pixels
-			glm::mat4 projection = glm::ortho(grid_offset, canvas_width + grid_offset, canvas_height + grid_offset, grid_offset, -1.0f, 1.0f);
+			glm::mat4 projection = glm::ortho(grid_offset, grid_offset + canvas_width, grid_offset + canvas_height, grid_offset, -1.0f, 1.0f);
 			renderer.set_projection(shader_program, projection);
 		}
 
@@ -172,7 +172,7 @@ int main(int /* argc */, char** /* args */) {
 
 		// set normalized device coordinates projection
 		if (1) {
-			glViewport(0, 0, window_width, window_height);
+			glViewport((window_width - canvas_width) / 2, (window_height - canvas_height) / 2, canvas_width, canvas_height);
 			glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 			renderer.set_projection(shader_program, projection);
 		}
