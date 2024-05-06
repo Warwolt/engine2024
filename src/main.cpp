@@ -39,7 +39,7 @@ void on_window_resize(Renderer* renderer, ShaderProgram shader_program, float wi
 	renderer->set_canvas_size(width, height);
 
 	float grid_offset = 0.375f; // used to avoid missing pixels
-	glm::mat4 projection = glm::ortho(0.5f, width + grid_offset, height + grid_offset, 0.5f, -1.0f, 1.0f);
+	glm::mat4 projection = glm::ortho(grid_offset, width + grid_offset, height + grid_offset, grid_offset, -1.0f, 1.0f);
 	renderer->set_projection(shader_program, projection);
 
 	glViewport(0, 0, (int)width, (int)height);
