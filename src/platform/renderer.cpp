@@ -319,7 +319,7 @@ namespace platform {
 	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
-		//     |            |<
+		//     |            |
 		// (x0, y1) ---- (x1, y1)
 		float x0 = top_left.x;
 		float y0 = top_left.y;

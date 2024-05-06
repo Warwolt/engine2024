@@ -92,12 +92,12 @@ int main(int /* argc */, char** /* args */) {
 	LOG_INFO("Engine library loaded");
 
 	// frame buffer
-	GLuint framebuffer;
+	GLuint frame_buffer;
 	GLuint canvas_texture;
-	if (0) {
+	if (1) {
 		// create buffer
-		glGenFramebuffers(1, &framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glGenFramebuffers(1, &frame_buffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 
 		// create texture
 		glGenTextures(1, &canvas_texture);
@@ -106,16 +106,27 @@ int main(int /* argc */, char** /* args */) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width, window_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		// attach texture to buffer and draw buffer
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, canvas_texture, 0);
-		GLenum draw_buffer[1] = { GL_COLOR_ATTACHMENT0 };
-		glDrawBuffers(1, draw_buffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, canvas_texture, 0);
+
+		GLuint render_buffer;
+		glGenRenderbuffers(1, &render_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
+		glRenderbufferStorage(
+			GL_RENDERBUFFER,
+			GL_DEPTH24_STENCIL8,
+			window_width,
+			window_height
+		);
 
 		ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Couldn't setup frame buffer");
-	}
 
-	// quad to render texture onto
+		glBindTexture(GL_TEXTURE_2D, NULL);
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	}
 
 	/* Main loop */
 	platform::Timer frame_timer;
@@ -142,11 +153,67 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Render */
 		// bind canvas
-		engine.render(&renderer, &state);
-		renderer.render(shader_program);
-		SDL_GL_SwapWindow(window);
+		if (1) {
+			glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+		}
+		// set pixel coordinate projection
+		{
+			glViewport(0, 0, window_width, window_height);
+			float grid_offset = 0.375f; // used to avoid missing pixels
+			glm::mat4 projection = glm::ortho(grid_offset, window_width + grid_offset, window_height + grid_offset, grid_offset, -1.0f, 1.0f);
+			renderer.set_projection(shader_program, projection);
+		}
+
+		// render to canvas
+		{
+			engine.render(&renderer, &state);
+			renderer.render(shader_program);
+		}
+
 		// unbind canvas
+		if (1) {
+			glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+		}
+
+		// set normalized device coordinates projection
+		if (1) {
+			glViewport(0, 0, window_width, window_height);
+			glm::mat4 projection = glm::ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
+			renderer.set_projection(shader_program, projection);
+		}
+
 		// render canvas texture
+		if (1) {
+			glUseProgram(shader_program.id);
+			glBindVertexArray(shader_program.vao);
+			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
+
+			using Vertex = platform::Vertex;
+			glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
+			float x0 = -1.0f;
+			float y0 = 1.0f;
+			float x1 = 1.0f;
+			float y1 = -1.0f;
+			Vertex quad[] = {
+				// first triangle
+				Vertex { .pos = { x0, y0 }, .color = white, .uv = { 0.0f, 1.0f } },
+				Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } },
+				Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } },
+				// second triangle
+				Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } },
+				Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } },
+				Vertex { .pos = { x1, y1 }, .color = white, .uv = { 1.0f, 0.0f } },
+			};
+
+			glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(Vertex), quad, GL_STATIC_DRAW);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, canvas_texture);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+
+		// flip double buffer
+		SDL_GL_SwapWindow(window);
 	}
 
 	platform::free_shader_program(shader_program);
