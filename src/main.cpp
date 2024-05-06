@@ -147,38 +147,27 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Render */
-		// bind canvas
-		if (1) {
-			glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
-		}
-		// set pixel coordinate projection
+		// render to canvas
 		{
+			// bind canvas
+			glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+
+			// set pixel coordinate projection
 			glViewport(0, 0, canvas_width, canvas_height);
 			float grid_offset = 0.375f; // used to avoid missing pixels
 			glm::mat4 projection = glm::ortho(grid_offset, grid_offset + canvas_width, grid_offset + canvas_height, grid_offset, -1.0f, 1.0f);
 			renderer.set_projection(shader_program, projection);
-		}
 
-		// render to canvas
-		{
+			// render
 			engine.render(&renderer, &state);
 			renderer.render(shader_program);
-		}
 
-		// unbind canvas
-		if (1) {
+			// unbind canvas
 			glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 		}
 
-		// set normalized device coordinates projection
-		if (1) {
-			glViewport((window_width - canvas_width) / 2, (window_height - canvas_height) / 2, canvas_width, canvas_height);
-			glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-			renderer.set_projection(shader_program, projection);
-		}
-
 		// render canvas texture
-		if (1) {
+		{
 			glUseProgram(shader_program.id);
 			glBindVertexArray(shader_program.vao);
 			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
@@ -200,6 +189,15 @@ int main(int /* argc */, char** /* args */) {
 				Vertex { .pos = { x1, y1 }, .color = white, .uv = { 1.0f, 0.0f } },
 			};
 
+			// set normalized device coordinates projection
+			int scale = std::max(std::round(window_width / canvas_width), std::round(window_height / canvas_height));
+			glm::ivec2 window_size = { window_width, window_height };
+			glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
+			glm::ivec2 top_left = (window_size - scaled_canvas_size) / 2;
+			glViewport(top_left.x, top_left.y, scaled_canvas_size.x, scaled_canvas_size.y);
+			glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+			renderer.set_projection(shader_program, projection);
+
 			glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(Vertex), quad, GL_STATIC_DRAW);
 
 			glActiveTexture(GL_TEXTURE0);
@@ -207,7 +205,6 @@ int main(int /* argc */, char** /* args */) {
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
-		// flip double buffer
 		SDL_GL_SwapWindow(window);
 	}
 

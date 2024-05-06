@@ -1,5 +1,8 @@
 #include <platform/logging.h>
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 
 #include <algorithm>

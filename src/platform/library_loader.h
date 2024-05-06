@@ -3,6 +3,9 @@
 #include <engine.h>
 #include <platform/input/timing.h>
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 
 #include <expected>
