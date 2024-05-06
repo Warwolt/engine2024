@@ -38,7 +38,8 @@ const char* LIBRARY_NAME = "GameEngine2024";
 void on_window_resize(Renderer* renderer, ShaderProgram shader_program, float width, float height) {
 	renderer->set_canvas_size(width, height);
 
-	glm::mat4 projection = glm::ortho(0.5f, width + 0.5f, height + 0.5f, 0.5f, -1.0f, 1.0f);
+	float grid_offset = 0.375f; // used to avoid missing pixels
+	glm::mat4 projection = glm::ortho(0.5f, width + grid_offset, height + grid_offset, 0.5f, -1.0f, 1.0f);
 	renderer->set_projection(shader_program, projection);
 
 	glViewport(0, 0, (int)width, (int)height);

@@ -5,8 +5,11 @@ Goal:
   - "Mario maker" style
 
 ## TODO
+- Full screen support (F11)
+- Hot reload with ctrl+F5
 - Render fonts
 - Add ImGui
+- Render level editor canvas (Aseprite style grey checker board)
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
