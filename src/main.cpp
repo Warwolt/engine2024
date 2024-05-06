@@ -45,8 +45,8 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	int window_width = 680;
-	int window_height = 480;
+	int window_width = 800;
+	int window_height = 600;
 	SDL_Window* window = platform::create_window(window_width, window_height);
 	ASSERT(window, "platform::create_window() returned null");
 
