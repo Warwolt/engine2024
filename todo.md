@@ -6,9 +6,11 @@ Goal:
 
 ## TODO
 - Full screen support (F11)
+  - Remove window resize, keep only fixed resolution + windowed / full screen mode
+- Add ImGui
+- Pick resolution while running
 - Hot reload with ctrl+F5
 - Render fonts
-- Add ImGui
 - Render level editor canvas (Aseprite style grey checker board)
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
