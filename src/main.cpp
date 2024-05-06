@@ -190,7 +190,7 @@ int main(int /* argc */, char** /* args */) {
 			};
 
 			// set normalized device coordinates projection
-			int scale = std::max(std::round(window_width / canvas_width), std::round(window_height / canvas_height));
+			int scale = (int)std::max(std::round(window_width / canvas_width), std::round(window_height / canvas_height));
 			glm::ivec2 window_size = { window_width, window_height };
 			glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
 			glm::ivec2 top_left = (window_size - scaled_canvas_size) / 2;
