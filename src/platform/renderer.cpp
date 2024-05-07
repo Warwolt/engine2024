@@ -225,7 +225,18 @@ namespace platform {
 		return m_canvas_size;
 	}
 
-	void Renderer::render(ShaderProgram shader_program) {
+	void Renderer::render_to_canvas(ShaderProgram shader_program, Canvas canvas) {
+		glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
+		_render(shader_program);
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	}
+
+	void Renderer::render_to_window(ShaderProgram shader_program, SDL_Window* window) {
+		_render(shader_program);
+		SDL_GL_SwapWindow(window);
+	}
+
+	void Renderer::_render(ShaderProgram shader_program) {
 		glUseProgram(shader_program.id);
 		glBindVertexArray(shader_program.vao);
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
@@ -255,12 +266,6 @@ namespace platform {
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 		glUseProgram(NULL);
-	}
-
-	void Renderer::render_to_canvas(ShaderProgram shader_program, Canvas canvas) {
-		glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
-		this->render(shader_program);
-		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
 	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {

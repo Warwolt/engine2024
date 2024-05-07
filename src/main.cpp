@@ -40,8 +40,7 @@ void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
 	glViewport(x, y, width, height);
 }
 
-// can this be split into computing x,y,w,h and then call set_viewport?
-void set_centralized_viewport(int window_width, int window_height, int canvas_width, int canvas_height) {
+void set_viewport_to_fit_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
 	int scale = (int)std::max(std::round(window_width / canvas_width), std::round(window_height / canvas_height));
 	glm::ivec2 window_size = { window_width, window_height };
 	glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
@@ -134,50 +133,17 @@ int main(int /* argc */, char** /* args */) {
 			break;
 		}
 
-		/* Render */
-		// render to canvas
-		{
-			engine.render(&renderer, &state);
+		/* Render to canvas */
+		set_viewport(0, 0, canvas_width, canvas_height);
+		set_pixel_coordinate_projection(&renderer, shader_program, canvas_width, canvas_height);
+		engine.render(&renderer, &state);
+		renderer.render_to_canvas(shader_program, canvas);
 
-			set_viewport(0, 0, canvas_width, canvas_height);
-			set_pixel_coordinate_projection(&renderer, shader_program, canvas_width, canvas_height);
-			renderer.render_to_canvas(shader_program, canvas);
-		}
-
-		// render canvas texture
-		{
-			set_centralized_viewport(window_width, window_height, canvas_width, canvas_height);
-			set_normalized_device_coordinate_projection(&renderer, shader_program);
-
-			glUseProgram(shader_program.id);
-			glBindVertexArray(shader_program.vao);
-			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
-
-			using Vertex = platform::Vertex;
-			glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
-			float x0 = -1.0f;
-			float y0 = 1.0f;
-			float x1 = 1.0f;
-			float y1 = -1.0f;
-			Vertex quad[] = {
-				// first triangle
-				Vertex { .pos = { x0, y0 }, .color = white, .uv = { 0.0f, 1.0f } },
-				Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } },
-				Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } },
-				// second triangle
-				Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } },
-				Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } },
-				Vertex { .pos = { x1, y1 }, .color = white, .uv = { 1.0f, 0.0f } },
-			};
-
-			glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(Vertex), quad, GL_STATIC_DRAW);
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, canvas.texture.id);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		}
-
-		SDL_GL_SwapWindow(window);
+		/* Render canvas to window */
+		set_viewport_to_fit_canvas(window_width, window_height, canvas_width, canvas_height);
+		set_normalized_device_coordinate_projection(&renderer, shader_program);
+		renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
+		renderer.render_to_window(shader_program, window);
 	}
 
 	engine.deinitialize(&state);
