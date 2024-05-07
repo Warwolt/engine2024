@@ -14,4 +14,8 @@ namespace platform {
 		m_commands.push_back(CommandType::Quit);
 	}
 
+	void CommandAPI::toggle_fullscreen() {
+		m_commands.push_back(CommandType::ToggleFullscreen);
+	}
+
 } // namespace platform

@@ -6,6 +6,7 @@ namespace platform {
 
 	enum class CommandType {
 		Quit,
+		ToggleFullscreen,
 	};
 
 	class CommandAPI {
@@ -14,6 +15,7 @@ namespace platform {
 		void clear();
 
 		void quit();
+		void toggle_fullscreen();
 
 	private:
 		std::vector<CommandType> m_commands;

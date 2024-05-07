@@ -34,6 +34,10 @@ namespace engine {
 		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
 			commands->quit();
 		}
+
+		if (input->keyboard.key_pressed_now(SDLK_F11)) {
+			commands->toggle_fullscreen();
+		}
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {

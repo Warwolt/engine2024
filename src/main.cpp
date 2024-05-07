@@ -149,12 +149,12 @@ int main(int /* argc */, char** /* args */) {
 				case CommandType::Quit:
 					quit = true;
 					break;
+				case CommandType::ToggleFullscreen:
+					toggle_fullscreen(window, &is_fullscreen);
+					break;
 			}
 		}
-
-		if (input.keyboard.key_pressed_now(SDLK_F11)) {
-			toggle_fullscreen(window, &is_fullscreen);
-		}
+		commands.clear();
 
 		/* Render to canvas */
 		set_viewport(0, 0, canvas_width, canvas_height);
