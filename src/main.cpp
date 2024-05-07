@@ -36,10 +36,27 @@ using VertexSection = platform::VertexSection;
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
+void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
+	glViewport(x, y, width, height);
+}
+
+// can this be split into computing x,y,w,h and then call set_viewport?
+void set_centralized_viewport(int window_width, int window_height, int canvas_width, int canvas_height) {
+	int scale = (int)std::max(std::round(window_width / canvas_width), std::round(window_height / canvas_height));
+	glm::ivec2 window_size = { window_width, window_height };
+	glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
+	glm::ivec2 top_left = (window_size - scaled_canvas_size) / 2;
+	glViewport(top_left.x, top_left.y, scaled_canvas_size.x, scaled_canvas_size.y);
+}
+
 void set_pixel_coordinate_projection(Renderer* renderer, ShaderProgram shader_program, int width, int height) {
-	glViewport(0, 0, width, height);
 	float grid_offset = 0.375f; // used to avoid missing pixels
 	glm::mat4 projection = glm::ortho(grid_offset, grid_offset + width, grid_offset + height, grid_offset, -1.0f, 1.0f);
+	renderer->set_projection(shader_program, projection);
+}
+
+void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgram shader_program) {
+	glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	renderer->set_projection(shader_program, projection);
 }
 
@@ -121,12 +138,17 @@ int main(int /* argc */, char** /* args */) {
 		// render to canvas
 		{
 			engine.render(&renderer, &state);
-			set_pixel_coordinate_projection(&renderer, shader_program, canvas.texture.width, canvas.texture.height);
+
+			set_viewport(0, 0, canvas_width, canvas_height);
+			set_pixel_coordinate_projection(&renderer, shader_program, canvas_width, canvas_height);
 			renderer.render_to_canvas(shader_program, canvas);
 		}
 
 		// render canvas texture
 		{
+			set_centralized_viewport(window_width, window_height, canvas_width, canvas_height);
+			set_normalized_device_coordinate_projection(&renderer, shader_program);
+
 			glUseProgram(shader_program.id);
 			glBindVertexArray(shader_program.vao);
 			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
@@ -147,15 +169,6 @@ int main(int /* argc */, char** /* args */) {
 				Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } },
 				Vertex { .pos = { x1, y1 }, .color = white, .uv = { 1.0f, 0.0f } },
 			};
-
-			// set normalized device coordinates projection
-			int scale = (int)std::max(std::round(window_width / canvas_width), std::round(window_height / canvas_height));
-			glm::ivec2 window_size = { window_width, window_height };
-			glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
-			glm::ivec2 top_left = (window_size - scaled_canvas_size) / 2;
-			glViewport(top_left.x, top_left.y, scaled_canvas_size.x, scaled_canvas_size.y);
-			glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-			renderer.set_projection(shader_program, projection);
 
 			glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(Vertex), quad, GL_STATIC_DRAW);
 
