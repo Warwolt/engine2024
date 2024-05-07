@@ -183,7 +183,7 @@ namespace platform {
 		return m_canvas_size;
 	}
 
-	void Renderer::render(SDL_Window* window, ShaderProgram shader_program) {
+	void Renderer::render(ShaderProgram shader_program) {
 		glUseProgram(shader_program.id);
 		glBindVertexArray(shader_program.vao);
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
@@ -204,7 +204,6 @@ namespace platform {
 
 			offset += section.length;
 		}
-		SDL_GL_SwapWindow(window);
 
 		/* Clear render data */
 		m_vertices.clear();
@@ -320,7 +319,7 @@ namespace platform {
 	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
-		//     |            |<
+		//     |            |
 		// (x0, y1) ---- (x1, y1)
 		float x0 = top_left.x;
 		float y0 = top_left.y;

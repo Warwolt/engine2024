@@ -46,15 +46,10 @@ namespace engine {
 		glm::vec2 top_left = (renderer->canvas_size() - box_size) / 2.0f;
 		glm::vec2 window_center = renderer->canvas_size() / 2.0f;
 		glm::vec2 offset = { 10.0f, 10.0f };
+
+		renderer->draw_rect_fill({ 0.0f, 0.0f }, renderer->canvas_size(), { 0.0f, 0.5f, 0.5f, 1.0f }); // background
 		renderer->draw_rect_fill(top_left + offset, top_left + box_size + offset, color); // shadow
 		renderer->draw_texture(top_left, top_left + box_size, state->texture); // box
-
-		renderer->draw_circle_fill(window_center, box_size.x / 2.0f, { 0.0f, 0.5f, 1.0f, 0.5f });
-		renderer->draw_circle(window_center, box_size.x / 2.0f, { 0.0f, 0.5f, 1.0f, 1.0f });
-
-		renderer->draw_point(top_left, { 0.0f, 1.0f, 0.0f, 1.0f });
-		renderer->draw_line(top_left, top_left + box_size, { 1.0f, 0.0f, 0.0f, 1.0f });
-		renderer->draw_rect(top_left, top_left + box_size, { 0.0f, 1.0f, 0.0f, 1.0f });
 	}
 
 } // namespace engine

@@ -53,7 +53,7 @@ namespace platform {
 		void set_canvas_size(float width, float height);
 		glm::vec2 canvas_size() const;
 
-		void render(SDL_Window* window, ShaderProgram shader_program);
+		void render(ShaderProgram shader_program);
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
 		void draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color);

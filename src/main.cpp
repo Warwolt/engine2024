@@ -35,15 +35,6 @@ using CreateGLContextError = platform::CreateGLContextError;
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
-void on_window_resize(Renderer* renderer, ShaderProgram shader_program, float width, float height) {
-	renderer->set_canvas_size(width, height);
-
-	glm::mat4 projection = glm::ortho(0.5f, width + 0.5f, height + 0.5f, 0.5f, -1.0f, 1.0f);
-	renderer->set_projection(shader_program, projection);
-
-	glViewport(0, 0, (int)width, (int)height);
-}
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -54,8 +45,8 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	const int window_width = 680;
-	const int window_height = 480;
+	int window_width = 800;
+	int window_height = 600;
 	SDL_Window* window = platform::create_window(window_width, window_height);
 	ASSERT(window, "platform::create_window() returned null");
 
@@ -79,7 +70,7 @@ int main(int /* argc */, char** /* args */) {
 	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
-	on_window_resize(&renderer, shader_program, (float)window_width, (float)window_height);
+	// set_canvas_size(&renderer, shader_program, (float)window_width, (float)window_height);
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
@@ -90,11 +81,52 @@ int main(int /* argc */, char** /* args */) {
 	engine.set_logger(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
+	// frame buffer
+	GLuint frame_buffer;
+	GLuint canvas_texture;
+	if (1) {
+		// create buffer
+		glGenFramebuffers(1, &frame_buffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+
+		// create texture
+		glGenTextures(1, &canvas_texture);
+		glBindTexture(GL_TEXTURE_2D, canvas_texture);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width, window_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		// attach texture to buffer and draw buffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, canvas_texture, 0);
+
+		GLuint render_buffer;
+		glGenRenderbuffers(1, &render_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
+		glRenderbufferStorage(
+			GL_RENDERBUFFER,
+			GL_DEPTH24_STENCIL8,
+			window_width,
+			window_height
+		);
+
+		ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Couldn't setup frame buffer");
+
+		glBindTexture(GL_TEXTURE_2D, NULL);
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	}
+
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Input input = { 0 };
 	engine::State state;
 	engine.initialize(&state);
+
+	int canvas_width = window_width;
+	int canvas_height = window_height;
+
 	while (true) {
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
@@ -104,7 +136,8 @@ int main(int /* argc */, char** /* args */) {
 		input.delta_ms = frame_timer.elapsed_ms();
 		frame_timer.reset();
 		if (input.window_resized) {
-			on_window_resize(&renderer, shader_program, input.window_resized->x, input.window_resized->y);
+			window_width = (int)input.window_resized->x;
+			window_height = (int)input.window_resized->y;
 		}
 
 		/* Update */
@@ -114,8 +147,65 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Render */
-		engine.render(&renderer, &state);
-		renderer.render(window, shader_program);
+		// render to canvas
+		{
+			// bind canvas
+			glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+
+			// set pixel coordinate projection
+			glViewport(0, 0, canvas_width, canvas_height);
+			float grid_offset = 0.375f; // used to avoid missing pixels
+			glm::mat4 projection = glm::ortho(grid_offset, grid_offset + canvas_width, grid_offset + canvas_height, grid_offset, -1.0f, 1.0f);
+			renderer.set_projection(shader_program, projection);
+
+			// render
+			engine.render(&renderer, &state);
+			renderer.render(shader_program);
+
+			// unbind canvas
+			glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+		}
+
+		// render canvas texture
+		{
+			glUseProgram(shader_program.id);
+			glBindVertexArray(shader_program.vao);
+			glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
+
+			using Vertex = platform::Vertex;
+			glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
+			float x0 = -1.0f;
+			float y0 = 1.0f;
+			float x1 = 1.0f;
+			float y1 = -1.0f;
+			Vertex quad[] = {
+				// first triangle
+				Vertex { .pos = { x0, y0 }, .color = white, .uv = { 0.0f, 1.0f } },
+				Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } },
+				Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } },
+				// second triangle
+				Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } },
+				Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } },
+				Vertex { .pos = { x1, y1 }, .color = white, .uv = { 1.0f, 0.0f } },
+			};
+
+			// set normalized device coordinates projection
+			int scale = (int)std::max(std::round(window_width / canvas_width), std::round(window_height / canvas_height));
+			glm::ivec2 window_size = { window_width, window_height };
+			glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
+			glm::ivec2 top_left = (window_size - scaled_canvas_size) / 2;
+			glViewport(top_left.x, top_left.y, scaled_canvas_size.x, scaled_canvas_size.y);
+			glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+			renderer.set_projection(shader_program, projection);
+
+			glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(Vertex), quad, GL_STATIC_DRAW);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, canvas_texture);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+
+		SDL_GL_SwapWindow(window);
 	}
 
 	platform::free_shader_program(shader_program);

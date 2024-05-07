@@ -1,15 +1,26 @@
+Goal:
+- Simple level editor
+  - Tilemap based environment
+  - Place out game objects in environment
+  - "Mario maker" style
+
 ## TODO
-- Fixed resolution (integer scaling to fit window)
+- Full screen support (F11)
+  - Remove window resize, keep only fixed resolution + windowed / full screen mode
 - Add ImGui
-- Add TypeScript (maybe)
+- Pick resolution while running
+- Hot reload with ctrl+F5
+- Render fonts
+- Render level editor canvas (Aseprite style grey checker board)
+- Add TypeScript for game scripting
   - https://v8.dev/docs/embed
-- Allow data to change between hot reloading (Serialize state before DLL reload, deserialize after)
-  - Tried this, would be too error prone to update serialization definition manually
 
 ## Doing
-- Resizable window
+- Fixed resolution (integer scaling to fit window)
+  - https://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 
 ## Done
+- Resizable window
 - Add alpha blending to renderer
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)
 - Render using pixel coordinates instead of normalized coordinates
