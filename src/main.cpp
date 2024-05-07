@@ -24,7 +24,7 @@
 
 using Canvas = platform::Canvas;
 using CommandAPI = platform::CommandAPI;
-using CommandType = platform::CommandType;
+using Command = platform::Command;
 using CreateGLContextError = platform::CreateGLContextError;
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
@@ -171,12 +171,12 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Update */
 		engine.update(&state, &input, &commands);
-		for (const CommandType& command : commands.commands()) {
+		for (const Command& command : commands.commands()) {
 			switch (command) {
-				case CommandType::Quit:
+				case Command::Quit:
 					quit = true;
 					break;
-				case CommandType::ToggleFullscreen:
+				case Command::ToggleFullscreen:
 					toggle_fullscreen(&fullscreen_state, window, &resolution, &window_size);
 					break;
 			}

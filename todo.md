@@ -5,7 +5,6 @@ Goal:
   - "Mario maker" style
 
 ## TODO
-- Add ImGui
 - Pick resolution while running
 - Hot reload with ctrl+F5
 - Render fonts
@@ -14,10 +13,10 @@ Goal:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Full screen support (F11)
-  - Remove window resize, keep only fixed resolution + windowed / full screen mode
+- Add ImGui
 
 ## Done
+- Full screen support (F11)
 - Fixed resolution (integer scaling to fit window)
 - Resizable window
 - Add alpha blending to renderer
