@@ -4,15 +4,13 @@
 
 #include <glm/glm.hpp>
 
-#include <optional>
 #include <stdint.h>
 
 namespace platform {
 
 	struct Input {
-		uint64_t delta_ms;
-		bool quit_signal_received;
-		std::optional<glm::vec2> window_resized;
+		uint64_t delta_ms = 0;
+		bool quit_signal_received = false;
 		Keyboard keyboard;
 	};
 

@@ -23,9 +23,7 @@ namespace engine {
 		platform::free_texture(state->texture);
 	}
 
-	platform::Commands update(State* state, const platform::Input* input) {
-		platform::Commands commands = { 0 };
-
+	void update(State* state, const platform::Input* input, platform::CommandAPI* commands) {
 		state->millis += input->delta_ms;
 		if (state->millis >= 1000) {
 			state->millis -= 1000;
@@ -33,11 +31,13 @@ namespace engine {
 			LOG_INFO("%zu", state->tick);
 		}
 
-		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDL_SCANCODE_ESCAPE)) {
-			commands.quit();
+		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+			commands->quit();
 		}
 
-		return commands;
+		if (input->keyboard.key_pressed_now(SDLK_F11)) {
+			commands->toggle_fullscreen();
+		}
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
@@ -50,6 +50,9 @@ namespace engine {
 		renderer->draw_rect_fill({ 0.0f, 0.0f }, renderer->canvas_size(), { 0.0f, 0.5f, 0.5f, 1.0f }); // background
 		renderer->draw_rect_fill(top_left + offset, top_left + box_size + offset, color); // shadow
 		renderer->draw_texture(top_left, top_left + box_size, state->texture); // box
+
+		renderer->draw_circle_fill(window_center, 127.0f, { 0.0f, 1.0f, 0.0f, 0.5f });
+		renderer->draw_circle(window_center, 127.0f, { 0.0f, 1.0f, 0.0f, 1.0f });
 	}
 
 } // namespace engine

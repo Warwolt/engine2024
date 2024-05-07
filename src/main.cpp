@@ -23,6 +23,8 @@
 #include <optional>
 
 using Canvas = platform::Canvas;
+using CommandAPI = platform::CommandAPI;
+using CommandType = platform::CommandType;
 using CreateGLContextError = platform::CreateGLContextError;
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
@@ -33,6 +35,12 @@ using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 using Vertex = platform::Vertex;
 using VertexSection = platform::VertexSection;
+
+struct FullscreenState {
+	bool is_fullscreen = false;
+	int last_windowed_x = 0;
+	int last_windowed_y = 0;
+};
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
@@ -59,7 +67,45 @@ void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgr
 	renderer->set_projection(shader_program, projection);
 }
 
+void toggle_fullscreen(FullscreenState* state, SDL_Window* window, glm::ivec2* resolution, glm::ivec2* window_size) {
+	int display_index = SDL_GetWindowDisplayIndex(window);
+
+	SDL_DisplayMode display_mode;
+	SDL_GetCurrentDisplayMode(display_index, &display_mode);
+
+	SDL_Rect display_bound;
+	SDL_GetDisplayBounds(display_index, &display_bound);
+
+	if (state->is_fullscreen) {
+		state->is_fullscreen = false;
+
+		/* Toggle windowed */
+		SDL_SetWindowBordered(window, SDL_TRUE);
+		SDL_SetWindowPosition(window, state->last_windowed_x, state->last_windowed_y);
+		SDL_SetWindowSize(window, resolution->x, resolution->y);
+
+		/* Update window size */
+		*window_size = *resolution;
+	}
+	else {
+		state->is_fullscreen = true;
+
+		/* Save current windowed position */
+		SDL_GetWindowPosition(window, &state->last_windowed_x, &state->last_windowed_y);
+
+		/* Toggle fullscreen */
+		SDL_SetWindowBordered(window, SDL_FALSE);
+		SDL_SetWindowPosition(window, display_bound.x, display_bound.y);
+		SDL_SetWindowSize(window, display_mode.w, display_mode.h);
+
+		/* Update windowed size */
+		*window_size = glm::ivec2 { display_mode.w, display_mode.h };
+	}
+}
+
 int main(int /* argc */, char** /* args */) {
+	glm::ivec2 resolution = { 800, 600 };
+
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
 
@@ -69,9 +115,7 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	int window_width = 800;
-	int window_height = 600;
-	SDL_Window* window = platform::create_window(window_width, window_height);
+	SDL_Window* window = platform::create_window(resolution.x, resolution.y);
 	ASSERT(window, "platform::create_window() returned null");
 
 	/* Create OpenGL context */
@@ -90,7 +134,7 @@ int main(int /* argc */, char** /* args */) {
 	});
 
 	/* Initialize Renderer */
-	Renderer renderer = Renderer(gl_context, window_width, window_height);
+	Renderer renderer = Renderer(gl_context, resolution.x, resolution.y);
 	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
@@ -106,15 +150,17 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Main loop */
 	platform::Timer frame_timer;
-	platform::Input input = { 0 };
+	platform::Input input;
+	platform::CommandAPI commands;
 	engine::State state;
+
+	bool quit = false;
+	glm::ivec2 window_size = { resolution.x, resolution.y };
+	Canvas canvas = platform::add_canvas(resolution.x, resolution.y);
+	FullscreenState fullscreen_state;
+
 	engine.initialize(&state);
-
-	int canvas_width = window_width;
-	int canvas_height = window_height;
-	Canvas canvas = platform::add_canvas(canvas_width, canvas_height);
-
-	while (true) {
+	while (!quit) {
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
 
@@ -122,25 +168,29 @@ int main(int /* argc */, char** /* args */) {
 		platform::read_input(&input);
 		input.delta_ms = frame_timer.elapsed_ms();
 		frame_timer.reset();
-		if (input.window_resized) {
-			window_width = (int)input.window_resized->x;
-			window_height = (int)input.window_resized->y;
-		}
 
 		/* Update */
-		platform::Commands commands = engine.update(&state, &input);
-		if (commands.m_quit) {
-			break;
+		engine.update(&state, &input, &commands);
+		for (const CommandType& command : commands.commands()) {
+			switch (command) {
+				case CommandType::Quit:
+					quit = true;
+					break;
+				case CommandType::ToggleFullscreen:
+					toggle_fullscreen(&fullscreen_state, window, &resolution, &window_size);
+					break;
+			}
 		}
+		commands.clear();
 
 		/* Render to canvas */
-		set_viewport(0, 0, canvas_width, canvas_height);
-		set_pixel_coordinate_projection(&renderer, shader_program, canvas_width, canvas_height);
+		set_viewport(0, 0, resolution.x, resolution.y);
+		set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
 		engine.render(&renderer, &state);
 		renderer.render_to_canvas(shader_program, canvas);
 
 		/* Render canvas to window */
-		set_viewport_to_fit_canvas(window_width, window_height, canvas_width, canvas_height);
+		set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
 		set_normalized_device_coordinate_projection(&renderer, shader_program);
 		renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
 		renderer.render_to_window(shader_program, window);

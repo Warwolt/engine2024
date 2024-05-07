@@ -60,6 +60,9 @@ namespace platform {
 		Renderer(SDL_GLContext gl_context, int canvas_width, int canvas_height);
 
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
+
+		// FIXME: Remove this, communicate screen resolution to engine some
+		// other way.
 		void set_canvas_size(float width, float height);
 		glm::vec2 canvas_size() const;
 
