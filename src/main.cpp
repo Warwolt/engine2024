@@ -22,18 +22,26 @@
 #include <expected>
 #include <optional>
 
+using Canvas = platform::Canvas;
+using CreateGLContextError = platform::CreateGLContextError;
 using EngineLibrary = platform::EngineLibrary;
-using EngineLibraryLoader = platform::EngineLibraryLoader;
 using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
+using EngineLibraryLoader = platform::EngineLibraryLoader;
 using LoadLibraryError = platform::LoadLibraryError;
 using Renderer = platform::Renderer;
 using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 using Vertex = platform::Vertex;
 using VertexSection = platform::VertexSection;
-using CreateGLContextError = platform::CreateGLContextError;
 
 const char* LIBRARY_NAME = "GameEngine2024";
+
+void set_pixel_coordinate_projection(Renderer* renderer, ShaderProgram shader_program, int width, int height) {
+	glViewport(0, 0, width, height);
+	float grid_offset = 0.375f; // used to avoid missing pixels
+	glm::mat4 projection = glm::ortho(grid_offset, grid_offset + width, grid_offset + height, grid_offset, -1.0f, 1.0f);
+	renderer->set_projection(shader_program, projection);
+}
 
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
@@ -88,7 +96,7 @@ int main(int /* argc */, char** /* args */) {
 
 	int canvas_width = window_width;
 	int canvas_height = window_height;
-	platform::Canvas canvas = platform::add_canvas(canvas_width, canvas_height);
+	Canvas canvas = platform::add_canvas(canvas_width, canvas_height);
 
 	while (true) {
 		/* Hot reloading */
@@ -112,21 +120,9 @@ int main(int /* argc */, char** /* args */) {
 		/* Render */
 		// render to canvas
 		{
-			// bind canvas
-			glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
-
-			// set pixel coordinate projection
-			glViewport(0, 0, canvas_width, canvas_height);
-			float grid_offset = 0.375f; // used to avoid missing pixels
-			glm::mat4 projection = glm::ortho(grid_offset, grid_offset + canvas_width, grid_offset + canvas_height, grid_offset, -1.0f, 1.0f);
-			renderer.set_projection(shader_program, projection);
-
-			// render
 			engine.render(&renderer, &state);
-			renderer.render(shader_program);
-
-			// unbind canvas
-			glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+			set_pixel_coordinate_projection(&renderer, shader_program, canvas.texture.width, canvas.texture.height);
+			renderer.render_to_canvas(shader_program, canvas);
 		}
 
 		// render canvas texture
@@ -164,7 +160,7 @@ int main(int /* argc */, char** /* args */) {
 			glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(Vertex), quad, GL_STATIC_DRAW);
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, canvas.texture);
+			glBindTexture(GL_TEXTURE_2D, canvas.texture.id);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
@@ -172,7 +168,6 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	engine.deinitialize(&state);
-	platform::free_canvas(canvas);
 	platform::free_shader_program(shader_program);
 	platform::deinitialize(window);
 	return 0;

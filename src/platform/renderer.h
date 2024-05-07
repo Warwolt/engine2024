@@ -19,11 +19,13 @@ namespace platform {
 
 	struct Texture {
 		GLuint id;
+		int width;
+		int height;
 	};
 
 	struct Canvas {
 		GLuint frame_buffer;
-		GLuint texture;
+		Texture texture;
 	};
 
 	struct VertexSection {
@@ -62,6 +64,7 @@ namespace platform {
 		glm::vec2 canvas_size() const;
 
 		void render(ShaderProgram shader_program);
+		void render_to_canvas(ShaderProgram shader_program, Canvas canvas);
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
 		void draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color);

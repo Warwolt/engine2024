@@ -156,7 +156,7 @@ namespace platform {
 		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
 
 		glBindTexture(GL_TEXTURE_2D, NULL);
-		return Texture { texture };
+		return Texture { texture, width, height };
 	}
 
 	void free_texture(Texture texture) {
@@ -197,12 +197,12 @@ namespace platform {
 		glBindTexture(GL_TEXTURE_2D, NULL);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
-		return Canvas { frame_buffer, texture };
+		return Canvas { frame_buffer, Texture { texture, width, height } };
 	}
 
 	void free_canvas(Canvas canvas) {
 		glDeleteFramebuffers(1, &canvas.frame_buffer);
-		glDeleteTextures(1, &canvas.texture);
+		glDeleteTextures(1, &canvas.texture.id);
 	}
 
 	Renderer::Renderer(SDL_GLContext /* gl_context */, int canvas_width, int canvas_height) {
@@ -255,6 +255,12 @@ namespace platform {
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 		glUseProgram(NULL);
+	}
+
+	void Renderer::render_to_canvas(ShaderProgram shader_program, Canvas canvas) {
+		glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
+		this->render(shader_program);
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
 	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {
