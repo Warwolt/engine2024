@@ -19,6 +19,13 @@ namespace platform {
 
 	struct Texture {
 		GLuint id;
+		int width;
+		int height;
+	};
+
+	struct Canvas {
+		GLuint frame_buffer;
+		Texture texture;
 	};
 
 	struct VertexSection {
@@ -45,6 +52,9 @@ namespace platform {
 	Texture add_texture(const unsigned char* data, int width, int height);
 	void free_texture(Texture texture);
 
+	Canvas add_canvas(int width, int height);
+	void free_canvas(Canvas canvas);
+
 	class Renderer {
 	public:
 		Renderer(SDL_GLContext gl_context, int canvas_width, int canvas_height);
@@ -53,7 +63,8 @@ namespace platform {
 		void set_canvas_size(float width, float height);
 		glm::vec2 canvas_size() const;
 
-		void render(ShaderProgram shader_program);
+		void render_to_window(ShaderProgram shader_program, SDL_Window* window);
+		void render_to_canvas(ShaderProgram shader_program, Canvas canvas);
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
 		void draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color);
@@ -64,6 +75,8 @@ namespace platform {
 		void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture);
 
 	private:
+		void _render(ShaderProgram shader_program);
+
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;
