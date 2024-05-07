@@ -23,9 +23,7 @@ namespace engine {
 		platform::free_texture(state->texture);
 	}
 
-	platform::Commands update(State* state, const platform::Input* input) {
-		platform::Commands commands = { 0 };
-
+	void update(State* state, const platform::Input* input, platform::CommandAPI* commands) {
 		state->millis += input->delta_ms;
 		if (state->millis >= 1000) {
 			state->millis -= 1000;
@@ -34,10 +32,8 @@ namespace engine {
 		}
 
 		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
-			commands.quit();
+			commands->quit();
 		}
-
-		return commands;
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {

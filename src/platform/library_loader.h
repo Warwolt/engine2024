@@ -22,7 +22,7 @@ namespace platform {
 		void (*set_logger)(plog::Severity, plog::IAppender*);
 		void (*initialize)(engine::State*);
 		void (*deinitialize)(engine::State*);
-		platform::Commands (*update)(engine::State*, const platform::Input*);
+		void (*update)(engine::State*, const platform::Input*, platform::CommandAPI*);
 		void (*render)(platform::Renderer*, engine::State*);
 	};
 

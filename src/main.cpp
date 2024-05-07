@@ -23,6 +23,8 @@
 #include <optional>
 
 using Canvas = platform::Canvas;
+using CommandAPI = platform::CommandAPI;
+using CommandType = platform::CommandType;
 using CreateGLContextError = platform::CreateGLContextError;
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
@@ -116,7 +118,8 @@ int main(int /* argc */, char** /* args */) {
 
 	/* Main loop */
 	platform::Timer frame_timer;
-	platform::Input input = { 0 };
+	platform::Input input;
+	platform::CommandAPI commands;
 	engine::State state;
 	engine.initialize(&state);
 
@@ -125,7 +128,8 @@ int main(int /* argc */, char** /* args */) {
 	Canvas canvas = platform::add_canvas(canvas_width, canvas_height);
 
 	bool is_fullscreen = false;
-	while (true) {
+	bool quit = false;
+	while (!quit) {
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
 
@@ -139,9 +143,13 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		/* Update */
-		platform::Commands commands = engine.update(&state, &input);
-		if (commands.m_quit) {
-			break;
+		engine.update(&state, &input, &commands);
+		for (const CommandType& command : commands.commands()) {
+			switch (command) {
+				case CommandType::Quit:
+					quit = true;
+					break;
+			}
 		}
 
 		if (input.keyboard.key_pressed_now(SDLK_F11)) {

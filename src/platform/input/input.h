@@ -10,8 +10,8 @@
 namespace platform {
 
 	struct Input {
-		uint64_t delta_ms;
-		bool quit_signal_received;
+		uint64_t delta_ms = 0;
+		bool quit_signal_received = false;
 		std::optional<glm::vec2> window_resized;
 		Keyboard keyboard;
 	};
