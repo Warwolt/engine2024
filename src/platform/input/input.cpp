@@ -5,7 +5,7 @@
 
 namespace platform {
 
-	void read_input(Input* input) {
+	void read_input(Input* input, Timer* frame_timer) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
@@ -21,6 +21,8 @@ namespace platform {
 			}
 		}
 		input->keyboard.update();
+		input->delta_ms = frame_timer->elapsed_ms();
+		frame_timer->reset();
 	}
 
 } // namespace platform

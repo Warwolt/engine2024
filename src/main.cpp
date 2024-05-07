@@ -165,9 +165,7 @@ int main(int /* argc */, char** /* args */) {
 		hot_reloader.check_hot_reloading(&engine);
 
 		/* Input */
-		platform::read_input(&input);
-		input.delta_ms = frame_timer.elapsed_ms();
-		frame_timer.reset();
+		platform::read_input(&input, &frame_timer);
 
 		/* Update */
 		engine.update(&state, &input, &commands);
