@@ -59,6 +59,16 @@ void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgr
 	renderer->set_projection(shader_program, projection);
 }
 
+void toggle_fullscreen(SDL_Window* window, bool* is_fullscreen) {
+	if (*is_fullscreen) {
+		SDL_SetWindowFullscreen(window, NULL);
+	}
+	else {
+		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	}
+	*is_fullscreen = !*is_fullscreen;
+}
+
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -114,6 +124,7 @@ int main(int /* argc */, char** /* args */) {
 	int canvas_height = window_height;
 	Canvas canvas = platform::add_canvas(canvas_width, canvas_height);
 
+	bool is_fullscreen = false;
 	while (true) {
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
@@ -134,7 +145,7 @@ int main(int /* argc */, char** /* args */) {
 		}
 
 		if (input.keyboard.key_pressed_now(SDLK_F11)) {
-			LOG_DEBUG("F11");
+			toggle_fullscreen(window, &is_fullscreen);
 		}
 
 		/* Render to canvas */
