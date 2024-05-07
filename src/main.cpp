@@ -115,6 +115,8 @@ int main(int /* argc */, char** /* args */) {
 
 	int resolution_width = window_width;
 	int resolution_height = window_height;
+	int last_window_x = 0;
+	int last_window_y = 0;
 	Canvas canvas = platform::add_canvas(resolution_width, resolution_height);
 
 	bool is_fullscreen = false;
@@ -127,11 +129,6 @@ int main(int /* argc */, char** /* args */) {
 		platform::read_input(&input);
 		input.delta_ms = frame_timer.elapsed_ms();
 		frame_timer.reset();
-		if (input.window_resized) {
-			LOG_DEBUG("window resized %d %d", (int)input.window_resized->x, (int)input.window_resized->y);
-			window_width = (int)input.window_resized->x;
-			window_height = (int)input.window_resized->y;
-		}
 
 		/* Update */
 		engine.update(&state, &input, &commands);
@@ -142,21 +139,41 @@ int main(int /* argc */, char** /* args */) {
 					break;
 				case CommandType::ToggleFullscreen: {
 					int display_index = SDL_GetWindowDisplayIndex(window);
+
 					SDL_DisplayMode display_mode;
 					SDL_GetCurrentDisplayMode(display_index, &display_mode);
+
+					SDL_Rect display_bound;
+					SDL_GetDisplayBounds(display_index, &display_bound);
+
 					if (is_fullscreen) {
-						// toggle windowed
 						is_fullscreen = false;
+
+						// restore window position
+						SDL_SetWindowPosition(window, last_window_x, last_window_y);
+
+						// toggle windowed
 						SDL_SetWindowBordered(window, SDL_TRUE);
 						SDL_SetWindowSize(window, resolution_width, resolution_height);
+
+						// update window size
 						window_width = resolution_width;
 						window_height = resolution_height;
 					}
 					else {
-						// toggle fullscreen
 						is_fullscreen = true;
+
+						// remember windowed position
+						SDL_GetWindowPosition(window, &last_window_x, &last_window_y);
+
+						// move window to top left corner
+						SDL_SetWindowPosition(window, display_bound.x, display_bound.y);
+
+						// change to borderless fullscreen
 						SDL_SetWindowBordered(window, SDL_FALSE);
 						SDL_SetWindowSize(window, display_mode.w, display_mode.h);
+
+						// update window size
 						window_width = display_mode.w;
 						window_height = display_mode.h;
 					}
