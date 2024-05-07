@@ -61,16 +61,6 @@ void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgr
 	renderer->set_projection(shader_program, projection);
 }
 
-void toggle_fullscreen(SDL_Window* window, bool* is_fullscreen) {
-	if (*is_fullscreen) {
-		SDL_SetWindowFullscreen(window, NULL);
-	}
-	else {
-		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-	}
-	*is_fullscreen = !*is_fullscreen;
-}
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -123,9 +113,9 @@ int main(int /* argc */, char** /* args */) {
 	engine::State state;
 	engine.initialize(&state);
 
-	int canvas_width = window_width;
-	int canvas_height = window_height;
-	Canvas canvas = platform::add_canvas(canvas_width, canvas_height);
+	int resolution_width = window_width;
+	int resolution_height = window_height;
+	Canvas canvas = platform::add_canvas(resolution_width, resolution_height);
 
 	bool is_fullscreen = false;
 	bool quit = false;
@@ -138,6 +128,7 @@ int main(int /* argc */, char** /* args */) {
 		input.delta_ms = frame_timer.elapsed_ms();
 		frame_timer.reset();
 		if (input.window_resized) {
+			LOG_DEBUG("window resized %d %d", (int)input.window_resized->x, (int)input.window_resized->y);
 			window_width = (int)input.window_resized->x;
 			window_height = (int)input.window_resized->y;
 		}
@@ -149,21 +140,39 @@ int main(int /* argc */, char** /* args */) {
 				case CommandType::Quit:
 					quit = true;
 					break;
-				case CommandType::ToggleFullscreen:
-					toggle_fullscreen(window, &is_fullscreen);
-					break;
+				case CommandType::ToggleFullscreen: {
+					int display_index = SDL_GetWindowDisplayIndex(window);
+					SDL_DisplayMode display_mode;
+					SDL_GetCurrentDisplayMode(display_index, &display_mode);
+					if (is_fullscreen) {
+						// toggle windowed
+						is_fullscreen = false;
+						SDL_SetWindowBordered(window, SDL_TRUE);
+						SDL_SetWindowSize(window, resolution_width, resolution_height);
+						window_width = resolution_width;
+						window_height = resolution_height;
+					}
+					else {
+						// toggle fullscreen
+						is_fullscreen = true;
+						SDL_SetWindowBordered(window, SDL_FALSE);
+						SDL_SetWindowSize(window, display_mode.w, display_mode.h);
+						window_width = display_mode.w;
+						window_height = display_mode.h;
+					}
+				} break;
 			}
 		}
 		commands.clear();
 
 		/* Render to canvas */
-		set_viewport(0, 0, canvas_width, canvas_height);
-		set_pixel_coordinate_projection(&renderer, shader_program, canvas_width, canvas_height);
+		set_viewport(0, 0, resolution_width, resolution_height);
+		set_pixel_coordinate_projection(&renderer, shader_program, resolution_width, resolution_height);
 		engine.render(&renderer, &state);
 		renderer.render_to_canvas(shader_program, canvas);
 
 		/* Render canvas to window */
-		set_viewport_to_fit_canvas(window_width, window_height, canvas_width, canvas_height);
+		set_viewport_to_fit_canvas(window_width, window_height, resolution_width, resolution_height);
 		set_normalized_device_coordinate_projection(&renderer, shader_program);
 		renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
 		renderer.render_to_window(shader_program, window);
