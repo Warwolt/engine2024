@@ -5,8 +5,6 @@ Goal:
   - "Mario maker" style
 
 ## TODO
-- Full screen support (F11)
-  - Remove window resize, keep only fixed resolution + windowed / full screen mode
 - Add ImGui
 - Pick resolution while running
 - Hot reload with ctrl+F5
@@ -16,10 +14,11 @@ Goal:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Fixed resolution (integer scaling to fit window)
-  - https://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
+- Full screen support (F11)
+  - Remove window resize, keep only fixed resolution + windowed / full screen mode
 
 ## Done
+- Fixed resolution (integer scaling to fit window)
 - Resizable window
 - Add alpha blending to renderer
 - Render API commands (draw line, shapes etc. as data that doesn't depend on OpenGL)

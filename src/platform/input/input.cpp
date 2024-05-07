@@ -15,10 +15,10 @@ namespace platform {
 					input->quit_signal_received = true;
 					break;
 				case SDL_KEYDOWN:
-					input->keyboard.register_event(event.key.keysym.scancode, ButtonEvent::Down);
+					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
 					break;
 				case SDL_KEYUP:
-					input->keyboard.register_event(event.key.keysym.scancode, ButtonEvent::Up);
+					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
 					break;
 				case SDL_WINDOWEVENT:
 					if (event.window.event == SDL_WINDOWEVENT_RESIZED) {

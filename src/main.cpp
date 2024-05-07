@@ -133,6 +133,10 @@ int main(int /* argc */, char** /* args */) {
 			break;
 		}
 
+		if (input.keyboard.key_pressed_now(SDLK_F11)) {
+			LOG_DEBUG("F11");
+		}
+
 		/* Render to canvas */
 		set_viewport(0, 0, canvas_width, canvas_height);
 		set_pixel_coordinate_projection(&renderer, shader_program, canvas_width, canvas_height);
