@@ -42,27 +42,6 @@ namespace platform {
 		return quadrant_points;
 	}
 
-	Texture add_texture(const unsigned char* data, int width, int height) {
-		GLuint texture;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
-
-		glBindTexture(GL_TEXTURE_2D, NULL);
-		return Texture { texture };
-	}
-
-	void free_texture(Texture texture) {
-		glDeleteTextures(1, &texture.id);
-	}
-
 	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src) {
 		GLuint shader_program_id = glCreateProgram();
 		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -161,6 +140,69 @@ namespace platform {
 		glDeleteVertexArrays(1, &shader_program.vao);
 		glDeleteBuffers(1, &shader_program.vbo);
 		glDeleteProgram(shader_program.id);
+	}
+
+	Texture add_texture(const unsigned char* data, int width, int height) {
+		GLuint texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
+
+		glBindTexture(GL_TEXTURE_2D, NULL);
+		return Texture { texture };
+	}
+
+	void free_texture(Texture texture) {
+		glDeleteTextures(1, &texture.id);
+	}
+
+	Canvas add_canvas(int width, int height) {
+		GLuint frame_buffer;
+		GLuint texture;
+
+		// create buffer
+		glGenFramebuffers(1, &frame_buffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+
+		// create texture
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		// attach texture to buffer and draw buffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+		GLuint render_buffer;
+		glGenRenderbuffers(1, &render_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
+		glRenderbufferStorage(
+			GL_RENDERBUFFER,
+			GL_DEPTH24_STENCIL8,
+			width,
+			height
+		);
+
+		glBindTexture(GL_TEXTURE_2D, NULL);
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+
+		return Canvas { frame_buffer, texture };
+	}
+
+	void free_canvas(Canvas canvas) {
+		glDeleteFramebuffers(1, &canvas.frame_buffer);
+		glDeleteTextures(1, &canvas.texture);
 	}
 
 	Renderer::Renderer(SDL_GLContext /* gl_context */, int canvas_width, int canvas_height) {

@@ -21,6 +21,11 @@ namespace platform {
 		GLuint id;
 	};
 
+	struct Canvas {
+		GLuint frame_buffer;
+		GLuint texture;
+	};
+
 	struct VertexSection {
 		GLenum mode;
 		GLsizei length;
@@ -44,6 +49,9 @@ namespace platform {
 
 	Texture add_texture(const unsigned char* data, int width, int height);
 	void free_texture(Texture texture);
+
+	Canvas add_canvas(int width, int height);
+	void free_canvas(Canvas canvas);
 
 	class Renderer {
 	public:

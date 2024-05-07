@@ -70,7 +70,6 @@ int main(int /* argc */, char** /* args */) {
 	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
-	// set_canvas_size(&renderer, shader_program, (float)window_width, (float)window_height);
 
 	/* Load engine DLL */
 	EngineLibraryLoader library_loader;
@@ -81,43 +80,6 @@ int main(int /* argc */, char** /* args */) {
 	engine.set_logger(plog::verbose, plog::get());
 	LOG_INFO("Engine library loaded");
 
-	// frame buffer
-	GLuint frame_buffer;
-	GLuint canvas_texture;
-	if (1) {
-		// create buffer
-		glGenFramebuffers(1, &frame_buffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
-
-		// create texture
-		glGenTextures(1, &canvas_texture);
-		glBindTexture(GL_TEXTURE_2D, canvas_texture);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width, window_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		// attach texture to buffer and draw buffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, canvas_texture, 0);
-
-		GLuint render_buffer;
-		glGenRenderbuffers(1, &render_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
-		glRenderbufferStorage(
-			GL_RENDERBUFFER,
-			GL_DEPTH24_STENCIL8,
-			window_width,
-			window_height
-		);
-
-		ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Couldn't setup frame buffer");
-
-		glBindTexture(GL_TEXTURE_2D, NULL);
-		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-	}
-
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Input input = { 0 };
@@ -126,6 +88,7 @@ int main(int /* argc */, char** /* args */) {
 
 	int canvas_width = window_width;
 	int canvas_height = window_height;
+	platform::Canvas canvas = platform::add_canvas(canvas_width, canvas_height);
 
 	while (true) {
 		/* Hot reloading */
@@ -150,7 +113,7 @@ int main(int /* argc */, char** /* args */) {
 		// render to canvas
 		{
 			// bind canvas
-			glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+			glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
 
 			// set pixel coordinate projection
 			glViewport(0, 0, canvas_width, canvas_height);
@@ -201,15 +164,16 @@ int main(int /* argc */, char** /* args */) {
 			glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(Vertex), quad, GL_STATIC_DRAW);
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, canvas_texture);
+			glBindTexture(GL_TEXTURE_2D, canvas.texture);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
 		SDL_GL_SwapWindow(window);
 	}
 
-	platform::free_shader_program(shader_program);
 	engine.deinitialize(&state);
+	platform::free_canvas(canvas);
+	platform::free_shader_program(shader_program);
 	platform::deinitialize(window);
 	return 0;
 }
