@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 
+#include <array>
+
 namespace platform {
 
 	SDL_Rect stretched_and_centered_canvas(glm::ivec2 window_size, glm::ivec2 canvas_size) {
@@ -20,6 +22,8 @@ namespace platform {
 		glm::ivec2 window_size,
 		glm::ivec2 canvas_size
 	) {
+		std::array<ButtonEvent, 3> mouse_button_events = { ButtonEvent::None, ButtonEvent::None, ButtonEvent::None };
+
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			ImGui_ImplSDL2_ProcessEvent(&event);
@@ -36,14 +40,27 @@ namespace platform {
 				case SDL_MOUSEMOTION: {
 					SDL_Rect canvas = stretched_and_centered_canvas(window_size, canvas_size);
 					int scale = canvas.w / canvas_size.x;
-					input->mouse.window_x = event.motion.x;
-					input->mouse.window_y = event.motion.y;
-					input->mouse.canvas_x = (event.motion.x - canvas.x) / scale;
-					input->mouse.canvas_y = (event.motion.y - canvas.y) / scale;
+					input->mouse.x = (event.motion.x - canvas.x) / scale;
+					input->mouse.y = (event.motion.y - canvas.y) / scale;
 					break;
 				}
+				case SDL_MOUSEBUTTONDOWN:
+					if (event.button.button - 1 < 3) {
+						mouse_button_events[event.button.button - 1] = ButtonEvent::Down;
+					}
+					break;
+				case SDL_MOUSEBUTTONUP:
+					if (event.button.button - 1 < 3) {
+						mouse_button_events[event.button.button - 1] = ButtonEvent::Up;
+					}
+					break;
 			}
 		}
+
+		input->mouse.left_button = update_button(input->mouse.left_button, mouse_button_events[SDL_BUTTON_LEFT - 1]);
+		input->mouse.middle_button = update_button(input->mouse.middle_button, mouse_button_events[SDL_BUTTON_MIDDLE - 1]);
+		input->mouse.right_button = update_button(input->mouse.right_button, mouse_button_events[SDL_BUTTON_RIGHT - 1]);
+
 		input->keyboard.update();
 		input->delta_ms = frame_timer->elapsed_ms();
 		frame_timer->reset();

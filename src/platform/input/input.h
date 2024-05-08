@@ -10,10 +10,11 @@
 namespace platform {
 
 	struct Mouse {
-		int window_x;
-		int window_y;
-		int canvas_x;
-		int canvas_y;
+		int x;
+		int y;
+		Button left_button;
+		Button middle_button;
+		Button right_button;
 	};
 
 	struct Input {
