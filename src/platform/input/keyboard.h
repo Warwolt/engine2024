@@ -5,18 +5,25 @@
 
 namespace platform {
 
-	struct Button {
-		bool pressed;
-		bool changed;
-	};
-
 	enum class ButtonEvent {
 		None,
 		Down,
 		Up,
 	};
 
-	Button update_button(Button button, ButtonEvent event);
+	class Button {
+	public:
+		void update(ButtonEvent event);
+
+		bool is_pressed() const;
+		bool pressed_now() const;
+		bool is_released() const;
+		bool released_now() const;
+
+	private:
+		bool m_pressed = false;
+		bool m_changed = false;
+	};
 
 	class Keyboard {
 	public:
@@ -29,8 +36,7 @@ namespace platform {
 		bool key_released_now(int keycode) const;
 
 	private:
-		std::optional<ButtonEvent> _get_event(int keycode) const;
-		std::optional<Button> _get_key(int keycode) const;
+		Button _key(int keycode) const;
 
 		std::unordered_map<int, ButtonEvent> m_events;
 		std::unordered_map<int, Button> m_keys;
