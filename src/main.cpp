@@ -107,6 +107,40 @@ void toggle_fullscreen(FullscreenState* state, SDL_Window* window, glm::ivec2* r
 	}
 }
 
+void init_imgui(SDL_Window* window, SDL_GLContext gl_context) {
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+	ImGui_ImplOpenGL3_Init("#version 450");
+}
+
+void clear_screen() {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void swap_buffer(SDL_Window* window) {
+	SDL_GL_SwapWindow(window);
+}
+
+void deinit_imgui() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
+}
+
+void start_imgui_frame() {
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
+	ImGui::NewFrame();
+}
+
 int main(int /* argc */, char** /* args */) {
 	glm::ivec2 resolution = { 800, 600 };
 
@@ -126,20 +160,7 @@ int main(int /* argc */, char** /* args */) {
 	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window), [](CreateGLContextError error) {
 		ABORT("platform::create_gl_context() returned %s", util::enum_to_string(error));
 	});
-
-	// setup imgui
-	{
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
-
-		ImGui::StyleColorsDark();
-
-		ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-		ImGui_ImplOpenGL3_Init("#version 450");
-	}
+	init_imgui(window, gl_context);
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
@@ -187,10 +208,7 @@ int main(int /* argc */, char** /* args */) {
 		platform::read_input(&input, &frame_timer);
 
 		/* Update */
-		// start imgui frame
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplSDL2_NewFrame();
-		ImGui::NewFrame();
+		start_imgui_frame();
 
 		if (input.keyboard.key_pressed_now(SDLK_F3)) {
 			show_imgui = !show_imgui;
@@ -215,30 +233,27 @@ int main(int /* argc */, char** /* args */) {
 		}
 		commands.clear();
 
-		/* Clear screen */
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		/* Render to canvas */
-		set_viewport(0, 0, resolution.x, resolution.y);
-		set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
-		engine.render(&renderer, &state);
-		renderer.render_to_canvas(shader_program, canvas);
-
-		/* Render canvas to window */
-		set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
-		set_normalized_device_coordinate_projection(&renderer, shader_program);
-		renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
-		renderer.render(shader_program);
+		/* Render */
+		clear_screen();
+		{
+			// Render to canvas
+			set_viewport(0, 0, resolution.x, resolution.y);
+			set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
+			engine.render(&renderer, &state);
+			renderer.render_to_canvas(shader_program, canvas);
+		}
+		{
+			// Render canvas to window
+			set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
+			set_normalized_device_coordinate_projection(&renderer, shader_program);
+			renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
+			renderer.render(shader_program);
+		}
 		renderer.render_imgui();
-
-		SDL_GL_SwapWindow(window);
+		swap_buffer(window);
 	}
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplSDL2_Shutdown();
-	ImGui::DestroyContext();
-
+	deinit_imgui();
 	engine.deinitialize(&state);
 	platform::free_shader_program(shader_program);
 	platform::deinitialize(window, gl_context);
