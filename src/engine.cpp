@@ -44,18 +44,6 @@ namespace engine {
 			commands->quit();
 		}
 
-		if (input->mouse.left_button.pressed_now()) {
-			LOG_DEBUG("Left mouse pressed");
-		}
-
-		if (input->mouse.middle_button.pressed_now()) {
-			LOG_DEBUG("Middle mouse pressed");
-		}
-
-		if (input->mouse.right_button.pressed_now()) {
-			LOG_DEBUG("Right mouse pressed");
-		}
-
 		if (input->keyboard.key_pressed_now(SDLK_F11)) {
 			commands->toggle_fullscreen();
 		}

@@ -22,7 +22,7 @@ namespace platform {
 		glm::ivec2 window_size,
 		glm::ivec2 canvas_size
 	) {
-		std::array<ButtonEvent, 3> mouse_button_events = { ButtonEvent::None, ButtonEvent::None, ButtonEvent::None };
+		std::array<ButtonEvent, 5> mouse_button_events = { ButtonEvent::None };
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
@@ -45,12 +45,12 @@ namespace platform {
 					break;
 				}
 				case SDL_MOUSEBUTTONDOWN:
-					if (event.button.button - 1 < 3) {
+					if (event.button.button - 1 < 5) {
 						mouse_button_events[event.button.button - 1] = ButtonEvent::Down;
 					}
 					break;
 				case SDL_MOUSEBUTTONUP:
-					if (event.button.button - 1 < 3) {
+					if (event.button.button - 1 < 5) {
 						mouse_button_events[event.button.button - 1] = ButtonEvent::Up;
 					}
 					break;
@@ -60,8 +60,11 @@ namespace platform {
 		input->mouse.left_button = update_button(input->mouse.left_button, mouse_button_events[SDL_BUTTON_LEFT - 1]);
 		input->mouse.middle_button = update_button(input->mouse.middle_button, mouse_button_events[SDL_BUTTON_MIDDLE - 1]);
 		input->mouse.right_button = update_button(input->mouse.right_button, mouse_button_events[SDL_BUTTON_RIGHT - 1]);
+		input->mouse.x1_button = update_button(input->mouse.x1_button, mouse_button_events[SDL_BUTTON_X1 - 1]);
+		input->mouse.x2_button = update_button(input->mouse.x2_button, mouse_button_events[SDL_BUTTON_X2 - 1]);
 
 		input->keyboard.update();
+
 		input->delta_ms = frame_timer->elapsed_ms();
 		frame_timer->reset();
 	}
