@@ -23,9 +23,11 @@ set(INC
     ${GLEW_DIR}/include
     ${SDL_DIR}/include
     ${IMGUI_DIR}
+    ${IMGUI_DIR}/imgui
 )
 
 set(IMGUI_SRC
+    ${IMGUI_DIR}/imgui/backends/imgui_impl_opengl3.cpp
     ${IMGUI_DIR}/imgui/backends/imgui_impl_sdl2.cpp
     ${IMGUI_DIR}/imgui/backends/imgui_impl_sdlrenderer2.cpp
     ${IMGUI_DIR}/imgui/imgui_demo.cpp
@@ -61,6 +63,7 @@ set(EXTERNAL_LIBS
     opengl32
     glu32
     stb_image
+    imgui
     ${GLEW_DIR}/lib/glew32.lib
     ${SDL_DIR}/lib/SDL2main.lib
     ${SDL_DIR}/lib/SDL2.lib
@@ -80,7 +83,7 @@ set(DLLS
 # Imgui
 add_library(imgui STATIC ${IMGUI_SRC})
 target_include_directories(imgui PUBLIC ${IMGUI_DIR}/imgui ${SDL_DIR}/include/SDL2)
-target_link_libraries(imgui PUBLIC SDL2)
+target_link_libraries(imgui PUBLIC ${SDL_DIR}/lib/SDL2.lib)
 
 # Platform
 add_library(${PLATFORM_LIB} STATIC ${PLATFORM_SRC})

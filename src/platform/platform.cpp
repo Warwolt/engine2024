@@ -50,7 +50,8 @@ namespace platform {
 		return true;
 	}
 
-	void deinitialize(SDL_Window* window) {
+	void deinitialize(SDL_Window* window, SDL_GLContext gl_context) {
+		SDL_GL_DeleteContext(gl_context);
 		SDL_DestroyWindow(window);
 		SDL_Quit();
 	}
@@ -78,6 +79,7 @@ namespace platform {
 			LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
 			return std::unexpected(CreateGLContextError::FailedToCreateContext);
 		}
+		SDL_GL_MakeCurrent(window, gl_context);
 
 		/* Initialize GLEW */
 		const GLenum glewError = glewInit();
