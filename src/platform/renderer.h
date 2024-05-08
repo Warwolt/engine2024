@@ -67,7 +67,6 @@ namespace platform {
 		glm::vec2 canvas_size() const;
 
 		void render_to_canvas(ShaderProgram shader_program, Canvas canvas);
-		void render_imgui();
 		void render(ShaderProgram shader_program);
 
 		void draw_point(glm::vec2 point, glm::vec4 color);

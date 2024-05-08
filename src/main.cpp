@@ -125,6 +125,13 @@ void clear_screen() {
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void render_imgui() {
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::Render();
+	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 void swap_buffer(SDL_Window* window) {
 	SDL_GL_SwapWindow(window);
 }
@@ -201,6 +208,8 @@ int main(int /* argc */, char** /* args */) {
 
 	engine.initialize(&state);
 	while (!quit) {
+		start_imgui_frame();
+
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
 
@@ -208,40 +217,41 @@ int main(int /* argc */, char** /* args */) {
 		platform::read_input(&input, &frame_timer);
 
 		/* Update */
-		start_imgui_frame();
-
-		// update engine
-		engine.update(&state, &input, &commands);
-		for (const Command& command : commands.commands()) {
-			switch (command) {
-				case Command::Quit:
-					quit = true;
-					break;
-				case Command::ToggleFullscreen:
-					toggle_fullscreen(&fullscreen_state, window, &resolution, &window_size);
-					break;
+		{
+			engine.update(&state, &input, &commands);
+			for (const Command& command : commands.commands()) {
+				switch (command) {
+					case Command::Quit:
+						quit = true;
+						break;
+					case Command::ToggleFullscreen:
+						toggle_fullscreen(&fullscreen_state, window, &resolution, &window_size);
+						break;
+				}
 			}
+			commands.clear();
 		}
-		commands.clear();
 
 		/* Render */
-		clear_screen();
 		{
-			// Render to canvas
-			set_viewport(0, 0, resolution.x, resolution.y);
-			set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
-			engine.render(&renderer, &state);
-			renderer.render_to_canvas(shader_program, canvas);
+			clear_screen();
+			{
+				// Render to canvas
+				set_viewport(0, 0, resolution.x, resolution.y);
+				set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
+				engine.render(&renderer, &state);
+				renderer.render_to_canvas(shader_program, canvas);
+			}
+			{
+				// Render canvas to window
+				set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
+				set_normalized_device_coordinate_projection(&renderer, shader_program);
+				renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
+				renderer.render(shader_program);
+			}
+			render_imgui();
+			swap_buffer(window);
 		}
-		{
-			// Render canvas to window
-			set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
-			set_normalized_device_coordinate_projection(&renderer, shader_program);
-			renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
-			renderer.render(shader_program);
-		}
-		renderer.render_imgui();
-		swap_buffer(window);
 	}
 
 	deinit_imgui();

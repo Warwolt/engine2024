@@ -232,13 +232,6 @@ namespace platform {
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
-	void Renderer::render_imgui() {
-		ImGuiIO& io = ImGui::GetIO();
-		ImGui::Render();
-		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	}
-
 	void Renderer::render(ShaderProgram shader_program) {
 		glUseProgram(shader_program.id);
 		glBindVertexArray(shader_program.vao);
