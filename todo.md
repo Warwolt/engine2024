@@ -7,6 +7,7 @@ Goal:
 ## TODO
 - Pick resolution while running
 - Hot reload with ctrl+F5
+- Resolution aware mouse input
 - Render fonts
 - Render level editor canvas (Aseprite style grey checker board)
 - Add TypeScript for game scripting
