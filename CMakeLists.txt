@@ -13,6 +13,7 @@ set(ENGINE_LIB ${CMAKE_PROJECT_NAME}Engine)
 set(PLATFORM_LIB ${CMAKE_PROJECT_NAME}Platform)
 set(SDL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2)
 set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/glew)
+set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui)
 
 set(INC
     src
@@ -21,6 +22,18 @@ set(INC
     libs/magic_enum/include
     ${GLEW_DIR}/include
     ${SDL_DIR}/include
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/imgui
+)
+
+set(IMGUI_SRC
+    ${IMGUI_DIR}/imgui/backends/imgui_impl_opengl3.cpp
+    ${IMGUI_DIR}/imgui/backends/imgui_impl_sdl2.cpp
+    ${IMGUI_DIR}/imgui/imgui.cpp
+    ${IMGUI_DIR}/imgui/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui/imgui_widgets.cpp
 )
 
 set(ENGINE_SRC
@@ -49,6 +62,7 @@ set(EXTERNAL_LIBS
     opengl32
     glu32
     stb_image
+    imgui
     ${GLEW_DIR}/lib/glew32.lib
     ${SDL_DIR}/lib/SDL2main.lib
     ${SDL_DIR}/lib/SDL2.lib
@@ -64,6 +78,11 @@ set(DLLS
     ${SDL_DIR}/lib/SDL2_mixer.dll
     ${SDL_DIR}/lib/SDL2_ttf.dll
 )
+
+# Imgui
+add_library(imgui STATIC ${IMGUI_SRC})
+target_include_directories(imgui PUBLIC ${IMGUI_DIR}/imgui ${SDL_DIR}/include/SDL2)
+target_link_libraries(imgui PUBLIC ${SDL_DIR}/lib/SDL2.lib)
 
 # Platform
 add_library(${PLATFORM_LIB} STATIC ${PLATFORM_SRC})

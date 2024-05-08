@@ -19,12 +19,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp> // glm::ortho
 
+#include <imgui/backends/imgui_impl_opengl3.h>
+#include <imgui/backends/imgui_impl_sdl2.h>
+#include <imgui/imgui.h>
+
 #include <expected>
 #include <optional>
 
 using Canvas = platform::Canvas;
 using CommandAPI = platform::CommandAPI;
-using CommandType = platform::CommandType;
+using Command = platform::Command;
 using CreateGLContextError = platform::CreateGLContextError;
 using EngineLibrary = platform::EngineLibrary;
 using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
@@ -103,6 +107,47 @@ void toggle_fullscreen(FullscreenState* state, SDL_Window* window, glm::ivec2* r
 	}
 }
 
+void init_imgui(SDL_Window* window, SDL_GLContext gl_context) {
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+	ImGui_ImplOpenGL3_Init("#version 450");
+}
+
+void clear_screen() {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void render_imgui() {
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::Render();
+	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void swap_buffer(SDL_Window* window) {
+	SDL_GL_SwapWindow(window);
+}
+
+void deinit_imgui() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
+}
+
+void start_imgui_frame() {
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
+	ImGui::NewFrame();
+}
+
 int main(int /* argc */, char** /* args */) {
 	glm::ivec2 resolution = { 800, 600 };
 
@@ -122,6 +167,7 @@ int main(int /* argc */, char** /* args */) {
 	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window), [](CreateGLContextError error) {
 		ABORT("platform::create_gl_context() returned %s", util::enum_to_string(error));
 	});
+	init_imgui(window, gl_context);
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
@@ -146,6 +192,7 @@ int main(int /* argc */, char** /* args */) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
 	engine.set_logger(plog::verbose, plog::get());
+	engine.set_imgui_context(ImGui::GetCurrentContext());
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
@@ -161,43 +208,55 @@ int main(int /* argc */, char** /* args */) {
 
 	engine.initialize(&state);
 	while (!quit) {
+		start_imgui_frame();
+
 		/* Hot reloading */
 		hot_reloader.check_hot_reloading(&engine);
 
 		/* Input */
-		platform::read_input(&input);
-		input.delta_ms = frame_timer.elapsed_ms();
-		frame_timer.reset();
+		platform::read_input(&input, &frame_timer);
 
 		/* Update */
-		engine.update(&state, &input, &commands);
-		for (const CommandType& command : commands.commands()) {
-			switch (command) {
-				case CommandType::Quit:
-					quit = true;
-					break;
-				case CommandType::ToggleFullscreen:
-					toggle_fullscreen(&fullscreen_state, window, &resolution, &window_size);
-					break;
+		{
+			engine.update(&state, &input, &commands);
+			for (const Command& command : commands.commands()) {
+				switch (command) {
+					case Command::Quit:
+						quit = true;
+						break;
+					case Command::ToggleFullscreen:
+						toggle_fullscreen(&fullscreen_state, window, &resolution, &window_size);
+						break;
+				}
 			}
+			commands.clear();
 		}
-		commands.clear();
 
-		/* Render to canvas */
-		set_viewport(0, 0, resolution.x, resolution.y);
-		set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
-		engine.render(&renderer, &state);
-		renderer.render_to_canvas(shader_program, canvas);
-
-		/* Render canvas to window */
-		set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
-		set_normalized_device_coordinate_projection(&renderer, shader_program);
-		renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
-		renderer.render_to_window(shader_program, window);
+		/* Render */
+		{
+			clear_screen();
+			{
+				// Render to canvas
+				set_viewport(0, 0, resolution.x, resolution.y);
+				set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
+				engine.render(&renderer, &state);
+				renderer.render_to_canvas(shader_program, canvas);
+			}
+			{
+				// Render canvas to window
+				set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
+				set_normalized_device_coordinate_projection(&renderer, shader_program);
+				renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
+				renderer.render(shader_program);
+			}
+			render_imgui();
+			swap_buffer(window);
+		}
 	}
 
+	deinit_imgui();
 	engine.deinitialize(&state);
 	platform::free_shader_program(shader_program);
-	platform::deinitialize(window);
+	platform::deinitialize(window, gl_context);
 	return 0;
 }

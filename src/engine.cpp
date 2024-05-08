@@ -1,5 +1,6 @@
 #include <engine.h>
 
+#include <imgui/imgui.h>
 #include <platform/assert.h>
 #include <platform/logging.h>
 #include <plog/Init.h>
@@ -9,6 +10,10 @@ namespace engine {
 
 	void set_logger(plog::Severity severity, plog::IAppender* appender) {
 		plog::init(severity, appender);
+	}
+
+	void set_imgui_context(ImGuiContext* imgui_context) {
+		ImGui::SetCurrentContext(imgui_context);
 	}
 
 	void initialize(State* state) {
@@ -31,12 +36,21 @@ namespace engine {
 			LOG_INFO("%zu", state->tick);
 		}
 
+		if (input->keyboard.key_pressed_now(SDLK_F3)) {
+			state->show_imgui = !state->show_imgui;
+		}
+
 		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
 			commands->quit();
 		}
 
 		if (input->keyboard.key_pressed_now(SDLK_F11)) {
 			commands->toggle_fullscreen();
+		}
+
+		if (state->show_imgui) {
+			bool show_demo_window = true;
+			ImGui::ShowDemoWindow(&show_demo_window);
 		}
 	}
 

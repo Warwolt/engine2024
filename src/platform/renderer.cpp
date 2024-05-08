@@ -2,6 +2,7 @@
 
 #include <platform/renderer.h>
 
+#include <imgui/backends/imgui_impl_opengl3.h>
 #include <platform/logging.h>
 #include <stb_image/stb_image.h>
 
@@ -227,23 +228,14 @@ namespace platform {
 
 	void Renderer::render_to_canvas(ShaderProgram shader_program, Canvas canvas) {
 		glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
-		_render(shader_program);
+		render(shader_program);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
-	void Renderer::render_to_window(ShaderProgram shader_program, SDL_Window* window) {
-		_render(shader_program);
-		SDL_GL_SwapWindow(window);
-	}
-
-	void Renderer::_render(ShaderProgram shader_program) {
+	void Renderer::render(ShaderProgram shader_program) {
 		glUseProgram(shader_program.id);
 		glBindVertexArray(shader_program.vao);
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
-
-		/* Clear screen */
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
 
 		/* Upload vertices */
 		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);

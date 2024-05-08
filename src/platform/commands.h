@@ -4,21 +4,21 @@
 
 namespace platform {
 
-	enum class CommandType {
+	enum class Command {
 		Quit,
 		ToggleFullscreen,
 	};
 
 	class CommandAPI {
 	public:
-		const std::vector<CommandType>& commands() const;
+		const std::vector<Command>& commands() const;
 		void clear();
 
 		void quit();
 		void toggle_fullscreen();
 
 	private:
-		std::vector<CommandType> m_commands;
+		std::vector<Command> m_commands;
 	};
 
 } // namespace platform

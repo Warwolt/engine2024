@@ -66,8 +66,8 @@ namespace platform {
 		void set_canvas_size(float width, float height);
 		glm::vec2 canvas_size() const;
 
-		void render_to_window(ShaderProgram shader_program, SDL_Window* window);
 		void render_to_canvas(ShaderProgram shader_program, Canvas canvas);
+		void render(ShaderProgram shader_program);
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
 		void draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color);
@@ -78,8 +78,6 @@ namespace platform {
 		void draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture);
 
 	private:
-		void _render(ShaderProgram shader_program);
-
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;

@@ -2,12 +2,14 @@
 #include <platform/logging.h>
 
 #include <SDL2/SDL.h>
+#include <imgui/backends/imgui_impl_sdl2.h>
 
 namespace platform {
 
-	void read_input(Input* input) {
+	void read_input(Input* input, Timer* frame_timer) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
+			ImGui_ImplSDL2_ProcessEvent(&event);
 			switch (event.type) {
 				case SDL_QUIT:
 					input->quit_signal_received = true;
@@ -21,6 +23,8 @@ namespace platform {
 			}
 		}
 		input->keyboard.update();
+		input->delta_ms = frame_timer->elapsed_ms();
+		frame_timer->reset();
 	}
 
 } // namespace platform

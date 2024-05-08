@@ -20,6 +20,7 @@ namespace platform {
 
 	struct EngineLibrary {
 		void (*set_logger)(plog::Severity, plog::IAppender*);
+		void (*set_imgui_context)(ImGuiContext* imgui_context);
 		void (*initialize)(engine::State*);
 		void (*deinitialize)(engine::State*);
 		void (*update)(engine::State*, const platform::Input*, platform::CommandAPI*);

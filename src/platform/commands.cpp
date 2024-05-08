@@ -2,7 +2,7 @@
 
 namespace platform {
 
-	const std::vector<CommandType>& CommandAPI::commands() const {
+	const std::vector<Command>& CommandAPI::commands() const {
 		return m_commands;
 	}
 
@@ -11,11 +11,11 @@ namespace platform {
 	}
 
 	void CommandAPI::quit() {
-		m_commands.push_back(CommandType::Quit);
+		m_commands.push_back(Command::Quit);
 	}
 
 	void CommandAPI::toggle_fullscreen() {
-		m_commands.push_back(CommandType::ToggleFullscreen);
+		m_commands.push_back(Command::ToggleFullscreen);
 	}
 
 } // namespace platform

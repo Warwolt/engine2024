@@ -1,23 +1,26 @@
 Goal:
+- Tetris
+  - Implement simple game
+  - Establish platform + engine + game relation
 - Simple level editor
   - Tilemap based environment
   - Place out game objects in environment
   - "Mario maker" style
 
 ## TODO
-- Add ImGui
 - Pick resolution while running
 - Hot reload with ctrl+F5
+- Resolution aware mouse input
 - Render fonts
 - Render level editor canvas (Aseprite style grey checker board)
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
-- Full screen support (F11)
-  - Remove window resize, keep only fixed resolution + windowed / full screen mode
 
 ## Done
+- Add ImGui
+- Full screen support (F11)
 - Fixed resolution (integer scaling to fit window)
 - Resizable window
 - Add alpha blending to renderer

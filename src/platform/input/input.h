@@ -1,6 +1,7 @@
 #pragma once
 
 #include <platform/input/keyboard.h>
+#include <platform/input/timing.h>
 
 #include <glm/glm.hpp>
 
@@ -14,6 +15,6 @@ namespace platform {
 		Keyboard keyboard;
 	};
 
-	void read_input(Input* input);
+	void read_input(Input* input, Timer* frame_timer);
 
 } // namespace platform

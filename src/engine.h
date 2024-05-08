@@ -7,15 +7,19 @@
 
 #include <stdint.h>
 
+#include <imgui/imgui.h>
+
 namespace engine {
 
 	struct State {
+		bool show_imgui = false;
 		uint64_t tick = 0;
 		uint64_t millis = 0;
 		platform::Texture texture;
 	};
 
 	extern "C" __declspec(dllexport) void set_logger(plog::Severity severity, plog::IAppender* appender);
+	extern "C" __declspec(dllexport) void set_imgui_context(ImGuiContext* imgui_context);
 	extern "C" __declspec(dllexport) void initialize(State* state);
 	extern "C" __declspec(dllexport) void deinitialize(State* state);
 	extern "C" __declspec(dllexport) void update(State* state, const platform::Input* input, platform::CommandAPI* commands);
