@@ -16,9 +16,9 @@ Goal:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Resolution aware mouse input
 
 ## Done
+- Resolution aware mouse input
 - Add ImGui
 - Full screen support (F11)
 - Fixed resolution (integer scaling to fit window)
