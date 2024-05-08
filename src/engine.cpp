@@ -29,13 +29,6 @@ namespace engine {
 	}
 
 	void update(State* state, const platform::Input* input, platform::CommandAPI* commands) {
-		state->millis += input->delta_ms;
-		if (state->millis >= 1000) {
-			state->millis -= 1000;
-			state->tick += 1;
-			LOG_INFO("%zu", state->tick);
-		}
-
 		if (state->circle_pos == glm::ivec2 { -1, -1 }) {
 			state->circle_pos = input->window_resolution / 2;
 		}

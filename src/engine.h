@@ -13,10 +13,7 @@ namespace engine {
 
 	struct State {
 		bool show_imgui = false;
-		uint64_t tick = 0;
-		uint64_t millis = 0;
 		platform::Texture texture;
-
 		glm::ivec2 circle_pos = { -1, -1 };
 		int circle_radius = 127;
 	};

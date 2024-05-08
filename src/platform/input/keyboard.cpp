@@ -13,17 +13,20 @@ namespace util {
 namespace platform {
 
 	void Button::update(ButtonEvent event) {
-		if (event == ButtonEvent::Down) {
-			m_pressed = true;
-			m_changed = !m_pressed;
-		}
-		if (event == ButtonEvent::Up) {
-			m_pressed = false;
-			m_changed = m_pressed;
-		}
-		else {
-			m_pressed = m_pressed;
-			m_changed = false;
+		const bool was_pressed = m_pressed;
+		switch (event) {
+			case ButtonEvent::Down:
+				m_changed = !was_pressed;
+				m_pressed = true;
+				break;
+
+			case ButtonEvent::Up:
+				m_changed = was_pressed;
+				m_pressed = false;
+				break;
+
+			case ButtonEvent::None:
+				m_changed = false;
 		}
 	}
 
@@ -69,11 +72,11 @@ namespace platform {
 	}
 
 	bool Keyboard::key_released(int keycode) const {
-		return !_key(keycode).is_pressed();
+		return _key(keycode).is_released();
 	}
 
 	bool Keyboard::key_released_now(int keycode) const {
-		return !_key(keycode).pressed_now();
+		return _key(keycode).released_now();
 	}
 
 	Button Keyboard::_key(int keycode) const {
