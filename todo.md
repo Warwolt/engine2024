@@ -8,15 +8,15 @@ Goal:
   - "Mario maker" style
 
 ## TODO
+- Render fonts
 - Pick resolution while running
 - Hot reload with ctrl+F5
-- Resolution aware mouse input
-- Render fonts
 - Render level editor canvas (Aseprite style grey checker board)
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
+- Resolution aware mouse input
 
 ## Done
 - Add ImGui

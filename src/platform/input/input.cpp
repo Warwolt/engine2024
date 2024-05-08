@@ -6,7 +6,20 @@
 
 namespace platform {
 
-	void read_input(Input* input, Timer* frame_timer) {
+	SDL_Rect stretched_and_centered_canvas(glm::ivec2 window_size, glm::ivec2 canvas_size) {
+		int scale = (int)std::max(std::round(window_size.x / canvas_size.x), std::round(window_size.y / canvas_size.y));
+		glm::ivec2 scaled_canvas_size = { scale * canvas_size.x, scale * canvas_size.y };
+		glm::ivec2 top_left = (window_size - scaled_canvas_size) / 2;
+
+		return SDL_Rect { .x = top_left.x, .y = top_left.y, .w = scaled_canvas_size.x, .h = scaled_canvas_size.y };
+	}
+
+	void read_input(
+		Input* input,
+		Timer* frame_timer,
+		glm::ivec2 window_size,
+		glm::ivec2 canvas_size
+	) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			ImGui_ImplSDL2_ProcessEvent(&event);
@@ -20,6 +33,15 @@ namespace platform {
 				case SDL_KEYUP:
 					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
 					break;
+				case SDL_MOUSEMOTION: {
+					SDL_Rect canvas = stretched_and_centered_canvas(window_size, canvas_size);
+					int scale = canvas.w / canvas_size.x;
+					input->mouse.window_x = event.motion.x;
+					input->mouse.window_y = event.motion.y;
+					input->mouse.canvas_x = (event.motion.x - canvas.x) / scale;
+					input->mouse.canvas_y = (event.motion.y - canvas.y) / scale;
+					break;
+				}
 			}
 		}
 		input->keyboard.update();
