@@ -1,4 +1,7 @@
 Goal:
+- Tetris
+  - Implement simple game
+  - Establish platform + engine + game relation
 - Simple level editor
   - Tilemap based environment
   - Place out game objects in environment
@@ -14,9 +17,9 @@ Goal:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Add ImGui
 
 ## Done
+- Add ImGui
 - Full screen support (F11)
 - Fixed resolution (integer scaling to fit window)
 - Resizable window
