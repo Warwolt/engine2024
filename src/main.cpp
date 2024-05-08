@@ -176,7 +176,7 @@ int main(int /* argc */, char** /* args */) {
 	glm::ivec2 window_size = { resolution.x, resolution.y };
 	Canvas canvas = platform::add_canvas(resolution.x, resolution.y);
 	FullscreenState fullscreen_state;
-	bool show_demo_window = true;
+	bool show_imgui = true;
 
 	engine.initialize(&state);
 	while (!quit) {
@@ -192,7 +192,12 @@ int main(int /* argc */, char** /* args */) {
 		ImGui_ImplSDL2_NewFrame();
 		ImGui::NewFrame();
 
-		if (show_demo_window) {
+		if (input.keyboard.key_pressed_now(SDLK_F3)) {
+			show_imgui = !show_imgui;
+		}
+
+		if (show_imgui) {
+			bool show_demo_window = true;
 			ImGui::ShowDemoWindow(&show_demo_window);
 		}
 
@@ -225,12 +230,7 @@ int main(int /* argc */, char** /* args */) {
 		set_normalized_device_coordinate_projection(&renderer, shader_program);
 		renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
 		renderer.render(shader_program);
-
-		/* Render Dear Imgui */
-		ImGuiIO& io = ImGui::GetIO();
-		ImGui::Render();
-		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		renderer.render_imgui();
 
 		SDL_GL_SwapWindow(window);
 	}

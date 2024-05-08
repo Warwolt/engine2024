@@ -2,6 +2,7 @@
 
 #include <platform/renderer.h>
 
+#include <imgui/backends/imgui_impl_opengl3.h>
 #include <platform/logging.h>
 #include <stb_image/stb_image.h>
 
@@ -231,9 +232,11 @@ namespace platform {
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
-	void Renderer::render_to_window(ShaderProgram shader_program, SDL_Window* window) {
-		render(shader_program);
-		SDL_GL_SwapWindow(window);
+	void Renderer::render_imgui() {
+		ImGuiIO& io = ImGui::GetIO();
+		ImGui::Render();
+		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
 	void Renderer::render(ShaderProgram shader_program) {
