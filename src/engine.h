@@ -16,6 +16,9 @@ namespace engine {
 		uint64_t tick = 0;
 		uint64_t millis = 0;
 		platform::Texture texture;
+
+		glm::ivec2 circle_pos = { -1, -1 };
+		int circle_radius = 127;
 	};
 
 	extern "C" __declspec(dllexport) void set_logger(plog::Severity severity, plog::IAppender* appender);

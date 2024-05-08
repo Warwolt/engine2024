@@ -10,8 +10,8 @@
 namespace platform {
 
 	struct Mouse {
-		int x = 0;
-		int y = 0;
+		glm::ivec2 pos;
+		int scroll_delta = 0;
 		Button left_button;
 		Button middle_button;
 		Button right_button;
@@ -20,10 +20,11 @@ namespace platform {
 	};
 
 	struct Input {
+		glm::ivec2 window_resolution;
 		uint64_t delta_ms = 0;
 		bool quit_signal_received = false;
 		Keyboard keyboard;
-		Mouse;
+		Mouse mouse;
 	};
 
 	void read_input(Input* input, Timer* frame_timer, glm::ivec2 window_size, glm::ivec2 canvas_size);

@@ -23,6 +23,7 @@ namespace platform {
 		glm::ivec2 canvas_size
 	) {
 		std::array<ButtonEvent, 5> mouse_button_events = { ButtonEvent::None };
+		input->mouse.scroll_delta = 0;
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
@@ -40,8 +41,10 @@ namespace platform {
 				case SDL_MOUSEMOTION: {
 					SDL_Rect canvas = stretched_and_centered_canvas(window_size, canvas_size);
 					int scale = canvas.w / canvas_size.x;
-					input->mouse.x = (event.motion.x - canvas.x) / scale;
-					input->mouse.y = (event.motion.y - canvas.y) / scale;
+					input->mouse.pos = glm::ivec2 {
+						(event.motion.x - canvas.x) / scale,
+						(event.motion.y - canvas.y) / scale
+					};
 					break;
 				}
 				case SDL_MOUSEBUTTONDOWN:
@@ -54,8 +57,13 @@ namespace platform {
 						mouse_button_events[event.button.button - 1] = ButtonEvent::Up;
 					}
 					break;
+				case SDL_MOUSEWHEEL:
+					input->mouse.scroll_delta += event.wheel.y;
+					break;
 			}
 		}
+
+		input->window_resolution = canvas_size;
 
 		input->mouse.left_button = update_button(input->mouse.left_button, mouse_button_events[SDL_BUTTON_LEFT - 1]);
 		input->mouse.middle_button = update_button(input->mouse.middle_button, mouse_button_events[SDL_BUTTON_MIDDLE - 1]);
