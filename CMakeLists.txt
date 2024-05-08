@@ -26,13 +26,13 @@ set(INC
 )
 
 set(IMGUI_SRC
-    ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
-    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer2.cpp
-    ${IMGUI_DIR}/imgui_demo.cpp
-    ${IMGUI_DIR}/imgui_draw.cpp
-    ${IMGUI_DIR}/imgui_tables.cpp
-    ${IMGUI_DIR}/imgui_widgets.cpp
-    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui/backends/imgui_impl_sdl2.cpp
+    ${IMGUI_DIR}/imgui/backends/imgui_impl_sdlrenderer2.cpp
+    ${IMGUI_DIR}/imgui/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui/imgui_widgets.cpp
+    ${IMGUI_DIR}/imgui/imgui.cpp
 )
 
 set(ENGINE_SRC
@@ -79,7 +79,7 @@ set(DLLS
 
 # Imgui
 add_library(imgui STATIC ${IMGUI_SRC})
-target_include_directories(imgui PUBLIC ${IMGUI_DIR} ${SDL_DIR}/include/SDL2)
+target_include_directories(imgui PUBLIC ${IMGUI_DIR}/imgui ${SDL_DIR}/include/SDL2)
 target_link_libraries(imgui PUBLIC SDL2)
 
 # Platform

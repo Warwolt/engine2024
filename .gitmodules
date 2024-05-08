@@ -7,6 +7,6 @@
 [submodule "libs/google-test"]
 	path = libs/google-test
 	url = https://github.com/google/googletest.git
-[submodule "libs/imgui"]
-	path = libs/imgui
+[submodule "libs/imgui/imgui"]
+	path = libs/imgui/imgui
 	url = https://github.com/ocornut/imgui.git
