@@ -12,41 +12,35 @@ namespace util {
 
 namespace platform {
 
-	Button update_button(Button button, ButtonEvent event) {
+	void Button::update(ButtonEvent event) {
 		if (event == ButtonEvent::Down) {
-			return Button {
-				.pressed = true,
-				.changed = !button.pressed
-			};
+			m_pressed = true;
+			m_changed = !m_pressed;
 		}
 		if (event == ButtonEvent::Up) {
-			return Button {
-				.pressed = false,
-				.changed = button.pressed
-			};
+			m_pressed = false;
+			m_changed = m_pressed;
 		}
 		else {
-			return Button {
-				.pressed = button.pressed,
-				.changed = false,
-			};
+			m_pressed = m_pressed;
+			m_changed = false;
 		}
 	}
 
 	bool Button::is_pressed() const {
-		return this->pressed;
+		return m_pressed;
 	}
 
 	bool Button::pressed_now() const {
-		return this->pressed && this->changed;
+		return m_pressed && m_changed;
 	}
 
 	bool Button::is_released() const {
-		return !this->pressed;
+		return !m_pressed;
 	}
 
 	bool Button::released_now() const {
-		return !this->pressed && this->changed;
+		return !m_pressed && m_changed;
 	}
 
 	void Keyboard::register_event(int keycode, ButtonEvent event) {
@@ -56,13 +50,13 @@ namespace platform {
 	void Keyboard::update() {
 		/* Add new keys */
 		for (auto& [keycode, _] : m_events) {
-			m_keys.insert({ keycode, Button { 0 } });
+			m_keys.insert({ keycode, Button() });
 		}
 
 		/* Process events */
-		for (auto& [keycode, state] : m_keys) {
+		for (auto& [keycode, button] : m_keys) {
 			ButtonEvent event = util::map_get(m_events, keycode).value_or(ButtonEvent::None);
-			state = update_button(state, event);
+			button.update(event);
 		}
 	}
 
@@ -83,7 +77,7 @@ namespace platform {
 	}
 
 	Button Keyboard::_key(int keycode) const {
-		return util::map_get(m_keys, keycode).value_or(Button { 0 });
+		return util::map_get(m_keys, keycode).value_or(Button());
 	}
 
 } // namespace platform

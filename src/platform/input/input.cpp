@@ -65,11 +65,11 @@ namespace platform {
 
 		input->window_resolution = canvas_size;
 
-		input->mouse.left_button = update_button(input->mouse.left_button, mouse_button_events[SDL_BUTTON_LEFT - 1]);
-		input->mouse.middle_button = update_button(input->mouse.middle_button, mouse_button_events[SDL_BUTTON_MIDDLE - 1]);
-		input->mouse.right_button = update_button(input->mouse.right_button, mouse_button_events[SDL_BUTTON_RIGHT - 1]);
-		input->mouse.x1_button = update_button(input->mouse.x1_button, mouse_button_events[SDL_BUTTON_X1 - 1]);
-		input->mouse.x2_button = update_button(input->mouse.x2_button, mouse_button_events[SDL_BUTTON_X2 - 1]);
+		input->mouse.left_button.update(mouse_button_events[SDL_BUTTON_LEFT - 1]);
+		input->mouse.middle_button.update(mouse_button_events[SDL_BUTTON_MIDDLE - 1]);
+		input->mouse.right_button.update(mouse_button_events[SDL_BUTTON_RIGHT - 1]);
+		input->mouse.x1_button.update(mouse_button_events[SDL_BUTTON_X1 - 1]);
+		input->mouse.x2_button.update(mouse_button_events[SDL_BUTTON_X2 - 1]);
 
 		input->keyboard.update();
 

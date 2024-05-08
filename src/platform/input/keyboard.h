@@ -5,23 +5,25 @@
 
 namespace platform {
 
-	struct Button {
-		bool pressed;
-		bool changed;
-
-		bool is_pressed() const;
-		bool pressed_now() const;
-		bool is_released() const;
-		bool released_now() const;
-	};
-
 	enum class ButtonEvent {
 		None,
 		Down,
 		Up,
 	};
 
-	Button update_button(Button button, ButtonEvent event);
+	class Button {
+	public:
+		void update(ButtonEvent event);
+
+		bool is_pressed() const;
+		bool pressed_now() const;
+		bool is_released() const;
+		bool released_now() const;
+
+	private:
+		bool m_pressed = false;
+		bool m_changed = false;
+	};
 
 	class Keyboard {
 	public:
