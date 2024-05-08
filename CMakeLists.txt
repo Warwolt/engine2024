@@ -29,12 +29,11 @@ set(INC
 set(IMGUI_SRC
     ${IMGUI_DIR}/imgui/backends/imgui_impl_opengl3.cpp
     ${IMGUI_DIR}/imgui/backends/imgui_impl_sdl2.cpp
-    ${IMGUI_DIR}/imgui/backends/imgui_impl_sdlrenderer2.cpp
+    ${IMGUI_DIR}/imgui/imgui.cpp
     ${IMGUI_DIR}/imgui/imgui_demo.cpp
     ${IMGUI_DIR}/imgui/imgui_draw.cpp
     ${IMGUI_DIR}/imgui/imgui_tables.cpp
     ${IMGUI_DIR}/imgui/imgui_widgets.cpp
-    ${IMGUI_DIR}/imgui/imgui.cpp
 )
 
 set(ENGINE_SRC

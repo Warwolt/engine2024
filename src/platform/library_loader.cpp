@@ -136,6 +136,7 @@ namespace platform {
 		/* Read functions */
 		EngineLibrary engine_library;
 		LOAD_FUNCTION(m_copied_library, engine_library, set_logger);
+		LOAD_FUNCTION(m_copied_library, engine_library, set_imgui_context);
 		LOAD_FUNCTION(m_copied_library, engine_library, initialize);
 		LOAD_FUNCTION(m_copied_library, engine_library, deinitialize);
 		LOAD_FUNCTION(m_copied_library, engine_library, update);
@@ -180,6 +181,7 @@ namespace platform {
 					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", m_library_name.c_str(), util::enum_to_string(error));
 				});
 				engine_library->set_logger(plog::verbose, plog::get());
+				engine_library->set_imgui_context(ImGui::GetCurrentContext());
 				LOG_INFO("Engine library reloaded");
 			}
 		}

@@ -185,6 +185,7 @@ int main(int /* argc */, char** /* args */) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
 	engine.set_logger(plog::verbose, plog::get());
+	engine.set_imgui_context(ImGui::GetCurrentContext());
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
@@ -197,7 +198,6 @@ int main(int /* argc */, char** /* args */) {
 	glm::ivec2 window_size = { resolution.x, resolution.y };
 	Canvas canvas = platform::add_canvas(resolution.x, resolution.y);
 	FullscreenState fullscreen_state;
-	bool show_imgui = true;
 
 	engine.initialize(&state);
 	while (!quit) {
@@ -209,15 +209,6 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Update */
 		start_imgui_frame();
-
-		if (input.keyboard.key_pressed_now(SDLK_F3)) {
-			show_imgui = !show_imgui;
-		}
-
-		if (show_imgui) {
-			bool show_demo_window = true;
-			ImGui::ShowDemoWindow(&show_demo_window);
-		}
 
 		// update engine
 		engine.update(&state, &input, &commands);
