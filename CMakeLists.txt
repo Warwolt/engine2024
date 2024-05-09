@@ -3,10 +3,6 @@ project(GameEngine2024)
 
 option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
 
-# Include Google Test
-add_subdirectory(libs/google-test)
-add_subdirectory(libs/stb_image)
-
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
 set(UNIT_TESTS unit_tests)
 set(ENGINE_LIB ${CMAKE_PROJECT_NAME}Engine)
@@ -14,6 +10,10 @@ set(PLATFORM_LIB ${CMAKE_PROJECT_NAME}Platform)
 set(SDL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2)
 set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/glew)
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui)
+
+add_subdirectory(libs/google-test)
+add_subdirectory(libs/stb_image)
+add_subdirectory(libs/freetype2)
 
 set(INC
     src
@@ -63,6 +63,7 @@ set(EXTERNAL_LIBS
     glu32
     stb_image
     imgui
+    freetype
     ${GLEW_DIR}/lib/glew32.lib
     ${SDL_DIR}/lib/SDL2main.lib
     ${SDL_DIR}/lib/SDL2.lib

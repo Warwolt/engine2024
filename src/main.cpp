@@ -1,4 +1,5 @@
 #include <GL/glew.h>
+#include <ft2build.h>
 
 #include <engine.h>
 #include <platform/assert.h>
@@ -16,9 +17,9 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <freetype/freetype.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp> // glm::ortho
-
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/imgui.h>
@@ -168,6 +169,12 @@ int main(int /* argc */, char** /* args */) {
 		ABORT("platform::create_gl_context() returned %s", util::enum_to_string(error));
 	});
 	init_imgui(window, gl_context);
+
+	/* Initialize FreeType */
+	FT_Library ft;
+	if (FT_Error error = FT_Init_FreeType(&ft); error != FT_Err_Ok) {
+		ABORT("FT_Init_FreeType failed: %s", FT_Error_String(error));
+	}
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
