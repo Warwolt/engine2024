@@ -11,10 +11,10 @@ set(SDL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2)
 set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/glew)
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui)
 
-
 set(FT_ENABLE_ERROR_STRINGS TRUE)
 add_subdirectory(libs/google-test)
 add_subdirectory(libs/stb_image)
+add_subdirectory(libs/stb_image_write)
 add_subdirectory(libs/freetype2)
 
 set(INC
@@ -64,6 +64,7 @@ set(EXTERNAL_LIBS
     opengl32
     glu32
     stb_image
+    stb_image_write
     imgui
     freetype
     ${GLEW_DIR}/lib/glew32.lib

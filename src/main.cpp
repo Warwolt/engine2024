@@ -23,6 +23,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/imgui.h>
+#include <stb_image_write/stb_image_write.h>
 
 #include <expected>
 #include <optional>
@@ -181,7 +182,10 @@ int main(int /* argc */, char** /* args */) {
 	if (FT_Error error = FT_New_Face(ft, font_path, 0, &face); error != FT_Err_Ok) {
 		ABORT("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
 	}
-	FT_Done_Face(face);
+	FT_Set_Pixel_Sizes(face, 0, 48);
+
+	// load font character data
+	// generate texture atlas
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
@@ -268,6 +272,7 @@ int main(int /* argc */, char** /* args */) {
 		}
 	}
 
+	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 	deinit_imgui();
 	engine.deinitialize(&state);
