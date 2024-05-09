@@ -11,6 +11,8 @@ set(SDL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2)
 set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/glew)
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui)
 
+
+set(FT_ENABLE_ERROR_STRINGS TRUE)
 add_subdirectory(libs/google-test)
 add_subdirectory(libs/stb_image)
 add_subdirectory(libs/freetype2)

@@ -176,6 +176,13 @@ int main(int /* argc */, char** /* args */) {
 		ABORT("FT_Init_FreeType failed: %s", FT_Error_String(error));
 	}
 
+	FT_Face face;
+	const char* font_path = "C:/windows/Fonts/Arial.ttf";
+	if (FT_Error error = FT_New_Face(ft, font_path, 0, &face); error != FT_Err_Ok) {
+		ABORT("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
+	}
+	FT_Done_Face(face);
+
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
 	const char* fragment_shader_path = "resources/shaders/shader.frag";
@@ -261,6 +268,7 @@ int main(int /* argc */, char** /* args */) {
 		}
 	}
 
+	FT_Done_FreeType(ft);
 	deinit_imgui();
 	engine.deinitialize(&state);
 	platform::free_shader_program(shader_program);
