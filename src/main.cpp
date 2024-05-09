@@ -48,6 +48,13 @@ struct FullscreenState {
 	int last_windowed_y = 0;
 };
 
+struct Glyph {
+	glm::ivec2 atlas_pos;
+	glm::ivec2 size;
+	glm::ivec2 bearing;
+	int advance;
+};
+
 const char* LIBRARY_NAME = "GameEngine2024";
 
 void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
@@ -182,10 +189,70 @@ int main(int /* argc */, char** /* args */) {
 	if (FT_Error error = FT_New_Face(ft, font_path, 0, &face); error != FT_Err_Ok) {
 		ABORT("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
 	}
-	FT_Set_Pixel_Sizes(face, 0, 48);
+	int font_size = 48;
+	FT_Set_Char_Size(face, 0, font_size * 64, 96, 96);
 
-	// load font character data
 	// generate texture atlas
+	constexpr int NUM_GLYPHS = 120;
+	Glyph glyphs[NUM_GLYPHS];
+	// https://gist.github.com/baines/b0f9e4be04ba4e6f56cab82eef5008ff
+	{
+		// quick and dirty max texture size estimate
+		unsigned int max_dim = (1 + (face->size->metrics.height / 64)) * (unsigned int)ceilf(sqrtf(NUM_GLYPHS));
+		unsigned int tex_width = 1;
+		while (tex_width < max_dim) {
+			tex_width *= 2;
+		}
+		unsigned int tex_height = tex_width;
+		LOG_DEBUG("(tex_width, tex_height) = (%d, %d)", tex_width, tex_height);
+
+		uint8_t* pixels = (uint8_t*)calloc(tex_width * tex_height, sizeof(uint8_t));
+		glm::ivec2 pen = { 0, 0 };
+
+		for (int i = 0; i < NUM_GLYPHS; i++) {
+			// load character
+			FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
+			FT_Bitmap* bmp = &face->glyph->bitmap;
+
+			// move pen forward
+			if (pen.x + bmp->width >= tex_width) {
+				pen.x = 0;
+				pen.y += face->size->metrics.height / 64 + 1;
+			}
+
+			// render current glyph
+			for (unsigned int row = 0; row < bmp->rows; row++) {
+				for (unsigned int col = 0; col < bmp->width; col++) {
+					unsigned int x = pen.x + col;
+					unsigned int y = pen.y + row;
+					pixels[y * tex_width + x] = bmp->buffer[row * bmp->pitch + col];
+				}
+			}
+
+			// save glyph info
+			glyphs[i].atlas_pos = pen;
+			glyphs[i].size = { bmp->width, bmp->rows };
+			glyphs[i].bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top };
+			glyphs[i].advance = face->glyph->advance.x / 64;
+
+			// move pen
+			pen.x += bmp->width + 1;
+		}
+
+		// write png
+		uint8_t* png_data = (uint8_t*)calloc(tex_width * tex_height * 4, sizeof(uint8_t));
+		for (unsigned int i = 0; i < (tex_width * tex_height); ++i) {
+			png_data[i * 4 + 0] |= pixels[i];
+			png_data[i * 4 + 1] |= pixels[i];
+			png_data[i * 4 + 2] |= pixels[i];
+			png_data[i * 4 + 3] = 0xFF;
+		}
+
+		stbi_write_png("font_output.png", tex_width, tex_height, 4, png_data, tex_width * 4);
+
+		free(png_data);
+		free(pixels);
+	}
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
