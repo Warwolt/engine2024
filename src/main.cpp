@@ -215,7 +215,7 @@ int main(int /* argc */, char** /* args */) {
 
 		/* Compute glyphs */
 		std::vector<uint8_t> glyph_pixels = std::vector<uint8_t>(texture_width * texture_height);
-		glm::ivec2 pen = { 0, 0 };
+		glm::ivec2 pen = { 0, 1 };
 		for (int i = '!'; i < NUM_GLYPHS; i++) {
 			// load character
 			FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
@@ -240,18 +240,18 @@ int main(int /* argc */, char** /* args */) {
 			pen.x += bmp->width + 1;
 			if (pen.x + bmp->width >= texture_width) {
 				pen.x = 0;
-				pen.y += face->size->metrics.height / font_upscale + 1;
+				pen.y += face->size->metrics.height / font_upscale + 2;
 			}
 		}
 
 		/* Generate glyph texture */
-		uint32_t texture_size = texture_width * texture_height;
-		std::vector<RGB> glyph_rgb = std::vector<RGB>(texture_size);
+		std::vector<RGB> glyph_rgb = std::vector<RGB>(texture_width * texture_height);
 		for (uint32_t y = 0; y < texture_height; y++) {
+			uint32_t inv_y = (texture_height - 1) - y;
 			for (uint32_t x = 0; x < texture_width; x++) {
-				glyph_rgb[y * texture_width + x].r |= glyph_pixels[y * texture_width + x];
-				glyph_rgb[y * texture_width + x].g |= glyph_pixels[y * texture_width + x];
-				glyph_rgb[y * texture_width + x].b |= glyph_pixels[y * texture_width + x];
+				glyph_rgb[inv_y * texture_width + x].r |= glyph_pixels[y * texture_width + x];
+				glyph_rgb[inv_y * texture_width + x].g |= glyph_pixels[y * texture_width + x];
+				glyph_rgb[inv_y * texture_width + x].b |= glyph_pixels[y * texture_width + x];
 			}
 		}
 
