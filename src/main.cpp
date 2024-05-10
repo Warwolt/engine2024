@@ -332,6 +332,19 @@ int main(int /* argc */, char** /* args */) {
 
 				// test font texture
 				renderer.draw_texture({ 0.0f, 0.0f }, { font_atlas.width, font_atlas.height }, font_atlas);
+				// render glyph box
+				auto draw_glyph_box = [&](uint8_t ch) {
+					const Glyph& glyph = glyphs[ch];
+					glm::vec2 top_left = glyph.atlas_pos;
+					glm::vec2 bottom_right = glyph.atlas_pos + glyph.size;
+					renderer.draw_rect(top_left, bottom_right, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
+				};
+				draw_glyph_box('H');
+				draw_glyph_box('e');
+				draw_glyph_box('l');
+				draw_glyph_box('l');
+				draw_glyph_box('o');
+				draw_glyph_box('!');
 
 				renderer.render_to_canvas(shader_program, canvas);
 			}
