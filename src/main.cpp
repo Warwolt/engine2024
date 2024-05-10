@@ -189,27 +189,26 @@ int main(int /* argc */, char** /* args */) {
 	if (FT_Error error = FT_New_Face(ft, font_path, 0, &face); error != FT_Err_Ok) {
 		ABORT("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
 	}
-	int font_size = 48;
+	int font_size = 16;
 	FT_Set_Char_Size(face, 0, font_size * 64, 96, 96);
 
 	// generate texture atlas
-	constexpr int NUM_GLYPHS = 120;
+	constexpr int NUM_GLYPHS = 127;
 	Glyph glyphs[NUM_GLYPHS];
 	// https://gist.github.com/baines/b0f9e4be04ba4e6f56cab82eef5008ff
 	{
-		// quick and dirty max texture size estimate
-		unsigned int max_dim = (1 + (face->size->metrics.height / 64)) * (unsigned int)ceilf(sqrtf(NUM_GLYPHS));
-		unsigned int tex_width = 1;
-		while (tex_width < max_dim) {
-			tex_width *= 2;
-		}
-		unsigned int tex_height = tex_width;
-		LOG_DEBUG("(tex_width, tex_height) = (%d, %d)", tex_width, tex_height);
+		// calculate square-ish atlas size
+		uint32_t glyph_height = (1 + (face->size->metrics.height / 64));
+		uint32_t glyph_width = glyph_height / 2; // assume 2:1 ratio
+		uint32_t columns = (uint32_t)roundf(sqrtf((float)NUM_GLYPHS * (float)glyph_height / (float)glyph_width));
+		uint32_t rows = (uint32_t)roundf((float)NUM_GLYPHS / (float)columns);
+		uint32_t tex_width = columns * glyph_width;
+		uint32_t tex_height = rows * glyph_height;
 
 		uint8_t* pixels = (uint8_t*)calloc(tex_width * tex_height, sizeof(uint8_t));
 		glm::ivec2 pen = { 0, 0 };
 
-		for (int i = 0; i < NUM_GLYPHS; i++) {
+		for (int i = '!'; i < NUM_GLYPHS; i++) {
 			// load character
 			FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
 			FT_Bitmap* bmp = &face->glyph->bitmap;
@@ -221,10 +220,10 @@ int main(int /* argc */, char** /* args */) {
 			}
 
 			// render current glyph
-			for (unsigned int row = 0; row < bmp->rows; row++) {
-				for (unsigned int col = 0; col < bmp->width; col++) {
-					unsigned int x = pen.x + col;
-					unsigned int y = pen.y + row;
+			for (uint32_t row = 0; row < bmp->rows; row++) {
+				for (uint32_t col = 0; col < bmp->width; col++) {
+					uint32_t x = pen.x + col;
+					uint32_t y = pen.y + row;
 					pixels[y * tex_width + x] = bmp->buffer[row * bmp->pitch + col];
 				}
 			}
@@ -241,7 +240,7 @@ int main(int /* argc */, char** /* args */) {
 
 		// write png
 		uint8_t* png_data = (uint8_t*)calloc(tex_width * tex_height * 4, sizeof(uint8_t));
-		for (unsigned int i = 0; i < (tex_width * tex_height); ++i) {
+		for (uint32_t i = 0; i < (tex_width * tex_height); ++i) {
 			png_data[i * 4 + 0] |= pixels[i];
 			png_data[i * 4 + 1] |= pixels[i];
 			png_data[i * 4 + 2] |= pixels[i];
