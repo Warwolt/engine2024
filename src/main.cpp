@@ -55,6 +55,12 @@ struct Glyph {
 	int advance;
 };
 
+struct Font {
+	static constexpr size_t NUM_GLYPHS = 127;
+	Glyph glyphs[NUM_GLYPHS]; // indexed with printable ascii values
+	platform::Texture atlas;
+};
+
 struct RGB {
 	uint8_t r;
 	uint8_t g;
@@ -163,6 +169,78 @@ void start_imgui_frame() {
 	ImGui::NewFrame();
 }
 
+// TODO make FT_library a global var to make API cleaner
+// no sensible way to pass FT_library around with abstraction leakage towards engine
+Font add_font(FT_Library ft, const char* font_path, uint8_t font_size) {
+	Font font;
+
+	/* Load font */
+	FT_Face face;
+	if (FT_Error error = FT_New_Face(ft, font_path, 0, &face); error != FT_Err_Ok) {
+		// FIXME return an error here instead of aborting
+		ABORT("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
+	}
+
+	/* Set font size */
+	int font_upscale = 64;
+	FT_Set_Char_Size(face, 0, font_size * font_upscale, 96, 96);
+
+	/* Calculate atlas dimensions to be a square */
+	uint32_t glyph_height = (1 + (face->size->metrics.height / font_upscale));
+	uint32_t glyph_width = glyph_height / 2; // assume 2:1 ratio
+	uint32_t columns = (uint32_t)roundf(sqrtf((float)Font::NUM_GLYPHS * (float)glyph_height / (float)glyph_width));
+	uint32_t rows = (uint32_t)roundf((float)Font::NUM_GLYPHS / (float)columns);
+	uint32_t texture_width = columns * glyph_width;
+	uint32_t texture_height = rows * glyph_height;
+
+	/* Compute glyphs */
+	std::vector<uint8_t> glyph_pixels = std::vector<uint8_t>(texture_width * texture_height);
+	glm::ivec2 pen = { 0, 1 };
+	for (int i = '!'; i < Font::NUM_GLYPHS; i++) {
+		// load character
+		FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
+		FT_Bitmap* bmp = &face->glyph->bitmap;
+
+		// render current glyph
+		for (uint32_t row = 0; row < bmp->rows; row++) {
+			for (uint32_t col = 0; col < bmp->width; col++) {
+				uint32_t x = pen.x + col;
+				uint32_t y = pen.y + row;
+				glyph_pixels[y * texture_width + x] = bmp->buffer[row * bmp->pitch + col];
+			}
+		}
+
+		// save glyph info
+		font.glyphs[i].atlas_pos = pen;
+		font.glyphs[i].size = { bmp->width, bmp->rows };
+		font.glyphs[i].bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top };
+		font.glyphs[i].advance = face->glyph->advance.x / font_upscale;
+
+		// move pen
+		pen.x += bmp->width + 1;
+		if (pen.x + bmp->width >= texture_width) {
+			pen.x = 0;
+			pen.y += face->size->metrics.height / font_upscale + 2;
+		}
+	}
+	FT_Done_Face(face);
+
+	/* Generate glyph texture */
+	std::vector<RGB> glyph_rgb = std::vector<RGB>(texture_width * texture_height);
+	for (uint32_t y = 0; y < texture_height; y++) {
+		uint32_t inv_y = (texture_height - 1) - y;
+		for (uint32_t x = 0; x < texture_width; x++) {
+			glyph_rgb[inv_y * texture_width + x].r |= glyph_pixels[y * texture_width + x];
+			glyph_rgb[inv_y * texture_width + x].g |= glyph_pixels[y * texture_width + x];
+			glyph_rgb[inv_y * texture_width + x].b |= glyph_pixels[y * texture_width + x];
+		}
+	}
+
+	font.atlas = platform::add_texture((uint8_t*)glyph_rgb.data(), texture_width, texture_height);
+
+	return font;
+}
+
 int main(int /* argc */, char** /* args */) {
 	glm::ivec2 resolution = { 800, 600 };
 
@@ -188,74 +266,6 @@ int main(int /* argc */, char** /* args */) {
 	FT_Library ft;
 	if (FT_Error error = FT_Init_FreeType(&ft); error != FT_Err_Ok) {
 		ABORT("FT_Init_FreeType failed: %s", FT_Error_String(error));
-	}
-
-	FT_Face face;
-	const char* font_path = "C:/windows/Fonts/Arial.ttf";
-	if (FT_Error error = FT_New_Face(ft, font_path, 0, &face); error != FT_Err_Ok) {
-		ABORT("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
-	}
-	int font_size = 16;
-	int font_upscale = 64;
-	FT_Set_Char_Size(face, 0, font_size * font_upscale, 96, 96);
-
-	// generate texture atlas
-	constexpr int NUM_GLYPHS = 127;
-	Glyph glyphs[NUM_GLYPHS];
-	platform::Texture font_atlas;
-	// https://gist.github.com/baines/b0f9e4be04ba4e6f56cab82eef5008ff
-	{
-		/* Calculate atlas dimensions to be a square */
-		uint32_t glyph_height = (1 + (face->size->metrics.height / font_upscale));
-		uint32_t glyph_width = glyph_height / 2; // assume 2:1 ratio
-		uint32_t columns = (uint32_t)roundf(sqrtf((float)NUM_GLYPHS * (float)glyph_height / (float)glyph_width));
-		uint32_t rows = (uint32_t)roundf((float)NUM_GLYPHS / (float)columns);
-		uint32_t texture_width = columns * glyph_width;
-		uint32_t texture_height = rows * glyph_height;
-
-		/* Compute glyphs */
-		std::vector<uint8_t> glyph_pixels = std::vector<uint8_t>(texture_width * texture_height);
-		glm::ivec2 pen = { 0, 1 };
-		for (int i = '!'; i < NUM_GLYPHS; i++) {
-			// load character
-			FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
-			FT_Bitmap* bmp = &face->glyph->bitmap;
-
-			// render current glyph
-			for (uint32_t row = 0; row < bmp->rows; row++) {
-				for (uint32_t col = 0; col < bmp->width; col++) {
-					uint32_t x = pen.x + col;
-					uint32_t y = pen.y + row;
-					glyph_pixels[y * texture_width + x] = bmp->buffer[row * bmp->pitch + col];
-				}
-			}
-
-			// save glyph info
-			glyphs[i].atlas_pos = pen;
-			glyphs[i].size = { bmp->width, bmp->rows };
-			glyphs[i].bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top };
-			glyphs[i].advance = face->glyph->advance.x / font_upscale;
-
-			// move pen
-			pen.x += bmp->width + 1;
-			if (pen.x + bmp->width >= texture_width) {
-				pen.x = 0;
-				pen.y += face->size->metrics.height / font_upscale + 2;
-			}
-		}
-
-		/* Generate glyph texture */
-		std::vector<RGB> glyph_rgb = std::vector<RGB>(texture_width * texture_height);
-		for (uint32_t y = 0; y < texture_height; y++) {
-			uint32_t inv_y = (texture_height - 1) - y;
-			for (uint32_t x = 0; x < texture_width; x++) {
-				glyph_rgb[inv_y * texture_width + x].r |= glyph_pixels[y * texture_width + x];
-				glyph_rgb[inv_y * texture_width + x].g |= glyph_pixels[y * texture_width + x];
-				glyph_rgb[inv_y * texture_width + x].b |= glyph_pixels[y * texture_width + x];
-			}
-		}
-
-		font_atlas = platform::add_texture((uint8_t*)glyph_rgb.data(), texture_width, texture_height);
 	}
 
 	/* Read shader sources */
@@ -295,6 +305,9 @@ int main(int /* argc */, char** /* args */) {
 	Canvas canvas = platform::add_canvas(resolution.x, resolution.y);
 	FullscreenState fullscreen_state;
 
+	// add test font
+	Font arial_font = add_font(ft, "C:/windows/Fonts/Arial.ttf", 16);
+
 	engine.initialize(&state);
 	while (!quit) {
 		start_imgui_frame();
@@ -331,10 +344,10 @@ int main(int /* argc */, char** /* args */) {
 				engine.render(&renderer, &state);
 
 				// test font texture
-				renderer.draw_texture({ 0.0f, 0.0f }, { font_atlas.width, font_atlas.height }, font_atlas);
+				renderer.draw_texture({ 0.0f, 0.0f }, { arial_font.atlas.width, arial_font.atlas.height }, arial_font.atlas);
 				// render glyph box
 				auto draw_glyph_box = [&](uint8_t ch) {
-					const Glyph& glyph = glyphs[ch];
+					const Glyph& glyph = arial_font.glyphs[ch];
 					glm::vec2 top_left = glyph.atlas_pos;
 					glm::vec2 bottom_right = glyph.atlas_pos + glyph.size;
 					renderer.draw_rect(top_left, bottom_right, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
@@ -360,7 +373,6 @@ int main(int /* argc */, char** /* args */) {
 		}
 	}
 
-	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 	deinit_imgui();
 	engine.deinitialize(&state);
