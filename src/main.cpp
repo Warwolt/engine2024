@@ -214,7 +214,10 @@ int main(int /* argc */, char** /* args */) {
 	FullscreenState fullscreen_state;
 
 	// add test font
-	platform::Font arial_font = platform::add_font(ft, "C:/windows/Fonts/Arial.ttf", 16);
+	const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
+	platform::Font arial_font = util::unwrap(platform::add_font(ft, arial_font_path, 16), [&] {
+		ABORT("Failed to load font \"%s\"", arial_font_path);
+	});
 
 	engine.initialize(&state);
 	while (!quit) {

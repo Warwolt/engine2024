@@ -1,7 +1,6 @@
 #include <platform/font.h>
 
-// FIXME remove this include
-#include <platform/assert.h>
+#include <platform/logging.h>
 
 namespace platform {
 
@@ -13,14 +12,14 @@ namespace platform {
 
 	// TODO make FT_library a global var to make API cleaner
 	// no sensible way to pass FT_library around with abstraction leakage towards engine
-	Font add_font(FT_Library ft, const char* font_path, uint8_t font_size) {
+	std::optional<Font> add_font(FT_Library ft, const char* font_path, uint8_t font_size) {
 		Font font;
 
 		/* Load font */
 		FT_Face face;
 		if (FT_Error error = FT_New_Face(ft, font_path, 0, &face); error != FT_Err_Ok) {
-			// FIXME return an error here instead of aborting
-			ABORT("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
+			LOG_ERROR("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
+			return std::nullopt;
 		}
 
 		/* Set font size */

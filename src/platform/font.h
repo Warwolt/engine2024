@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <platform/renderer.h>
 
+#include <optional>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -24,5 +25,5 @@ namespace platform {
 		platform::Texture atlas;
 	};
 
-	Font add_font(FT_Library ft, const char* font_path, uint8_t font_size);
+	std::optional<Font> add_font(FT_Library ft, const char* font_path, uint8_t font_size);
 }
