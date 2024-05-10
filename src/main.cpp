@@ -55,6 +55,12 @@ struct Glyph {
 	int advance;
 };
 
+struct RGB {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+};
+
 const char* LIBRARY_NAME = "GameEngine2024";
 
 void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
@@ -196,26 +202,29 @@ int main(int /* argc */, char** /* args */) {
 	// generate texture atlas
 	constexpr int NUM_GLYPHS = 127;
 	Glyph glyphs[NUM_GLYPHS];
+	platform::Texture font_atlas;
 	// https://gist.github.com/baines/b0f9e4be04ba4e6f56cab82eef5008ff
 	{
-		// calculate square-ish atlas size
+		/* Calculate atlas dimensions to be a square */
 		uint32_t glyph_height = (1 + (face->size->metrics.height / font_upscale));
 		uint32_t glyph_width = glyph_height / 2; // assume 2:1 ratio
 		uint32_t columns = (uint32_t)roundf(sqrtf((float)NUM_GLYPHS * (float)glyph_height / (float)glyph_width));
 		uint32_t rows = (uint32_t)roundf((float)NUM_GLYPHS / (float)columns);
-		uint32_t tex_width = columns * glyph_width;
-		uint32_t tex_height = rows * glyph_height;
+		uint32_t texture_width = columns * glyph_width;
+		uint32_t texture_height = rows * glyph_height;
 
-		std::vector<uint8_t> pixels = std::vector<uint8_t>(tex_width * tex_height);
+		LOG_DEBUG("atlas size = (%d, %d)", texture_width, texture_height);
+
+		/* Compute glyphs */
+		std::vector<uint8_t> glyph_pixels = std::vector<uint8_t>(texture_width * texture_height);
 		glm::ivec2 pen = { 0, 0 };
-
 		for (int i = '!'; i < NUM_GLYPHS; i++) {
 			// load character
 			FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
 			FT_Bitmap* bmp = &face->glyph->bitmap;
 
 			// move pen forward
-			if (pen.x + bmp->width >= tex_width) {
+			if (pen.x + bmp->width >= texture_width) {
 				pen.x = 0;
 				pen.y += face->size->metrics.height / font_upscale + 1;
 			}
@@ -225,7 +234,7 @@ int main(int /* argc */, char** /* args */) {
 				for (uint32_t col = 0; col < bmp->width; col++) {
 					uint32_t x = pen.x + col;
 					uint32_t y = pen.y + row;
-					pixels[y * tex_width + x] = bmp->buffer[row * bmp->pitch + col];
+					glyph_pixels[y * texture_width + x] = bmp->buffer[row * bmp->pitch + col];
 				}
 			}
 
@@ -239,16 +248,15 @@ int main(int /* argc */, char** /* args */) {
 			pen.x += bmp->width + 1;
 		}
 
-		// write png
-		std::vector<uint8_t> png_data = std::vector<uint8_t>(tex_width * tex_height * 4);
-		for (uint32_t i = 0; i < (tex_width * tex_height); ++i) {
-			png_data[i * 4 + 0] |= pixels[i];
-			png_data[i * 4 + 1] |= pixels[i];
-			png_data[i * 4 + 2] |= pixels[i];
-			png_data[i * 4 + 3] = 0xFF;
+		/* Generate glyph texture */
+		std::vector<RGB> glyph_rgb = std::vector<RGB>(texture_width * texture_height);
+		for (uint32_t i = 0; i < (texture_width * texture_height); i++) {
+			glyph_rgb[i].r |= glyph_pixels[i];
+			glyph_rgb[i].g |= glyph_pixels[i];
+			glyph_rgb[i].b |= glyph_pixels[i];
 		}
 
-		stbi_write_png("font_output.png", tex_width, tex_height, 4, png_data.data(), tex_width * 4);
+		font_atlas = platform::add_texture((uint8_t*)glyph_rgb.data(), texture_width, texture_height);
 	}
 
 	/* Read shader sources */
@@ -322,6 +330,10 @@ int main(int /* argc */, char** /* args */) {
 				set_viewport(0, 0, resolution.x, resolution.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
 				engine.render(&renderer, &state);
+
+				// test font texture
+				renderer.draw_texture({ 0.0f, 0.0f }, { font_atlas.width, font_atlas.height }, font_atlas);
+
 				renderer.render_to_canvas(shader_program, canvas);
 			}
 			{
