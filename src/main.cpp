@@ -213,8 +213,6 @@ int main(int /* argc */, char** /* args */) {
 		uint32_t texture_width = columns * glyph_width;
 		uint32_t texture_height = rows * glyph_height;
 
-		LOG_DEBUG("atlas size = (%d, %d)", texture_width, texture_height);
-
 		/* Compute glyphs */
 		std::vector<uint8_t> glyph_pixels = std::vector<uint8_t>(texture_width * texture_height);
 		glm::ivec2 pen = { 0, 0 };
@@ -222,12 +220,6 @@ int main(int /* argc */, char** /* args */) {
 			// load character
 			FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
 			FT_Bitmap* bmp = &face->glyph->bitmap;
-
-			// move pen forward
-			if (pen.x + bmp->width >= texture_width) {
-				pen.x = 0;
-				pen.y += face->size->metrics.height / font_upscale + 1;
-			}
 
 			// render current glyph
 			for (uint32_t row = 0; row < bmp->rows; row++) {
@@ -246,11 +238,16 @@ int main(int /* argc */, char** /* args */) {
 
 			// move pen
 			pen.x += bmp->width + 1;
+			if (pen.x + bmp->width >= texture_width) {
+				pen.x = 0;
+				pen.y += face->size->metrics.height / font_upscale + 1;
+			}
 		}
 
 		/* Generate glyph texture */
-		std::vector<RGB> glyph_rgb = std::vector<RGB>(texture_width * texture_height);
-		for (uint32_t i = 0; i < (texture_width * texture_height); i++) {
+		uint32_t texture_size = texture_width * texture_height;
+		std::vector<RGB> glyph_rgb = std::vector<RGB>(texture_size);
+		for (uint32_t i = 0; i < texture_size; i++) {
 			glyph_rgb[i].r |= glyph_pixels[i];
 			glyph_rgb[i].g |= glyph_pixels[i];
 			glyph_rgb[i].b |= glyph_pixels[i];
