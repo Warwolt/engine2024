@@ -247,10 +247,12 @@ int main(int /* argc */, char** /* args */) {
 		/* Generate glyph texture */
 		uint32_t texture_size = texture_width * texture_height;
 		std::vector<RGB> glyph_rgb = std::vector<RGB>(texture_size);
-		for (uint32_t i = 0; i < texture_size; i++) {
-			glyph_rgb[i].r |= glyph_pixels[i];
-			glyph_rgb[i].g |= glyph_pixels[i];
-			glyph_rgb[i].b |= glyph_pixels[i];
+		for (uint32_t y = 0; y < texture_height; y++) {
+			for (uint32_t x = 0; x < texture_width; x++) {
+				glyph_rgb[y * texture_width + x].r |= glyph_pixels[y * texture_width + x];
+				glyph_rgb[y * texture_width + x].g |= glyph_pixels[y * texture_width + x];
+				glyph_rgb[y * texture_width + x].b |= glyph_pixels[y * texture_width + x];
+			}
 		}
 
 		font_atlas = platform::add_texture((uint8_t*)glyph_rgb.data(), texture_width, texture_height);
