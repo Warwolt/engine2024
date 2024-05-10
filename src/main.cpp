@@ -190,7 +190,8 @@ int main(int /* argc */, char** /* args */) {
 		ABORT("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
 	}
 	int font_size = 16;
-	FT_Set_Char_Size(face, 0, font_size * 64, 96, 96);
+	int font_upscale = 64;
+	FT_Set_Char_Size(face, 0, font_size * font_upscale, 96, 96);
 
 	// generate texture atlas
 	constexpr int NUM_GLYPHS = 127;
@@ -198,14 +199,14 @@ int main(int /* argc */, char** /* args */) {
 	// https://gist.github.com/baines/b0f9e4be04ba4e6f56cab82eef5008ff
 	{
 		// calculate square-ish atlas size
-		uint32_t glyph_height = (1 + (face->size->metrics.height / 64));
+		uint32_t glyph_height = (1 + (face->size->metrics.height / font_upscale));
 		uint32_t glyph_width = glyph_height / 2; // assume 2:1 ratio
 		uint32_t columns = (uint32_t)roundf(sqrtf((float)NUM_GLYPHS * (float)glyph_height / (float)glyph_width));
 		uint32_t rows = (uint32_t)roundf((float)NUM_GLYPHS / (float)columns);
 		uint32_t tex_width = columns * glyph_width;
 		uint32_t tex_height = rows * glyph_height;
 
-		uint8_t* pixels = (uint8_t*)calloc(tex_width * tex_height, sizeof(uint8_t));
+		std::vector<uint8_t> pixels = std::vector<uint8_t>(tex_width * tex_height);
 		glm::ivec2 pen = { 0, 0 };
 
 		for (int i = '!'; i < NUM_GLYPHS; i++) {
@@ -216,7 +217,7 @@ int main(int /* argc */, char** /* args */) {
 			// move pen forward
 			if (pen.x + bmp->width >= tex_width) {
 				pen.x = 0;
-				pen.y += face->size->metrics.height / 64 + 1;
+				pen.y += face->size->metrics.height / font_upscale + 1;
 			}
 
 			// render current glyph
@@ -232,14 +233,14 @@ int main(int /* argc */, char** /* args */) {
 			glyphs[i].atlas_pos = pen;
 			glyphs[i].size = { bmp->width, bmp->rows };
 			glyphs[i].bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top };
-			glyphs[i].advance = face->glyph->advance.x / 64;
+			glyphs[i].advance = face->glyph->advance.x / font_upscale;
 
 			// move pen
 			pen.x += bmp->width + 1;
 		}
 
 		// write png
-		uint8_t* png_data = (uint8_t*)calloc(tex_width * tex_height * 4, sizeof(uint8_t));
+		std::vector<uint8_t> png_data = std::vector<uint8_t>(tex_width * tex_height * 4);
 		for (uint32_t i = 0; i < (tex_width * tex_height); ++i) {
 			png_data[i * 4 + 0] |= pixels[i];
 			png_data[i * 4 + 1] |= pixels[i];
@@ -247,10 +248,7 @@ int main(int /* argc */, char** /* args */) {
 			png_data[i * 4 + 3] = 0xFF;
 		}
 
-		stbi_write_png("font_output.png", tex_width, tex_height, 4, png_data, tex_width * 4);
-
-		free(png_data);
-		free(pixels);
+		stbi_write_png("font_output.png", tex_width, tex_height, 4, png_data.data(), tex_width * 4);
 	}
 
 	/* Read shader sources */
