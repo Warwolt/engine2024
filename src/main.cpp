@@ -249,20 +249,23 @@ int main(int /* argc */, char** /* args */) {
 				engine.render(&renderer, &state);
 
 				// test font texture
-				renderer.draw_texture({ 0.0f, 0.0f }, { arial_font.atlas.width, arial_font.atlas.height }, arial_font.atlas);
-				// render glyph box
-				auto draw_glyph_box = [&](uint8_t ch) {
-					const platform::Glyph& glyph = arial_font.glyphs[ch];
-					glm::vec2 top_left = glyph.atlas_pos;
-					glm::vec2 bottom_right = glyph.atlas_pos + glyph.size;
-					renderer.draw_rect(top_left, bottom_right, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
-				};
-				draw_glyph_box('H');
-				draw_glyph_box('e');
-				draw_glyph_box('l');
-				draw_glyph_box('l');
-				draw_glyph_box('o');
-				draw_glyph_box('!');
+				renderer.draw_texture(arial_font.atlas, { 0.0f, 0.0f }, { arial_font.atlas.width, arial_font.atlas.height });
+
+				// render "hello"
+				if (0) {
+					// params
+					// const char* text = "hello world!";
+					const char* text = "h";
+					float x = 100;
+					float y = 100;
+
+					glm::vec2 pen = { x, y };
+
+					for (char ch = *text; ch != '\0'; ch = *(++text)) {
+						platform::Glyph& glyph = arial_font.glyphs[ch];
+					}
+					return 0;
+				}
 
 				renderer.render_to_canvas(shader_program, canvas);
 			}
@@ -270,7 +273,7 @@ int main(int /* argc */, char** /* args */) {
 				// Render canvas to window
 				set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
 				set_normalized_device_coordinate_projection(&renderer, shader_program);
-				renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
+				renderer.draw_texture(canvas.texture, { -1.0f, 1.0f }, { 1.0f, -1.0f });
 				renderer.render(shader_program);
 			}
 			render_imgui();

@@ -361,7 +361,7 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture });
 	}
 
-	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
+	void Renderer::draw_texture(Texture texture, glm::vec2 top_left, glm::vec2 bottom_right) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |

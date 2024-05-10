@@ -8,7 +8,7 @@ Goal:
   - "Mario maker" style
 
 ## TODO
-- Render fonts
+- Remove Renderer::canvas_size
 - Pick resolution while running
 - Hot reload with ctrl+F5
 - Render level editor canvas (Aseprite style grey checker board)
@@ -16,6 +16,7 @@ Goal:
   - https://v8.dev/docs/embed
 
 ## Doing
+- Render fonts
 
 ## Done
 - Resolution aware mouse input
