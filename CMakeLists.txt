@@ -45,6 +45,7 @@ set(ENGINE_SRC
 set(PLATFORM_SRC
     src/platform/commands.cpp
     src/platform/file.cpp
+    src/platform/font.cpp
     src/platform/image.cpp
     src/platform/input/input.cpp
     src/platform/input/keyboard.cpp
