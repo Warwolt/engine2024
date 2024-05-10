@@ -25,5 +25,7 @@ namespace platform {
 		platform::Texture atlas;
 	};
 
-	std::optional<Font> add_font(FT_Library ft, const char* font_path, uint8_t font_size);
+	bool initialize_fonts();
+	void deinitialize_fonts();
+	std::optional<Font> add_font(const char* font_path, uint8_t font_size);
 }

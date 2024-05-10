@@ -1,8 +1,11 @@
 #include <platform/font.h>
 
+#include <platform/assert.h>
 #include <platform/logging.h>
 
 namespace platform {
+
+	static FT_Library g_ft;
 
 	struct RGB {
 		uint8_t r;
@@ -10,14 +13,29 @@ namespace platform {
 		uint8_t b;
 	};
 
-	// TODO make FT_library a global var to make API cleaner
-	// no sensible way to pass FT_library around with abstraction leakage towards engine
-	std::optional<Font> add_font(FT_Library ft, const char* font_path, uint8_t font_size) {
+	static FT_Library get_ft() {
+		ASSERT(g_ft, "Trying to access g_ft before it's initialized!");
+		return g_ft;
+	}
+
+	bool initialize_fonts() {
+		if (FT_Error error = FT_Init_FreeType(&g_ft); error != FT_Err_Ok) {
+			LOG_ERROR("FT_Init_FreeType failed: %s", FT_Error_String(error));
+			return false;
+		}
+		return true;
+	}
+
+	void deinitialize_fonts() {
+		FT_Done_FreeType(g_ft);
+	}
+
+	std::optional<Font> add_font(const char* font_path, uint8_t font_size) {
 		Font font;
 
 		/* Load font */
 		FT_Face face;
-		if (FT_Error error = FT_New_Face(ft, font_path, 0, &face); error != FT_Err_Ok) {
+		if (FT_Error error = FT_New_Face(get_ft(), font_path, 0, &face); error != FT_Err_Ok) {
 			LOG_ERROR("FT_New_Face(\"%s\") failed: %s", font_path, FT_Error_String(error));
 			return std::nullopt;
 		}

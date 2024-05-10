@@ -170,12 +170,6 @@ int main(int /* argc */, char** /* args */) {
 	});
 	init_imgui(window, gl_context);
 
-	/* Initialize FreeType */
-	FT_Library ft;
-	if (FT_Error error = FT_Init_FreeType(&ft); error != FT_Err_Ok) {
-		ABORT("FT_Init_FreeType failed: %s", FT_Error_String(error));
-	}
-
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
 	const char* fragment_shader_path = "resources/shaders/shader.frag";
@@ -215,7 +209,7 @@ int main(int /* argc */, char** /* args */) {
 
 	// add test font
 	const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-	platform::Font arial_font = util::unwrap(platform::add_font(ft, arial_font_path, 16), [&] {
+	platform::Font arial_font = util::unwrap(platform::add_font(arial_font_path, 16), [&] {
 		ABORT("Failed to load font \"%s\"", arial_font_path);
 	});
 
@@ -284,7 +278,6 @@ int main(int /* argc */, char** /* args */) {
 		}
 	}
 
-	FT_Done_FreeType(ft);
 	deinit_imgui();
 	engine.deinitialize(&state);
 	platform::free_shader_program(shader_program);
