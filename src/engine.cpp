@@ -6,8 +6,6 @@
 #include <plog/Init.h>
 #include <util.h>
 
-using Rect = platform::Rect;
-
 namespace engine {
 
 	void set_logger(plog::Severity severity, plog::IAppender* appender) {
