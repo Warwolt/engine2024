@@ -4,9 +4,23 @@
 
 namespace platform {
 
-	enum class Command {
+	enum class CommandType {
 		Quit,
 		ToggleFullscreen,
+	};
+
+	struct Quit {
+		CommandType type = CommandType::Quit;
+	};
+
+	struct ToggleFullscreen {
+		CommandType type = CommandType::ToggleFullscreen;
+	};
+
+	union Command {
+		CommandType type;
+		Quit quit;
+		ToggleFullscreen toggle_full_screen;
 	};
 
 	class CommandAPI {

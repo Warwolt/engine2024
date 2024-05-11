@@ -1,4 +1,4 @@
-Goal:
+Goals:
 - Tetris
   - Implement simple game
   - Establish platform + engine + game relation
@@ -8,13 +8,13 @@ Goal:
   - "Mario maker" style
 
 ## TODO
-- Pick resolution while running
 - Render level editor canvas (Aseprite style grey checker board)
 - Hot reload with ctrl+F5
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
+- Pick resolution while running
 
 ## Done
 - Let ImGui steal mouse and keyboard input
