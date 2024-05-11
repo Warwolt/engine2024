@@ -250,13 +250,16 @@ int main(int /* argc */, char** /* args */) {
 				engine.render(&renderer, &state);
 
 				// test font texture
-				// const platform::Glyph& glyph = arial_font.glyphs['H'];
-				// float x = 100.0f;
-				// float y = 100.0f;
-				platform::Rect quad = { { 0.0f, 0.0f }, { arial_font.atlas.width, arial_font.atlas.height } };
+				const platform::Glyph& glyph = arial_font.glyphs['H'];
+				float x = 100.0f;
+				float y = 100.0f;
+				platform::Rect quad = {
+					.top_left = { x, y },
+					.bottom_right = { x + glyph.size.x, y + glyph.size.y }
+				};
 				platform::FlipRect uv = {
-					.bottom_left = { 0.25f, 0.25f },
-					.top_right = { 0.75f, 0.75f }
+					.bottom_left = { 0.1394f, 0.6645f },
+					.top_right = { 0.1394f + 0.0673f, 0.6645f + 0.07692f }
 				};
 				renderer.draw_texture_clipped(arial_font.atlas, quad, uv);
 
