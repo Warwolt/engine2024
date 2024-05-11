@@ -40,17 +40,22 @@ namespace platform {
 		ImGuiIO& imgui_io = ImGui::GetIO();
 		for (SDL_Event event : *events) {
 			ImGui_ImplSDL2_ProcessEvent(&event);
+
 			switch (event.type) {
 				case SDL_QUIT:
 					input->quit_signal_received = true;
 					break;
 
 				case SDL_KEYDOWN:
-					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
+					if (!imgui_io.WantCaptureKeyboard) {
+						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
+					}
 					break;
 
 				case SDL_KEYUP:
-					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
+					if (!imgui_io.WantCaptureKeyboard) {
+						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
+					}
 					break;
 
 				case SDL_MOUSEMOTION: {
