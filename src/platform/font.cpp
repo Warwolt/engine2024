@@ -61,7 +61,7 @@ namespace platform {
 		glm::ivec2 pen = { 0, 1 };
 		for (int i = ' '; i < Font::NUM_GLYPHS; i++) {
 			// load character
-			FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
+			FT_Load_Char(face, i, FT_LOAD_RENDER);
 			FT_Bitmap* bmp = &face->glyph->bitmap;
 
 			// render current glyph
