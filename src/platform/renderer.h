@@ -1,6 +1,7 @@
 #pragma once
 
 #include <platform/image.h>
+#include <platform/texture.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
@@ -15,12 +16,6 @@ namespace platform {
 		glm::vec2 pos;
 		glm::vec4 color;
 		glm::vec2 uv;
-	};
-
-	struct Texture {
-		GLuint id;
-		int width;
-		int height;
 	};
 
 	struct Canvas {
@@ -68,9 +63,6 @@ namespace platform {
 
 	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
 	void free_shader_program(ShaderProgram shader_program);
-
-	Texture add_texture(const unsigned char* data, int width, int height);
-	void free_texture(Texture texture);
 
 	Canvas add_canvas(int width, int height);
 	void free_canvas(Canvas canvas);

@@ -5,6 +5,7 @@
 #include <freetype/freetype.h>
 #include <glm/glm.hpp>
 #include <platform/renderer.h>
+#include <platform/texture.h>
 
 #include <optional>
 #include <stddef.h>

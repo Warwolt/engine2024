@@ -45,7 +45,7 @@ namespace engine {
 			platform::free_texture(texture);
 		}
 		for (const auto& [_, font] : state->fonts) {
-			platform::free_texture(font.atlas);
+			platform::free_font(&font);
 		}
 	}
 

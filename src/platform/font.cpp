@@ -112,6 +112,10 @@ namespace platform {
 		return font;
 	}
 
+	void free_font(const Font* font) {
+		free_texture(font->atlas);
+	}
+
 	void render_character(Renderer* renderer, const Font* font, char character, glm::vec2 pos, glm::vec4 color) {
 		const platform::Glyph& glyph = font->glyphs[character];
 
