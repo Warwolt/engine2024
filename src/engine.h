@@ -19,7 +19,7 @@ namespace engine {
 		std::unordered_map<std::string, platform::Texture> textures;
 		std::unordered_map<std::string, platform::Font> fonts;
 
-		bool show_imgui = false;
+		bool show_imgui = true;
 		glm::vec2 circle_pos = { -1.0f, -1.0f };
 		int circle_radius = 127;
 		glm::vec2 window_resolution;

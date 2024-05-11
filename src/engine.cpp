@@ -36,7 +36,7 @@ namespace engine {
 			platform::Font font = util::unwrap(platform::add_font(font_path, 16), [&] {
 				ABORT("Failed to load font \"%s\"", font_path);
 			});
-			state->fonts["arial"] = font;
+			state->fonts["arial-16"] = font;
 		}
 	}
 
@@ -76,17 +76,34 @@ namespace engine {
 			commands->toggle_fullscreen();
 		}
 
-		if (input->keyboard.key_pressed_now(SDLK_UP)) {
-			commands->change_resolution(640, 480);
-		}
-
-		if (input->keyboard.key_pressed_now(SDLK_DOWN)) {
-			commands->change_resolution(800, 600);
-		}
-
 		if (state->show_imgui) {
-			bool show_demo_window = true;
-			ImGui::ShowDemoWindow(&show_demo_window);
+			glm::ivec2 resolutions[] = {
+				{ 800, 600 },
+				{ 640, 480 },
+			};
+			const char* items[] = {
+				"800x600",
+				"640x480",
+			};
+			static int item_current_idx = 0;
+			const char* combo_preview_value = items[item_current_idx];
+			if (ImGui::BeginCombo("Resolution", combo_preview_value, 0)) {
+				for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
+					const bool current_is_selected = (item_current_idx == n);
+					if (ImGui::Selectable(items[n], current_is_selected)) {
+						item_current_idx = n;
+					}
+
+					if (current_is_selected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
+			if (ImGui::Button("Change resolution")) {
+				glm::ivec2 resolution = resolutions[item_current_idx];
+				commands->change_resolution(resolution.x, resolution.y);
+			}
 		}
 	}
 
@@ -111,7 +128,7 @@ namespace engine {
 
 		/* Render text*/
 		{
-			const platform::Font& font = state->fonts.at("arial");
+			const platform::Font& font = state->fonts.at("arial-16");
 			glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 			glm::vec2 text_pos = { 300.0f, 100.0f };
 			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);

@@ -8,6 +8,9 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Let ImGui steal keyboard input
+- Rename `deinitialize` to `shutdown`
+- Rename `add_font` to `add_ttf_font`
 - Render level editor canvas (Aseprite style grey checker board)
 - Hot reload with ctrl+F5
 - Add TypeScript for game scripting
@@ -17,7 +20,7 @@ Goals:
 - Pick resolution while running
 
 ## Done
-- Let ImGui steal mouse and keyboard input
+- Let ImGui steal mouse input
 - Render fonts
 - Resolution aware mouse input
 - Add ImGui
