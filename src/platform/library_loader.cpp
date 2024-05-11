@@ -141,7 +141,7 @@ namespace platform {
 		LOAD_FUNCTION(m_copied_library, engine_library, set_freetype_library);
 
 		LOAD_FUNCTION(m_copied_library, engine_library, initialize);
-		LOAD_FUNCTION(m_copied_library, engine_library, deinitialize);
+		LOAD_FUNCTION(m_copied_library, engine_library, shutdown);
 		LOAD_FUNCTION(m_copied_library, engine_library, update);
 		LOAD_FUNCTION(m_copied_library, engine_library, render);
 

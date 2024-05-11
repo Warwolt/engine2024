@@ -72,7 +72,7 @@ namespace engine {
 		}
 	}
 
-	void deinitialize(State* state) {
+	void shutdown(State* state) {
 		for (const auto& [_, texture] : state->textures) {
 			platform::free_texture(texture);
 		}

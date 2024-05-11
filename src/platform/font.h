@@ -30,7 +30,7 @@ namespace platform {
 	FT_Library get_ft();
 
 	bool initialize_fonts();
-	void deinitialize_fonts();
+	void shutdown_fonts();
 
 	std::optional<Font> add_font(const char* font_path, uint8_t font_size);
 	void free_font(const Font* font);

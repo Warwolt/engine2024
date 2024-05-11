@@ -14,7 +14,7 @@ namespace platform {
 	};
 
 	bool initialize();
-	void deinitialize(SDL_GLContext gl_context);
+	void shutdown(SDL_GLContext gl_context);
 
 	std::expected<SDL_GLContext, CreateGLContextError> create_gl_context(SDL_Window* window);
 

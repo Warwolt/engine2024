@@ -31,7 +31,7 @@ namespace platform {
 		return true;
 	}
 
-	void deinitialize_fonts() {
+	void shutdown_fonts() {
 		FT_Done_FreeType(g_ft);
 	}
 

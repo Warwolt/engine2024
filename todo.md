@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Rename `deinitialize` to `shutdown`
 - Rename `add_font` to `add_ttf_font`
 - Render level editor canvas (Aseprite style grey checker board)
 - Hot reload with ctrl+F5
@@ -18,6 +17,7 @@ Goals:
 ## Doing
 
 ## Done
+- Rename `deinitialize` to `shutdown`
 - Let ImGui steal keyboard input
 - Pick resolution while running
 - Let ImGui steal mouse input
