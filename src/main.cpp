@@ -24,7 +24,6 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/imgui.h>
-#include <stb_image_write/stb_image_write.h>
 
 #include <expected>
 #include <optional>
