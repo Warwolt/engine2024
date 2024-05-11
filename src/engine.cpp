@@ -6,6 +6,8 @@
 #include <plog/Init.h>
 #include <util.h>
 
+using Rect = platform::Rect;
+
 namespace engine {
 
 	void set_logger(plog::Severity severity, plog::IAppender* appender) {
@@ -60,15 +62,6 @@ namespace engine {
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
-		glm::vec4 color = { 70.f / 255, 55.f / 255, 56.f / 255, 1.0f };
-		glm::vec2 box_size = { 256.0f, 256.0f };
-		glm::vec2 top_left = (renderer->canvas_size() - box_size) / 2.0f;
-		glm::vec2 offset = { 10.0f, 10.0f };
-
-		renderer->draw_rect_fill({ 0.0f, 0.0f }, renderer->canvas_size(), { 0.0f, 0.5f, 0.5f, 1.0f }); // background
-		renderer->draw_rect_fill(top_left + offset, top_left + box_size + offset, color); // shadow
-		renderer->draw_texture(state->texture, top_left, top_left + box_size); // box
-
 		renderer->draw_circle_fill(state->circle_pos, (float)state->circle_radius, { 0.0f, 1.0f, 0.0f, 0.5f });
 		renderer->draw_circle(state->circle_pos, (float)state->circle_radius, { 0.0f, 1.0f, 0.0f, 1.0f });
 	}

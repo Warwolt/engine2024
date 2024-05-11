@@ -181,7 +181,7 @@ int main(int /* argc */, char** /* args */) {
 	});
 
 	/* Initialize Renderer */
-	Renderer renderer = Renderer(gl_context, resolution.x, resolution.y);
+	Renderer renderer = Renderer(gl_context);
 	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
@@ -244,12 +244,13 @@ int main(int /* argc */, char** /* args */) {
 			clear_screen();
 			{
 				// Render to canvas
+				glClear(GL_COLOR_BUFFER_BIT);
 				set_viewport(0, 0, resolution.x, resolution.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
 				engine.render(&renderer, &state);
 
 				// test font texture
-				renderer.draw_texture(arial_font.atlas, { 0.0f, 0.0f }, { arial_font.atlas.width, arial_font.atlas.height });
+				// renderer.draw_texture(arial_font.atlas, { 0.0f, 0.0f });
 
 				// render "hello"
 				if (0) {
@@ -273,7 +274,7 @@ int main(int /* argc */, char** /* args */) {
 				// Render canvas to window
 				set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
 				set_normalized_device_coordinate_projection(&renderer, shader_program);
-				renderer.draw_texture(canvas.texture, { -1.0f, 1.0f }, { 1.0f, -1.0f });
+				renderer.draw_texture(canvas.texture, platform::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });
 				renderer.render(shader_program);
 			}
 			render_imgui();

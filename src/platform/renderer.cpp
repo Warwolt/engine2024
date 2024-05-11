@@ -206,10 +206,9 @@ namespace platform {
 		glDeleteTextures(1, &canvas.texture.id);
 	}
 
-	Renderer::Renderer(SDL_GLContext /* gl_context */, int canvas_width, int canvas_height) {
+	Renderer::Renderer(SDL_GLContext /* gl_context */) {
 		unsigned char data[] = { 0xFF, 0xFF, 0xFF };
 		m_white_texture = add_texture(data, 1, 1);
-		m_canvas_size = glm::vec2 { (float)canvas_width, (float)canvas_height };
 	}
 
 	void Renderer::set_projection(ShaderProgram shader_program, glm::mat4 projection) {
@@ -218,16 +217,10 @@ namespace platform {
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
 	}
 
-	void Renderer::set_canvas_size(float width, float height) {
-		m_canvas_size = glm::vec2 { width, height };
-	}
-
-	glm::vec2 Renderer::canvas_size() const {
-		return m_canvas_size;
-	}
-
 	void Renderer::render_to_canvas(ShaderProgram shader_program, Canvas canvas) {
 		glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 		render(shader_program);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
@@ -271,15 +264,15 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture });
 	}
 
-	void Renderer::draw_rect(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
+	void Renderer::draw_rect(Rect rect, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
 		// (x0, y1) ---- (x1, y1)
-		float x0 = top_left.x;
-		float y0 = top_left.y;
-		float x1 = bottom_right.x;
-		float y1 = bottom_right.y;
+		float x0 = rect.top_left.x;
+		float y0 = rect.top_left.y;
+		float x1 = rect.bottom_right.x;
+		float y1 = rect.bottom_right.y;
 
 		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
 		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
@@ -289,15 +282,15 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture });
 	}
 
-	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
+	void Renderer::draw_rect_fill(Rect rect, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
 		// (x0, y1) ---- (x1, y1)
-		float x0 = top_left.x;
-		float y0 = top_left.y;
-		float x1 = bottom_right.x;
-		float y1 = bottom_right.y;
+		float x0 = rect.top_left.x;
+		float y0 = rect.top_left.y;
+		float x1 = rect.bottom_right.x;
+		float y1 = rect.bottom_right.y;
 
 		// first triangle
 		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
@@ -361,15 +354,15 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture });
 	}
 
-	void Renderer::draw_texture(Texture texture, glm::vec2 top_left, glm::vec2 bottom_right) {
+	void Renderer::draw_texture(Texture texture, Rect rect) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
 		// (x0, y1) ---- (x1, y1)
-		float x0 = top_left.x;
-		float y0 = top_left.y;
-		float x1 = bottom_right.x;
-		float y1 = bottom_right.y;
+		float x0 = rect.top_left.x;
+		float y0 = rect.top_left.y;
+		float x1 = rect.bottom_right.x;
+		float y1 = rect.bottom_right.y;
 
 		glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
 
