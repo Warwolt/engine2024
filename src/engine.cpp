@@ -8,6 +8,38 @@
 
 namespace engine {
 
+	static void draw_imgui(ImGuiState* state, platform::CommandAPI* commands) {
+		struct Resolution {
+			glm::ivec2 value;
+			const char* str;
+		};
+		const static Resolution resolutions[] = {
+			{ { 800, 600 }, "800x600" },
+			{ { 640, 480 }, "640x480" },
+
+		};
+
+		const char* combo_preview_value = resolutions[state->resolution_index].str;
+		if (ImGui::BeginCombo("Resolution", combo_preview_value, 0)) {
+			for (int n = 0; n < IM_ARRAYSIZE(resolutions); n++) {
+				const bool current_is_selected = (state->resolution_index == n);
+				if (ImGui::Selectable(resolutions[n].str, current_is_selected)) {
+					state->resolution_index = n;
+				}
+
+				if (current_is_selected) {
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		if (ImGui::Button("Change resolution")) {
+			glm::ivec2 resolution = resolutions[state->resolution_index].value;
+			commands->change_resolution(resolution.x, resolution.y);
+		}
+	}
+
 	void set_logger(plog::Severity severity, plog::IAppender* appender) {
 		plog::init(severity, appender);
 	}
@@ -36,7 +68,7 @@ namespace engine {
 			platform::Font font = util::unwrap(platform::add_font(font_path, 16), [&] {
 				ABORT("Failed to load font \"%s\"", font_path);
 			});
-			state->fonts["arial"] = font;
+			state->fonts["arial-16"] = font;
 		}
 	}
 
@@ -77,8 +109,7 @@ namespace engine {
 		}
 
 		if (state->show_imgui) {
-			bool show_demo_window = true;
-			ImGui::ShowDemoWindow(&show_demo_window);
+			draw_imgui(&state->imgui_state, commands);
 		}
 	}
 
@@ -103,7 +134,7 @@ namespace engine {
 
 		/* Render text*/
 		{
-			const platform::Font& font = state->fonts.at("arial");
+			const platform::Font& font = state->fonts.at("arial-16");
 			glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 			glm::vec2 text_pos = { 300.0f, 100.0f };
 			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
