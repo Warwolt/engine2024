@@ -16,9 +16,9 @@ Goals:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Let ImGui steal keyboard input
 
 ## Done
+- Let ImGui steal keyboard input
 - Pick resolution while running
 - Let ImGui steal mouse input
 - Render fonts
