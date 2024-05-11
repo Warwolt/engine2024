@@ -253,8 +253,10 @@ int main(int /* argc */, char** /* args */) {
 				renderer.draw_texture(arial_font.atlas, { { 0.0f, 0.0f }, { arial_font.atlas.width, arial_font.atlas.height } });
 
 				// test font texture
-				platform::render_text(&renderer, &arial_font, "Lao gan ma is tasty", { 500.0f, 100.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
-				platform::render_text(&renderer, &arial_font, "Lao gan ma is tasty", { 500.0f, 100.0f + arial_font.line_spacing }, { 0.0f, 1.0f, 0.0f, 1.0f });
+				glm::vec4 text_color = { 1.0f, 1.0f, 1.0f, 1.0f };
+				glm::vec2 text_pos = { 300.0f, 100.0f };
+				platform::render_text(&renderer, &arial_font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
+				platform::render_text(&renderer, &arial_font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, arial_font.line_spacing }, text_color);
 
 				renderer.render_to_canvas(shader_program, canvas);
 			}
