@@ -65,7 +65,7 @@ namespace engine {
 		// Add Arial font
 		{
 			const char* font_path = "C:/windows/Fonts/Arial.ttf";
-			platform::Font font = util::unwrap(platform::add_font(font_path, 16), [&] {
+			platform::Font font = util::unwrap(platform::add_ttf_font(font_path, 16), [&] {
 				ABORT("Failed to load font \"%s\"", font_path);
 			});
 			state->fonts["arial-16"] = font;

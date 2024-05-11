@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Rename `add_font` to `add_ttf_font`
 - Render level editor canvas (Aseprite style grey checker board)
 - Hot reload with ctrl+F5
 - Add TypeScript for game scripting
@@ -17,6 +16,7 @@ Goals:
 ## Doing
 
 ## Done
+- Rename `add_font` to `add_ttf_font`
 - Rename `deinitialize` to `shutdown`
 - Let ImGui steal keyboard input
 - Pick resolution while running
