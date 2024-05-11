@@ -230,9 +230,20 @@ int main(int /* argc */, char** /* args */) {
 					case CommandType::ToggleFullscreen:
 						toggle_fullscreen(&fullscreen_state, window, &resolution, &window_size);
 						break;
-					case CommandType::ChangeResolution:
-						LOG_DEBUG("%d %d", cmd.change_resolution.width, cmd.change_resolution.height);
-						break;
+					case CommandType::ChangeResolution: {
+						// update resolution
+						resolution.x = cmd.change_resolution.width;
+						resolution.y = cmd.change_resolution.height;
+
+						// re-generate canvas
+						platform::free_canvas(canvas);
+						canvas = platform::add_canvas(resolution.x, resolution.y);
+
+						// update window size
+						window_size.x = resolution.x;
+						window_size.y = resolution.y;
+						SDL_SetWindowSize(window, window_size.x, window_size.y);
+					} break;
 				}
 			}
 			commands.clear();
