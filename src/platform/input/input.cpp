@@ -44,16 +44,19 @@ namespace platform {
 				case SDL_QUIT:
 					input->quit_signal_received = true;
 					break;
+
 				case SDL_KEYDOWN:
 					if (!imgui_io.WantCaptureKeyboard) {
 						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
 					}
 					break;
+
 				case SDL_KEYUP:
 					if (!imgui_io.WantCaptureKeyboard) {
 						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
 					}
 					break;
+
 				case SDL_MOUSEMOTION: {
 					if (!imgui_io.WantCaptureMouse) {
 						SDL_Rect canvas = stretched_and_centered_canvas(window_size, window_resolution);
@@ -65,6 +68,7 @@ namespace platform {
 					}
 					break;
 				}
+
 				case SDL_MOUSEBUTTONDOWN:
 					if (!imgui_io.WantCaptureMouse) {
 						if (event.button.button - 1 < NUM_MOUSE_BUTTONS) {
@@ -72,6 +76,7 @@ namespace platform {
 						}
 						break;
 					}
+
 				case SDL_MOUSEBUTTONUP:
 					if (!imgui_io.WantCaptureMouse) {
 						if (event.button.button - 1 < NUM_MOUSE_BUTTONS) {
@@ -79,6 +84,7 @@ namespace platform {
 						}
 					}
 					break;
+
 				case SDL_MOUSEWHEEL:
 					if (!imgui_io.WantCaptureMouse) {
 						input->mouse.scroll_delta += event.wheel.y;
