@@ -379,4 +379,42 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture });
 	}
 
+	void Renderer::draw_character(const Font* font, char character, glm::vec2 pos, glm::vec4 color) {
+		const platform::Glyph& glyph = font->glyphs[character];
+
+		platform::Rect quad = {
+			.top_left = { pos.x, pos.y },
+			.bottom_right = { pos.x + glyph.size.x, pos.y + glyph.size.y }
+		};
+
+		float u0 = glyph.atlas_pos.x / (float)font->atlas.width;
+		float v0 = 1 - (glyph.atlas_pos.y + glyph.size.y) / (float)font->atlas.height;
+		float u1 = u0 + glyph.size.x / (float)font->atlas.width;
+		float v1 = v0 + glyph.size.y / (float)font->atlas.height;
+
+		platform::FlipRect uv = {
+			.bottom_left = { u0, v0 },
+			.top_right = { u1, v1 }
+		};
+
+		draw_texture_clipped_with_color(font->atlas, quad, uv, color);
+	}
+
+	void Renderer::draw_text(const Font* font, const char* text, glm::vec2 pos, glm::vec4 color) {
+		glm::vec2 pen = pos;
+		for (char character = *text; character != '\0'; character = *(++text)) {
+			const platform::Glyph& glyph = font->glyphs[character];
+
+			if (character != ' ') {
+				glm::vec2 glyph_pos = glm::vec2 {
+					pen.x + glyph.bearing.x,
+					pen.y - glyph.bearing.y,
+				};
+				draw_character(font, character, glyph_pos, color);
+			}
+
+			pen.x += glyph.advance;
+		}
+	}
+
 } // namespace platform

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <platform/font.h>
 #include <platform/image.h>
 #include <platform/texture.h>
 
@@ -86,6 +87,10 @@ namespace platform {
 		void draw_texture(Texture texture, Rect quad);
 		void draw_texture_clipped(Texture texture, Rect quad, FlipRect uv);
 		void draw_texture_clipped_with_color(Texture texture, Rect quad, FlipRect uv, glm::vec4 color);
+
+		void draw_character(const Font* font, char character, glm::vec2 pos, glm::vec4 color);
+		void draw_text(const Font* font, const char* text, glm::vec2 pos, glm::vec4 color);
+
 
 	private:
 		std::vector<Vertex> m_vertices;

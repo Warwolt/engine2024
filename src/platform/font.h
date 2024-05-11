@@ -4,7 +4,6 @@
 
 #include <freetype/freetype.h>
 #include <glm/glm.hpp>
-#include <platform/renderer.h>
 #include <platform/texture.h>
 
 #include <optional>
@@ -36,6 +35,4 @@ namespace platform {
 	std::optional<Font> add_font(const char* font_path, uint8_t font_size);
 	void free_font(const Font* font);
 
-	void render_character(Renderer* renderer, const Font* font, char character, glm::vec2 pos, glm::vec4 color);
-	void render_text(Renderer* renderer, const Font* font, const char* text, glm::vec2 pos, glm::vec4 color);
 }
