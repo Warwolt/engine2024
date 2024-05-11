@@ -19,11 +19,6 @@ namespace engine {
 	}
 
 	void initialize(State* state) {
-		const char* img_path = "resources/textures/container.jpg";
-		platform::Image image = util::unwrap(platform::read_image(img_path), [&] {
-			ABORT("read_file(%s) failed", img_path);
-		});
-		state->texture = platform::add_texture(image.data.get(), image.width, image.height);
 	}
 
 	void deinitialize(State* state) {

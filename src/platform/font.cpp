@@ -7,10 +7,11 @@ namespace platform {
 
 	static FT_Library g_ft;
 
-	struct RGB {
+	struct RGBA {
 		uint8_t r;
 		uint8_t g;
 		uint8_t b;
+		uint8_t a;
 	};
 
 	static FT_Library get_ft() {
@@ -88,13 +89,14 @@ namespace platform {
 		FT_Done_Face(face);
 
 		/* Generate glyph texture */
-		std::vector<RGB> glyph_rgb = std::vector<RGB>(texture_width * texture_height);
+		std::vector<RGBA> glyph_rgb = std::vector<RGBA>(texture_width * texture_height);
 		for (uint32_t y = 0; y < texture_height; y++) {
 			uint32_t inv_y = (texture_height - 1) - y;
 			for (uint32_t x = 0; x < texture_width; x++) {
 				glyph_rgb[inv_y * texture_width + x].r |= glyph_pixels[y * texture_width + x];
 				glyph_rgb[inv_y * texture_width + x].g |= glyph_pixels[y * texture_width + x];
 				glyph_rgb[inv_y * texture_width + x].b |= glyph_pixels[y * texture_width + x];
+				glyph_rgb[inv_y * texture_width + x].a |= glyph_pixels[y * texture_width + x];
 			}
 		}
 

@@ -153,7 +153,7 @@ namespace platform {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
 
 		glBindTexture(GL_TEXTURE_2D, NULL);
@@ -176,7 +176,7 @@ namespace platform {
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -207,7 +207,7 @@ namespace platform {
 	}
 
 	Renderer::Renderer(SDL_GLContext /* gl_context */) {
-		unsigned char data[] = { 0xFF, 0xFF, 0xFF };
+		unsigned char data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
 		m_white_texture = add_texture(data, 1, 1);
 	}
 
