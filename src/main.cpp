@@ -220,7 +220,8 @@ int main(int /* argc */, char** /* args */) {
 		hot_reloader.check_hot_reloading(&engine);
 
 		/* Input */
-		platform::read_input(&input, &frame_timer, window_size, resolution);
+		std::vector<SDL_Event> events = platform::read_events();
+		platform::process_events(&events, &input, &frame_timer, window_size, resolution);
 
 		/* Update */
 		{

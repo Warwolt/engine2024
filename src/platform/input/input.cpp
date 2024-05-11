@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 
+#include "input.h"
 #include <array>
 
 namespace platform {
@@ -16,28 +17,42 @@ namespace platform {
 		return SDL_Rect { .x = top_left.x, .y = top_left.y, .w = scaled_canvas_size.x, .h = scaled_canvas_size.y };
 	}
 
-	void read_input(
+	std::vector<SDL_Event> read_events() {
+		std::vector<SDL_Event> events;
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			events.push_back(event);
+		}
+		return events;
+	}
+
+	void process_events(
+		const std::vector<SDL_Event>* events,
 		Input* input,
 		Timer* frame_timer,
 		glm::ivec2 window_size,
 		glm::ivec2 canvas_size
 	) {
-		std::array<ButtonEvent, 5> mouse_button_events = { ButtonEvent::None };
+		constexpr size_t NUM_MOUSE_BUTTONS = 5;
+		std::array<ButtonEvent, NUM_MOUSE_BUTTONS> mouse_button_events = { ButtonEvent::None };
 		input->mouse.scroll_delta = 0;
 
-		SDL_Event event;
 		ImGuiIO& imgui_io = ImGui::GetIO();
-		while (SDL_PollEvent(&event)) {
+		for (SDL_Event event : *events) {
 			ImGui_ImplSDL2_ProcessEvent(&event);
 			switch (event.type) {
 				case SDL_QUIT:
 					input->quit_signal_received = true;
 					break;
 				case SDL_KEYDOWN:
-					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
+					if (!imgui_io.WantCaptureKeyboard) {
+						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
+					}
 					break;
 				case SDL_KEYUP:
-					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
+					if (!imgui_io.WantCaptureKeyboard) {
+						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
+					}
 					break;
 				case SDL_MOUSEMOTION: {
 					if (!imgui_io.WantCaptureMouse) {
@@ -52,15 +67,16 @@ namespace platform {
 				}
 				case SDL_MOUSEBUTTONDOWN:
 					if (!imgui_io.WantCaptureMouse) {
-						if (event.button.button - 1 < 5) {
+						if (event.button.button - 1 < NUM_MOUSE_BUTTONS) {
 							mouse_button_events[event.button.button - 1] = ButtonEvent::Down;
 						}
 						break;
 					}
 				case SDL_MOUSEBUTTONUP:
-					// note: we always send mouse up to engine, so that we don't get stuck buttons
-					if (event.button.button - 1 < 5) {
-						mouse_button_events[event.button.button - 1] = ButtonEvent::Up;
+					if (!imgui_io.WantCaptureMouse) {
+						if (event.button.button - 1 < NUM_MOUSE_BUTTONS) {
+							mouse_button_events[event.button.button - 1] = ButtonEvent::Up;
+						}
 					}
 					break;
 				case SDL_MOUSEWHEEL:
