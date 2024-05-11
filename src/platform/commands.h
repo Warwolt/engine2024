@@ -9,18 +9,16 @@ namespace platform {
 		ToggleFullscreen,
 	};
 
-	struct Quit {
-		CommandType type = CommandType::Quit;
-	};
-
-	struct ToggleFullscreen {
-		CommandType type = CommandType::ToggleFullscreen;
-	};
-
 	union Command {
 		CommandType type;
-		Quit quit;
-		ToggleFullscreen toggle_full_screen;
+
+		struct Quit {
+			CommandType type = CommandType::Quit;
+		} quit;
+
+		struct ToggleFullscreen {
+			CommandType type = CommandType::ToggleFullscreen;
+		} toggle_full_screen;
 	};
 
 	class CommandAPI {

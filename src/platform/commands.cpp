@@ -11,11 +11,11 @@ namespace platform {
 	}
 
 	void CommandAPI::quit() {
-		m_commands.push_back({ .quit = Quit() });
+		m_commands.push_back({ .quit = Command::Quit {} });
 	}
 
 	void CommandAPI::toggle_fullscreen() {
-		m_commands.push_back({ .toggle_full_screen = ToggleFullscreen() });
+		m_commands.push_back({ .toggle_full_screen = Command::ToggleFullscreen {} });
 	}
 
 } // namespace platform
