@@ -17,9 +17,9 @@ Goals:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Pick resolution while running
 
 ## Done
+- Pick resolution while running
 - Let ImGui steal mouse input
 - Render fonts
 - Resolution aware mouse input
