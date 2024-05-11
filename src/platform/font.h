@@ -27,8 +27,7 @@ namespace platform {
 
 	bool initialize_fonts();
 	void deinitialize_fonts();
-	std::optional<Font> add_font(const char* font_path, uint8_t font_size);
 
-	// void render_character(Renderer* renderer, const Font* font, glm::vec2 pos, char ch);
-	// render_character(&renderer, &font, { 100.0f, 100.0f }, 'H');
+	std::optional<Font> add_font(const char* font_path, uint8_t font_size);
+	void render_character(Renderer* renderer, const Font* font, char character, glm::vec2 pos, glm::vec4 color);
 }
