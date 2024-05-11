@@ -4,66 +4,96 @@
 #include <SDL2/SDL.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 
+#include "input.h"
 #include <array>
 
 namespace platform {
 
-	SDL_Rect stretched_and_centered_canvas(glm::ivec2 window_size, glm::ivec2 canvas_size) {
-		int scale = (int)std::max(std::round(window_size.x / canvas_size.x), std::round(window_size.y / canvas_size.y));
-		glm::ivec2 scaled_canvas_size = { scale * canvas_size.x, scale * canvas_size.y };
+	SDL_Rect stretched_and_centered_canvas(glm::ivec2 window_size, glm::ivec2 window_resolution) {
+		int scale = (int)std::max(std::round(window_size.x / window_resolution.x), std::round(window_size.y / window_resolution.y));
+		glm::ivec2 scaled_canvas_size = { scale * window_resolution.x, scale * window_resolution.y };
 		glm::ivec2 top_left = (window_size - scaled_canvas_size) / 2;
 
 		return SDL_Rect { .x = top_left.x, .y = top_left.y, .w = scaled_canvas_size.x, .h = scaled_canvas_size.y };
 	}
 
-	void read_input(
+	std::vector<SDL_Event> read_events() {
+		std::vector<SDL_Event> events;
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			events.push_back(event);
+		}
+		return events;
+	}
+
+	void process_events(
+		const std::vector<SDL_Event>* events,
 		Input* input,
 		Timer* frame_timer,
 		glm::ivec2 window_size,
-		glm::ivec2 canvas_size
+		glm::ivec2 window_resolution
 	) {
-		std::array<ButtonEvent, 5> mouse_button_events = { ButtonEvent::None };
+		constexpr size_t NUM_MOUSE_BUTTONS = 5;
+		std::array<ButtonEvent, NUM_MOUSE_BUTTONS> mouse_button_events = { ButtonEvent::None };
 		input->mouse.scroll_delta = 0;
 
-		SDL_Event event;
-		while (SDL_PollEvent(&event)) {
+		ImGuiIO& imgui_io = ImGui::GetIO();
+		for (SDL_Event event : *events) {
 			ImGui_ImplSDL2_ProcessEvent(&event);
 			switch (event.type) {
 				case SDL_QUIT:
 					input->quit_signal_received = true;
 					break;
+
 				case SDL_KEYDOWN:
-					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
+					if (!imgui_io.WantCaptureKeyboard) {
+						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
+					}
 					break;
+
 				case SDL_KEYUP:
-					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
+					if (!imgui_io.WantCaptureKeyboard) {
+						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
+					}
 					break;
+
 				case SDL_MOUSEMOTION: {
-					SDL_Rect canvas = stretched_and_centered_canvas(window_size, canvas_size);
-					int scale = canvas.w / canvas_size.x;
-					input->mouse.pos = glm::ivec2 {
-						(event.motion.x - canvas.x) / scale,
-						(event.motion.y - canvas.y) / scale
-					};
+					if (!imgui_io.WantCaptureMouse) {
+						SDL_Rect canvas = stretched_and_centered_canvas(window_size, window_resolution);
+						int scale = canvas.w / window_resolution.x;
+						input->mouse.pos = glm::ivec2 {
+							(event.motion.x - canvas.x) / scale,
+							(event.motion.y - canvas.y) / scale
+						};
+					}
 					break;
 				}
+
 				case SDL_MOUSEBUTTONDOWN:
-					if (event.button.button - 1 < 5) {
-						mouse_button_events[event.button.button - 1] = ButtonEvent::Down;
+					if (!imgui_io.WantCaptureMouse) {
+						if (event.button.button - 1 < NUM_MOUSE_BUTTONS) {
+							mouse_button_events[event.button.button - 1] = ButtonEvent::Down;
+						}
+						break;
 					}
-					break;
+
 				case SDL_MOUSEBUTTONUP:
-					if (event.button.button - 1 < 5) {
-						mouse_button_events[event.button.button - 1] = ButtonEvent::Up;
+					if (!imgui_io.WantCaptureMouse) {
+						if (event.button.button - 1 < NUM_MOUSE_BUTTONS) {
+							mouse_button_events[event.button.button - 1] = ButtonEvent::Up;
+						}
 					}
 					break;
+
 				case SDL_MOUSEWHEEL:
-					input->mouse.scroll_delta += event.wheel.y;
+					if (!imgui_io.WantCaptureMouse) {
+						input->mouse.scroll_delta += event.wheel.y;
+					}
 					break;
 			}
 		}
 
-		input->window_resolution = canvas_size;
+		input->window_resolution = window_resolution;
 
 		input->mouse.left_button.update(mouse_button_events[SDL_BUTTON_LEFT - 1]);
 		input->mouse.middle_button.update(mouse_button_events[SDL_BUTTON_MIDDLE - 1]);

@@ -214,16 +214,19 @@ int main(int /* argc */, char** /* args */) {
 
 	engine.initialize(&state);
 	while (!quit) {
-		start_imgui_frame();
-
-		/* Hot reloading */
-		hot_reloader.check_hot_reloading(&engine);
-
 		/* Input */
-		platform::read_input(&input, &frame_timer, window_size, resolution);
+		{
+			std::vector<SDL_Event> events = platform::read_events();
+			platform::process_events(&events, &input, &frame_timer, window_size, resolution);
+		}
 
 		/* Update */
 		{
+			/* Hot reloading */
+			hot_reloader.check_hot_reloading(&engine);
+
+			/* Engine update */
+			start_imgui_frame();
 			engine.update(&state, &input, &commands);
 			for (const Command& command : commands.commands()) {
 				switch (command) {

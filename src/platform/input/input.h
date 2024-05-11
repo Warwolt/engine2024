@@ -3,9 +3,11 @@
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
 
+#include <SDL2/SDL_events.h>
 #include <glm/glm.hpp>
 
 #include <stdint.h>
+#include <vector>
 
 namespace platform {
 
@@ -27,6 +29,7 @@ namespace platform {
 		Mouse mouse;
 	};
 
-	void read_input(Input* input, Timer* frame_timer, glm::ivec2 window_size, glm::ivec2 canvas_size);
+	std::vector<SDL_Event> read_events();
+	void process_events(const std::vector<SDL_Event>* events, Input* input, Timer* frame_timer, glm::ivec2 window_size, glm::ivec2 window_resolution);
 
 } // namespace platform

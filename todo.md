@@ -8,7 +8,6 @@ Goal:
   - "Mario maker" style
 
 ## TODO
-- Let ImGui steal mouse input
 - Pick resolution while running
 - Hot reload with ctrl+F5
 - Render level editor canvas (Aseprite style grey checker board)
@@ -18,6 +17,7 @@ Goal:
 ## Doing
 
 ## Done
+- Let ImGui steal mouse and keyboard input
 - Render fonts
 - Resolution aware mouse input
 - Add ImGui
