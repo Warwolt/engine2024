@@ -42,8 +42,8 @@ namespace platform {
 
 	// Origin in upper left corner (e.g. xy-coordinates)
 	// top_left o-----------o
-	//          |            |
-	//          |            |
+	//          |           |
+	//          |           |
 	//          o-----------o bottom_right
 	struct Rect {
 		glm::vec2 top_left;
