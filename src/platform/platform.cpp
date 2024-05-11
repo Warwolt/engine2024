@@ -56,10 +56,9 @@ namespace platform {
 		return true;
 	}
 
-	void deinitialize(SDL_Window* window, SDL_GLContext gl_context) {
+	void deinitialize(SDL_GLContext gl_context) {
 		deinitialize_fonts();
 		SDL_GL_DeleteContext(gl_context);
-		SDL_DestroyWindow(window);
 		SDL_Quit();
 	}
 

@@ -273,6 +273,7 @@ int main(int /* argc */, char** /* args */) {
 	deinit_imgui();
 	engine.deinitialize(&state);
 	platform::free_shader_program(shader_program);
-	platform::deinitialize(window_info.window, gl_context);
+	platform::destroy_window(window_info);
+	platform::deinitialize(gl_context);
 	return 0;
 }

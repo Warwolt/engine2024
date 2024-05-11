@@ -33,4 +33,8 @@ namespace platform {
 		};
 	}
 
+	void destroy_window(WindowInfo window_info) {
+		SDL_DestroyWindow(window_info.window);
+	}
+
 } // namespace platform

@@ -20,5 +20,6 @@ namespace platform {
 	};
 
 	std::optional<WindowInfo> create_window(int widht, int height);
+	void destroy_window(WindowInfo window_info);
 
 } // namespace platform
