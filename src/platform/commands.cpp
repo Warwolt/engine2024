@@ -18,4 +18,12 @@ namespace platform {
 		m_commands.push_back({ .toggle_full_screen = Command::ToggleFullscreen {} });
 	}
 
+	void CommandAPI::change_resolution(int width, int height) {
+		Command::ChangeResolution change_resolution = {
+			.width = width,
+			.height = height,
+		};
+		m_commands.push_back({ .change_resolution = change_resolution });
+	}
+
 } // namespace platform

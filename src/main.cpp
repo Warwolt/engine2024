@@ -222,13 +222,16 @@ int main(int /* argc */, char** /* args */) {
 			/* Engine update */
 			start_imgui_frame();
 			engine.update(&state, &input, &commands);
-			for (const Command& command : commands.commands()) {
-				switch (command.type) {
+			for (const Command& cmd : commands.commands()) {
+				switch (cmd.type) {
 					case CommandType::Quit:
 						quit = true;
 						break;
 					case CommandType::ToggleFullscreen:
 						toggle_fullscreen(&fullscreen_state, window, &resolution, &window_size);
+						break;
+					case CommandType::ChangeResolution:
+						LOG_DEBUG("%d %d", cmd.change_resolution.width, cmd.change_resolution.height);
 						break;
 				}
 			}

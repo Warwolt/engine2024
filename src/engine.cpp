@@ -76,6 +76,10 @@ namespace engine {
 			commands->toggle_fullscreen();
 		}
 
+		if (input->keyboard.key_pressed_now(SDLK_UP)) {
+			commands->change_resolution(640, 480);
+		}
+
 		if (state->show_imgui) {
 			bool show_demo_window = true;
 			ImGui::ShowDemoWindow(&show_demo_window);

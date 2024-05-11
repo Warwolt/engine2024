@@ -7,6 +7,7 @@ namespace platform {
 	enum class CommandType {
 		Quit,
 		ToggleFullscreen,
+		ChangeResolution,
 	};
 
 	union Command {
@@ -19,6 +20,12 @@ namespace platform {
 		struct ToggleFullscreen {
 			CommandType type = CommandType::ToggleFullscreen;
 		} toggle_full_screen;
+
+		struct ChangeResolution {
+			CommandType type = CommandType::ChangeResolution;
+			int width;
+			int height;
+		} change_resolution;
 	};
 
 	class CommandAPI {
@@ -28,6 +35,7 @@ namespace platform {
 
 		void quit();
 		void toggle_fullscreen();
+		void change_resolution(int width, int height);
 
 	private:
 		std::vector<Command> m_commands;
