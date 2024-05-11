@@ -8,7 +8,6 @@ Goal:
   - "Mario maker" style
 
 ## TODO
-- Fix image loading to be RGBA
 - Pick resolution while running
 - Hot reload with ctrl+F5
 - Render level editor canvas (Aseprite style grey checker board)
@@ -16,7 +15,6 @@ Goal:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Remove Renderer::canvas_size
 - Render fonts
 
 ## Done

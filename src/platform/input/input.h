@@ -20,7 +20,7 @@ namespace platform {
 	};
 
 	struct Input {
-		glm::ivec2 window_resolution;
+		glm::vec2 window_resolution;
 		uint64_t delta_ms = 0;
 		bool quit_signal_received = false;
 		Keyboard keyboard;
