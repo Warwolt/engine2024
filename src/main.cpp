@@ -184,29 +184,19 @@ int main(int /* argc */, char** /* args */) {
 					case CommandType::Quit:
 						quit = true;
 						break;
+
 					case CommandType::ToggleFullscreen:
 						platform::toggle_fullscreen(&window_info);
 						break;
+
 					case CommandType::ChangeResolution: {
-						// update resolution
-						window_info.resolution.x = cmd.change_resolution.width;
-						window_info.resolution.y = cmd.change_resolution.height;
-
-						// re-generate canvas
+						int width = cmd.change_resolution.width;
+						int height = cmd.change_resolution.height;
+						platform::change_resolution(&window_info, width, height);
 						platform::free_canvas(canvas);
-						canvas = platform::add_canvas(window_info.resolution.x, window_info.resolution.y);
-
-						if (window_info.is_fullscreen) {
-							// window_info.windowed_pos.x = window_info.resolution.x;
-							// window_info.windowed_pos.y = window_info.resolution.y;
-						}
-						else {
-							window_info.size.x = window_info.resolution.x;
-							window_info.size.y = window_info.resolution.y;
-							SDL_SetWindowSize(window_info.window, window_info.size.x, window_info.size.y);
-						}
-
-					} break;
+						canvas = platform::add_canvas(width, height);
+						break;
+					}
 				}
 			}
 			commands.clear();
@@ -215,15 +205,15 @@ int main(int /* argc */, char** /* args */) {
 		/* Render */
 		{
 			clear_screen();
+			/* Render to canvas */
 			{
-				// Render to canvas
 				set_viewport(0, 0, window_info.resolution.x, window_info.resolution.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, window_info.resolution.x, window_info.resolution.y);
 				engine.render(&renderer, &state);
 				renderer.render_to_canvas(shader_program, canvas);
 			}
+			/* Render canvas to window */
 			{
-				// Render canvas to window
 				set_viewport_to_fit_canvas(window_info.size.x, window_info.size.y, window_info.resolution.x, window_info.resolution.y);
 				set_normalized_device_coordinate_projection(&renderer, shader_program);
 				renderer.draw_texture(canvas.texture, platform::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });

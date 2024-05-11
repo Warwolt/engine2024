@@ -19,5 +19,6 @@ namespace platform {
 	void destroy_window(WindowInfo window_info);
 
 	void toggle_fullscreen(WindowInfo* window_info);
+	void change_resolution(WindowInfo* window_info, int width, int height);
 
 } // namespace platform

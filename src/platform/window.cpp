@@ -1,7 +1,7 @@
 #include <platform/window.h>
 
-#include "window.h"
 #include <platform/assert.h>
+#include <platform/renderer.h>
 
 namespace platform {
 
@@ -70,6 +70,18 @@ namespace platform {
 
 			/* Update windowed size */
 			window_info->size = glm::ivec2 { display_mode.w, display_mode.h };
+		}
+	}
+
+	void change_resolution(WindowInfo* window_info, int width, int height) {
+		// update resolution
+		window_info->resolution.x = width;
+		window_info->resolution.y = height;
+
+		if (!window_info->is_fullscreen) {
+			window_info->size.x = width;
+			window_info->size.y = height;
+			SDL_SetWindowSize(window_info->window, window_info->size.x, window_info->size.y);
 		}
 	}
 
