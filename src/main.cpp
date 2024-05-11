@@ -249,24 +249,12 @@ int main(int /* argc */, char** /* args */) {
 				renderer.draw_rect_fill({ { 0.0f, 0.0f }, resolution }, { 0.0f, 0.5f, 0.5f, 1.0f });
 				engine.render(&renderer, &state);
 
+				// render atlas
+				renderer.draw_texture(arial_font.atlas, { { 0.0f, 0.0f }, { arial_font.atlas.width, arial_font.atlas.height } });
+
 				// test font texture
-				platform::render_character(&renderer, &arial_font, 'H', { 100.0f, 100.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
-
-				// render "hello"
-				// if (0) {
-				// 	// params
-				// 	// const char* text = "hello world!";
-				// 	const char* text = "h";
-				// 	float x = 100;
-				// 	float y = 100;
-
-				// 	glm::vec2 pen = { x, y };
-
-				// 	for (char ch = *text; ch != '\0'; ch = *(++text)) {
-				// 		platform::Glyph& glyph = arial_font.glyphs[ch];
-				// 	}
-				// 	return 0;
-				// }
+				platform::render_text(&renderer, &arial_font, "Lao gan ma is tasty", { 500.0f, 100.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
+				platform::render_text(&renderer, &arial_font, "Lao gan ma is tasty", { 500.0f, 100.0f + arial_font.line_spacing }, { 0.0f, 1.0f, 0.0f, 1.0f });
 
 				renderer.render_to_canvas(shader_program, canvas);
 			}

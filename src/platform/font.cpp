@@ -41,21 +41,24 @@ namespace platform {
 		}
 
 		/* Set font size */
-		int font_upscale = 64;
-		FT_Set_Char_Size(face, 0, font_size * font_upscale, 96, 96);
+		int pixels_per_point = 64;
+		FT_Set_Char_Size(face, 0, font_size * pixels_per_point, 96, 96);
 
 		/* Calculate atlas dimensions to be a square */
-		uint32_t glyph_height = (1 + (face->size->metrics.height / font_upscale));
+		uint32_t glyph_height = (1 + (face->size->metrics.height / pixels_per_point));
 		uint32_t glyph_width = glyph_height / 2; // assume 2:1 ratio
 		uint32_t columns = (uint32_t)roundf(sqrtf((float)Font::NUM_GLYPHS * (float)glyph_height / (float)glyph_width));
 		uint32_t rows = (uint32_t)roundf((float)Font::NUM_GLYPHS / (float)columns);
 		uint32_t texture_width = columns * glyph_width;
 		uint32_t texture_height = rows * glyph_height;
 
+		/* Save line spacing */
+		font.line_spacing = face->size->metrics.height / pixels_per_point;
+
 		/* Compute glyphs */
 		std::vector<uint8_t> glyph_pixels = std::vector<uint8_t>(texture_width * texture_height);
 		glm::ivec2 pen = { 0, 1 };
-		for (int i = '!'; i < Font::NUM_GLYPHS; i++) {
+		for (int i = ' '; i < Font::NUM_GLYPHS; i++) {
 			// load character
 			FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
 			FT_Bitmap* bmp = &face->glyph->bitmap;
@@ -73,13 +76,13 @@ namespace platform {
 			font.glyphs[i].atlas_pos = pen;
 			font.glyphs[i].size = { bmp->width, bmp->rows };
 			font.glyphs[i].bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top };
-			font.glyphs[i].advance = face->glyph->advance.x / font_upscale;
+			font.glyphs[i].advance = face->glyph->advance.x / pixels_per_point;
 
 			// move pen
 			pen.x += bmp->width + 1;
 			if (pen.x + bmp->width >= texture_width) {
 				pen.x = 0;
-				pen.y += face->size->metrics.height / font_upscale + 2;
+				pen.y += face->size->metrics.height / pixels_per_point + 2;
 			}
 		}
 		FT_Done_Face(face);
@@ -102,19 +105,40 @@ namespace platform {
 
 	void render_character(Renderer* renderer, const Font* font, char character, glm::vec2 pos, glm::vec4 color) {
 		const platform::Glyph& glyph = font->glyphs[character];
+
 		platform::Rect quad = {
 			.top_left = { pos.x, pos.y },
 			.bottom_right = { pos.x + glyph.size.x, pos.y + glyph.size.y }
 		};
+
 		float u0 = glyph.atlas_pos.x / (float)font->atlas.width;
 		float v0 = 1 - (glyph.atlas_pos.y + glyph.size.y) / (float)font->atlas.height;
 		float u1 = u0 + glyph.size.x / (float)font->atlas.width;
 		float v1 = v0 + glyph.size.y / (float)font->atlas.height;
+
 		platform::FlipRect uv = {
 			.bottom_left = { u0, v0 },
 			.top_right = { u1, v1 }
 		};
+
 		renderer->draw_texture_clipped_with_color(font->atlas, quad, uv, color);
+	}
+
+	void render_text(Renderer* renderer, const Font* font, const char* text, glm::vec2 pos, glm::vec4 color) {
+		glm::vec2 pen = pos;
+		for (char character = *text; character != '\0'; character = *(++text)) {
+			const platform::Glyph& glyph = font->glyphs[character];
+
+			if (character != ' ') {
+				glm::vec2 glyph_pos = glm::vec2 {
+					pen.x,
+					pen.y - glyph.bearing.y,
+				};
+				render_character(renderer, font, character, glyph_pos, color);
+			}
+
+			pen.x += glyph.advance;
+		}
 	}
 
 } // namespace platform
