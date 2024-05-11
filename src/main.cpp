@@ -68,42 +68,6 @@ void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgr
 	renderer->set_projection(shader_program, projection);
 }
 
-void toggle_fullscreen(SDL_Window* window, WindowInfo* window_info) {
-	int display_index = SDL_GetWindowDisplayIndex(window);
-
-	SDL_DisplayMode display_mode;
-	SDL_GetCurrentDisplayMode(display_index, &display_mode);
-
-	SDL_Rect display_bound;
-	SDL_GetDisplayBounds(display_index, &display_bound);
-
-	if (window_info->is_fullscreen) {
-		window_info->is_fullscreen = false;
-
-		/* Toggle windowed */
-		SDL_SetWindowBordered(window, SDL_TRUE);
-		SDL_SetWindowPosition(window, window_info->windowed_pos.x, window_info->windowed_pos.y);
-		SDL_SetWindowSize(window, window_info->resolution.x, window_info->resolution.y);
-
-		/* Update window size */
-		window_info->size = window_info->resolution;
-	}
-	else {
-		window_info->is_fullscreen = true;
-
-		/* Save current windowed position */
-		SDL_GetWindowPosition(window, &window_info->windowed_pos.x, &window_info->windowed_pos.y);
-
-		/* Toggle fullscreen */
-		SDL_SetWindowBordered(window, SDL_FALSE);
-		SDL_SetWindowPosition(window, display_bound.x, display_bound.y);
-		SDL_SetWindowSize(window, display_mode.w, display_mode.h);
-
-		/* Update windowed size */
-		window_info->size = glm::ivec2 { display_mode.w, display_mode.h };
-	}
-}
-
 void init_imgui(SDL_Window* window, SDL_GLContext gl_context) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -221,7 +185,7 @@ int main(int /* argc */, char** /* args */) {
 						quit = true;
 						break;
 					case CommandType::ToggleFullscreen:
-						toggle_fullscreen(window_info.window, &window_info);
+						platform::toggle_fullscreen(&window_info);
 						break;
 					case CommandType::ChangeResolution: {
 						// update resolution

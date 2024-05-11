@@ -37,4 +37,40 @@ namespace platform {
 		SDL_DestroyWindow(window_info.window);
 	}
 
+	void toggle_fullscreen(WindowInfo* window_info) {
+		int display_index = SDL_GetWindowDisplayIndex(window_info->window);
+
+		SDL_DisplayMode display_mode;
+		SDL_GetCurrentDisplayMode(display_index, &display_mode);
+
+		SDL_Rect display_bound;
+		SDL_GetDisplayBounds(display_index, &display_bound);
+
+		if (window_info->is_fullscreen) {
+			window_info->is_fullscreen = false;
+
+			/* Toggle windowed */
+			SDL_SetWindowBordered(window_info->window, SDL_TRUE);
+			SDL_SetWindowPosition(window_info->window, window_info->windowed_pos.x, window_info->windowed_pos.y);
+			SDL_SetWindowSize(window_info->window, window_info->resolution.x, window_info->resolution.y);
+
+			/* Update window size */
+			window_info->size = window_info->resolution;
+		}
+		else {
+			window_info->is_fullscreen = true;
+
+			/* Save current windowed position */
+			SDL_GetWindowPosition(window_info->window, &window_info->windowed_pos.x, &window_info->windowed_pos.y);
+
+			/* Toggle fullscreen */
+			SDL_SetWindowBordered(window_info->window, SDL_FALSE);
+			SDL_SetWindowPosition(window_info->window, display_bound.x, display_bound.y);
+			SDL_SetWindowSize(window_info->window, display_mode.w, display_mode.h);
+
+			/* Update windowed size */
+			window_info->size = glm::ivec2 { display_mode.w, display_mode.h };
+		}
+	}
+
 } // namespace platform
