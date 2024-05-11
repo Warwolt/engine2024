@@ -363,6 +363,11 @@ namespace platform {
 	}
 
 	void Renderer::draw_texture_clipped(Texture texture, Rect quad, FlipRect uv) {
+		glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
+		draw_texture_clipped_with_color(texture, quad, uv, white);
+	}
+
+	void Renderer::draw_texture_clipped_with_color(Texture texture, Rect quad, FlipRect uv, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
@@ -381,17 +386,15 @@ namespace platform {
 		float u1 = uv.top_right.x;
 		float v1 = uv.top_right.y;
 
-		glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
-
 		// first triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = white, .uv = { u0, v1 } });
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = white, .uv = { u0, v0 } });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = white, .uv = { u1, v1 } });
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color, .uv = { u0, v1 } });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { u0, v0 } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { u1, v1 } });
 
 		// second triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = white, .uv = { u0, v0 } });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = white, .uv = { u1, v1 } });
-		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = white, .uv = { u1, v0 } });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { u0, v0 } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { u1, v1 } });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { u1, v0 } });
 
 		// sections
 		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture });

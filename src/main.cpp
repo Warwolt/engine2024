@@ -244,9 +244,9 @@ int main(int /* argc */, char** /* args */) {
 			clear_screen();
 			{
 				// Render to canvas
-				glClear(GL_COLOR_BUFFER_BIT);
 				set_viewport(0, 0, resolution.x, resolution.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
+				renderer.draw_rect_fill({ { 0.0f, 0.0f }, resolution }, { 0.0f, 0.5f, 0.5f, 1.0f });
 				engine.render(&renderer, &state);
 
 				// test font texture
@@ -257,11 +257,16 @@ int main(int /* argc */, char** /* args */) {
 					.top_left = { x, y },
 					.bottom_right = { x + glyph.size.x, y + glyph.size.y }
 				};
+				float u0 = glyph.atlas_pos.x / (float)arial_font.atlas.width;
+				float v0 = 1 - (glyph.atlas_pos.y + glyph.size.y) / (float)arial_font.atlas.height;
+				float u1 = u0 + glyph.size.x / (float)arial_font.atlas.width;
+				float v1 = v0 + glyph.size.y / (float)arial_font.atlas.height;
 				platform::FlipRect uv = {
-					.bottom_left = { 0.1394f, 0.6645f },
-					.top_right = { 0.1394f + 0.0673f, 0.6645f + 0.07692f }
+					.bottom_left = { u0, v0 },
+					.top_right = { u1, v1 }
 				};
-				renderer.draw_texture_clipped(arial_font.atlas, quad, uv);
+				glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f };
+				renderer.draw_texture_clipped_with_color(arial_font.atlas, quad, uv, color);
 
 				// render "hello"
 				// if (0) {
