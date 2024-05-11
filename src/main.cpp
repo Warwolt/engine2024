@@ -13,6 +13,7 @@
 #include <platform/logging.h>
 #include <platform/platform.h>
 #include <platform/renderer.h>
+#include <platform/window.h>
 #include <util.h>
 
 #include <GL/glu.h>
@@ -40,16 +41,7 @@ using LoadLibraryError = platform::LoadLibraryError;
 using Renderer = platform::Renderer;
 using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
-
-// TODO return this from platform::create_window
-// Move to "platform/window.h"?
-// Could do the toggle_fullscreen and change_resolution there too
-struct WindowInfo {
-	glm::ivec2 size;
-	glm::ivec2 resolution;
-	glm::ivec2 windowed_pos;
-	bool is_fullscreen = false;
-};
+using WindowInfo = platform::WindowInfo;
 
 const char* LIBRARY_NAME = "GameEngine2024";
 
@@ -154,8 +146,6 @@ void start_imgui_frame() {
 }
 
 int main(int /* argc */, char** /* args */) {
-	WindowInfo window_info = { .size = { 800, 600 }, .resolution = { 800, 600 } };
-
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
 
@@ -165,14 +155,15 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	SDL_Window* window = platform::create_window(window_info.resolution.x, window_info.resolution.y);
-	ASSERT(window, "platform::create_window() returned null");
+	WindowInfo window_info = util::unwrap(platform::create_window(800, 600), [] {
+		ABORT("platform::create_window failed");
+	});
 
 	/* Create OpenGL context */
-	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window), [](CreateGLContextError error) {
+	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window_info.window), [](CreateGLContextError error) {
 		ABORT("platform::create_gl_context() returned %s", util::enum_to_string(error));
 	});
-	init_imgui(window, gl_context);
+	init_imgui(window_info.window, gl_context);
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
@@ -230,7 +221,7 @@ int main(int /* argc */, char** /* args */) {
 						quit = true;
 						break;
 					case CommandType::ToggleFullscreen:
-						toggle_fullscreen(window, &window_info);
+						toggle_fullscreen(window_info.window, &window_info);
 						break;
 					case CommandType::ChangeResolution: {
 						// update resolution
@@ -242,13 +233,13 @@ int main(int /* argc */, char** /* args */) {
 						canvas = platform::add_canvas(window_info.resolution.x, window_info.resolution.y);
 
 						if (window_info.is_fullscreen) {
-							window_info.windowed_pos.x = window_info.resolution.x;
-							window_info.windowed_pos.y = window_info.resolution.y;
+							// window_info.windowed_pos.x = window_info.resolution.x;
+							// window_info.windowed_pos.y = window_info.resolution.y;
 						}
 						else {
 							window_info.size.x = window_info.resolution.x;
 							window_info.size.y = window_info.resolution.y;
-							SDL_SetWindowSize(window, window_info.size.x, window_info.size.y);
+							SDL_SetWindowSize(window_info.window, window_info.size.x, window_info.size.y);
 						}
 
 					} break;
@@ -275,13 +266,13 @@ int main(int /* argc */, char** /* args */) {
 				renderer.render(shader_program);
 			}
 			render_imgui();
-			swap_buffer(window);
+			swap_buffer(window_info.window);
 		}
 	}
 
 	deinit_imgui();
 	engine.deinitialize(&state);
 	platform::free_shader_program(shader_program);
-	platform::deinitialize(window, gl_context);
+	platform::deinitialize(window_info.window, gl_context);
 	return 0;
 }

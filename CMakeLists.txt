@@ -54,6 +54,7 @@ set(PLATFORM_SRC
     src/platform/platform.cpp
     src/platform/renderer.cpp
     src/platform/texture.cpp
+    src/platform/window.cpp
 )
 
 set(TEST_SRC

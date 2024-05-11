@@ -63,22 +63,6 @@ namespace platform {
 		SDL_Quit();
 	}
 
-	SDL_Window* create_window(int width, int height) {
-		/* Create window */
-		SDL_Window* window = SDL_CreateWindow(
-			"Game Engine 2024",
-			SDL_WINDOWPOS_CENTERED,
-			SDL_WINDOWPOS_CENTERED,
-			width,
-			height,
-			SDL_WINDOW_OPENGL
-		);
-		if (!window) {
-			LOG_ERROR("SDL_CreateWindow failed: %s", SDL_GetError());
-		}
-		return window;
-	}
-
 	std::expected<SDL_GLContext, CreateGLContextError> create_gl_context(SDL_Window* window) {
 		/* Create GL Context */
 		SDL_GLContext gl_context = SDL_GL_CreateContext(window);
