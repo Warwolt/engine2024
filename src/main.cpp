@@ -191,8 +191,7 @@ int main(int /* argc */, char** /* args */) {
 	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
-	engine.set_logger(plog::verbose, plog::get());
-	engine.set_imgui_context(ImGui::GetCurrentContext());
+	platform::on_engine_library_loaded(&engine);
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
@@ -205,12 +204,6 @@ int main(int /* argc */, char** /* args */) {
 	glm::ivec2 window_size = { resolution.x, resolution.y };
 	Canvas canvas = platform::add_canvas(resolution.x, resolution.y);
 	FullscreenState fullscreen_state;
-
-	// add test font
-	const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-	platform::Font arial_font = util::unwrap(platform::add_font(arial_font_path, 16), [&] {
-		ABORT("Failed to load font \"%s\"", arial_font_path);
-	});
 
 	engine.initialize(&state);
 	while (!quit) {
@@ -249,13 +242,6 @@ int main(int /* argc */, char** /* args */) {
 				set_viewport(0, 0, resolution.x, resolution.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
 				engine.render(&renderer, &state);
-
-				// test font texture
-				glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
-				glm::vec2 text_pos = { 300.0f, 100.0f };
-				platform::render_text(&renderer, &arial_font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
-				platform::render_text(&renderer, &arial_font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, arial_font.line_spacing }, text_color);
-
 				renderer.render_to_canvas(shader_program, canvas);
 			}
 			{
