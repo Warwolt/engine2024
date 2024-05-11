@@ -8,6 +8,38 @@
 
 namespace engine {
 
+	static void draw_imgui(ImGuiState* state, platform::CommandAPI* commands) {
+		struct Resolution {
+			glm::ivec2 value;
+			const char* str;
+		};
+		const static Resolution resolutions[] = {
+			{ { 800, 600 }, "800x600" },
+			{ { 640, 480 }, "640x480" },
+
+		};
+
+		const char* combo_preview_value = resolutions[state->resolution_index].str;
+		if (ImGui::BeginCombo("Resolution", combo_preview_value, 0)) {
+			for (int n = 0; n < IM_ARRAYSIZE(resolutions); n++) {
+				const bool current_is_selected = (state->resolution_index == n);
+				if (ImGui::Selectable(resolutions[n].str, current_is_selected)) {
+					state->resolution_index = n;
+				}
+
+				if (current_is_selected) {
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		if (ImGui::Button("Change resolution")) {
+			glm::ivec2 resolution = resolutions[state->resolution_index].value;
+			commands->change_resolution(resolution.x, resolution.y);
+		}
+	}
+
 	void set_logger(plog::Severity severity, plog::IAppender* appender) {
 		plog::init(severity, appender);
 	}
@@ -77,33 +109,7 @@ namespace engine {
 		}
 
 		if (state->show_imgui) {
-			glm::ivec2 resolutions[] = {
-				{ 800, 600 },
-				{ 640, 480 },
-			};
-			const char* items[] = {
-				"800x600",
-				"640x480",
-			};
-			static int item_current_idx = 0;
-			const char* combo_preview_value = items[item_current_idx];
-			if (ImGui::BeginCombo("Resolution", combo_preview_value, 0)) {
-				for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
-					const bool current_is_selected = (item_current_idx == n);
-					if (ImGui::Selectable(items[n], current_is_selected)) {
-						item_current_idx = n;
-					}
-
-					if (current_is_selected) {
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-				ImGui::EndCombo();
-			}
-			if (ImGui::Button("Change resolution")) {
-				glm::ivec2 resolution = resolutions[item_current_idx];
-				commands->change_resolution(resolution.x, resolution.y);
-			}
+			draw_imgui(&state->imgui_state, commands);
 		}
 	}
 

@@ -15,14 +15,20 @@ typedef struct FT_LibraryRec_* FT_Library;
 
 namespace engine {
 
+	struct ImGuiState {
+		int resolution_index = 0;
+	};
+
 	struct State {
 		std::unordered_map<std::string, platform::Texture> textures;
 		std::unordered_map<std::string, platform::Font> fonts;
 
-		bool show_imgui = true;
+		bool show_imgui = false;
 		glm::vec2 circle_pos = { -1.0f, -1.0f };
 		int circle_radius = 127;
 		glm::vec2 window_resolution;
+
+		ImGuiState imgui_state;
 	};
 
 	// global state wiring
