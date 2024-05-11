@@ -41,10 +41,14 @@ using Renderer = platform::Renderer;
 using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 
-struct WindowState {
+// TODO return this from platform::create_window
+// Move to "platform/window.h"?
+// Could do the toggle_fullscreen and change_resolution there too
+struct WindowInfo {
+	glm::ivec2 size;
+	glm::ivec2 resolution;
+	glm::ivec2 windowed_pos;
 	bool is_fullscreen = false;
-	int last_windowed_x = 0;
-	int last_windowed_y = 0;
 };
 
 const char* LIBRARY_NAME = "GameEngine2024";
@@ -72,7 +76,7 @@ void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgr
 	renderer->set_projection(shader_program, projection);
 }
 
-void toggle_fullscreen(WindowState* state, SDL_Window* window, glm::ivec2* resolution, glm::ivec2* window_size) {
+void toggle_fullscreen(SDL_Window* window, WindowInfo* window_info) {
 	int display_index = SDL_GetWindowDisplayIndex(window);
 
 	SDL_DisplayMode display_mode;
@@ -81,22 +85,22 @@ void toggle_fullscreen(WindowState* state, SDL_Window* window, glm::ivec2* resol
 	SDL_Rect display_bound;
 	SDL_GetDisplayBounds(display_index, &display_bound);
 
-	if (state->is_fullscreen) {
-		state->is_fullscreen = false;
+	if (window_info->is_fullscreen) {
+		window_info->is_fullscreen = false;
 
 		/* Toggle windowed */
 		SDL_SetWindowBordered(window, SDL_TRUE);
-		SDL_SetWindowPosition(window, state->last_windowed_x, state->last_windowed_y);
-		SDL_SetWindowSize(window, resolution->x, resolution->y);
+		SDL_SetWindowPosition(window, window_info->windowed_pos.x, window_info->windowed_pos.y);
+		SDL_SetWindowSize(window, window_info->resolution.x, window_info->resolution.y);
 
 		/* Update window size */
-		*window_size = *resolution;
+		window_info->size = window_info->resolution;
 	}
 	else {
-		state->is_fullscreen = true;
+		window_info->is_fullscreen = true;
 
 		/* Save current windowed position */
-		SDL_GetWindowPosition(window, &state->last_windowed_x, &state->last_windowed_y);
+		SDL_GetWindowPosition(window, &window_info->windowed_pos.x, &window_info->windowed_pos.y);
 
 		/* Toggle fullscreen */
 		SDL_SetWindowBordered(window, SDL_FALSE);
@@ -104,7 +108,7 @@ void toggle_fullscreen(WindowState* state, SDL_Window* window, glm::ivec2* resol
 		SDL_SetWindowSize(window, display_mode.w, display_mode.h);
 
 		/* Update windowed size */
-		*window_size = glm::ivec2 { display_mode.w, display_mode.h };
+		window_info->size = glm::ivec2 { display_mode.w, display_mode.h };
 	}
 }
 
@@ -150,7 +154,7 @@ void start_imgui_frame() {
 }
 
 int main(int /* argc */, char** /* args */) {
-	glm::ivec2 resolution = { 800, 600 };
+	WindowInfo window_info = { .size = { 800, 600 }, .resolution = { 800, 600 } };
 
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -161,7 +165,7 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	SDL_Window* window = platform::create_window(resolution.x, resolution.y);
+	SDL_Window* window = platform::create_window(window_info.resolution.x, window_info.resolution.y);
 	ASSERT(window, "platform::create_window() returned null");
 
 	/* Create OpenGL context */
@@ -202,16 +206,14 @@ int main(int /* argc */, char** /* args */) {
 	engine::State state;
 
 	bool quit = false;
-	glm::ivec2 window_size = { resolution.x, resolution.y };
-	Canvas canvas = platform::add_canvas(resolution.x, resolution.y);
-	WindowState window_state;
+	Canvas canvas = platform::add_canvas(window_info.resolution.x, window_info.resolution.y);
 
 	engine.initialize(&state);
 	while (!quit) {
 		/* Input */
 		{
 			std::vector<SDL_Event> events = platform::read_events();
-			platform::process_events(&events, &input, &frame_timer, window_size, resolution);
+			platform::process_events(&events, &input, &frame_timer, window_info.size, window_info.resolution);
 		}
 
 		/* Update */
@@ -228,25 +230,25 @@ int main(int /* argc */, char** /* args */) {
 						quit = true;
 						break;
 					case CommandType::ToggleFullscreen:
-						toggle_fullscreen(&window_state, window, &resolution, &window_size);
+						toggle_fullscreen(window, &window_info);
 						break;
 					case CommandType::ChangeResolution: {
 						// update resolution
-						resolution.x = cmd.change_resolution.width;
-						resolution.y = cmd.change_resolution.height;
+						window_info.resolution.x = cmd.change_resolution.width;
+						window_info.resolution.y = cmd.change_resolution.height;
 
 						// re-generate canvas
 						platform::free_canvas(canvas);
-						canvas = platform::add_canvas(resolution.x, resolution.y);
+						canvas = platform::add_canvas(window_info.resolution.x, window_info.resolution.y);
 
-						if (window_state.is_fullscreen) {
-							window_state.last_windowed_x = resolution.x;
-							window_state.last_windowed_y = resolution.y;
+						if (window_info.is_fullscreen) {
+							window_info.windowed_pos.x = window_info.resolution.x;
+							window_info.windowed_pos.y = window_info.resolution.y;
 						}
 						else {
-							window_size.x = resolution.x;
-							window_size.y = resolution.y;
-							SDL_SetWindowSize(window, window_size.x, window_size.y);
+							window_info.size.x = window_info.resolution.x;
+							window_info.size.y = window_info.resolution.y;
+							SDL_SetWindowSize(window, window_info.size.x, window_info.size.y);
 						}
 
 					} break;
@@ -260,14 +262,14 @@ int main(int /* argc */, char** /* args */) {
 			clear_screen();
 			{
 				// Render to canvas
-				set_viewport(0, 0, resolution.x, resolution.y);
-				set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
+				set_viewport(0, 0, window_info.resolution.x, window_info.resolution.y);
+				set_pixel_coordinate_projection(&renderer, shader_program, window_info.resolution.x, window_info.resolution.y);
 				engine.render(&renderer, &state);
 				renderer.render_to_canvas(shader_program, canvas);
 			}
 			{
 				// Render canvas to window
-				set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
+				set_viewport_to_fit_canvas(window_info.size.x, window_info.size.y, window_info.resolution.x, window_info.resolution.y);
 				set_normalized_device_coordinate_projection(&renderer, shader_program);
 				renderer.draw_texture(canvas.texture, platform::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });
 				renderer.render(shader_program);

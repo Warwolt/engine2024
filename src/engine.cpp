@@ -80,6 +80,10 @@ namespace engine {
 			commands->change_resolution(640, 480);
 		}
 
+		if (input->keyboard.key_pressed_now(SDLK_DOWN)) {
+			commands->change_resolution(800, 600);
+		}
+
 		if (state->show_imgui) {
 			bool show_demo_window = true;
 			ImGui::ShowDemoWindow(&show_demo_window);
