@@ -2,8 +2,8 @@
 
 #include <platform/platform.h>
 
+#include <platform/font.h>
 #include <platform/logging.h>
-
 namespace {
 	plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
 		switch (severity) {
@@ -47,10 +47,17 @@ namespace platform {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
+		/* Initialize fonts */
+		if (!initialize_fonts()) {
+			LOG_ERROR("initialize_fonts failed");
+			return false;
+		}
+
 		return true;
 	}
 
 	void deinitialize(SDL_Window* window, SDL_GLContext gl_context) {
+		deinitialize_fonts();
 		SDL_GL_DeleteContext(gl_context);
 		SDL_DestroyWindow(window);
 		SDL_Quit();

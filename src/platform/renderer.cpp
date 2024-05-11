@@ -148,13 +148,12 @@ namespace platform {
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D); // is this really needed?
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 		glBindTexture(GL_TEXTURE_2D, NULL);
 		return Texture { texture, width, height };
@@ -176,7 +175,7 @@ namespace platform {
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -206,10 +205,9 @@ namespace platform {
 		glDeleteTextures(1, &canvas.texture.id);
 	}
 
-	Renderer::Renderer(SDL_GLContext /* gl_context */, int canvas_width, int canvas_height) {
-		unsigned char data[] = { 0xFF, 0xFF, 0xFF };
+	Renderer::Renderer(SDL_GLContext /* gl_context */) {
+		unsigned char data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
 		m_white_texture = add_texture(data, 1, 1);
-		m_canvas_size = glm::vec2 { (float)canvas_width, (float)canvas_height };
 	}
 
 	void Renderer::set_projection(ShaderProgram shader_program, glm::mat4 projection) {
@@ -218,16 +216,10 @@ namespace platform {
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
 	}
 
-	void Renderer::set_canvas_size(float width, float height) {
-		m_canvas_size = glm::vec2 { width, height };
-	}
-
-	glm::vec2 Renderer::canvas_size() const {
-		return m_canvas_size;
-	}
-
 	void Renderer::render_to_canvas(ShaderProgram shader_program, Canvas canvas) {
 		glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 		render(shader_program);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
@@ -271,15 +263,15 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture });
 	}
 
-	void Renderer::draw_rect(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
+	void Renderer::draw_rect(Rect quad, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
 		// (x0, y1) ---- (x1, y1)
-		float x0 = top_left.x;
-		float y0 = top_left.y;
-		float x1 = bottom_right.x;
-		float y1 = bottom_right.y;
+		float x0 = quad.top_left.x;
+		float y0 = quad.top_left.y;
+		float x1 = quad.bottom_right.x;
+		float y1 = quad.bottom_right.y;
 
 		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
 		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color });
@@ -289,15 +281,15 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture });
 	}
 
-	void Renderer::draw_rect_fill(glm::vec2 top_left, glm::vec2 bottom_right, glm::vec4 color) {
+	void Renderer::draw_rect_fill(Rect quad, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
 		// (x0, y1) ---- (x1, y1)
-		float x0 = top_left.x;
-		float y0 = top_left.y;
-		float x1 = bottom_right.x;
-		float y1 = bottom_right.y;
+		float x0 = quad.top_left.x;
+		float y0 = quad.top_left.y;
+		float x1 = quad.bottom_right.x;
+		float y1 = quad.bottom_right.y;
 
 		// first triangle
 		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color });
@@ -361,27 +353,47 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture });
 	}
 
-	void Renderer::draw_texture(glm::vec2 top_left, glm::vec2 bottom_right, Texture texture) {
+	void Renderer::draw_texture(Texture texture, Rect quad) {
+		FlipRect uv = {
+			.bottom_left = { 0.0f, 0.0f },
+			.top_right = { 1.0f, 1.0f }
+		};
+		draw_texture_clipped(texture, quad, uv);
+	}
+
+	void Renderer::draw_texture_clipped(Texture texture, Rect quad, FlipRect uv) {
+		glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
+		draw_texture_clipped_with_color(texture, quad, uv, white);
+	}
+
+	void Renderer::draw_texture_clipped_with_color(Texture texture, Rect quad, FlipRect uv, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
 		// (x0, y1) ---- (x1, y1)
-		float x0 = top_left.x;
-		float y0 = top_left.y;
-		float x1 = bottom_right.x;
-		float y1 = bottom_right.y;
+		float x0 = quad.top_left.x;
+		float y0 = quad.top_left.y;
+		float x1 = quad.bottom_right.x;
+		float y1 = quad.bottom_right.y;
 
-		glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
+		// (u0, v1) ---- (u1, v1)
+		//     |            |
+		//     |            |
+		// (u0, v0) ---- (u1, v0)
+		float u0 = uv.bottom_left.x;
+		float v0 = uv.bottom_left.y;
+		float u1 = uv.top_right.x;
+		float v1 = uv.top_right.y;
 
 		// first triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = white, .uv = { 0.0f, 1.0f } });
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } });
+		m_vertices.push_back(Vertex { .pos = { x0, y0 }, .color = color, .uv = { u0, v1 } });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { u0, v0 } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { u1, v1 } });
 
 		// second triangle
-		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = white, .uv = { 0.0f, 0.0f } });
-		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = white, .uv = { 1.0f, 1.0f } });
-		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = white, .uv = { 1.0f, 0.0f } });
+		m_vertices.push_back(Vertex { .pos = { x0, y1 }, .color = color, .uv = { u0, v0 } });
+		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color, .uv = { u1, v1 } });
+		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { u1, v0 } });
 
 		// sections
 		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture });

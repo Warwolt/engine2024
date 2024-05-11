@@ -14,8 +14,9 @@ namespace engine {
 	struct State {
 		bool show_imgui = false;
 		platform::Texture texture;
-		glm::ivec2 circle_pos = { -1, -1 };
+		glm::vec2 circle_pos = { -1.0f, -1.0f };
 		int circle_radius = 127;
+		glm::vec2 window_resolution;
 	};
 
 	extern "C" __declspec(dllexport) void set_logger(plog::Severity severity, plog::IAppender* appender);

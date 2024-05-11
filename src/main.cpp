@@ -1,9 +1,11 @@
 #include <GL/glew.h>
+#include <ft2build.h>
 
 #include <engine.h>
 #include <platform/assert.h>
 #include <platform/commands.h>
 #include <platform/file.h>
+#include <platform/font.h>
 #include <platform/image.h>
 #include <platform/input/input.h>
 #include <platform/input/timing.h>
@@ -16,9 +18,9 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <freetype/freetype.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp> // glm::ortho
-
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/imgui.h>
@@ -37,8 +39,6 @@ using LoadLibraryError = platform::LoadLibraryError;
 using Renderer = platform::Renderer;
 using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
-using Vertex = platform::Vertex;
-using VertexSection = platform::VertexSection;
 
 struct FullscreenState {
 	bool is_fullscreen = false;
@@ -180,7 +180,7 @@ int main(int /* argc */, char** /* args */) {
 	});
 
 	/* Initialize Renderer */
-	Renderer renderer = Renderer(gl_context, resolution.x, resolution.y);
+	Renderer renderer = Renderer(gl_context);
 	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
@@ -205,6 +205,12 @@ int main(int /* argc */, char** /* args */) {
 	glm::ivec2 window_size = { resolution.x, resolution.y };
 	Canvas canvas = platform::add_canvas(resolution.x, resolution.y);
 	FullscreenState fullscreen_state;
+
+	// add test font
+	const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
+	platform::Font arial_font = util::unwrap(platform::add_font(arial_font_path, 16), [&] {
+		ABORT("Failed to load font \"%s\"", arial_font_path);
+	});
 
 	engine.initialize(&state);
 	while (!quit) {
@@ -240,13 +246,20 @@ int main(int /* argc */, char** /* args */) {
 				set_viewport(0, 0, resolution.x, resolution.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
 				engine.render(&renderer, &state);
+
+				// test font texture
+				glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
+				glm::vec2 text_pos = { 300.0f, 100.0f };
+				platform::render_text(&renderer, &arial_font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
+				platform::render_text(&renderer, &arial_font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, arial_font.line_spacing }, text_color);
+
 				renderer.render_to_canvas(shader_program, canvas);
 			}
 			{
 				// Render canvas to window
 				set_viewport_to_fit_canvas(window_size.x, window_size.y, resolution.x, resolution.y);
 				set_normalized_device_coordinate_projection(&renderer, shader_program);
-				renderer.draw_texture({ -1.0f, 1.0f }, { 1.0f, -1.0f }, canvas.texture);
+				renderer.draw_texture(canvas.texture, platform::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });
 				renderer.render(shader_program);
 			}
 			render_imgui();
