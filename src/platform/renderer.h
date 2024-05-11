@@ -41,7 +41,7 @@ namespace platform {
 	};
 
 	// Origin in upper left corner (e.g. xy-coordinates)
-	// top_left o------------o
+	// top_left o-----------o
 	//          |            |
 	//          |            |
 	//          o-----------o bottom_right
