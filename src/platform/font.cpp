@@ -93,10 +93,11 @@ namespace platform {
 		for (uint32_t y = 0; y < texture_height; y++) {
 			uint32_t inv_y = (texture_height - 1) - y;
 			for (uint32_t x = 0; x < texture_width; x++) {
-				glyph_rgb[inv_y * texture_width + x].r |= glyph_pixels[y * texture_width + x];
-				glyph_rgb[inv_y * texture_width + x].g |= glyph_pixels[y * texture_width + x];
-				glyph_rgb[inv_y * texture_width + x].b |= glyph_pixels[y * texture_width + x];
-				glyph_rgb[inv_y * texture_width + x].a |= glyph_pixels[y * texture_width + x];
+				uint8_t alpha = glyph_pixels[y * texture_width + x];
+				glyph_rgb[inv_y * texture_width + x].r = 0xFF;
+				glyph_rgb[inv_y * texture_width + x].g = 0xFF;
+				glyph_rgb[inv_y * texture_width + x].b = 0xFF;
+				glyph_rgb[inv_y * texture_width + x].a = (uint8_t)std::min(std::roundf(alpha * 1.3f), 255.0f);
 			}
 		}
 
