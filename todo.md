@@ -8,7 +8,6 @@ Goal:
   - "Mario maker" style
 
 ## TODO
-- Let ImGui steal mouse input
 - Pick resolution while running
 - Hot reload with ctrl+F5
 - Render level editor canvas (Aseprite style grey checker board)
@@ -16,6 +15,7 @@ Goal:
   - https://v8.dev/docs/embed
 
 ## Doing
+- Let ImGui steal mouse input
 
 ## Done
 - Render fonts
