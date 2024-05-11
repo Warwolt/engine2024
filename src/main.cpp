@@ -41,7 +41,7 @@ using Renderer = platform::Renderer;
 using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 
-struct FullscreenState {
+struct WindowState {
 	bool is_fullscreen = false;
 	int last_windowed_x = 0;
 	int last_windowed_y = 0;
@@ -72,7 +72,7 @@ void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgr
 	renderer->set_projection(shader_program, projection);
 }
 
-void toggle_fullscreen(FullscreenState* state, SDL_Window* window, glm::ivec2* resolution, glm::ivec2* window_size) {
+void toggle_fullscreen(WindowState* state, SDL_Window* window, glm::ivec2* resolution, glm::ivec2* window_size) {
 	int display_index = SDL_GetWindowDisplayIndex(window);
 
 	SDL_DisplayMode display_mode;
@@ -204,7 +204,7 @@ int main(int /* argc */, char** /* args */) {
 	bool quit = false;
 	glm::ivec2 window_size = { resolution.x, resolution.y };
 	Canvas canvas = platform::add_canvas(resolution.x, resolution.y);
-	FullscreenState fullscreen_state;
+	WindowState window_state;
 
 	engine.initialize(&state);
 	while (!quit) {
@@ -228,7 +228,7 @@ int main(int /* argc */, char** /* args */) {
 						quit = true;
 						break;
 					case CommandType::ToggleFullscreen:
-						toggle_fullscreen(&fullscreen_state, window, &resolution, &window_size);
+						toggle_fullscreen(&window_state, window, &resolution, &window_size);
 						break;
 					case CommandType::ChangeResolution: {
 						// update resolution
@@ -239,10 +239,16 @@ int main(int /* argc */, char** /* args */) {
 						platform::free_canvas(canvas);
 						canvas = platform::add_canvas(resolution.x, resolution.y);
 
-						// update window size
-						window_size.x = resolution.x;
-						window_size.y = resolution.y;
-						SDL_SetWindowSize(window, window_size.x, window_size.y);
+						if (window_state.is_fullscreen) {
+							window_state.last_windowed_x = resolution.x;
+							window_state.last_windowed_y = resolution.y;
+						}
+						else {
+							window_size.x = resolution.x;
+							window_size.y = resolution.y;
+							SDL_SetWindowSize(window, window_size.x, window_size.y);
+						}
+
 					} break;
 				}
 			}
