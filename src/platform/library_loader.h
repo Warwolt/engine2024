@@ -19,8 +19,12 @@
 namespace platform {
 
 	struct EngineLibrary {
+		// global state wiring
 		void (*set_logger)(plog::Severity, plog::IAppender*);
 		void (*set_imgui_context)(ImGuiContext* imgui_context);
+		void (*set_freetype_library)(FT_Library ft);
+
+		// engine interface
 		void (*initialize)(engine::State*);
 		void (*deinitialize)(engine::State*);
 		void (*update)(engine::State*, const platform::Input*, platform::CommandAPI*);
@@ -62,5 +66,7 @@ namespace platform {
 		EngineLibraryLoader* m_library_loader;
 		platform::Timer m_hot_reload_timer;
 	};
+
+	void on_engine_library_loaded(EngineLibrary* engine_library);
 
 } // namespace platform

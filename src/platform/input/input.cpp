@@ -46,15 +46,11 @@ namespace platform {
 					break;
 
 				case SDL_KEYDOWN:
-					if (!imgui_io.WantCaptureKeyboard) {
-						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
-					}
+					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
 					break;
 
 				case SDL_KEYUP:
-					if (!imgui_io.WantCaptureKeyboard) {
-						input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
-					}
+					input->keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
 					break;
 
 				case SDL_MOUSEMOTION: {

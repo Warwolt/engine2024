@@ -14,7 +14,11 @@ namespace platform {
 		uint8_t a;
 	};
 
-	static FT_Library get_ft() {
+	void set_ft(FT_Library ft) {
+		g_ft = ft;
+	}
+
+	FT_Library get_ft() {
 		ASSERT(g_ft, "Trying to access g_ft before it's initialized!");
 		return g_ft;
 	}

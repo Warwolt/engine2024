@@ -1,5 +1,6 @@
 #include <platform/library_loader.h>
 
+#include <imgui/imgui.h>
 #include <platform/assert.h>
 #include <platform/logging.h>
 #include <util.h>
@@ -137,6 +138,8 @@ namespace platform {
 		EngineLibrary engine_library;
 		LOAD_FUNCTION(m_copied_library, engine_library, set_logger);
 		LOAD_FUNCTION(m_copied_library, engine_library, set_imgui_context);
+		LOAD_FUNCTION(m_copied_library, engine_library, set_freetype_library);
+
 		LOAD_FUNCTION(m_copied_library, engine_library, initialize);
 		LOAD_FUNCTION(m_copied_library, engine_library, deinitialize);
 		LOAD_FUNCTION(m_copied_library, engine_library, update);
@@ -180,11 +183,16 @@ namespace platform {
 				*engine_library = util::unwrap(m_library_loader->load_library(m_library_name.c_str()), [&](LoadLibraryError error) {
 					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", m_library_name.c_str(), util::enum_to_string(error));
 				});
-				engine_library->set_logger(plog::verbose, plog::get());
-				engine_library->set_imgui_context(ImGui::GetCurrentContext());
+				on_engine_library_loaded(engine_library);
 				LOG_INFO("Engine library reloaded");
 			}
 		}
+	}
+
+	void on_engine_library_loaded(EngineLibrary* engine_library) {
+		engine_library->set_logger(plog::verbose, plog::get());
+		engine_library->set_imgui_context(ImGui::GetCurrentContext());
+		engine_library->set_freetype_library(platform::get_ft());
 	}
 
 } // namespace platform
