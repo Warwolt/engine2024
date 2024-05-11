@@ -250,23 +250,31 @@ int main(int /* argc */, char** /* args */) {
 				engine.render(&renderer, &state);
 
 				// test font texture
-				// renderer.draw_texture(arial_font.atlas, { 0.0f, 0.0f });
+				// const platform::Glyph& glyph = arial_font.glyphs['H'];
+				// float x = 100.0f;
+				// float y = 100.0f;
+				platform::Rect quad = { { 0.0f, 0.0f }, { arial_font.atlas.width, arial_font.atlas.height } };
+				platform::FlipRect uv = {
+					.bottom_left = { 0.25f, 0.25f },
+					.top_right = { 0.75f, 0.75f }
+				};
+				renderer.draw_texture_clipped(arial_font.atlas, quad, uv);
 
 				// render "hello"
-				if (0) {
-					// params
-					// const char* text = "hello world!";
-					const char* text = "h";
-					float x = 100;
-					float y = 100;
+				// if (0) {
+				// 	// params
+				// 	// const char* text = "hello world!";
+				// 	const char* text = "h";
+				// 	float x = 100;
+				// 	float y = 100;
 
-					glm::vec2 pen = { x, y };
+				// 	glm::vec2 pen = { x, y };
 
-					for (char ch = *text; ch != '\0'; ch = *(++text)) {
-						platform::Glyph& glyph = arial_font.glyphs[ch];
-					}
-					return 0;
-				}
+				// 	for (char ch = *text; ch != '\0'; ch = *(++text)) {
+				// 		platform::Glyph& glyph = arial_font.glyphs[ch];
+				// 	}
+				// 	return 0;
+				// }
 
 				renderer.render_to_canvas(shader_program, canvas);
 			}
