@@ -246,11 +246,11 @@ int main(int /* argc */, char** /* args */) {
 				// Render to canvas
 				set_viewport(0, 0, resolution.x, resolution.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, resolution.x, resolution.y);
-				renderer.draw_rect_fill({ { 0.0f, 0.0f }, resolution }, { 0.0f, 0.0f, 0.0f, 1.0f });
+				renderer.draw_rect_fill({ { 0.0f, 0.0f }, resolution }, { 0.0f, 0.5f, 0.5f, 1.0f });
 				engine.render(&renderer, &state);
 
 				// test font texture
-				glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
+				glm::vec4 text_color = { 1.0f, 1.0f, 1.0f, 1.0f };
 				glm::vec2 text_pos = { 300.0f, 100.0f };
 				platform::render_text(&renderer, &arial_font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
 				platform::render_text(&renderer, &arial_font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, arial_font.line_spacing }, text_color);

@@ -93,11 +93,13 @@ namespace platform {
 		for (uint32_t y = 0; y < texture_height; y++) {
 			uint32_t inv_y = (texture_height - 1) - y;
 			for (uint32_t x = 0; x < texture_width; x++) {
-				uint8_t alpha = glyph_pixels[y * texture_width + x];
+				// Multiply alpha by some amount to match how the reference font arial.ttf renders in MS Paint
+				// Without this it seems like we end up rendering the font too dark.
+				uint8_t alpha = (uint8_t)std::min(std::roundf(glyph_pixels[y * texture_width + x] * 1.3f), 255.0f);
 				glyph_rgb[inv_y * texture_width + x].r = 0xFF;
 				glyph_rgb[inv_y * texture_width + x].g = 0xFF;
 				glyph_rgb[inv_y * texture_width + x].b = 0xFF;
-				glyph_rgb[inv_y * texture_width + x].a = (uint8_t)std::min(std::roundf(alpha * 1.3f), 255.0f);
+				glyph_rgb[inv_y * texture_width + x].a = alpha;
 			}
 		}
 
@@ -134,7 +136,7 @@ namespace platform {
 
 			if (character != ' ') {
 				glm::vec2 glyph_pos = glm::vec2 {
-					pen.x,
+					pen.x + glyph.bearing.x,
 					pen.y - glyph.bearing.y,
 				};
 				render_character(renderer, font, character, glyph_pos, color);
