@@ -30,6 +30,6 @@ namespace platform {
 	};
 
 	std::vector<SDL_Event> read_events();
-	void process_events(const std::vector<SDL_Event>* events, Input* input, Timer* frame_timer, glm::ivec2 window_size, glm::ivec2 canvas_size);
+	void process_events(const std::vector<SDL_Event>* events, Input* input, Timer* frame_timer, glm::ivec2 window_size, glm::ivec2 window_resolution);
 
 } // namespace platform
