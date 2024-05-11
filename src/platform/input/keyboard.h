@@ -28,6 +28,7 @@ namespace platform {
 	class Keyboard {
 	public:
 		void register_event(int keycode, ButtonEvent event);
+		void register_event_with_modifier(int keycode, ButtonEvent event, int modifier);
 		void update();
 
 		bool key_pressed(int keycode) const;
@@ -35,10 +36,15 @@ namespace platform {
 		bool key_released(int keycode) const;
 		bool key_released_now(int keycode) const;
 
+		bool key_pressed_with_modifier(int keycode, int modifier) const;
+		bool key_pressed_now_with_modifier(int keycode, int modifier) const;
+
 	private:
 		Button _key(int keycode) const;
+		std::optional<int> _modifier(int keycode) const;
 
 		std::unordered_map<int, ButtonEvent> m_events;
+		std::unordered_map<int, int> m_modifiers;
 		std::unordered_map<int, Button> m_keys;
 	};
 
