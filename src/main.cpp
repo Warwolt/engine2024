@@ -110,6 +110,21 @@ void start_imgui_frame() {
 	ImGui::NewFrame();
 }
 
+std::expected<void, std::string> run_command(const char* cmd) {
+	std::string cmd_line(cmd);
+	STARTUPINFO info = { sizeof(info) };
+	PROCESS_INFORMATION processInfo;
+	if (!CreateProcess(NULL, &cmd_line[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
+		return std::unexpected(platform::get_win32_error());
+	}
+
+	WaitForSingleObject(processInfo.hProcess, INFINITE);
+	CloseHandle(processInfo.hProcess);
+	CloseHandle(processInfo.hThread);
+
+	return {};
+}
+
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -178,17 +193,10 @@ int main(int /* argc */, char** /* args */) {
 			hot_reloader.check_hot_reloading(&engine);
 			if (input.keyboard.key_pressed(SDLK_LCTRL) && input.keyboard.key_pressed_now(SDLK_F5)) {
 				LOG_DEBUG("Ctrl + F5");
-
-				char cmd[] = "touch hello";
-				STARTUPINFO info = { sizeof(info) };
-				PROCESS_INFORMATION processInfo;
-				if (!CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
-					std::string error = platform::get_win32_error();
-					ABORT("CreateProcess(%s) failed: %s", cmd, error.c_str());
+				std::expected<void, std::string> result = run_command("touch hello");
+				if (!result.has_value()) {
+					LOG_ERROR("run_command failed: %s", result.error().c_str());
 				}
-				WaitForSingleObject(processInfo.hProcess, INFINITE);
-				CloseHandle(processInfo.hProcess);
-				CloseHandle(processInfo.hThread);
 			}
 
 			/* Engine update */
