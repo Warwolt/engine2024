@@ -32,44 +32,43 @@ namespace platform {
 		// this function based on:
 		// https://learn.microsoft.com/en-gb/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
 
-		std::string cmd(cmd_str);
-
 		/* Setup pipes */
-		HANDLE std_out_read;
-		HANDLE std_out_write;
-		HANDLE std_err_read;
-		HANDLE std_err_write;
+		HANDLE stdout_read;
+		HANDLE stdout_write;
+		HANDLE stderr_read;
+		HANDLE stderr_write;
 		{
 			SECURITY_ATTRIBUTES security_attr;
 			security_attr.nLength = sizeof(SECURITY_ATTRIBUTES);
 			security_attr.bInheritHandle = TRUE;
 			security_attr.lpSecurityDescriptor = NULL;
 
-			if (!CreatePipe(&std_out_read, &std_out_write, &security_attr, 0)) {
-				return std::unexpected("std_out CreatePipe failed: " + platform::get_win32_error());
+			if (!CreatePipe(&stdout_read, &stdout_write, &security_attr, 0)) {
+				return std::unexpected("stdout CreatePipe failed: " + platform::get_win32_error());
 			}
 
-			if (!SetHandleInformation(std_out_read, HANDLE_FLAG_INHERIT, 0)) {
-				return std::unexpected("std_out SetHandleInformation failed: " + platform::get_win32_error());
+			if (!CreatePipe(&stderr_read, &stderr_write, &security_attr, 0)) {
+				return std::unexpected("stderr CreatePipe failew: " + platform::get_win32_error());
 			}
 
-			if (!CreatePipe(&std_err_read, &std_err_write, &security_attr, 0)) {
-				return std::unexpected("std_err CreatePipe failew: " + platform::get_win32_error());
+			if (!SetHandleInformation(stdout_read, HANDLE_FLAG_INHERIT, 0)) {
+				return std::unexpected("stdout SetHandleInformation failed: " + platform::get_win32_error());
 			}
 
-			if (!SetHandleInformation(std_err_read, HANDLE_FLAG_INHERIT, 0)) {
-				return std::unexpected("std_out SetHandleInformation failed: " + platform::get_win32_error());
+			if (!SetHandleInformation(stderr_read, HANDLE_FLAG_INHERIT, 0)) {
+				return std::unexpected("stdout SetHandleInformation failed: " + platform::get_win32_error());
 			}
 		}
 
 		/* Run command */
 		// TODO: run this in a background thread not to block main thread?
+		std::string cmd(cmd_str);
 		PROCESS_INFORMATION process_info = { 0 };
 		{
 			STARTUPINFO startup_info = { 0 };
 			startup_info.cb = sizeof(STARTUPINFO);
-			startup_info.hStdOutput = std_out_write;
-			startup_info.hStdError = std_err_write;
+			startup_info.hStdOutput = stdout_write;
+			startup_info.hStdError = stderr_write;
 			startup_info.dwFlags = STARTF_USESTDHANDLES;
 
 			if (!CreateProcess(
@@ -88,40 +87,32 @@ namespace platform {
 			}
 
 			// close handles
-			CloseHandle(std_out_write);
-			CloseHandle(std_err_write);
+			CloseHandle(stdout_write);
+			CloseHandle(stderr_write);
 		}
 		LOG_INFO("Running \"%s\"", cmd.c_str());
 
 		/* Read from stdout until done */
-		{
-			while (true) {
-				constexpr size_t BUFSIZE = 256;
-				DWORD read = 0;
-				char buf[BUFSIZE] = { 0 };
-				if (!ReadFile(std_out_read, buf + read, BUFSIZE, &read, NULL)) {
-					break;
-				}
-				IF_PLOG(plog::info) {
-					printf("  %s", buf);
-				}
-
-				DWORD exit_code;
-				if (!GetExitCodeProcess(process_info.hProcess, &exit_code)) {
-					return std::unexpected("GetExitCodeProcess failed: " + platform::get_win32_error());
-				}
-				if (exit_code != STILL_ACTIVE) {
-					break;
-				}
+		while (true) {
+			constexpr size_t BUFSIZE = 256;
+			char stdout_data[BUFSIZE] = { 0 };
+			if (!ReadFile(stdout_read, stdout_data, BUFSIZE, NULL, NULL)) {
+				break;
+			}
+			IF_PLOG(plog::info) {
+				printf("%s", stdout_data);
 			}
 		}
 
-		DWORD exit_code = 0;
-		GetExitCodeProcess(process_info.hProcess, &exit_code);
+		/* Read exit code */
+		DWORD exit_code;
+		if (!GetExitCodeProcess(process_info.hProcess, &exit_code)) {
+			return std::unexpected("GetExitCodeProcess failed: " + platform::get_win32_error());
+		}
 
+		/* Finish */
 		CloseHandle(process_info.hProcess);
 		CloseHandle(process_info.hThread);
-
 		if (exit_code != 0) {
 			LOG_ERROR("\"%s\" failed with exit code: %d", cmd.c_str(), exit_code);
 		}
