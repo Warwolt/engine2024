@@ -175,7 +175,6 @@ int main(int /* argc */, char** /* args */) {
 		{
 			/* Hot reloading */
 			hot_reloader.check_hot_reloading(&engine);
-			// if Ctrl + F5
 
 			/* Engine update */
 			start_imgui_frame();

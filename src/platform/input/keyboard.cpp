@@ -50,11 +50,6 @@ namespace platform {
 		m_events[keycode] = event;
 	}
 
-	void Keyboard::register_event_with_modifier(int keycode, ButtonEvent event, int modifier) {
-		m_events[keycode] = event;
-		m_modifiers[keycode] = modifier;
-	}
-
 	void Keyboard::update() {
 		/* Add new keys */
 		for (auto& [keycode, _] : m_events) {
@@ -84,20 +79,8 @@ namespace platform {
 		return _key(keycode).released_now();
 	}
 
-	bool Keyboard::key_pressed_with_modifier(int keycode, int modifier) const {
-		return key_pressed(keycode) && _modifier(keycode) == modifier;
-	}
-
-	bool Keyboard::key_pressed_now_with_modifier(int keycode, int modifier) const {
-		return key_pressed_now(keycode) && _modifier(keycode) == modifier;
-	}
-
 	Button Keyboard::_key(int keycode) const {
 		return util::map_get(m_keys, keycode).value_or(Button());
-	}
-
-	std::optional<int> Keyboard::_modifier(int keycode) const {
-		return util::map_get(m_modifiers, keycode);
 	}
 
 } // namespace platform

@@ -9,11 +9,11 @@ Goals:
 
 ## TODO
 - Render level editor canvas (Aseprite style grey checker board)
+- Hot reload with ctrl+F5
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
-- Hot reload with ctrl+F5
 
 ## Done
 - Rename `add_font` to `add_ttf_font`
