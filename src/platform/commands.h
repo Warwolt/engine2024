@@ -8,6 +8,7 @@ namespace platform {
 		Quit,
 		ToggleFullscreen,
 		ChangeResolution,
+		RebuildEngineLibrary,
 	};
 
 	union Command {
@@ -26,6 +27,10 @@ namespace platform {
 			int width;
 			int height;
 		} change_resolution;
+
+		struct RebuildEngineLibrary {
+			CommandType type = CommandType::RebuildEngineLibrary;
+		} rebuild_engine_library;
 	};
 
 	class CommandAPI {
@@ -36,6 +41,7 @@ namespace platform {
 		void quit();
 		void toggle_fullscreen();
 		void change_resolution(int width, int height);
+		void rebuild_engine_library();
 
 	private:
 		std::vector<Command> m_commands;

@@ -176,9 +176,6 @@ int main(int /* argc */, char** /* args */) {
 		{
 			/* Hot reloading */
 			hot_reloader.update(&engine);
-			if (input.keyboard.key_pressed(SDLK_LCTRL) && input.keyboard.key_pressed_now(SDLK_F5)) {
-				hot_reloader.trigger_rebuild_command();
-			}
 
 			/* Engine update */
 			start_imgui_frame();
@@ -201,6 +198,9 @@ int main(int /* argc */, char** /* args */) {
 						canvas = platform::add_canvas(width, height);
 						break;
 					}
+					case CommandType::RebuildEngineLibrary:
+						hot_reloader.trigger_rebuild_command();
+						break;
 				}
 			}
 			commands.clear();

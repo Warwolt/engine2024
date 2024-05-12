@@ -111,6 +111,10 @@ namespace engine {
 		if (state->show_imgui) {
 			draw_imgui(&state->imgui_state, commands);
 		}
+
+		if (input->keyboard.key_pressed(SDLK_LCTRL) && input->keyboard.key_pressed_now(SDLK_F5)) {
+			commands->rebuild_engine_library();
+		}
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
@@ -128,8 +132,9 @@ namespace engine {
 
 		/* Render circle */
 		{
-			renderer->draw_circle_fill(state->circle_pos, (float)state->circle_radius, { 0.0f, 1.0f, 0.0f, 0.75f });
-			renderer->draw_circle(state->circle_pos, (float)state->circle_radius, { 0.0f, 1.0f, 0.0f, 1.0f });
+			glm::vec3 color = { 0.0f, 1.0f, 0.0f };
+			renderer->draw_circle_fill(state->circle_pos, (float)state->circle_radius, { color, 0.75f });
+			renderer->draw_circle(state->circle_pos, (float)state->circle_radius, { color, 1.0f });
 		}
 
 		/* Render text*/
