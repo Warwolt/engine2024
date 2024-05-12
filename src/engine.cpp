@@ -137,7 +137,7 @@ namespace engine {
 			const platform::Font& font = state->fonts.at("arial-16");
 			glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 			glm::vec2 text_pos = { 300.0f, 100.0f };
-			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color2);
+			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
 			renderer->draw_text(&font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, font.line_spacing }, text_color);
 		}
 	}

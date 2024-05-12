@@ -91,11 +91,10 @@ namespace platform {
 			CloseHandle(std_out_write);
 			CloseHandle(std_err_write);
 		}
-		LOG_INFO("Running command \"%s\"", cmd.c_str());
+		LOG_INFO("Running \"%s\"", cmd.c_str());
 
-		// read from stdout until done
+		/* Read from stdout until done */
 		{
-			// TODO: read and output continously
 			while (true) {
 				constexpr size_t BUFSIZE = 256;
 				DWORD read = 0;
@@ -107,7 +106,6 @@ namespace platform {
 					printf("  %s", buf);
 				}
 
-				// check if process is done
 				DWORD exit_code;
 				if (!GetExitCodeProcess(process_info.hProcess, &exit_code)) {
 					return std::unexpected("GetExitCodeProcess failed: " + platform::get_win32_error());
@@ -118,10 +116,18 @@ namespace platform {
 			}
 		}
 
+		DWORD exit_code = 0;
+		GetExitCodeProcess(process_info.hProcess, &exit_code);
+
 		CloseHandle(process_info.hProcess);
 		CloseHandle(process_info.hThread);
 
-		LOG_INFO("Command \"%s\" completed", cmd.c_str());
+		if (exit_code != 0) {
+			LOG_ERROR("\"%s\" failed with exit code: %d", cmd.c_str(), exit_code);
+		}
+		else {
+			LOG_INFO("\"%s\" completed successfully", cmd.c_str());
+		}
 
 		return {};
 	}
