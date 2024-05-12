@@ -3,6 +3,7 @@
 #include <imgui/imgui.h>
 #include <platform/assert.h>
 #include <platform/logging.h>
+#include <platform/win32.h>
 #include <util.h>
 
 #define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                          \
@@ -14,32 +15,10 @@
 
 namespace platform {
 
-	std::string get_winapi_error() {
-		DWORD err_code = GetLastError();
-		char* err_msg;
-		if (!FormatMessage(
-				FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-				NULL,
-				err_code,
-				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // default language
-				(LPTSTR)&err_msg,
-				0,
-				NULL
-			)) {
-			return "";
-		}
-
-		static char buffer[1024];
-		_snprintf_s(buffer, sizeof(buffer), "%s", err_msg);
-		LocalFree(err_msg);
-
-		return std::string(buffer);
-	}
-
 	std::optional<std::string> get_dll_full_path(HMODULE dll_module) {
 		char dll_full_path[MAX_PATH];
 		if (GetModuleFileName(dll_module, dll_full_path, sizeof(dll_full_path)) == 0) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("GetModuleFileName failed: %s", error.c_str());
 			return {};
 		}
@@ -61,7 +40,7 @@ namespace platform {
 		/* Read time modified */
 		FILETIME create_time, access_time, write_time;
 		if (!GetFileTime(file, &create_time, &access_time, &write_time)) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("GetFileTime failed: %s", error.c_str());
 			CloseHandle(file);
 			return {};
@@ -69,7 +48,7 @@ namespace platform {
 
 		FILETIME localized_write_time;
 		if (!FileTimeToLocalFileTime(&write_time, &localized_write_time)) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("FileTimeToLocalFileTime failed: %s", error.c_str());
 			CloseHandle(file);
 			return {};
@@ -95,7 +74,7 @@ namespace platform {
 		/* Load library */
 		HMODULE library = LoadLibrary(library_name);
 		if (!library) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("LoadLibrary(\"%s\") failed: %s", library_name, error.c_str());
 			return std::unexpected(LoadLibraryError::FileDoesNotExist);
 		}
@@ -110,7 +89,7 @@ namespace platform {
 		/* Create a copy of library, so original file can still be modified */
 		const bool fail_if_already_exists = false; // overwrite file if already exists
 		if (!CopyFile(m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists)) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("CopyFile(\"%s\", \"%s\", %s) failed: ", m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false", error.c_str());
 			return std::unexpected(LoadLibraryError::FailedToCopyLibrary);
 		}
@@ -119,7 +98,7 @@ namespace platform {
 		std::string copied_library_name = std::string(library_name) + "-copy";
 		m_copied_library = LoadLibrary(copied_library_name.c_str());
 		if (!m_copied_library) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("LoadLibrary(\"%s\") failed: ", copied_library_name.c_str(), error.c_str());
 			return std::unexpected(LoadLibraryError::FailedToLoadCopiedLibrary);
 		}
@@ -127,7 +106,7 @@ namespace platform {
 		/* Read last write timestamp */
 		std::optional<FILETIME> timestamp = file_last_modified(m_library_path.c_str());
 		if (!timestamp.has_value()) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("file_last_modified() failed for \"%s\"", m_library_path.c_str(), error.c_str());
 			return std::unexpected(LoadLibraryError::FailedToReadLastModifiedTime);
 		}
@@ -158,13 +137,13 @@ namespace platform {
 	void EngineLibraryLoader::unload_library() const {
 		/* Free copied engine DLL */
 		if (!FreeLibrary(m_copied_library)) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("FreeLibrary failed: %s", error.c_str());
 		}
 
 		/* Delete copied engine DLL */
 		if (!DeleteFile(m_copied_library_path.c_str())) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("DeleteFile(\"%s\") failed: %s", m_copied_library_path.c_str(), error.c_str());
 		}
 	}

@@ -3,13 +3,7 @@
 #include <engine.h>
 #include <platform/input/timing.h>
 
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include <lean_mean_windows.h>
 
 #include <expected>
 #include <functional>

@@ -175,6 +175,24 @@ int main(int /* argc */, char** /* args */) {
 		{
 			/* Hot reloading */
 			hot_reloader.check_hot_reloading(&engine);
+			if (input.keyboard.key_pressed(SDLK_LCTRL) && input.keyboard.key_pressed_now(SDLK_F5)) {
+				LOG_DEBUG("Ctrl + F5");
+				// LPWSTR cmd_line[] = "echo hello world!";
+
+				// SECURITY_ATTRIBUTES security_attr = { 0 };
+				// security_attr.nLength = sizeof(security_attr);
+				// security_attr.lpSecurityDescriptor = NULL;
+				// security_attr.bInheritHandle = TRUE;
+
+				// HANDLE std_out_read;
+				// HANDLE std_out_write;
+				// HANDLE std_err_write;
+				// HANDLE std_err_write;
+
+				// if (!CreatePipe(&std_out_read, &std_out_write, &security_attr, 0)) {
+
+				// }
+			}
 
 			/* Engine update */
 			start_imgui_frame();
