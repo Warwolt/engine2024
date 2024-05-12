@@ -28,7 +28,9 @@
 #include <imgui/imgui.h>
 
 #include <expected>
+#include <future>
 #include <optional>
+#include <thread>
 
 using Canvas = platform::Canvas;
 using CommandAPI = platform::CommandAPI;
@@ -164,8 +166,21 @@ int main(int /* argc */, char** /* args */) {
 	bool quit = false;
 	Canvas canvas = platform::add_canvas(window_info.resolution.x, window_info.resolution.y);
 
+	// test std::thread
+	std::future<int> future_int = std::async(std::launch::async, [] {
+		LOG_DEBUG("start thread");
+		SDL_Delay(1000);
+		LOG_DEBUG("thread done");
+		return 8;
+	});
+
 	engine.initialize(&state);
 	while (!quit) {
+		// check future
+		if (future_int.valid() && future_int.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+			LOG_DEBUG("future_int = %d", future_int.get());
+		}
+
 		/* Input */
 		{
 			std::vector<SDL_Event> events = platform::read_events();
