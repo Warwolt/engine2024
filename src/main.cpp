@@ -164,8 +164,25 @@ int main(int /* argc */, char** /* args */) {
 	bool quit = false;
 	Canvas canvas = platform::add_canvas(window_info.resolution.x, window_info.resolution.y);
 
+	// test create a thread
+	bool thread_alive = true;
+	auto thread_func = [](void* /*data*/) -> DWORD {
+		LOG_DEBUG("Hello world from thread");
+		return 0;
+	};
+	HANDLE thread = CreateThread(NULL, 0, thread_func, NULL, 0, NULL);
+
 	engine.initialize(&state);
 	while (!quit) {
+		// check thread alive
+		if (thread_alive) {
+			DWORD result = WaitForSingleObject(thread, 0);
+			if (result == WAIT_OBJECT_0) {
+				LOG_DEBUG("Thread done");
+				thread_alive = false;
+			}
+		}
+
 		/* Input */
 		{
 			std::vector<SDL_Event> events = platform::read_events();
