@@ -173,10 +173,6 @@ int main(int /* argc */, char** /* args */) {
 			input.engine_library_is_rebuilding = hot_reloader.rebuild_command_is_running();
 		}
 
-		// test out setting title
-		const char* title = input.engine_library_is_rebuilding ? "Engine2024 (rebuilding)" : "Engine2024";
-		SDL_SetWindowTitle(window_info.window, title);
-
 		/* Update */
 		{
 			/* Hot reloading */
@@ -203,8 +199,11 @@ int main(int /* argc */, char** /* args */) {
 						platform::change_resolution(&window_info, width, height);
 						platform::free_canvas(canvas);
 						canvas = platform::add_canvas(width, height);
+					} break;
+
+					case CommandType::SetWindowTitle:
+						SDL_SetWindowTitle(window_info.window, cmd.set_window_title.title);
 						break;
-					}
 
 					case CommandType::RebuildEngineLibrary:
 						hot_reloader.trigger_rebuild_command();

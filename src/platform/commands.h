@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 namespace platform {
@@ -8,6 +9,7 @@ namespace platform {
 		Quit,
 		ToggleFullscreen,
 		ChangeResolution,
+		SetWindowTitle,
 		RebuildEngineLibrary,
 	};
 
@@ -21,6 +23,11 @@ namespace platform {
 		struct ToggleFullscreen {
 			CommandType type = CommandType::ToggleFullscreen;
 		} toggle_full_screen;
+
+		struct SetWindowTitle {
+			CommandType type = CommandType::SetWindowTitle;
+			char title[128];
+		} set_window_title;
 
 		struct ChangeResolution {
 			CommandType type = CommandType::ChangeResolution;
@@ -40,6 +47,7 @@ namespace platform {
 
 		void quit();
 		void toggle_fullscreen();
+		void set_window_title(const char* title);
 		void change_resolution(int width, int height);
 		void rebuild_engine_library();
 

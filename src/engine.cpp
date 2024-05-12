@@ -115,6 +115,8 @@ namespace engine {
 		if (input->keyboard.key_pressed(SDLK_LCTRL) && input->keyboard.key_pressed_now(SDLK_F5)) {
 			commands->rebuild_engine_library();
 		}
+
+		commands->set_window_title(input->engine_library_is_rebuilding ? "Engine2024 (rebuilding)" : "Engine2024");
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
