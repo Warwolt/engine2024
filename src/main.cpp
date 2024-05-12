@@ -146,7 +146,7 @@ std::expected<void, std::string> run_command(const char* cmd_str) {
 
 	/* Run command */
 	// TODO: run this in a background thread not to block main thread?
-	PROCESS_INFORMATION process_info;
+	PROCESS_INFORMATION process_info = { 0 };
 	{
 		STARTUPINFO startup_info = { 0 };
 		startup_info.cb = sizeof(STARTUPINFO);
@@ -170,8 +170,6 @@ std::expected<void, std::string> run_command(const char* cmd_str) {
 		}
 
 		// close handles
-		CloseHandle(process_info.hProcess);
-		CloseHandle(process_info.hThread);
 		CloseHandle(std_out_write);
 		CloseHandle(std_err_write);
 	}
@@ -179,14 +177,26 @@ std::expected<void, std::string> run_command(const char* cmd_str) {
 	// read from stdout until done
 	{
 		constexpr size_t BUFSIZE = 4096;
-		DWORD read;
+		DWORD read = 0;
 		char buf[BUFSIZE] = { 0 };
 		BOOL success = FALSE;
 
+		// TODO: read and output continously
 		while (true) {
-			success = ReadFile(std_out_read, buf, BUFSIZE, &read, NULL);
-			if (!success || read == 0)
+			// read
+			success = ReadFile(std_out_read, buf + read, BUFSIZE, &read, NULL);
+			if (!success) {
 				break;
+			}
+
+			// check if process is done
+			DWORD exit_code;
+			if (!GetExitCodeProcess(process_info.hProcess, &exit_code)) {
+				return std::unexpected("GetExitCodeProcess failed: " + platform::get_win32_error());
+			}
+			if (exit_code != STILL_ACTIVE) {
+				break;
+			}
 		}
 
 		LOG_DEBUG("process output:");
@@ -194,6 +204,9 @@ std::expected<void, std::string> run_command(const char* cmd_str) {
 			printf("%s", buf);
 		}
 	}
+
+	CloseHandle(process_info.hProcess);
+	CloseHandle(process_info.hThread);
 
 	return {};
 }
@@ -266,7 +279,7 @@ int main(int /* argc */, char** /* args */) {
 			hot_reloader.check_hot_reloading(&engine);
 			if (input.keyboard.key_pressed(SDLK_LCTRL) && input.keyboard.key_pressed_now(SDLK_F5)) {
 				LOG_DEBUG("Ctrl + F5");
-				std::expected<void, std::string> result = run_command("echo hello");
+				std::expected<void, std::string> result = run_command("cmake --version");
 				if (!result.has_value()) {
 					LOG_ERROR("run_command failed: %s", result.error().c_str());
 				}
