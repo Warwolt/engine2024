@@ -3,6 +3,7 @@
 #include <imgui/imgui.h>
 #include <platform/assert.h>
 #include <platform/logging.h>
+#include <platform/win32.h>
 #include <util.h>
 
 #define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                          \
@@ -14,32 +15,10 @@
 
 namespace platform {
 
-	std::string get_winapi_error() {
-		DWORD err_code = GetLastError();
-		char* err_msg;
-		if (!FormatMessage(
-				FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-				NULL,
-				err_code,
-				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // default language
-				(LPTSTR)&err_msg,
-				0,
-				NULL
-			)) {
-			return "";
-		}
-
-		static char buffer[1024];
-		_snprintf_s(buffer, sizeof(buffer), "%s", err_msg);
-		LocalFree(err_msg);
-
-		return std::string(buffer);
-	}
-
 	std::optional<std::string> get_dll_full_path(HMODULE dll_module) {
 		char dll_full_path[MAX_PATH];
 		if (GetModuleFileName(dll_module, dll_full_path, sizeof(dll_full_path)) == 0) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("GetModuleFileName failed: %s", error.c_str());
 			return {};
 		}
@@ -61,15 +40,14 @@ namespace platform {
 		/* Read time modified */
 		FILETIME create_time, access_time, write_time;
 		if (!GetFileTime(file, &create_time, &access_time, &write_time)) {
-			std::string error = get_winapi_error();
-			LOG_ERROR("GetFileTime failed: %s", error.c_str());
+			// it's expected for this to fail when trying to reload, so don't print any error
 			CloseHandle(file);
 			return {};
 		}
 
 		FILETIME localized_write_time;
 		if (!FileTimeToLocalFileTime(&write_time, &localized_write_time)) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("FileTimeToLocalFileTime failed: %s", error.c_str());
 			CloseHandle(file);
 			return {};
@@ -95,7 +73,7 @@ namespace platform {
 		/* Load library */
 		HMODULE library = LoadLibrary(library_name);
 		if (!library) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("LoadLibrary(\"%s\") failed: %s", library_name, error.c_str());
 			return std::unexpected(LoadLibraryError::FileDoesNotExist);
 		}
@@ -110,7 +88,7 @@ namespace platform {
 		/* Create a copy of library, so original file can still be modified */
 		const bool fail_if_already_exists = false; // overwrite file if already exists
 		if (!CopyFile(m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists)) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("CopyFile(\"%s\", \"%s\", %s) failed: ", m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false", error.c_str());
 			return std::unexpected(LoadLibraryError::FailedToCopyLibrary);
 		}
@@ -119,7 +97,7 @@ namespace platform {
 		std::string copied_library_name = std::string(library_name) + "-copy";
 		m_copied_library = LoadLibrary(copied_library_name.c_str());
 		if (!m_copied_library) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("LoadLibrary(\"%s\") failed: ", copied_library_name.c_str(), error.c_str());
 			return std::unexpected(LoadLibraryError::FailedToLoadCopiedLibrary);
 		}
@@ -127,7 +105,7 @@ namespace platform {
 		/* Read last write timestamp */
 		std::optional<FILETIME> timestamp = file_last_modified(m_library_path.c_str());
 		if (!timestamp.has_value()) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("file_last_modified() failed for \"%s\"", m_library_path.c_str(), error.c_str());
 			return std::unexpected(LoadLibraryError::FailedToReadLastModifiedTime);
 		}
@@ -158,13 +136,13 @@ namespace platform {
 	void EngineLibraryLoader::unload_library() const {
 		/* Free copied engine DLL */
 		if (!FreeLibrary(m_copied_library)) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("FreeLibrary failed: %s", error.c_str());
 		}
 
 		/* Delete copied engine DLL */
 		if (!DeleteFile(m_copied_library_path.c_str())) {
-			std::string error = get_winapi_error();
+			std::string error = get_win32_error();
 			LOG_ERROR("DeleteFile(\"%s\") failed: %s", m_copied_library_path.c_str(), error.c_str());
 		}
 	}
@@ -174,7 +152,8 @@ namespace platform {
 		, m_library_name(library_name) {
 	}
 
-	void EngineLibraryHotReloader::check_hot_reloading(EngineLibrary* engine_library) {
+	void EngineLibraryHotReloader::update(EngineLibrary* engine_library) {
+		/* Check if library has been reloaded on disk */
 		if (m_hot_reload_timer.elapsed_ms() >= 1000) {
 			m_hot_reload_timer.reset();
 
@@ -187,6 +166,31 @@ namespace platform {
 				LOG_INFO("Engine library reloaded");
 			}
 		}
+
+		/* Check rebuild command progress */
+		if (m_rebuild_command_is_running) {
+			if (util::future_is_ready(m_rebuild_engine_future)) {
+				m_rebuild_engine_future.get();
+				m_rebuild_command_is_running = false;
+			}
+		}
+	}
+
+	void EngineLibraryHotReloader::trigger_rebuild_command() {
+		if (!m_rebuild_command_is_running) {
+			m_rebuild_command_is_running = true;
+			m_rebuild_engine_future = std::async(std::launch::async, [] {
+				const char* cmd = "cmake --build build --target GameEngine2024Engine";
+				std::expected<void, std::string> result = platform::run_command(cmd);
+				if (!result.has_value()) {
+					LOG_ERROR("run_command failed: %s", result.error().c_str());
+				}
+			});
+		}
+	}
+
+	bool EngineLibraryHotReloader::rebuild_command_is_running() const {
+		return m_rebuild_command_is_running;
 	}
 
 	void on_engine_library_loaded(EngineLibrary* engine_library) {
