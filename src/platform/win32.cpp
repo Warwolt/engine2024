@@ -48,7 +48,7 @@ namespace platform {
 			}
 
 			if (!CreatePipe(&stderr_read, &stderr_write, &security_attr, 0)) {
-				return std::unexpected("stderr CreatePipe failew: " + platform::get_win32_error());
+				return std::unexpected("stderr CreatePipe failed: " + platform::get_win32_error());
 			}
 
 			if (!SetHandleInformation(stdout_read, HANDLE_FLAG_INHERIT, 0)) {
@@ -61,7 +61,6 @@ namespace platform {
 		}
 
 		/* Run command */
-		// TODO: run this in a background thread not to block main thread?
 		std::string cmd(cmd_str);
 		PROCESS_INFORMATION process_info = { 0 };
 		{
@@ -114,10 +113,10 @@ namespace platform {
 		CloseHandle(process_info.hProcess);
 		CloseHandle(process_info.hThread);
 		if (exit_code != 0) {
-			LOG_ERROR("\"%s\" failed with exit code: %d", cmd.c_str(), exit_code);
+			LOG_ERROR("\"%s\" failed with exit code: %d", cmd_str, exit_code);
 		}
 		else {
-			LOG_INFO("\"%s\" completed successfully", cmd.c_str());
+			LOG_INFO("\"%s\" completed successfully", cmd_str);
 		}
 
 		return {};
