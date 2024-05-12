@@ -8,15 +8,17 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Tidy up window animation
 - Add sub-namespaces to platform based on file names
 - Render level editor canvas (Aseprite style grey checker board)
-- Hot reload with ctrl+F5
+
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
 
 ## Done
+- Hot reload engine library with F5
 - Rename `add_font` to `add_ttf_font`
 - Rename `deinitialize` to `shutdown`
 - Let ImGui steal keyboard input

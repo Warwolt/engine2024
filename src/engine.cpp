@@ -96,6 +96,38 @@ namespace engine {
 			if (input->keyboard.key_pressed_now(SDLK_F11)) {
 				commands->toggle_fullscreen();
 			}
+
+			// Goal: describe title animation as a periodic function of t: time
+			// Need to be periodic relative some t0: time
+			static bool prev_engine_library_is_rebuilding = false;
+			static uint64_t time;
+			constexpr uint64_t period_ms = 400;
+
+			// start animation
+			if (!prev_engine_library_is_rebuilding && input->engine_library_is_rebuilding) {
+				time = 0;
+			}
+			// FIXME: we need some kind of event for when this value changes
+			prev_engine_library_is_rebuilding = input->engine_library_is_rebuilding;
+
+			std::string title;
+			if (input->engine_library_is_rebuilding) {
+				if ((time / period_ms) % 3 == 0) {
+					title = "Engine2024 (rebuilding)";
+				}
+				if ((time / period_ms) % 3 == 1) {
+					title = "Engine2024 (rebuilding.)";
+				}
+				if ((time / period_ms) % 3 == 2) {
+					title = "Engine2024 (rebuilding..) ";
+				}
+			}
+			else {
+				title = "Engine2024";
+			}
+			commands->set_window_title(title.c_str());
+
+			time += input->delta_ms;
 		}
 
 		/* Circle */
@@ -126,11 +158,9 @@ namespace engine {
 
 		/* Hot reloading */
 		{
-			if (input->keyboard.key_pressed(SDLK_LCTRL) && input->keyboard.key_pressed_now(SDLK_F5)) {
+			if (input->keyboard.key_pressed_now(SDLK_F5)) {
 				commands->rebuild_engine_library();
 			}
-
-			commands->set_window_title(input->engine_library_is_rebuilding ? "Engine2024 (rebuilding)" : "Engine2024");
 		}
 	}
 

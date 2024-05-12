@@ -40,8 +40,7 @@ namespace platform {
 		/* Read time modified */
 		FILETIME create_time, access_time, write_time;
 		if (!GetFileTime(file, &create_time, &access_time, &write_time)) {
-			std::string error = get_win32_error();
-			LOG_ERROR("GetFileTime failed: %s", error.c_str());
+			// it's expected for this to fail when trying to reload, so don't print any error
 			CloseHandle(file);
 			return {};
 		}
