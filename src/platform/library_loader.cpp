@@ -179,6 +179,7 @@ namespace platform {
 
 	void EngineLibraryHotReloader::trigger_rebuild_command() {
 		if (!m_rebuild_command_is_running) {
+			m_rebuild_command_is_running = true;
 			m_rebuild_engine_future = std::async(std::launch::async, [] {
 				const char* cmd = "cmake --build build --target GameEngine2024Engine";
 				std::expected<void, std::string> result = platform::run_command(cmd);

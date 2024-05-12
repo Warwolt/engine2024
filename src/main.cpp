@@ -170,7 +170,12 @@ int main(int /* argc */, char** /* args */) {
 		{
 			std::vector<SDL_Event> events = platform::read_events();
 			platform::process_events(&events, &input, &frame_timer, window_info.size, window_info.resolution);
+			input.engine_library_is_rebuilding = hot_reloader.rebuild_command_is_running();
 		}
+
+		// test out setting title
+		const char* title = input.engine_library_is_rebuilding ? "Engine2024 (rebuilding)" : "Engine2024";
+		SDL_SetWindowTitle(window_info.window, title);
 
 		/* Update */
 		{
@@ -180,6 +185,8 @@ int main(int /* argc */, char** /* args */) {
 			/* Engine update */
 			start_imgui_frame();
 			engine.update(&state, &input, &commands);
+
+			/* Platform update */
 			for (const Command& cmd : commands.commands()) {
 				switch (cmd.type) {
 					case CommandType::Quit:
@@ -198,6 +205,7 @@ int main(int /* argc */, char** /* args */) {
 						canvas = platform::add_canvas(width, height);
 						break;
 					}
+
 					case CommandType::RebuildEngineLibrary:
 						hot_reloader.trigger_rebuild_command();
 						break;
