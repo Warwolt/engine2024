@@ -13,6 +13,7 @@
 #include <platform/logging.h>
 #include <platform/platform.h>
 #include <platform/renderer.h>
+#include <platform/win32.h>
 #include <platform/window.h>
 #include <util.h>
 
@@ -169,16 +170,19 @@ int main(int /* argc */, char** /* args */) {
 		{
 			std::vector<SDL_Event> events = platform::read_events();
 			platform::process_events(&events, &input, &frame_timer, window_info.size, window_info.resolution);
+			input.engine_library_is_rebuilding = hot_reloader.rebuild_command_is_running();
 		}
 
 		/* Update */
 		{
 			/* Hot reloading */
-			hot_reloader.check_hot_reloading(&engine);
+			hot_reloader.update(&engine);
 
 			/* Engine update */
 			start_imgui_frame();
 			engine.update(&state, &input, &commands);
+
+			/* Platform update */
 			for (const Command& cmd : commands.commands()) {
 				switch (cmd.type) {
 					case CommandType::Quit:
@@ -195,8 +199,15 @@ int main(int /* argc */, char** /* args */) {
 						platform::change_resolution(&window_info, width, height);
 						platform::free_canvas(canvas);
 						canvas = platform::add_canvas(width, height);
+					} break;
+
+					case CommandType::SetWindowTitle:
+						SDL_SetWindowTitle(window_info.window, cmd.set_window_title.title);
 						break;
-					}
+
+					case CommandType::RebuildEngineLibrary:
+						hot_reloader.trigger_rebuild_command();
+						break;
 				}
 			}
 			commands.clear();

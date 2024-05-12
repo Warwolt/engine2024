@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 namespace platform {
@@ -8,6 +9,8 @@ namespace platform {
 		Quit,
 		ToggleFullscreen,
 		ChangeResolution,
+		SetWindowTitle,
+		RebuildEngineLibrary,
 	};
 
 	union Command {
@@ -21,11 +24,20 @@ namespace platform {
 			CommandType type = CommandType::ToggleFullscreen;
 		} toggle_full_screen;
 
+		struct SetWindowTitle {
+			CommandType type = CommandType::SetWindowTitle;
+			char title[128];
+		} set_window_title;
+
 		struct ChangeResolution {
 			CommandType type = CommandType::ChangeResolution;
 			int width;
 			int height;
 		} change_resolution;
+
+		struct RebuildEngineLibrary {
+			CommandType type = CommandType::RebuildEngineLibrary;
+		} rebuild_engine_library;
 	};
 
 	class CommandAPI {
@@ -35,7 +47,9 @@ namespace platform {
 
 		void quit();
 		void toggle_fullscreen();
+		void set_window_title(const char* title);
 		void change_resolution(int width, int height);
+		void rebuild_engine_library();
 
 	private:
 		std::vector<Command> m_commands;

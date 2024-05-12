@@ -35,7 +35,7 @@ namespace platform {
 		FT_Done_FreeType(g_ft);
 	}
 
-	std::optional<Font> add_font(const char* font_path, uint8_t font_size) {
+	std::optional<Font> add_ttf_font(const char* font_path, uint8_t font_size) {
 		Font font;
 
 		/* Load font */

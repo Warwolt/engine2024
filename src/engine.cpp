@@ -65,7 +65,7 @@ namespace engine {
 		// Add Arial font
 		{
 			const char* font_path = "C:/windows/Fonts/Arial.ttf";
-			platform::Font font = util::unwrap(platform::add_font(font_path, 16), [&] {
+			platform::Font font = util::unwrap(platform::add_ttf_font(font_path, 16), [&] {
 				ABORT("Failed to load font \"%s\"", font_path);
 			});
 			state->fonts["arial-16"] = font;
@@ -84,32 +84,83 @@ namespace engine {
 	void update(State* state, const platform::Input* input, platform::CommandAPI* commands) {
 		state->window_resolution = input->window_resolution;
 
-		if (state->circle_pos == glm::vec2 { -1.0f, -1.0f }) {
-			state->circle_pos = input->window_resolution / 2.0f;
+		/* Quit */
+		{
+			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+				commands->quit();
+			}
 		}
 
-		if (input->mouse.left_button.is_pressed()) {
-			state->circle_pos = input->mouse.pos;
+		/* Window*/
+		{
+			if (input->keyboard.key_pressed_now(SDLK_F11)) {
+				commands->toggle_fullscreen();
+			}
+
+			// Goal: describe title animation as a periodic function of t: time
+			// Need to be periodic relative some t0: time
+			static bool prev_engine_library_is_rebuilding = false;
+			static uint64_t time;
+			constexpr uint64_t period_ms = 400;
+
+			// start animation
+			if (!prev_engine_library_is_rebuilding && input->engine_library_is_rebuilding) {
+				time = 0;
+			}
+			// FIXME: we need some kind of event for when this value changes
+			prev_engine_library_is_rebuilding = input->engine_library_is_rebuilding;
+
+			std::string title;
+			if (input->engine_library_is_rebuilding) {
+				if ((time / period_ms) % 3 == 0) {
+					title = "Engine2024 (rebuilding)";
+				}
+				if ((time / period_ms) % 3 == 1) {
+					title = "Engine2024 (rebuilding.)";
+				}
+				if ((time / period_ms) % 3 == 2) {
+					title = "Engine2024 (rebuilding..) ";
+				}
+			}
+			else {
+				title = "Engine2024";
+			}
+			commands->set_window_title(title.c_str());
+
+			time += input->delta_ms;
 		}
 
-		if (input->keyboard.key_pressed_now(SDLK_F3)) {
-			state->show_imgui = !state->show_imgui;
+		/* Circle */
+		{
+			if (state->circle_pos == glm::vec2 { -1.0f, -1.0f }) {
+				state->circle_pos = input->window_resolution / 2.0f;
+			}
+
+			if (input->mouse.left_button.is_pressed()) {
+				state->circle_pos = input->mouse.pos;
+			}
+
+			if (input->mouse.scroll_delta) {
+				state->circle_radius = std::max(state->circle_radius + 10 * input->mouse.scroll_delta, 0);
+			}
 		}
 
-		if (input->mouse.scroll_delta) {
-			state->circle_radius = std::max(state->circle_radius + 10 * input->mouse.scroll_delta, 0);
+		/* Imgui */
+		{
+			if (input->keyboard.key_pressed_now(SDLK_F3)) {
+				state->show_imgui = !state->show_imgui;
+			}
+
+			if (state->show_imgui) {
+				draw_imgui(&state->imgui_state, commands);
+			}
 		}
 
-		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
-			commands->quit();
-		}
-
-		if (input->keyboard.key_pressed_now(SDLK_F11)) {
-			commands->toggle_fullscreen();
-		}
-
-		if (state->show_imgui) {
-			draw_imgui(&state->imgui_state, commands);
+		/* Hot reloading */
+		{
+			if (input->keyboard.key_pressed_now(SDLK_F5)) {
+				commands->rebuild_engine_library();
+			}
 		}
 	}
 
@@ -128,8 +179,9 @@ namespace engine {
 
 		/* Render circle */
 		{
-			renderer->draw_circle_fill(state->circle_pos, (float)state->circle_radius, { 0.0f, 1.0f, 0.0f, 0.75f });
-			renderer->draw_circle(state->circle_pos, (float)state->circle_radius, { 0.0f, 1.0f, 0.0f, 1.0f });
+			glm::vec3 color = { 0.0f, 1.0f, 0.0f };
+			renderer->draw_circle_fill(state->circle_pos, (float)state->circle_radius, { color, 0.75f });
+			renderer->draw_circle(state->circle_pos, (float)state->circle_radius, { color, 1.0f });
 		}
 
 		/* Render text*/
