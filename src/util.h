@@ -3,6 +3,7 @@
 #include <magic_enum/magic_enum.h>
 
 #include <expected>
+#include <future>
 #include <optional>
 
 namespace util {
@@ -23,6 +24,11 @@ namespace util {
 			ABORT("util::unwrap called with std::optional not holding a value");
 		}
 		return std::move(result.value());
+	}
+
+	template <typename T>
+	bool future_is_ready(const std::future<T>& future) {
+		return future.valid() && future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 	}
 
 	template <typename T>

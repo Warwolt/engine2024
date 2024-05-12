@@ -167,18 +167,14 @@ int main(int /* argc */, char** /* args */) {
 	Canvas canvas = platform::add_canvas(window_info.resolution.x, window_info.resolution.y);
 
 	// test std::thread
-	std::future<int> future_int = std::async(std::launch::async, [] {
-		LOG_DEBUG("start thread");
-		SDL_Delay(1000);
-		LOG_DEBUG("thread done");
-		return 8;
-	});
+	std::future<void> rebuild_engine_future;
 
 	engine.initialize(&state);
 	while (!quit) {
 		// check future
-		if (future_int.valid() && future_int.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-			LOG_DEBUG("future_int = %d", future_int.get());
+		if (util::future_is_ready(rebuild_engine_future)) {
+			rebuild_engine_future.get();
+			LOG_DEBUG("rebuild engine done");
 		}
 
 		/* Input */
@@ -192,15 +188,16 @@ int main(int /* argc */, char** /* args */) {
 			/* Hot reloading */
 			hot_reloader.check_hot_reloading(&engine);
 			if (input.keyboard.key_pressed(SDLK_LCTRL) && input.keyboard.key_pressed_now(SDLK_F5)) {
-				auto run_cmake = [](void*) -> DWORD {
-					const char* cmd = "cmake --build build --target GameEngine2024Engine";
-					std::expected<void, std::string> result = platform::run_command(cmd);
-					if (!result.has_value()) {
-						LOG_ERROR("run_command failed: %s", result.error().c_str());
-					}
-					return 0;
-				};
-				CreateThread(NULL, 0, run_cmake, NULL, 0, NULL);
+				const bool already_running = rebuild_engine_future.valid();
+				if (!already_running) {
+					rebuild_engine_future = std::async(std::launch::async, [] {
+						const char* cmd = "cmake --build build --target GameEngine2024Engine";
+						std::expected<void, std::string> result = platform::run_command(cmd);
+						if (!result.has_value()) {
+							LOG_ERROR("run_command failed: %s", result.error().c_str());
+						}
+					});
+				}
 			}
 
 			/* Engine update */
