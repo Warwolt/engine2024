@@ -84,39 +84,54 @@ namespace engine {
 	void update(State* state, const platform::Input* input, platform::CommandAPI* commands) {
 		state->window_resolution = input->window_resolution;
 
-		if (state->circle_pos == glm::vec2 { -1.0f, -1.0f }) {
-			state->circle_pos = input->window_resolution / 2.0f;
+		/* Quit */
+		{
+			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+				commands->quit();
+			}
 		}
 
-		if (input->mouse.left_button.is_pressed()) {
-			state->circle_pos = input->mouse.pos;
+		/* Window*/
+		{
+			if (input->keyboard.key_pressed_now(SDLK_F11)) {
+				commands->toggle_fullscreen();
+			}
 		}
 
-		if (input->keyboard.key_pressed_now(SDLK_F3)) {
-			state->show_imgui = !state->show_imgui;
+		/* Circle */
+		{
+			if (state->circle_pos == glm::vec2 { -1.0f, -1.0f }) {
+				state->circle_pos = input->window_resolution / 2.0f;
+			}
+
+			if (input->mouse.left_button.is_pressed()) {
+				state->circle_pos = input->mouse.pos;
+			}
+
+			if (input->mouse.scroll_delta) {
+				state->circle_radius = std::max(state->circle_radius + 10 * input->mouse.scroll_delta, 0);
+			}
 		}
 
-		if (input->mouse.scroll_delta) {
-			state->circle_radius = std::max(state->circle_radius + 10 * input->mouse.scroll_delta, 0);
+		/* Imgui */
+		{
+			if (input->keyboard.key_pressed_now(SDLK_F3)) {
+				state->show_imgui = !state->show_imgui;
+			}
+
+			if (state->show_imgui) {
+				draw_imgui(&state->imgui_state, commands);
+			}
 		}
 
-		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
-			commands->quit();
-		}
+		/* Hot reloading */
+		{
+			if (input->keyboard.key_pressed(SDLK_LCTRL) && input->keyboard.key_pressed_now(SDLK_F5)) {
+				commands->rebuild_engine_library();
+			}
 
-		if (input->keyboard.key_pressed_now(SDLK_F11)) {
-			commands->toggle_fullscreen();
+			commands->set_window_title(input->engine_library_is_rebuilding ? "Engine2024 (rebuilding)" : "Engine2024");
 		}
-
-		if (state->show_imgui) {
-			draw_imgui(&state->imgui_state, commands);
-		}
-
-		if (input->keyboard.key_pressed(SDLK_LCTRL) && input->keyboard.key_pressed_now(SDLK_F5)) {
-			commands->rebuild_engine_library();
-		}
-
-		commands->set_window_title(input->engine_library_is_rebuilding ? "Engine2024 (rebuilding)" : "Engine2024");
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
