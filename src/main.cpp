@@ -110,107 +110,6 @@ void start_imgui_frame() {
 	ImGui::NewFrame();
 }
 
-std::expected<void, std::string> run_command(const char* cmd_str) {
-	// this function based on:
-	// https://learn.microsoft.com/en-gb/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
-
-	std::string cmd(cmd_str);
-
-	/* Setup pipes */
-	HANDLE std_out_read;
-	HANDLE std_out_write;
-	HANDLE std_err_read;
-	HANDLE std_err_write;
-	{
-		SECURITY_ATTRIBUTES security_attr;
-		security_attr.nLength = sizeof(SECURITY_ATTRIBUTES);
-		security_attr.bInheritHandle = TRUE;
-		security_attr.lpSecurityDescriptor = NULL;
-
-		if (!CreatePipe(&std_out_read, &std_out_write, &security_attr, 0)) {
-			return std::unexpected("std_out CreatePipe failed: " + platform::get_win32_error());
-		}
-
-		if (!SetHandleInformation(std_out_read, HANDLE_FLAG_INHERIT, 0)) {
-			return std::unexpected("std_out SetHandleInformation failed: " + platform::get_win32_error());
-		}
-
-		if (!CreatePipe(&std_err_read, &std_err_write, &security_attr, 0)) {
-			return std::unexpected("std_err CreatePipe failew: " + platform::get_win32_error());
-		}
-
-		if (!SetHandleInformation(std_err_read, HANDLE_FLAG_INHERIT, 0)) {
-			return std::unexpected("std_out SetHandleInformation failed: " + platform::get_win32_error());
-		}
-	}
-
-	/* Run command */
-	// TODO: run this in a background thread not to block main thread?
-	PROCESS_INFORMATION process_info = { 0 };
-	{
-		STARTUPINFO startup_info = { 0 };
-		startup_info.cb = sizeof(STARTUPINFO);
-		startup_info.hStdOutput = std_out_write;
-		startup_info.hStdError = std_err_write;
-		startup_info.dwFlags = STARTF_USESTDHANDLES;
-
-		if (!CreateProcess(
-				NULL, // path
-				&cmd[0],
-				NULL, // process security attributes
-				NULL, // primary thread security attributes
-				TRUE, // handles are inherited
-				0, // creation flags
-				NULL, // use parent's environment
-				NULL, // use parent's current directory
-				&startup_info,
-				&process_info
-			)) {
-			return std::unexpected("CreateProcess(\"" + cmd + "\") failed: " + platform::get_win32_error());
-		}
-
-		// close handles
-		CloseHandle(std_out_write);
-		CloseHandle(std_err_write);
-	}
-
-	// read from stdout until done
-	{
-		constexpr size_t BUFSIZE = 4096;
-		DWORD read = 0;
-		char buf[BUFSIZE] = { 0 };
-		BOOL success = FALSE;
-
-		// TODO: read and output continously
-		while (true) {
-			// read
-			success = ReadFile(std_out_read, buf + read, BUFSIZE, &read, NULL);
-			if (!success) {
-				break;
-			}
-
-			// check if process is done
-			DWORD exit_code;
-			if (!GetExitCodeProcess(process_info.hProcess, &exit_code)) {
-				return std::unexpected("GetExitCodeProcess failed: " + platform::get_win32_error());
-			}
-			if (exit_code != STILL_ACTIVE) {
-				break;
-			}
-		}
-
-		LOG_DEBUG("process output:");
-		IF_PLOG(plog::debug) {
-			printf("%s", buf);
-		}
-	}
-
-	CloseHandle(process_info.hProcess);
-	CloseHandle(process_info.hThread);
-
-	return {};
-}
-
 int main(int /* argc */, char** /* args */) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
@@ -278,8 +177,8 @@ int main(int /* argc */, char** /* args */) {
 			/* Hot reloading */
 			hot_reloader.check_hot_reloading(&engine);
 			if (input.keyboard.key_pressed(SDLK_LCTRL) && input.keyboard.key_pressed_now(SDLK_F5)) {
-				LOG_DEBUG("Ctrl + F5");
-				std::expected<void, std::string> result = run_command("cmake --version");
+				const char* cmd = "cmake --build build";
+				std::expected<void, std::string> result = platform::run_command(cmd);
 				if (!result.has_value()) {
 					LOG_ERROR("run_command failed: %s", result.error().c_str());
 				}
