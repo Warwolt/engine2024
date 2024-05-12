@@ -153,7 +153,8 @@ namespace platform {
 		, m_library_name(library_name) {
 	}
 
-	void EngineLibraryHotReloader::check_hot_reloading(EngineLibrary* engine_library) {
+	void EngineLibraryHotReloader::update(EngineLibrary* engine_library) {
+		/* Check if library has been reloaded on disk */
 		if (m_hot_reload_timer.elapsed_ms() >= 1000) {
 			m_hot_reload_timer.reset();
 
@@ -166,6 +167,30 @@ namespace platform {
 				LOG_INFO("Engine library reloaded");
 			}
 		}
+
+		/* Check rebuild command progress */
+		if (m_rebuild_command_is_running) {
+			if (util::future_is_ready(m_rebuild_engine_future)) {
+				m_rebuild_engine_future.get();
+				m_rebuild_command_is_running = false;
+			}
+		}
+	}
+
+	void EngineLibraryHotReloader::trigger_rebuild_command() {
+		if (!m_rebuild_command_is_running) {
+			m_rebuild_engine_future = std::async(std::launch::async, [] {
+				const char* cmd = "cmake --build build --target GameEngine2024Engine";
+				std::expected<void, std::string> result = platform::run_command(cmd);
+				if (!result.has_value()) {
+					LOG_ERROR("run_command failed: %s", result.error().c_str());
+				}
+			});
+		}
+	}
+
+	bool EngineLibraryHotReloader::rebuild_command_is_running() const {
+		return m_rebuild_command_is_running;
 	}
 
 	void on_engine_library_loaded(EngineLibrary* engine_library) {

@@ -28,9 +28,7 @@
 #include <imgui/imgui.h>
 
 #include <expected>
-#include <future>
 #include <optional>
-#include <thread>
 
 using Canvas = platform::Canvas;
 using CommandAPI = platform::CommandAPI;
@@ -166,17 +164,8 @@ int main(int /* argc */, char** /* args */) {
 	bool quit = false;
 	Canvas canvas = platform::add_canvas(window_info.resolution.x, window_info.resolution.y);
 
-	// test std::thread
-	std::future<void> rebuild_engine_future;
-
 	engine.initialize(&state);
 	while (!quit) {
-		// check future
-		if (util::future_is_ready(rebuild_engine_future)) {
-			rebuild_engine_future.get();
-			LOG_DEBUG("rebuild engine done");
-		}
-
 		/* Input */
 		{
 			std::vector<SDL_Event> events = platform::read_events();
@@ -186,18 +175,9 @@ int main(int /* argc */, char** /* args */) {
 		/* Update */
 		{
 			/* Hot reloading */
-			hot_reloader.check_hot_reloading(&engine);
+			hot_reloader.update(&engine);
 			if (input.keyboard.key_pressed(SDLK_LCTRL) && input.keyboard.key_pressed_now(SDLK_F5)) {
-				const bool already_running = rebuild_engine_future.valid();
-				if (!already_running) {
-					rebuild_engine_future = std::async(std::launch::async, [] {
-						const char* cmd = "cmake --build build --target GameEngine2024Engine";
-						std::expected<void, std::string> result = platform::run_command(cmd);
-						if (!result.has_value()) {
-							LOG_ERROR("run_command failed: %s", result.error().c_str());
-						}
-					});
-				}
+				hot_reloader.trigger_rebuild_command();
 			}
 
 			/* Engine update */

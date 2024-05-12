@@ -7,6 +7,7 @@
 
 #include <expected>
 #include <functional>
+#include <future>
 #include <optional>
 #include <string>
 
@@ -53,12 +54,17 @@ namespace platform {
 	class EngineLibraryHotReloader {
 	public:
 		EngineLibraryHotReloader(EngineLibraryLoader* library_loader, const char* library_name);
-		void check_hot_reloading(EngineLibrary* engine_library);
+		void update(EngineLibrary* engine_library);
+		void trigger_rebuild_command();
+		bool rebuild_command_is_running() const;
 
 	private:
 		std::string m_library_name;
 		EngineLibraryLoader* m_library_loader;
 		platform::Timer m_hot_reload_timer;
+
+		std::future<void> m_rebuild_engine_future;
+		bool m_rebuild_command_is_running = false;
 	};
 
 	void on_engine_library_loaded(EngineLibrary* engine_library);
