@@ -39,7 +39,7 @@ namespace engine {
 	// engine interface
 	extern "C" __declspec(dllexport) void initialize(State* state);
 	extern "C" __declspec(dllexport) void shutdown(State* state);
-	extern "C" __declspec(dllexport) void update(State* state, const platform::Input* input, platform::CommandAPI* commands);
+	extern "C" __declspec(dllexport) void update(State* state, const platform::Input* input, platform::PlatformAPI* platform);
 	extern "C" __declspec(dllexport) void render(platform::Renderer* renderer, const State* engine);
 
 } // namespace engine

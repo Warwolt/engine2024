@@ -4,36 +4,36 @@
 
 namespace platform {
 
-	const std::vector<Command>& CommandAPI::commands() const {
+	const std::vector<Command>& PlatformAPI::commands() const {
 		return m_commands;
 	}
 
-	void CommandAPI::clear() {
+	void PlatformAPI::clear() {
 		m_commands.clear();
 	}
 
-	void CommandAPI::quit() {
+	void PlatformAPI::quit() {
 		m_commands.push_back({ .quit = Command::Quit() });
 	}
 
-	void CommandAPI::toggle_fullscreen() {
+	void PlatformAPI::toggle_fullscreen() {
 		m_commands.push_back({ .toggle_full_screen = Command::ToggleFullscreen() });
 	}
 
-	void CommandAPI::set_window_title(const char* title) {
+	void PlatformAPI::set_window_title(const char* title) {
 		Command::SetWindowTitle data;
 		strcpy_s(data.title, title);
 		m_commands.push_back({ .set_window_title = data });
 	}
 
-	void CommandAPI::change_resolution(int width, int height) {
+	void PlatformAPI::change_resolution(int width, int height) {
 		m_commands.push_back({ .change_resolution = {
 								   .width = width,
 								   .height = height,
 							   } });
 	}
 
-	void CommandAPI::rebuild_engine_library() {
+	void PlatformAPI::rebuild_engine_library() {
 		m_commands.push_back({ .rebuild_engine_library = Command::RebuildEngineLibrary() });
 	}
 

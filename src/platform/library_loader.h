@@ -22,7 +22,7 @@ namespace platform {
 		// engine interface
 		void (*initialize)(engine::State*);
 		void (*shutdown)(engine::State*);
-		void (*update)(engine::State*, const platform::Input*, platform::CommandAPI*);
+		void (*update)(engine::State*, const platform::Input*, platform::PlatformAPI*);
 		void (*render)(platform::Renderer*, engine::State*);
 	};
 

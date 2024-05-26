@@ -31,7 +31,7 @@
 #include <optional>
 
 using Canvas = platform::Canvas;
-using CommandAPI = platform::CommandAPI;
+using PlatformAPI = platform::PlatformAPI;
 using Command = platform::Command;
 using CommandType = platform::CommandType;
 using CreateGLContextError = platform::CreateGLContextError;
@@ -158,7 +158,7 @@ int main(int /* argc */, char** /* args */) {
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Input input;
-	platform::CommandAPI commands;
+	platform::PlatformAPI platform;
 	engine::State state;
 
 	bool quit = false;
@@ -180,10 +180,10 @@ int main(int /* argc */, char** /* args */) {
 
 			/* Engine update */
 			start_imgui_frame();
-			engine.update(&state, &input, &commands);
+			engine.update(&state, &input, &platform);
 
 			/* Platform update */
-			for (const Command& cmd : commands.commands()) {
+			for (const Command& cmd : platform.commands()) {
 				switch (cmd.type) {
 					case CommandType::Quit:
 						quit = true;
@@ -210,7 +210,7 @@ int main(int /* argc */, char** /* args */) {
 						break;
 				}
 			}
-			commands.clear();
+			platform.clear();
 		}
 
 		/* Render */

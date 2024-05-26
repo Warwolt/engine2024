@@ -40,7 +40,7 @@ namespace platform {
 		} rebuild_engine_library;
 	};
 
-	class CommandAPI {
+	class PlatformAPI {
 	public:
 		const std::vector<Command>& commands() const;
 		void clear();

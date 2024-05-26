@@ -8,7 +8,7 @@
 
 namespace engine {
 
-	static void draw_imgui(ImGuiState* state, platform::CommandAPI* commands) {
+	static void draw_imgui(ImGuiState* state, platform::PlatformAPI* platform) {
 		struct Resolution {
 			glm::ivec2 value;
 			const char* str;
@@ -36,7 +36,7 @@ namespace engine {
 
 		if (ImGui::Button("Change resolution")) {
 			glm::ivec2 resolution = resolutions[state->resolution_index].value;
-			commands->change_resolution(resolution.x, resolution.y);
+			platform->change_resolution(resolution.x, resolution.y);
 		}
 	}
 
@@ -81,20 +81,20 @@ namespace engine {
 		}
 	}
 
-	void update(State* state, const platform::Input* input, platform::CommandAPI* commands) {
+	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
 		state->window_resolution = input->window_resolution;
 
 		/* Quit */
 		{
 			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
-				commands->quit();
+				platform->quit();
 			}
 		}
 
 		/* Window*/
 		{
 			if (input->keyboard.key_pressed_now(SDLK_F11)) {
-				commands->toggle_fullscreen();
+				platform->toggle_fullscreen();
 			}
 
 			// Goal: describe title animation as a periodic function of t: time
@@ -125,7 +125,7 @@ namespace engine {
 			else {
 				title = "Engine2024";
 			}
-			commands->set_window_title(title.c_str());
+			platform->set_window_title(title.c_str());
 
 			time += input->delta_ms;
 		}
@@ -152,14 +152,14 @@ namespace engine {
 			}
 
 			if (state->show_imgui) {
-				draw_imgui(&state->imgui_state, commands);
+				draw_imgui(&state->imgui_state, platform);
 			}
 		}
 
 		/* Hot reloading */
 		{
 			if (input->keyboard.key_pressed_now(SDLK_F5)) {
-				commands->rebuild_engine_library();
+				platform->rebuild_engine_library();
 			}
 		}
 	}
