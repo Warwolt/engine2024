@@ -42,6 +42,7 @@ set(ENGINE_SRC
 )
 
 set(PLATFORM_SRC
+    src/platform/animation.cpp
     src/platform/commands.cpp
     src/platform/file.cpp
     src/platform/font.cpp
@@ -54,8 +55,8 @@ set(PLATFORM_SRC
     src/platform/platform.cpp
     src/platform/renderer.cpp
     src/platform/texture.cpp
-    src/platform/window.cpp
     src/platform/win32.cpp
+    src/platform/window.cpp
 )
 
 set(TEST_SRC

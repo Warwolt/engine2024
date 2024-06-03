@@ -40,6 +40,18 @@ namespace engine {
 		}
 	}
 
+	static std::string loading_window_title_animation(float t) {
+		if (t < 1.0 / 3.0) {
+			return "Engine2024 (rebuilding)";
+		}
+		if (t < 2.0 / 3.0) {
+			return "Engine2024 (rebuilding.)";
+		}
+		else /* t < 3.0 / 3.0 */ {
+			return "Engine2024 (rebuilding..)";
+		}
+	}
+
 	void set_logger(plog::Severity severity, plog::IAppender* appender) {
 		plog::init(severity, appender);
 	}
@@ -84,6 +96,11 @@ namespace engine {
 	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
 		state->window_resolution = input->window_resolution;
 
+		/* Timing */
+		{
+			state->global_time_ms += input->delta_ms;
+		}
+
 		/* Quit */
 		{
 			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
@@ -97,37 +114,28 @@ namespace engine {
 				platform->toggle_fullscreen();
 			}
 
-			// Goal: describe title animation as a periodic function of t: time
-			// Need to be periodic relative some t0: time
+			// FIXME: Need some proper mechanism for edge detection on bool states
+			// We need both "started rebuild" and "stopped rebuild" events.
 			static bool prev_engine_library_is_rebuilding = false;
-			static uint64_t time;
-			constexpr uint64_t period_ms = 400;
-
-			// start animation
-			if (!prev_engine_library_is_rebuilding && input->engine_library_is_rebuilding) {
-				time = 0;
-			}
-			// FIXME: we need some kind of event for when this value changes
+			const bool started_build_now = !prev_engine_library_is_rebuilding && input->engine_library_is_rebuilding;
+			const bool stopped_build_now = prev_engine_library_is_rebuilding && !input->engine_library_is_rebuilding;
 			prev_engine_library_is_rebuilding = input->engine_library_is_rebuilding;
 
-			std::string title;
-			if (input->engine_library_is_rebuilding) {
-				if ((time / period_ms) % 3 == 0) {
-					title = "Engine2024 (rebuilding)";
-				}
-				if ((time / period_ms) % 3 == 1) {
-					title = "Engine2024 (rebuilding.)";
-				}
-				if ((time / period_ms) % 3 == 2) {
-					title = "Engine2024 (rebuilding..) ";
-				}
+			constexpr float period_ms = 2000.0f;
+			if (started_build_now) {
+				state->window_title_animation_id = state->animations.start_animation("loading_window_title", period_ms, state->global_time_ms);
 			}
-			else {
-				title = "Engine2024";
+			if (stopped_build_now) {
+				state->animations.stop_animation(state->window_title_animation_id);
+			}
+
+			std::string title = "Engine2024";
+			for (const platform::Animation& animation : state->animations.animations("loading_window_title")) {
+				if (animation.is_playing(state->global_time_ms)) {
+					title = loading_window_title_animation(animation.local_time(state->global_time_ms));
+				}
 			}
 			platform->set_window_title(title.c_str());
-
-			time += input->delta_ms;
 		}
 
 		/* Circle */
@@ -189,7 +197,7 @@ namespace engine {
 			const platform::Font& font = state->fonts.at("arial-16");
 			glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 			glm::vec2 text_pos = { 300.0f, 100.0f };
-			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
+			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW!", text_pos, text_color);
 			renderer->draw_text(&font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, font.line_spacing }, text_color);
 		}
 	}
