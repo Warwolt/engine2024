@@ -1,6 +1,6 @@
 #pragma once
 
-#include <platform/animation.h>
+#include <engine/animation.h>
 #include <platform/commands.h>
 #include <platform/font.h>
 #include <platform/input/input.h>
@@ -23,10 +23,10 @@ namespace engine {
 	struct State {
 		std::unordered_map<std::string, platform::Texture> textures;
 		std::unordered_map<std::string, platform::Font> fonts;
-		platform::AnimationSystem animations;
+		AnimationSystem animations;
 
 		float global_time_ms = 0.0;
-		platform::AnimationID window_title_animation_id;
+		AnimationID window_title_animation_id;
 
 		bool show_imgui = false;
 		glm::vec2 circle_pos = { -1.0f, -1.0f };

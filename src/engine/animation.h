@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace platform {
+namespace engine {
 
 	using AnimationKey = std::string;
 
@@ -36,4 +36,4 @@ namespace platform {
 		std::unordered_map<AnimationKey, std::vector<Animation>> m_animations;
 	};
 
-} // namespace platform
+} // namespace engine

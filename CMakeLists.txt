@@ -39,10 +39,10 @@ set(IMGUI_SRC
 
 set(ENGINE_SRC
     src/engine.cpp
+    src/engine/animation.cpp
 )
 
 set(PLATFORM_SRC
-    src/platform/animation.cpp
     src/platform/commands.cpp
     src/platform/file.cpp
     src/platform/font.cpp

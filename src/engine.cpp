@@ -120,7 +120,7 @@ namespace engine {
 			}
 
 			std::string title = "Engine2024";
-			for (const platform::Animation& animation : state->animations.animations("loading_window_title")) {
+			for (const Animation& animation : state->animations.animations("loading_window_title")) {
 				if (animation.is_playing(state->global_time_ms)) {
 					title = loading_window_title_animation(animation.local_time(state->global_time_ms));
 				}
