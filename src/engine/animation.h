@@ -31,8 +31,6 @@ namespace engine {
 		void stop_animation(AnimationID id);
 
 	private:
-		static bool _animation_is_active(const Animation& animation, float global_time);
-
 		std::unordered_map<AnimationKey, std::vector<Animation>> m_animations;
 	};
 
