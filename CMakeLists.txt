@@ -62,6 +62,7 @@ set(PLATFORM_SRC
 set(TEST_SRC
     test/keyboard_tests.cpp
     test/resource_handler_tests.cpp
+    test/signal_tests.cpp
 )
 
 set(EXTERNAL_LIBS
