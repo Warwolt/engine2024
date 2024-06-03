@@ -96,11 +96,6 @@ namespace engine {
 	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
 		state->window_resolution = input->window_resolution;
 
-		/* Timing */
-		{
-			state->global_time_ms += input->delta_ms;
-		}
-
 		/* Quit */
 		{
 			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
@@ -110,22 +105,17 @@ namespace engine {
 
 		/* Window*/
 		{
+			state->global_time_ms += input->delta_ms;
+
 			if (input->keyboard.key_pressed_now(SDLK_F11)) {
 				platform->toggle_fullscreen();
 			}
 
-			// FIXME: Need some proper mechanism for edge detection on bool states
-			// We need both "started rebuild" and "stopped rebuild" events.
-			static bool prev_engine_library_is_rebuilding = false;
-			const bool started_build_now = !prev_engine_library_is_rebuilding && input->engine_library_is_rebuilding;
-			const bool stopped_build_now = prev_engine_library_is_rebuilding && !input->engine_library_is_rebuilding;
-			prev_engine_library_is_rebuilding = input->engine_library_is_rebuilding;
-
-			constexpr float period_ms = 2000.0f;
-			if (started_build_now) {
+			if (input->engine_library_is_rebuilding.just_became(true)) {
+				constexpr float period_ms = 2000.0f;
 				state->window_title_animation_id = state->animations.start_animation("loading_window_title", period_ms, state->global_time_ms);
 			}
-			if (stopped_build_now) {
+			if (input->engine_library_is_rebuilding.just_became(false)) {
 				state->animations.stop_animation(state->window_title_animation_id);
 			}
 
@@ -197,7 +187,7 @@ namespace engine {
 			const platform::Font& font = state->fonts.at("arial-16");
 			glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 			glm::vec2 text_pos = { 300.0f, 100.0f };
-			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW!", text_pos, text_color);
+			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
 			renderer->draw_text(&font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, font.line_spacing }, text_color);
 		}
 	}

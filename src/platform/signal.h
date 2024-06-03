@@ -35,7 +35,7 @@ namespace platform {
 
 		operator T() const { return m_current; }
 
-		bool just_became(const T& x) {
+		bool just_became(const T& x) const {
 			return m_current == x && m_previous != x;
 		}
 
