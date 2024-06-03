@@ -27,7 +27,7 @@ namespace engine {
 	public:
 		std::vector<Animation> animations(AnimationKey key);
 
-		AnimationID start_animation(AnimationKey key, float length, float global_time);
+		AnimationID start_animation(AnimationKey key, float length, float start_time);
 		void stop_animation(AnimationID id);
 
 	private:

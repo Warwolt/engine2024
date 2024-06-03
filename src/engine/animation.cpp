@@ -19,13 +19,13 @@ namespace engine {
 		return m_animations[key];
 	}
 
-	AnimationID AnimationSystem::start_animation(AnimationKey key, float length, float global_time) {
+	AnimationID AnimationSystem::start_animation(AnimationKey key, float length, float start_time) {
 		static int id_value;
 		AnimationID id = { .key = key, .value = ++id_value };
 		m_animations[key].push_back(
 			Animation {
 				.id = id,
-				.start = global_time,
+				.start = start_time,
 				.length = length,
 				.repeats = true,
 			}
