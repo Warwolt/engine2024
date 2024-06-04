@@ -8,14 +8,13 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Tidy up window animation
-- Add sub-namespaces to platform based on file names
+- Fix so that engine unit tests links against DLL statically
 - Render level editor canvas (Aseprite style grey checker board)
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
-- Hot reload with ctrl+F5
+- Tidy up window animation
 
 ## Done
 - Hot reload engine library with F5

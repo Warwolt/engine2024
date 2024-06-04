@@ -2,6 +2,7 @@
 
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
+#include <platform/signal.h>
 
 #include <SDL2/SDL_events.h>
 #include <glm/glm.hpp>
@@ -25,7 +26,7 @@ namespace platform {
 		glm::vec2 window_resolution;
 		uint64_t delta_ms = 0;
 		bool quit_signal_received = false;
-		bool engine_library_is_rebuilding = false;
+		Signal<bool> engine_library_is_rebuilding = false;
 		Keyboard keyboard;
 		Mouse mouse;
 	};

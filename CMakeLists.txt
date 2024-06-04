@@ -39,6 +39,7 @@ set(IMGUI_SRC
 
 set(ENGINE_SRC
     src/engine.cpp
+    src/engine/animation.cpp
 )
 
 set(PLATFORM_SRC
@@ -54,13 +55,15 @@ set(PLATFORM_SRC
     src/platform/platform.cpp
     src/platform/renderer.cpp
     src/platform/texture.cpp
-    src/platform/window.cpp
     src/platform/win32.cpp
+    src/platform/window.cpp
 )
 
 set(TEST_SRC
+    test/engine/animation_tests.cpp
     test/keyboard_tests.cpp
     test/resource_handler_tests.cpp
+    test/signal_tests.cpp
 )
 
 set(EXTERNAL_LIBS
@@ -107,7 +110,10 @@ target_include_directories(${MAIN_BINARY} PUBLIC ${INC})
 target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${EXTERNAL_LIBS})
 
 # Tests
-add_executable(${UNIT_TESTS} test/main.cpp ${TEST_SRC})
+#### FIXME:
+# We should be linking against the engine .lib library to re-use the DLL!
+# Right now the engine code is built twice, once for the engine DLL and once for the tests
+add_executable(${UNIT_TESTS} test/main.cpp ${TEST_SRC} ${ENGINE_SRC})
 target_include_directories(${UNIT_TESTS} PUBLIC test)
 target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB})
 
