@@ -115,14 +115,15 @@ namespace engine {
 				constexpr float period_ms = 2000.0f;
 				state->window_title_animation_id = state->animations.start_animation("loading_window_title", period_ms, state->global_time_ms);
 			}
+
 			if (input->engine_library_is_rebuilding.just_became(false)) {
 				state->animations.stop_animation(state->window_title_animation_id);
 			}
 
 			std::string title = "Engine2024";
-			for (const Animation& animation : state->animations.animations("loading_window_title")) {
-				if (animation.is_playing(state->global_time_ms)) {
-					title = loading_window_title_animation(animation.local_time(state->global_time_ms));
+			if (std::optional<Animation> animation = state->animations.most_recent_animation("loading_window_title")) {
+				if (animation->is_playing(state->global_time_ms)) {
+					title = loading_window_title_animation(animation->local_time(state->global_time_ms));
 				}
 			}
 			platform->set_window_title(title.c_str());
@@ -187,7 +188,7 @@ namespace engine {
 			const platform::Font& font = state->fonts.at("arial-16");
 			glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 			glm::vec2 text_pos = { 300.0f, 100.0f };
-			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
+			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW!!", text_pos, text_color);
 			renderer->draw_text(&font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, font.line_spacing }, text_color);
 		}
 	}

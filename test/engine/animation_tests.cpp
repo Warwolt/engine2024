@@ -35,10 +35,73 @@ TEST(AnimationTests, StoppedAnimation_BecomesRemoved) {
 	EXPECT_TRUE(animation_system.animations(ANIMATION_KEY).empty());
 }
 
-// TODO: global_time < animation_start => animation is not playing
+TEST(AnimationTests, StartedAnimation_GlobalTimeLessThanStartTime_AnimationNotPlaying) {
+	engine::AnimationSystem animation_system;
+	const float animation_length = 10.0;
+	const float start_time = 3.0;
+	const float global_time = 2.0;
 
-// TODO: animation_start < global_time => animation is playing
+	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
+	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
 
-// TODO: animation_start < global_time && global_time <= animation_end => animation is playing
+	ASSERT_TRUE(global_time < start_time);
+	EXPECT_FALSE(animation.is_playing(global_time));
+}
 
-// TODO: global time -> local time tests
+TEST(AnimationTests, RepeatingAnimation_GlobalTimeEqualsStartTime_AnimationIsPlaying) {
+	engine::AnimationSystem animation_system;
+	const float animation_length = 10.0;
+	const float start_time = 3.0;
+	const float global_time = 3.0;
+
+	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
+	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+
+	ASSERT_TRUE(global_time == start_time);
+	EXPECT_TRUE(animation.is_playing(global_time));
+}
+
+TEST(AnimationTests, RepeatingAnimation_GlobalTimePastEndTime_AnimationStillPlaying) {
+	engine::AnimationSystem animation_system;
+	const float animation_length = 10.0;
+	const float start_time = 3.0;
+	const float global_time = start_time + animation_length;
+
+	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
+	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+
+	ASSERT_TRUE(global_time > start_time);
+	EXPECT_TRUE(animation.is_playing(global_time));
+}
+
+TEST(AnimationTests, SingleShotAnimation_GlobalTimeEqualsStartTime_AnimationIsPlaying) {
+	engine::AnimationSystem animation_system;
+	const float animation_length = 10.0;
+	const float start_time = 3.0;
+	const float global_time = 3.0;
+
+	engine::AnimationID id = animation_system.start_single_shot_animation(ANIMATION_KEY, animation_length, start_time);
+	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+
+	ASSERT_TRUE(global_time == start_time);
+	EXPECT_TRUE(animation.is_playing(global_time));
+}
+
+TEST(AnimationTests, SingleShotAnimation_GlobalTimePastEndTime_AnimationStopped) {
+	engine::AnimationSystem animation_system;
+	const float animation_length = 10.0;
+	const float start_time = 3.0;
+	const float global_time = start_time + animation_length;
+
+	engine::AnimationID id = animation_system.start_single_shot_animation(ANIMATION_KEY, animation_length, start_time);
+	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+
+	ASSERT_TRUE(global_time > start_time);
+	EXPECT_FALSE(animation.is_playing(global_time));
+}
+
+// Old animations are removed
+
+// Multiple animations can be queued up the same start time
+
+// Multiple animations can be queued up with different start times

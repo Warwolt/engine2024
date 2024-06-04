@@ -15,11 +15,24 @@ namespace engine {
 		return fmodf((global_time - this->start), this->length) / this->length;
 	}
 
-	std::vector<Animation> AnimationSystem::animations(AnimationKey key) {
+	const std::vector<Animation>& AnimationSystem::animations(AnimationKey key) {
 		return m_animations[key];
 	}
 
+	std::optional<Animation> AnimationSystem::most_recent_animation(AnimationKey key) {
+		const std::vector<Animation>& animations = m_animations[key];
+		return animations.empty() ? std::nullopt : std::make_optional(animations.back());
+	}
+
 	AnimationID AnimationSystem::start_animation(AnimationKey key, float length, float start_time) {
+		return _start_animation(key, length, start_time, true);
+	}
+
+	AnimationID AnimationSystem::start_single_shot_animation(AnimationKey key, float length, float start_time) {
+		return _start_animation(key, length, start_time, false);
+	}
+
+	AnimationID AnimationSystem::_start_animation(AnimationKey key, float length, float start_time, bool repeats) {
 		static int id_value;
 		AnimationID id = { .key = key, .value = ++id_value };
 		m_animations[key].push_back(
@@ -27,7 +40,7 @@ namespace engine {
 				.id = id,
 				.start = start_time,
 				.length = length,
-				.repeats = true,
+				.repeats = repeats,
 			}
 		);
 		return id;

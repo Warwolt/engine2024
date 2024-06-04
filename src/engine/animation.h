@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -25,12 +26,16 @@ namespace engine {
 
 	class AnimationSystem {
 	public:
-		std::vector<Animation> animations(AnimationKey key);
+		const std::vector<Animation>& animations(AnimationKey key); // TODO make this const
+		std::optional<Animation> most_recent_animation(AnimationKey key);
 
 		AnimationID start_animation(AnimationKey key, float length, float start_time);
+		AnimationID start_single_shot_animation(AnimationKey key, float length, float start_time);
 		void stop_animation(AnimationID id);
 
 	private:
+		AnimationID _start_animation(AnimationKey key, float length, float start_time, bool repeats);
+
 		std::unordered_map<AnimationKey, std::vector<Animation>> m_animations;
 	};
 
