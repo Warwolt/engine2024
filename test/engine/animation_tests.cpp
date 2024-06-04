@@ -100,8 +100,16 @@ TEST(AnimationTests, SingleShotAnimation_GlobalTimePastEndTime_AnimationStopped)
 	EXPECT_FALSE(animation.is_playing(global_time));
 }
 
-// Old animations are removed
+TEST(AnimationTests, SingleShotAnimation_GlobalTimePastEndTime_CanBeClearedOut) {
+	engine::AnimationSystem animation_system;
+	const float animation_length = 10.0;
+	const float start_time = 3.0;
+	const float global_time = start_time + animation_length + 1.0;
 
-// Multiple animations can be queued up the same start time
+	engine::AnimationID id = animation_system.start_single_shot_animation(ANIMATION_KEY, animation_length, start_time);
+	animation_system.clear_old_animations(global_time);
+	std::optional<engine::Animation> animation = animation_system.most_recent_animation(ANIMATION_KEY);
 
-// Multiple animations can be queued up with different start times
+	ASSERT_TRUE(global_time > start_time + animation_length);
+	EXPECT_FALSE(animation.has_value());
+}

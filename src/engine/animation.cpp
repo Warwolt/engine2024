@@ -15,12 +15,12 @@ namespace engine {
 		return fmodf((global_time - this->start), this->length) / this->length;
 	}
 
-	const std::vector<Animation>& AnimationSystem::animations(AnimationKey key) {
-		return m_animations[key];
+	const std::vector<Animation>& AnimationSystem::animations(AnimationKey key) const {
+		return m_animations.contains(key) ? m_animations.at(key) : m_empty_animation;
 	}
 
-	std::optional<Animation> AnimationSystem::most_recent_animation(AnimationKey key) {
-		const std::vector<Animation>& animations = m_animations[key];
+	std::optional<Animation> AnimationSystem::most_recent_animation(AnimationKey key) const {
+		const std::vector<Animation>& animations = this->animations(key);
 		return animations.empty() ? std::nullopt : std::make_optional(animations.back());
 	}
 
@@ -30,6 +30,14 @@ namespace engine {
 
 	AnimationID AnimationSystem::start_single_shot_animation(AnimationKey key, float length, float start_time) {
 		return _start_animation(key, length, start_time, false);
+	}
+
+	void AnimationSystem::clear_old_animations(float global_time) {
+		for (auto& [key, animations] : m_animations) {
+			std::erase_if(animations, [global_time](const Animation& animation) {
+				return !animation.repeats && global_time > animation.start + animation.length;
+			});
+		}
 	}
 
 	AnimationID AnimationSystem::_start_animation(AnimationKey key, float length, float start_time, bool repeats) {
