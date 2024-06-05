@@ -9,7 +9,7 @@
 
 namespace engine {
 
-	static void draw_imgui(ImGuiState* imgui, platform::PlatformAPI* platform) {
+	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform) {
 		struct Resolution {
 			glm::ivec2 value;
 			const char* str;
@@ -20,12 +20,12 @@ namespace engine {
 
 		};
 
-		const char* combo_preview_value = resolutions[imgui->resolution_index].str;
+		const char* combo_preview_value = resolutions[debug_ui->resolution_index].str;
 		if (ImGui::BeginCombo("Resolution", combo_preview_value, 0)) {
 			for (int n = 0; n < IM_ARRAYSIZE(resolutions); n++) {
-				const bool current_is_selected = (imgui->resolution_index == n);
+				const bool current_is_selected = (debug_ui->resolution_index == n);
 				if (ImGui::Selectable(resolutions[n].str, current_is_selected)) {
-					imgui->resolution_index = n;
+					debug_ui->resolution_index = n;
 				}
 
 				if (current_is_selected) {
@@ -36,7 +36,7 @@ namespace engine {
 		}
 
 		if (ImGui::Button("Change resolution")) {
-			glm::ivec2 resolution = resolutions[imgui->resolution_index].value;
+			glm::ivec2 resolution = resolutions[debug_ui->resolution_index].value;
 			platform->change_resolution(resolution.x, resolution.y);
 		}
 	}
@@ -117,11 +117,11 @@ namespace engine {
 		/* Imgui */
 		{
 			if (input->keyboard.key_pressed_now(SDLK_F3)) {
-				state->imgui.show_imgui = !state->imgui.show_imgui;
+				state->debug_ui.show_debug_ui = !state->debug_ui.show_debug_ui;
 			}
 
-			if (state->imgui.show_imgui) {
-				draw_imgui(&state->imgui, platform);
+			if (state->debug_ui.show_debug_ui) {
+				draw_imgui(&state->debug_ui, platform);
 			}
 		}
 

@@ -12,8 +12,8 @@
 
 namespace engine {
 
-	struct ImGuiState {
-		bool show_imgui = false;
+	struct DebugUiState {
+		bool show_debug_ui = false;
 		int resolution_index = 0;
 	};
 
@@ -34,7 +34,7 @@ namespace engine {
 		int circle_radius = 127;
 		glm::vec2 window_resolution;
 
-		ImGuiState imgui;
+		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
 	};
 
