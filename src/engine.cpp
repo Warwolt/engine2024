@@ -127,7 +127,7 @@ namespace engine {
 		}
 
 		/* Hot reloading */
-		update_hot_reloading(state, input, platform);
+		update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {

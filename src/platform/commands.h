@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+// FIXME rename this file to platform_api.h
+
 namespace platform {
 
 	enum class CommandType {

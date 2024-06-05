@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine/animation.h>
+#include <engine/hot_reloading.h>
 #include <platform/font.h>
 #include <platform/input/input.h>
 #include <platform/renderer.h>
@@ -13,10 +14,6 @@ namespace engine {
 
 	struct ImGuiState {
 		int resolution_index = 0;
-	};
-
-	struct HotReloadingState {
-		AnimationID title_animation_id;
 	};
 
 	struct Systems {
