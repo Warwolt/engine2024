@@ -8,16 +8,16 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Fix debugging of engine DLL (Probably needs to copy PDB when copying DLL)
-- Render level editor canvas (Aseprite style grey checker board)
-  - [] Render to a canvas and render canvas in an ImGui window
 - Fix so that engine unit tests links against DLL statically
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
+- Render level editor canvas (Aseprite style grey checker board)
+  - [] Render to a canvas and render canvas in an ImGui window
 
 ## Done
+- Fix debugging of engine DLL (Probably needs to copy PDB when copying DLL)
 - Tidy up window animation
 - Hot reload engine library with F5
 - Rename `add_font` to `add_ttf_font`

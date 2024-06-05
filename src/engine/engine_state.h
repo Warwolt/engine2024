@@ -29,11 +29,7 @@ namespace engine {
 	struct State {
 		Resources resources;
 		Systems systems;
-
-		glm::vec2 circle_pos = { -1.0f, -1.0f };
-		int circle_radius = 127;
 		glm::vec2 window_resolution;
-
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
 	};
