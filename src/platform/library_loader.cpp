@@ -86,7 +86,7 @@ namespace platform {
 		m_copied_library_path = m_library_path.substr(0, m_library_path.size() - 4) + "-copy.dll";
 
 		/* Create a copy of library, so original file can still be modified */
-		const bool fail_if_already_exists = false; // overwrite file if already exists
+		constexpr bool fail_if_already_exists = false; // overwrite file if already exists
 		if (!CopyFile(m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists)) {
 			std::string error = get_win32_error();
 			LOG_ERROR("CopyFile(\"%s\", \"%s\", %s) failed: ", m_library_path.c_str(), m_copied_library_path.c_str(), fail_if_already_exists ? "true" : "false", error.c_str());
@@ -99,7 +99,7 @@ namespace platform {
 		if (!m_copied_library) {
 			std::string error = get_win32_error();
 			LOG_ERROR("LoadLibrary(\"%s\") failed: ", copied_library_name.c_str(), error.c_str());
-			return std::unexpected(LoadLibraryError::FailedToLoadCopiedLibrary);
+			return std::unexpected(LoadLibraryError::FailedToCopyLibrary);
 		}
 
 		/* Read last write timestamp */
