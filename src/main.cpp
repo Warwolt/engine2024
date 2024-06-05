@@ -3,7 +3,6 @@
 
 #include <engine.h>
 #include <platform/assert.h>
-#include <platform/commands.h>
 #include <platform/file.h>
 #include <platform/font.h>
 #include <platform/image.h>
@@ -12,6 +11,7 @@
 #include <platform/library_loader.h>
 #include <platform/logging.h>
 #include <platform/platform.h>
+#include <platform/platform_api.h>
 #include <platform/renderer.h>
 #include <platform/win32.h>
 #include <platform/window.h>
