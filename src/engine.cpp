@@ -1,5 +1,6 @@
 #include <engine.h>
 
+#include <engine/hot_reloading.h>
 #include <imgui/imgui.h>
 #include <platform/assert.h>
 #include <platform/logging.h>
@@ -37,18 +38,6 @@ namespace engine {
 		if (ImGui::Button("Change resolution")) {
 			glm::ivec2 resolution = resolutions[state->resolution_index].value;
 			platform->change_resolution(resolution.x, resolution.y);
-		}
-	}
-
-	static std::string loading_window_title_animation(float t) {
-		if (t < 1.0 / 3.0) {
-			return "Engine2024 (rebuilding)";
-		}
-		if (t < 2.0 / 3.0) {
-			return "Engine2024 (rebuilding.)";
-		}
-		else /* t < 3.0 / 3.0 */ {
-			return "Engine2024 (rebuilding..)";
 		}
 	}
 
@@ -95,6 +84,7 @@ namespace engine {
 
 	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
 		state->window_resolution = input->window_resolution;
+		state->global_time_ms += input->delta_ms;
 
 		/* Quit */
 		{
@@ -105,28 +95,9 @@ namespace engine {
 
 		/* Window*/
 		{
-			state->global_time_ms += input->delta_ms;
-
 			if (input->keyboard.key_pressed_now(SDLK_F11)) {
 				platform->toggle_fullscreen();
 			}
-
-			if (input->engine_library_is_rebuilding.just_became(true)) {
-				constexpr float period_ms = 2000.0f;
-				state->window_title_animation_id = state->animations.start_animation("loading_window_title", period_ms, state->global_time_ms);
-			}
-
-			if (input->engine_library_is_rebuilding.just_became(false)) {
-				state->animations.stop_animation(state->window_title_animation_id);
-			}
-
-			std::string title = "Engine2024";
-			if (std::optional<Animation> animation = state->animations.most_recent_animation("loading_window_title")) {
-				if (animation->is_playing(state->global_time_ms)) {
-					title = loading_window_title_animation(animation->local_time(state->global_time_ms));
-				}
-			}
-			platform->set_window_title(title.c_str());
 		}
 
 		/* Circle */
@@ -156,11 +127,7 @@ namespace engine {
 		}
 
 		/* Hot reloading */
-		{
-			if (input->keyboard.key_pressed_now(SDLK_F5)) {
-				platform->rebuild_engine_library();
-			}
-		}
+		update_hot_reloading(state, input, platform);
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
@@ -188,7 +155,7 @@ namespace engine {
 			const platform::Font& font = state->fonts.at("arial-16");
 			glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 			glm::vec2 text_pos = { 300.0f, 100.0f };
-			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW!!", text_pos, text_color);
+			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
 			renderer->draw_text(&font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, font.line_spacing }, text_color);
 		}
 	}

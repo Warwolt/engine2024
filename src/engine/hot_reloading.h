@@ -1,7 +1,11 @@
 #pragma once
 
-#include <platform/input/input.h>
-#include <platform/platform.h>
+namespace platform {
+	struct Input;
+	class PlatformAPI;
+}
+
+struct State;
 
 namespace engine {
 
