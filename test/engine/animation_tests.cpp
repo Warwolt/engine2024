@@ -11,8 +11,8 @@ TEST(AnimationTests, AnimationSystem_Initially_HoldsZeroAnimations_ForGivenKey) 
 
 TEST(AnimationTests, StartedAnimation_CanLaterBeRetreived) {
 	engine::AnimationSystem animation_system;
-	const float animation_length = 10.0;
-	const float start_time = 1.0;
+	const uint64_t animation_length = 10;
+	const uint64_t start_time = 1;
 
 	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
 	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
@@ -26,8 +26,8 @@ TEST(AnimationTests, StartedAnimation_CanLaterBeRetreived) {
 
 TEST(AnimationTests, StoppedAnimation_BecomesRemoved) {
 	engine::AnimationSystem animation_system;
-	const float animation_length = 10.0;
-	const float start_time = 1.0;
+	const uint64_t animation_length = 10;
+	const uint64_t start_time = 1;
 
 	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
 	animation_system.stop_animation(id);
@@ -37,9 +37,9 @@ TEST(AnimationTests, StoppedAnimation_BecomesRemoved) {
 
 TEST(AnimationTests, StartedAnimation_GlobalTimeLessThanStartTime_AnimationNotPlaying) {
 	engine::AnimationSystem animation_system;
-	const float animation_length = 10.0;
-	const float start_time = 3.0;
-	const float global_time = 2.0;
+	const uint64_t animation_length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = 2;
 
 	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
 	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
@@ -50,9 +50,9 @@ TEST(AnimationTests, StartedAnimation_GlobalTimeLessThanStartTime_AnimationNotPl
 
 TEST(AnimationTests, RepeatingAnimation_GlobalTimeEqualsStartTime_AnimationIsPlaying) {
 	engine::AnimationSystem animation_system;
-	const float animation_length = 10.0;
-	const float start_time = 3.0;
-	const float global_time = 3.0;
+	const uint64_t animation_length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = 3;
 
 	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
 	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
@@ -63,9 +63,9 @@ TEST(AnimationTests, RepeatingAnimation_GlobalTimeEqualsStartTime_AnimationIsPla
 
 TEST(AnimationTests, RepeatingAnimation_GlobalTimePastEndTime_AnimationStillPlaying) {
 	engine::AnimationSystem animation_system;
-	const float animation_length = 10.0;
-	const float start_time = 3.0;
-	const float global_time = start_time + animation_length;
+	const uint64_t animation_length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = start_time + animation_length;
 
 	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
 	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
@@ -76,9 +76,9 @@ TEST(AnimationTests, RepeatingAnimation_GlobalTimePastEndTime_AnimationStillPlay
 
 TEST(AnimationTests, SingleShotAnimation_GlobalTimeEqualsStartTime_AnimationIsPlaying) {
 	engine::AnimationSystem animation_system;
-	const float animation_length = 10.0;
-	const float start_time = 3.0;
-	const float global_time = 3.0;
+	const uint64_t animation_length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = 3;
 
 	engine::AnimationID id = animation_system.start_single_shot_animation(ANIMATION_KEY, animation_length, start_time);
 	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
@@ -89,9 +89,9 @@ TEST(AnimationTests, SingleShotAnimation_GlobalTimeEqualsStartTime_AnimationIsPl
 
 TEST(AnimationTests, SingleShotAnimation_GlobalTimePastEndTime_AnimationStopped) {
 	engine::AnimationSystem animation_system;
-	const float animation_length = 10.0;
-	const float start_time = 3.0;
-	const float global_time = start_time + animation_length;
+	const uint64_t animation_length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = start_time + animation_length;
 
 	engine::AnimationID id = animation_system.start_single_shot_animation(ANIMATION_KEY, animation_length, start_time);
 	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
@@ -102,9 +102,9 @@ TEST(AnimationTests, SingleShotAnimation_GlobalTimePastEndTime_AnimationStopped)
 
 TEST(AnimationTests, SingleShotAnimation_GlobalTimePastEndTime_CanBeClearedOut) {
 	engine::AnimationSystem animation_system;
-	const float animation_length = 10.0;
-	const float start_time = 3.0;
-	const float global_time = start_time + animation_length + 1.0;
+	const uint64_t animation_length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = start_time + animation_length + 1;
 
 	engine::AnimationID id = animation_system.start_single_shot_animation(ANIMATION_KEY, animation_length, start_time);
 	animation_system.clear_old_animations(global_time);

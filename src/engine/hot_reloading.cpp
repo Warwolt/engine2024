@@ -27,8 +27,8 @@ namespace engine {
 
 		/* Update */
 		if (library_rebuild_just_started) {
-			constexpr float period_ms = 2000.0f;
-			hot_reloading->title_animation_id = animation_system->start_animation("loading_window_title", period_ms, (float)global_time_ms);
+			constexpr uint64_t period_ms = 2000;
+			hot_reloading->title_animation_id = animation_system->start_animation("loading_window_title", period_ms, global_time_ms);
 		}
 
 		if (library_rebuild_just_stopped) {
@@ -41,8 +41,8 @@ namespace engine {
 
 		std::string window_title = "Engine2024";
 		if (std::optional<Animation> animation = animation_system->most_recent_animation("loading_window_title")) {
-			if (animation->is_playing((float)global_time_ms)) {
-				window_title = loading_window_title_animation(animation->local_time((float)global_time_ms));
+			if (animation->is_playing(global_time_ms)) {
+				window_title = loading_window_title_animation(animation->local_time(global_time_ms));
 			}
 		}
 
