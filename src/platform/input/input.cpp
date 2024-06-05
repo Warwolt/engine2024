@@ -105,6 +105,7 @@ namespace platform {
 		input->keyboard.update();
 
 		input->delta_ms = frame_timer->elapsed_ms();
+		input->global_time_ms += input->delta_ms;
 		frame_timer->reset();
 	}
 

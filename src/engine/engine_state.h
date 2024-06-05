@@ -25,9 +25,6 @@ namespace engine {
 		std::unordered_map<std::string, platform::Font> fonts;
 		Systems systems;
 
-		float global_time_ms = 0.0;
-		AnimationID title_animation_id;
-
 		bool show_imgui = false;
 		glm::vec2 circle_pos = { -1.0f, -1.0f };
 		int circle_radius = 127;

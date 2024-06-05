@@ -25,6 +25,7 @@ namespace platform {
 	struct Input {
 		glm::vec2 window_resolution;
 		uint64_t delta_ms = 0;
+		uint64_t global_time_ms = 0;
 		bool quit_signal_received = false;
 		Signal<bool> engine_library_is_rebuilding = false;
 		Keyboard keyboard;

@@ -84,7 +84,6 @@ namespace engine {
 
 	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
 		state->window_resolution = input->window_resolution;
-		state->global_time_ms += input->delta_ms;
 
 		/* Quit */
 		{
