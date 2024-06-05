@@ -99,7 +99,7 @@ namespace platform {
 		if (!m_copied_library) {
 			std::string error = get_win32_error();
 			LOG_ERROR("LoadLibrary(\"%s\") failed: ", copied_library_name.c_str(), error.c_str());
-			return std::unexpected(LoadLibraryError::FailedToCopyLibrary);
+			return std::unexpected(LoadLibraryError::FailedToLoadCopiedLibrary);
 		}
 
 		/* Read last write timestamp */
