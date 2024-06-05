@@ -102,7 +102,6 @@ target_link_libraries(${PLATFORM_LIB} PUBLIC ${EXTERNAL_LIBS})
 
 # Engine
 add_library(${ENGINE_LIB} SHARED ${ENGINE_SRC})
-set_property(TARGET ${ENGINE_LIB} PROPERTY OUTPUT_NAME ${MAIN_BINARY})
 target_include_directories(${ENGINE_LIB} PUBLIC ${INC})
 target_link_libraries(${ENGINE_LIB} PUBLIC ${PLATFORM_LIB} ${EXTERNAL_LIBS})
 

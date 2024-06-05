@@ -44,7 +44,7 @@ using ShaderProgram = platform::ShaderProgram;
 using ShaderProgramError = platform::ShaderProgramError;
 using WindowInfo = platform::WindowInfo;
 
-const char* LIBRARY_NAME = "GameEngine2024";
+const char* LIBRARY_NAME = "GameEngine2024Engine";
 
 void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
 	glViewport(x, y, width, height);
