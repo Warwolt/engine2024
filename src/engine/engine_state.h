@@ -19,10 +19,14 @@ namespace engine {
 		AnimationID title_animation_id;
 	};
 
+	struct Systems {
+		AnimationSystem animation;
+	};
+
 	struct State {
 		std::unordered_map<std::string, platform::Texture> textures;
 		std::unordered_map<std::string, platform::Font> fonts;
-		AnimationSystem animations;
+		Systems systems;
 
 		float global_time_ms = 0.0;
 		AnimationID title_animation_id;
