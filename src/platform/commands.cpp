@@ -1,4 +1,4 @@
-#include <platform/commands.h>
+#include <platform/platform_api.h>
 
 #include <string.h>
 

@@ -1,8 +1,8 @@
 #include <engine/hot_reloading.h>
 
 #include <engine/animation.h>
-#include <platform/commands.h>
 #include <platform/input/input.h>
+#include <platform/platform_api.h>
 
 namespace engine {
 
