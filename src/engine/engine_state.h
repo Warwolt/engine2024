@@ -13,6 +13,7 @@
 namespace engine {
 
 	struct ImGuiState {
+		bool show_imgui = false;
 		int resolution_index = 0;
 	};
 
@@ -29,12 +30,11 @@ namespace engine {
 		Resources resources;
 		Systems systems;
 
-		bool show_imgui = false;
 		glm::vec2 circle_pos = { -1.0f, -1.0f };
 		int circle_radius = 127;
 		glm::vec2 window_resolution;
 
-		ImGuiState imgui_state;
+		ImGuiState imgui;
 		HotReloadingState hot_reloading;
 	};
 
