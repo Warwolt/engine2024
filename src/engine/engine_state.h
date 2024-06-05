@@ -16,13 +16,17 @@ namespace engine {
 		int resolution_index = 0;
 	};
 
+	struct Resources {
+		std::unordered_map<std::string, platform::Texture> textures;
+		std::unordered_map<std::string, platform::Font> fonts;
+	};
+
 	struct Systems {
 		AnimationSystem animation;
 	};
 
 	struct State {
-		std::unordered_map<std::string, platform::Texture> textures;
-		std::unordered_map<std::string, platform::Font> fonts;
+		Resources resources;
 		Systems systems;
 
 		bool show_imgui = false;

@@ -12,7 +12,7 @@ namespace engine {
 	}
 
 	float Animation::local_time(uint64_t global_time) const {
-		return (float)(global_time - this->start % this->length) / (float)this->length;
+		return (float)((global_time - this->start) % this->length) / (float)this->length;
 	}
 
 	const std::vector<Animation>& AnimationSystem::animations(AnimationKey key) const {

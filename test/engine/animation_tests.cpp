@@ -48,6 +48,18 @@ TEST(AnimationTests, StartedAnimation_GlobalTimeLessThanStartTime_AnimationNotPl
 	EXPECT_FALSE(animation.is_playing(global_time));
 }
 
+TEST(AnimationTests, StartedAnimation_AnimationHalfWayDone_LocalTime05) {
+	engine::AnimationSystem animation_system;
+	const uint64_t animation_length = 10;
+	const uint64_t start_time = 0;
+	const uint64_t global_time = start_time + animation_length / 2;
+
+	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
+	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+
+	EXPECT_EQ(animation.local_time(global_time), 0.5f);
+}
+
 TEST(AnimationTests, RepeatingAnimation_GlobalTimeEqualsStartTime_AnimationIsPlaying) {
 	engine::AnimationSystem animation_system;
 	const uint64_t animation_length = 10;

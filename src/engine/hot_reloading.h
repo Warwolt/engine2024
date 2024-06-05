@@ -16,6 +16,11 @@ namespace engine {
 		AnimationID title_animation_id;
 	};
 
-	void update_hot_reloading(HotReloadingState* hot_reloading, AnimationSystem* animation_system, const platform::Input* input, platform::PlatformAPI* platform);
+	void update_hot_reloading(
+		HotReloadingState* hot_reloading,
+		AnimationSystem* animation_system,
+		const platform::Input* input,
+		platform::PlatformAPI* platform
+	);
 
 } // namespace engine

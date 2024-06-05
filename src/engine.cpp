@@ -60,7 +60,7 @@ namespace engine {
 			platform::Image image = util::unwrap(platform::read_image(img_path), [&] {
 				ABORT("read_file(%s) failed", img_path);
 			});
-			state->textures["container"] = platform::add_texture(image.data.get(), image.width, image.height);
+			state->resources.textures["container"] = platform::add_texture(image.data.get(), image.width, image.height);
 		}
 
 		// Add Arial font
@@ -69,15 +69,15 @@ namespace engine {
 			platform::Font font = util::unwrap(platform::add_ttf_font(font_path, 16), [&] {
 				ABORT("Failed to load font \"%s\"", font_path);
 			});
-			state->fonts["arial-16"] = font;
+			state->resources.fonts["arial-16"] = font;
 		}
 	}
 
 	void shutdown(State* state) {
-		for (const auto& [_, texture] : state->textures) {
+		for (const auto& [_, texture] : state->resources.textures) {
 			platform::free_texture(texture);
 		}
-		for (const auto& [_, font] : state->fonts) {
+		for (const auto& [_, font] : state->resources.fonts) {
 			platform::free_font(&font);
 		}
 	}
@@ -139,7 +139,7 @@ namespace engine {
 
 			renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, { 0.0f, 0.5f, 0.5f, 1.0f }); // background
 			renderer->draw_rect_fill({ top_left + offset, top_left + box_size + offset }, color); // shadow
-			renderer->draw_texture(state->textures.at("container"), { top_left, top_left + box_size }); // box
+			renderer->draw_texture(state->resources.textures.at("container"), { top_left, top_left + box_size }); // box
 		}
 
 		/* Render circle */
@@ -151,11 +151,11 @@ namespace engine {
 
 		/* Render text*/
 		{
-			const platform::Font& font = state->fonts.at("arial-16");
+			const platform::Font* font = &state->resources.fonts.at("arial-16");
 			glm::vec4 text_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 			glm::vec2 text_pos = { 300.0f, 100.0f };
-			renderer->draw_text(&font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW", text_pos, text_color);
-			renderer->draw_text(&font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, font.line_spacing }, text_color);
+			renderer->draw_text(font, "SPHINX OF BLACK QUARTZ, JUDGE MY VOW!!", text_pos, text_color);
+			renderer->draw_text(font, "the quick brown fox jumps over the lazy dog", text_pos + glm::vec2 { 0, font->line_spacing }, text_color);
 		}
 	}
 

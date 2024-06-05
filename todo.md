@@ -8,6 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Fix debugging of engine DLL (Probably needs to copy PDB when copying DLL)
 - Render level editor canvas (Aseprite style grey checker board)
   - [] Render to a canvas and render canvas in an ImGui window
 - Fix so that engine unit tests links against DLL statically
