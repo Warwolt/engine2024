@@ -27,12 +27,19 @@ namespace engine {
 		AnimationSystem animation;
 	};
 
+	struct EditorState {
+		// canvas size
+		int zoom_multiple_index = 0;
+		float zoom = 1.0;
+	};
+
 	struct State {
 		Resources resources;
 		Systems systems;
 		glm::vec2 window_resolution;
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
+		EditorState editor;
 	};
 
 } // namespace engine

@@ -7,6 +7,8 @@
 #include <plog/Init.h>
 #include <util.h>
 
+#include <algorithm>
+
 namespace engine {
 
 	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform) {
@@ -96,6 +98,30 @@ namespace engine {
 			}
 		}
 
+		/* Editor */
+		{
+			constexpr int NUM_ZOOM_MULTIPLES = 14;
+			constexpr float zoom_multiples[NUM_ZOOM_MULTIPLES] = {
+				1.0f,
+				2.0f,
+				3.0f,
+				4.0f,
+				5.0f,
+				6.0f,
+				7.0f,
+				8.0f,
+				12.0f,
+				16.0f,
+				24.0f,
+				32.0f,
+				48.0f,
+				64.0f,
+			};
+
+			state->editor.zoom_multiple_index = std::clamp<int>(state->editor.zoom_multiple_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
+			state->editor.zoom = zoom_multiples[state->editor.zoom_multiple_index];
+		}
+
 		/* Imgui */
 		{
 			if (input->keyboard.key_pressed_now(SDLK_F3)) {
@@ -132,7 +158,7 @@ namespace engine {
 				}
 
 				/* Draw a circle on top of background */
-				renderer->draw_circle_fill(state->window_resolution / 2.0f + glm::vec2 { 0, 0 }, 64, glm::vec4 { 0.0f, 0.8f, 0.0f, 1.0f });
+				renderer->draw_circle_fill(state->window_resolution / 2.0f + glm::vec2 { 0, 0 }, 64, glm::vec4 { 0.0f, 0.8f, 0.8f, 1.0f });
 			}
 			renderer->reset_draw_canvas();
 
@@ -140,7 +166,7 @@ namespace engine {
 			glm::vec2 top_left = { 0.0f, 0.0f };
 			platform::Rect canvas_rect = {
 				.top_left = top_left,
-				.bottom_right = top_left + state->window_resolution / 1.0f,
+				.bottom_right = top_left + state->window_resolution * state->editor.zoom,
 			};
 			renderer->draw_texture(state->resources.canvases.at("level-editor").texture, canvas_rect);
 		}
