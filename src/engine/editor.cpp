@@ -1,6 +1,7 @@
 #include <engine/editor.h>
 
 #include <platform/input/input.h>
+#include <platform/renderer.h>
 
 #include <algorithm>
 
@@ -47,6 +48,36 @@ namespace engine {
 	void update_editor(EditorState* editor, const platform::Input* input) {
 		editor->zoom_index = std::clamp<int>(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
 		editor->zoom = zoom_multiples[editor->zoom_index];
+	}
+
+	void render_editor(platform::Renderer* renderer, const EditorState* editor, platform::Canvas canvas) {
+		renderer->set_draw_canvas(canvas);
+
+		{
+			const glm::vec4 light_grey = glm::vec4 { 0.75f, 0.75f, 0.75f, 1.0f };
+			const glm::vec4 dark_grey = glm::vec4 { 0.50f, 0.50f, 0.50f, 1.0f };
+			constexpr int tile_size = 32;
+
+			for (int x = 0; x < canvas.texture.size.x; x += tile_size) {
+				for (int y = 0; y < canvas.texture.size.y; y += tile_size) {
+					const glm::vec4 color = (x / tile_size) % 2 == (y / tile_size) % 2 ? light_grey : dark_grey;
+					renderer->draw_rect_fill({ { x, y }, { x + tile_size, y + tile_size } }, color);
+				}
+			}
+
+			/* Draw a circle on top of background */
+			renderer->draw_circle_fill(canvas.texture.size / 2.0f + glm::vec2 { 0, 0 }, 64, glm::vec4 { 0.0f, 0.8f, 0.8f, 1.0f });
+		}
+		renderer->reset_draw_canvas();
+
+		/* Render canvas to screen*/
+		glm::vec2 top_left = { 0.0f, 0.0f };
+		platform::Rect canvas_rect = {
+			.top_left = top_left,
+			.bottom_right = top_left + canvas.texture.size * editor->zoom,
+		};
+		renderer->draw_texture(canvas.texture, canvas_rect);
+		renderer->draw_rect({ canvas_rect.top_left - glm::vec2 { 1.0f, 1.0f }, canvas_rect.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 	}
 
 } // namespace engine

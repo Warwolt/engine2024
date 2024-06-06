@@ -177,7 +177,7 @@ namespace platform {
 		glBindTexture(GL_TEXTURE_2D, NULL);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
-		return Canvas { frame_buffer, Texture { texture, width, height } };
+		return Canvas { frame_buffer, Texture { texture, glm::vec2 { width, height } } };
 	}
 
 	void free_canvas(Canvas canvas) {
@@ -405,10 +405,10 @@ namespace platform {
 			.bottom_right = { pos.x + glyph.size.x, pos.y + glyph.size.y }
 		};
 
-		float u0 = glyph.atlas_pos.x / (float)font->atlas.width;
-		float v0 = 1 - (glyph.atlas_pos.y + glyph.size.y) / (float)font->atlas.height;
-		float u1 = u0 + glyph.size.x / (float)font->atlas.width;
-		float v1 = v0 + glyph.size.y / (float)font->atlas.height;
+		float u0 = glyph.atlas_pos.x / (float)font->atlas.size.x;
+		float v0 = 1 - (glyph.atlas_pos.y + glyph.size.y) / (float)font->atlas.size.y;
+		float u1 = u0 + glyph.size.x / (float)font->atlas.size.x;
+		float v1 = v0 + glyph.size.y / (float)font->atlas.size.y;
 
 		platform::FlipRect uv = {
 			.bottom_left = { u0, v0 },
