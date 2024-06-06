@@ -46,8 +46,19 @@ namespace engine {
 	}
 
 	void update_editor(EditorState* editor, const platform::Input* input) {
-		editor->zoom_index = std::clamp<int>(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
-		editor->zoom = zoom_multiples[editor->zoom_index];
+		/* Zoom*/
+		{
+			editor->zoom_index = std::clamp<int>(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
+			editor->zoom = zoom_multiples[editor->zoom_index];
+		}
+
+		/* Mouse drag*/
+		{
+			if (input->mouse.left_button.is_pressed()) {
+				// FIXME: need to make this the _change in position_ not the absolute pos.
+				editor->canvas_pos = input->mouse.pos;
+			}
+		}
 	}
 
 	void render_editor(platform::Renderer* renderer, const EditorState* editor, platform::Canvas canvas) {
@@ -71,7 +82,7 @@ namespace engine {
 		renderer->reset_draw_canvas();
 
 		/* Render canvas to screen*/
-		glm::vec2 top_left = { 0.0f, 0.0f };
+		glm::vec2 top_left = editor->canvas_pos;
 		platform::Rect canvas_rect = {
 			.top_left = top_left,
 			.bottom_right = top_left + canvas.texture.size * editor->zoom,

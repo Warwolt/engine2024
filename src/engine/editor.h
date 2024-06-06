@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/vec2.hpp>
+
 namespace platform {
 	struct Input;
 	class Renderer;
@@ -11,6 +13,7 @@ namespace engine {
 	struct EditorState {
 		int zoom_index;
 		float zoom;
+		glm::vec2 canvas_pos;
 	};
 
 	EditorState init_editor();
