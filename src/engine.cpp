@@ -1,13 +1,12 @@
 #include <engine.h>
 
+#include <engine/editor.h>
 #include <engine/hot_reloading.h>
 #include <imgui/imgui.h>
 #include <platform/assert.h>
 #include <platform/logging.h>
 #include <plog/Init.h>
 #include <util.h>
-
-#include <algorithm>
 
 namespace engine {
 
@@ -98,42 +97,6 @@ namespace engine {
 			}
 		}
 
-		/* Editor */
-		{
-			constexpr int NUM_ZOOM_MULTIPLES = 26;
-			constexpr float zoom_multiples[NUM_ZOOM_MULTIPLES] = {
-				0.016f,
-				0.021f,
-				0.031f,
-				0.042f,
-				0.062f,
-				0.083f,
-				0.125f,
-				0.16f,
-				0.20f,
-				0.25f,
-				0.33f,
-				0.50f,
-				1.0f,
-				2.0f,
-				3.0f,
-				4.0f,
-				5.0f,
-				6.0f,
-				7.0f,
-				8.0f,
-				12.0f,
-				16.0f,
-				24.0f,
-				32.0f,
-				48.0f,
-				64.0f,
-			};
-
-			state->editor.zoom_index = std::clamp<int>(state->editor.zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
-			state->editor.zoom = zoom_multiples[state->editor.zoom_index];
-		}
-
 		/* Imgui */
 		{
 			if (input->keyboard.key_pressed_now(SDLK_F3)) {
@@ -144,6 +107,9 @@ namespace engine {
 				draw_imgui(&state->debug_ui, platform);
 			}
 		}
+
+		/* Editor */
+		update_editor(&state->editor, input);
 
 		/* Hot reloading */
 		update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);

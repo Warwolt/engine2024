@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine/animation.h>
+#include <engine/editor.h>
 #include <engine/hot_reloading.h>
 #include <platform/font.h>
 #include <platform/input/input.h>
@@ -25,12 +26,6 @@ namespace engine {
 
 	struct Systems {
 		AnimationSystem animation;
-	};
-
-	struct EditorState {
-		// canvas size
-		int zoom_index = 12;
-		float zoom = 1.0;
 	};
 
 	struct State {
