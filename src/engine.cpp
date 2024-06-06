@@ -55,6 +55,9 @@ namespace engine {
 	}
 
 	void initialize(State* state) {
+		/* Initialize modules */
+		state->editor = init_editor();
+
 		/* Add fonts */
 		{
 			const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";

@@ -36,6 +36,14 @@ namespace engine {
 		64.0f,
 	};
 
+	EditorState init_editor() {
+		static_assert(zoom_multiples[12] == 1.0f);
+		return EditorState {
+			.zoom_index = 12,
+			.zoom = 1.0,
+		};
+	}
+
 	void update_editor(EditorState* editor, const platform::Input* input) {
 		editor->zoom_index = std::clamp<int>(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
 		editor->zoom = zoom_multiples[editor->zoom_index];

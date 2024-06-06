@@ -7,10 +7,11 @@ namespace platform {
 namespace engine {
 
 	struct EditorState {
-		int zoom_index = 12;
-		float zoom = 1.0;
+		int zoom_index;
+		float zoom;
 	};
 
+	EditorState init_editor();
 	void update_editor(EditorState* editor, const platform::Input* input);
 
 } // namespace engine
