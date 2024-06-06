@@ -100,8 +100,20 @@ namespace engine {
 
 		/* Editor */
 		{
-			constexpr int NUM_ZOOM_MULTIPLES = 14;
+			constexpr int NUM_ZOOM_MULTIPLES = 26;
 			constexpr float zoom_multiples[NUM_ZOOM_MULTIPLES] = {
+				0.016f,
+				0.021f,
+				0.031f,
+				0.042f,
+				0.062f,
+				0.083f,
+				0.125f,
+				0.16f,
+				0.20f,
+				0.25f,
+				0.33f,
+				0.50f,
 				1.0f,
 				2.0f,
 				3.0f,
@@ -118,8 +130,8 @@ namespace engine {
 				64.0f,
 			};
 
-			state->editor.zoom_multiple_index = std::clamp<int>(state->editor.zoom_multiple_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
-			state->editor.zoom = zoom_multiples[state->editor.zoom_multiple_index];
+			state->editor.zoom_index = std::clamp<int>(state->editor.zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
+			state->editor.zoom = zoom_multiples[state->editor.zoom_index];
 		}
 
 		/* Imgui */

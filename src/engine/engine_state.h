@@ -29,7 +29,7 @@ namespace engine {
 
 	struct EditorState {
 		// canvas size
-		int zoom_multiple_index = 0;
+		int zoom_index = 12;
 		float zoom = 1.0;
 	};
 
