@@ -10,6 +10,8 @@
 
 namespace engine {
 
+	constexpr char EDITOR_CANVAS[] = "editor-canvas";
+
 	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform) {
 		struct Resolution {
 			glm::ivec2 value;
@@ -68,7 +70,7 @@ namespace engine {
 		}
 
 		/* Add canvas for editor */
-		state->resources.canvases["level-editor"] = platform::add_canvas(800, 600);
+		state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas(800, 600);
 	}
 
 	void shutdown(State* state) {
@@ -120,7 +122,8 @@ namespace engine {
 
 	void render(platform::Renderer* renderer, const State* state) {
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, glm::vec4 { 0.4f, 0.33f, 0.37f, 1.0f });
-		render_editor(renderer, &state->editor, state->resources.canvases.at("level-editor"));
+		const platform::Canvas editor_canvas = state->resources.canvases.at(EDITOR_CANVAS);
+		render_editor(renderer, &state->editor, editor_canvas);
 	}
 
 } // namespace engine
