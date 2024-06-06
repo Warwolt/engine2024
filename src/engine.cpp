@@ -120,7 +120,7 @@ namespace engine {
 
 	void render(platform::Renderer* renderer, const State* state) {
 		/* Clear*/
-		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
+		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, glm::vec4 { 0.4f, 0.33f, 0.37f, 1.0f });
 
 		/* Render background */
 		{
@@ -150,6 +150,7 @@ namespace engine {
 				.bottom_right = top_left + state->window_resolution * state->editor.zoom,
 			};
 			renderer->draw_texture(state->resources.canvases.at("level-editor").texture, canvas_rect);
+			renderer->draw_rect({ canvas_rect.top_left - glm::vec2 { 1.0f, 1.0f }, canvas_rect.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 		}
 
 	} // namespace engine
