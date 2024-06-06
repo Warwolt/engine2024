@@ -252,13 +252,13 @@ namespace platform {
 
 	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {
 		m_vertices.push_back(Vertex { .pos = point, .color = color });
-		_push_section(VertexSection { .mode = GL_POINTS, .length = 1, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 1, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color) {
 		m_vertices.push_back(Vertex { .pos = start, .color = color });
 		m_vertices.push_back(Vertex { .pos = end, .color = color });
-		_push_section(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_rect(Rect quad, glm::vec4 color) {
@@ -276,7 +276,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
 		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
 
-		_push_section(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_rect_fill(Rect quad, glm::vec4 color) {
@@ -300,7 +300,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
 
 		// sections
-		_push_section(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_circle(glm::vec2 center, float radius, glm::vec4 color) {
@@ -318,7 +318,7 @@ namespace platform {
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, y }, .color = color });
 		}
 
-		_push_section(VertexSection { .mode = GL_POINTS, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color) {
@@ -348,7 +348,7 @@ namespace platform {
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, y }, .color = color });
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, -y }, .color = color });
 		}
-		_push_section(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_texture(Texture texture, Rect quad) {
@@ -394,7 +394,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { u1, v0 } });
 
 		// sections
-		_push_section(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture });
+		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_character(const Font* font, char character, glm::vec2 pos, glm::vec4 color) {
@@ -433,13 +433,6 @@ namespace platform {
 
 			pen.x += glyph.advance;
 		}
-	}
-
-	void Renderer::_push_section(VertexSection section) {
-		if (m_draw_canvas.has_value()) {
-			section.canvas = m_draw_canvas.value();
-		}
-		m_sections.push_back(section);
 	}
 
 } // namespace platform

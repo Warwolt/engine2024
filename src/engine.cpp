@@ -132,12 +132,12 @@ namespace engine {
 				}
 
 				/* Draw a circle on top of background */
-				renderer->draw_circle_fill(state->window_resolution / 2.0f + glm::vec2 { 30, 30 }, 64, glm::vec4 { 0.0f, 0.8f, 0.0f, 1.0f });
+				renderer->draw_circle_fill(state->window_resolution / 2.0f + glm::vec2 { 0, 0 }, 64, glm::vec4 { 0.0f, 0.8f, 0.0f, 1.0f });
 			}
 			renderer->reset_draw_canvas();
 
 			/* Render canvas to screen*/
-			glm::vec2 top_left = { 80.0f, 20.0f };
+			glm::vec2 top_left = { 0.0f, 0.0f };
 			platform::Rect canvas_rect = {
 				.top_left = top_left,
 				.bottom_right = top_left + state->window_resolution / 1.0f,

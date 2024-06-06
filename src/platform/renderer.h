@@ -100,8 +100,6 @@ namespace platform {
 
 
 	private:
-		void _push_section(VertexSection section);
-
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;
