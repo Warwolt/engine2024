@@ -55,8 +55,7 @@ namespace engine {
 		/* Mouse drag*/
 		{
 			if (input->mouse.left_button.is_pressed()) {
-				// FIXME: need to make this the _change in position_ not the absolute pos.
-				editor->canvas_pos = input->mouse.pos;
+				editor->canvas_pos += input->mouse.pos_delta;
 			}
 		}
 	}

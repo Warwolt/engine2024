@@ -36,6 +36,7 @@ namespace platform {
 		constexpr size_t NUM_MOUSE_BUTTONS = 5;
 		std::array<ButtonEvent, NUM_MOUSE_BUTTONS> mouse_button_events = { ButtonEvent::None };
 		input->mouse.scroll_delta = 0;
+		input->mouse.pos_delta = glm::vec2 { 0, 0 };
 
 		ImGuiIO& imgui_io = ImGui::GetIO();
 		for (SDL_Event event : *events) {
@@ -62,10 +63,12 @@ namespace platform {
 					if (!imgui_io.WantCaptureMouse) {
 						SDL_Rect canvas = stretched_and_centered_canvas(window_size, window_resolution);
 						int scale = canvas.w / window_resolution.x;
-						input->mouse.pos = glm::ivec2 {
+						glm::ivec2 new_mouse_pos = glm::ivec2 {
 							(event.motion.x - canvas.x) / scale,
 							(event.motion.y - canvas.y) / scale
 						};
+						input->mouse.pos_delta = new_mouse_pos - input->mouse.pos;
+						input->mouse.pos = new_mouse_pos;
 					}
 					break;
 				}
