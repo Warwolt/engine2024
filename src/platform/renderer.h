@@ -29,7 +29,7 @@ namespace platform {
 		GLenum mode;
 		GLsizei length;
 		Texture texture;
-		Canvas canvas;
+		std::optional<Canvas> canvas;
 	};
 
 	struct ShaderProgram {
@@ -77,10 +77,10 @@ namespace platform {
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
 
 		void set_draw_canvas(Canvas canvas);
-		void clear_draw_canvas();
+		void reset_draw_canvas();
 
 		void set_render_canvas(Canvas canvas);
-		void clear_render_canvas();
+		void reset_render_canvas();
 
 		void render(ShaderProgram shader_program);
 
@@ -100,6 +100,8 @@ namespace platform {
 
 
 	private:
+		void _push_section(VertexSection section);
+
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;

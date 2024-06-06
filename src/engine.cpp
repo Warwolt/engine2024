@@ -112,24 +112,38 @@ namespace engine {
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
-		// activate editor canvas
+		/* Clear*/
+		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 
 		/* Render background */
 		{
-			const glm::vec4 light_grey = glm::vec4 { 0.75, 0.75, 0.75, 1.0 };
-			const glm::vec4 dark_grey = glm::vec4 { 0.50, 0.50, 0.50, 1.0 };
-			constexpr int tile_size = 32;
+			/* Render to canvas */
+			renderer->set_draw_canvas(state->resources.canvases.at("level-editor"));
+			{
+				const glm::vec4 light_grey = glm::vec4 { 0.75f, 0.75f, 0.75f, 1.0f };
+				const glm::vec4 dark_grey = glm::vec4 { 0.50f, 0.50f, 0.50f, 1.0f };
+				constexpr int tile_size = 32;
 
-			for (int x = 0; x < state->window_resolution.x; x += tile_size) {
-				for (int y = 0; y < state->window_resolution.y; y += tile_size) {
-					const glm::vec4 color = (x / tile_size) % 2 == (y / tile_size) % 2 ? light_grey : dark_grey;
-					renderer->draw_rect_fill({ { x, y }, { x + tile_size, y + tile_size } }, color);
+				for (int x = 0; x < state->window_resolution.x; x += tile_size) {
+					for (int y = 0; y < state->window_resolution.y; y += tile_size) {
+						const glm::vec4 color = (x / tile_size) % 2 == (y / tile_size) % 2 ? light_grey : dark_grey;
+						renderer->draw_rect_fill({ { x, y }, { x + tile_size, y + tile_size } }, color);
+					}
 				}
+
+				/* Draw a circle on top of background */
+				renderer->draw_circle_fill(state->window_resolution / 2.0f + glm::vec2 { 30, 30 }, 64, glm::vec4 { 0.0f, 0.8f, 0.0f, 1.0f });
 			}
+			renderer->reset_draw_canvas();
+
+			/* Render canvas to screen*/
+			glm::vec2 top_left = { 80.0f, 20.0f };
+			platform::Rect canvas_rect = {
+				.top_left = top_left,
+				.bottom_right = top_left + state->window_resolution / 1.0f,
+			};
+			renderer->draw_texture(state->resources.canvases.at("level-editor").texture, canvas_rect);
 		}
 
-		// deactivate editor canvas
-
 	} // namespace engine
-
 }

@@ -224,7 +224,7 @@ int main(int /* argc */, char** /* args */) {
 
 				renderer.set_render_canvas(canvas);
 				renderer.render(shader_program);
-				renderer.clear_render_canvas();
+				renderer.reset_render_canvas();
 			}
 			/* Render canvas to window */
 			{

@@ -8,6 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Give feedback in window title if compilation failed
 - Fix so that engine unit tests links against DLL statically
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
