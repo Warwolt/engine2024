@@ -54,7 +54,7 @@ namespace engine {
 	}
 
 	void initialize(State* state) {
-		// Add Arial font
+		/* Add fonts */
 		{
 			const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
 			platform::Font font = util::unwrap(platform::add_ttf_font(arial_font_path, 16), [&] {
@@ -62,6 +62,9 @@ namespace engine {
 			});
 			state->resources.fonts["arial-16"] = font;
 		}
+
+		/* Add canvas for editor */
+		state->resources.canvases["level-editor"] = platform::add_canvas(800, 600);
 	}
 
 	void shutdown(State* state) {
@@ -70,6 +73,9 @@ namespace engine {
 		}
 		for (const auto& [_, font] : state->resources.fonts) {
 			platform::free_font(&font);
+		}
+		for (const auto& [_, canvas] : state->resources.canvases) {
+			platform::free_canvas(canvas);
 		}
 	}
 
@@ -106,6 +112,8 @@ namespace engine {
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
+		// activate editor canvas
+
 		/* Render background */
 		{
 			const glm::vec4 light_grey = glm::vec4 { 0.75, 0.75, 0.75, 1.0 };
@@ -119,6 +127,8 @@ namespace engine {
 				}
 			}
 		}
+
+		// deactivate editor canvas
 
 	} // namespace engine
 

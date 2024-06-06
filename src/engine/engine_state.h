@@ -20,6 +20,7 @@ namespace engine {
 	struct Resources {
 		std::unordered_map<std::string, platform::Texture> textures;
 		std::unordered_map<std::string, platform::Font> fonts;
+		std::unordered_map<std::string, platform::Canvas> canvases;
 	};
 
 	struct Systems {

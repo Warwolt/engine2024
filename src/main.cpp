@@ -221,7 +221,10 @@ int main(int /* argc */, char** /* args */) {
 				set_viewport(0, 0, window_info.resolution.x, window_info.resolution.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, window_info.resolution.x, window_info.resolution.y);
 				engine.render(&renderer, &state);
-				renderer.render_to_canvas(shader_program, canvas);
+
+				renderer.set_render_canvas(canvas);
+				renderer.render(shader_program);
+				renderer.clear_render_canvas();
 			}
 			/* Render canvas to window */
 			{

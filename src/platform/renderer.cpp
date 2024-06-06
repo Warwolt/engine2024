@@ -196,12 +196,18 @@ namespace platform {
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
 	}
 
-	void Renderer::render_to_canvas(ShaderProgram shader_program, Canvas canvas) {
-		glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		render(shader_program);
-		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	void Renderer::set_draw_canvas(Canvas canvas) {
+		m_draw_canvas = canvas;
+	}
+	void Renderer::clear_draw_canvas() {
+		m_draw_canvas = {};
+	}
+
+	void Renderer::set_render_canvas(Canvas canvas) {
+		m_render_canvas = canvas;
+	}
+	void Renderer::clear_render_canvas() {
+		m_render_canvas = {};
 	}
 
 	void Renderer::render(ShaderProgram shader_program) {
@@ -217,7 +223,11 @@ namespace platform {
 		for (const VertexSection& section : m_sections) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, section.texture.id);
+			if (m_render_canvas.has_value()) {
+				glBindFramebuffer(GL_FRAMEBUFFER, m_render_canvas->frame_buffer);
+			}
 			glDrawArrays(section.mode, offset, section.length);
+			glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
 			offset += section.length;
 		}

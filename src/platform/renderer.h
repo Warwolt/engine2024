@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 #include <expected>
+#include <optional>
 #include <vector>
 
 namespace platform {
@@ -28,6 +29,7 @@ namespace platform {
 		GLenum mode;
 		GLsizei length;
 		Texture texture;
+		Canvas canvas;
 	};
 
 	struct ShaderProgram {
@@ -74,7 +76,12 @@ namespace platform {
 
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
 
-		void render_to_canvas(ShaderProgram shader_program, Canvas canvas);
+		void set_draw_canvas(Canvas canvas);
+		void clear_draw_canvas();
+
+		void set_render_canvas(Canvas canvas);
+		void clear_render_canvas();
+
 		void render(ShaderProgram shader_program);
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
@@ -96,6 +103,8 @@ namespace platform {
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;
+		std::optional<Canvas> m_draw_canvas;
+		std::optional<Canvas> m_render_canvas;
 	};
 
 } // namespace platform
