@@ -54,7 +54,7 @@ namespace engine {
 	void update_editor(EditorState* editor, const platform::Input* input, platform::PlatformAPI* platform) {
 		/* Zoom*/
 		{
-			const int new_zoom_index = std::clamp<int>(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
+			const int new_zoom_index = std::clamp(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
 			const float new_zoom = zoom_multiples[new_zoom_index];
 			const float zoom_scale = new_zoom / editor->zoom;
 			const bool zoom_changed = new_zoom != editor->zoom;
@@ -63,13 +63,27 @@ namespace engine {
 			editor->zoom = new_zoom;
 
 			if (zoom_changed) {
-				// TODO: clamp the mouse position to the edges of the canvas (mimick aseprite)
-
 				// Position the canvas so that the zoom happens around the cursor,
 				// by keeping the relative distance from cursor to corner the same.
-				const platform::Rect delta = editor->canvas - input->mouse.pos;
-				editor->canvas.top_left = input->mouse.pos + zoom_scale * delta.top_left;
-				editor->canvas.bottom_right = input->mouse.pos + zoom_scale * delta.bottom_right;
+				//
+				// +--------------+
+				// |      |       |      +-------+
+				// |      |       |      |   |   |      +---+
+				// |------o       |  =>  |---o   |  =>  | o |
+				// |              |      |       |      +---+
+				// |              |      +-------+
+				// |              |
+				// +--------------+
+				//
+				// Clamp mouse position to canvas borders so that the canvas doesn't
+				// "run away" outside the screen while zooming.
+				const glm::vec2 clamped_mouse_pos = glm::vec2 {
+					std::clamp(input->mouse.pos.x, editor->canvas.top_left.x, editor->canvas.bottom_right.x),
+					std::clamp(input->mouse.pos.y, editor->canvas.top_left.y, editor->canvas.bottom_right.y),
+				};
+				const platform::Rect delta = editor->canvas - clamped_mouse_pos;
+				editor->canvas.top_left = clamped_mouse_pos + zoom_scale * delta.top_left;
+				editor->canvas.bottom_right = clamped_mouse_pos + zoom_scale * delta.bottom_right;
 			}
 		}
 
