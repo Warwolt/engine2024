@@ -58,7 +58,9 @@ namespace engine {
 
 	void initialize(State* state) {
 		/* Initialize modules */
-		state->editor = init_editor();
+		constexpr glm::vec2 canvas_size = { 800, 600 };
+		state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)canvas_size.x, (int)canvas_size.y);
+		state->editor = init_editor(canvas_size);
 
 		/* Add fonts */
 		{
@@ -68,9 +70,6 @@ namespace engine {
 			});
 			state->resources.fonts["arial-16"] = font;
 		}
-
-		/* Add canvas for editor */
-		state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas(800, 600);
 	}
 
 	void shutdown(State* state) {

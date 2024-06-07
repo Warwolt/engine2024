@@ -39,11 +39,15 @@ namespace engine {
 		64.0f,
 	};
 
-	EditorState init_editor() {
+	EditorState init_editor(glm::vec2 canvas_size) {
 		static_assert(zoom_multiples[12] == 1.0f);
 		return EditorState {
 			.zoom_index = 12,
 			.zoom = 1.0,
+			.canvas = {
+				.top_left = { 0, 0 },
+				.bottom_right = canvas_size,
+			},
 		};
 	}
 
@@ -59,10 +63,14 @@ namespace engine {
 			editor->zoom = new_zoom;
 
 			if (zoom_changed) {
+				// TODO: clamp the mouse position to the edges of the canvas (mimick aseprite)
+
 				// Position the canvas so that the zoom happens around the cursor,
 				// by keeping the relative distance from cursor to corner the same.
-				const glm::vec2 pos_delta = editor->canvas_pos - input->mouse.pos;
-				editor->canvas_pos = input->mouse.pos + zoom_scale * pos_delta;
+				const glm::vec2 top_left_delta = editor->canvas.top_left - input->mouse.pos;
+				const glm::vec2 bottom_right_delta = editor->canvas.bottom_right - input->mouse.pos;
+				editor->canvas.top_left = input->mouse.pos + zoom_scale * top_left_delta;
+				editor->canvas.bottom_right = input->mouse.pos + zoom_scale * bottom_right_delta;
 			}
 		}
 
@@ -77,7 +85,9 @@ namespace engine {
 			}
 
 			if (input->mouse.middle_button.is_pressed()) {
-				editor->canvas_pos += input->mouse.pos_delta;
+				// FIXME: platform::Rect needs a += operator for glm::vec2
+				editor->canvas.top_left += input->mouse.pos_delta;
+				editor->canvas.bottom_right += input->mouse.pos_delta;
 			}
 		}
 	}
@@ -103,13 +113,13 @@ namespace engine {
 		renderer->reset_draw_canvas();
 
 		/* Render canvas to screen*/
-		glm::vec2 top_left = editor->canvas_pos;
-		platform::Rect canvas_rect = {
-			.top_left = top_left,
-			.bottom_right = top_left + canvas.texture.size * editor->zoom,
-		};
-		renderer->draw_texture(canvas.texture, canvas_rect);
-		renderer->draw_rect({ canvas_rect.top_left, canvas_rect.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
+		// glm::vec2 top_left = editor->canvas.top_left;
+		// platform::Rect canvas_rect = {
+		// 	.top_left = top_left,
+		// 	.bottom_right = top_left + canvas.texture.size * editor->zoom,
+		// };
+		renderer->draw_texture(canvas.texture, editor->canvas);
+		renderer->draw_rect({ editor->canvas.top_left, editor->canvas.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 	}
 
 } // namespace engine
