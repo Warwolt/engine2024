@@ -45,7 +45,6 @@ set(ENGINE_SRC
 )
 
 set(PLATFORM_SRC
-    src/platform/commands.cpp
     src/platform/file.cpp
     src/platform/font.cpp
     src/platform/image.cpp
@@ -54,6 +53,7 @@ set(PLATFORM_SRC
     src/platform/input/timing.cpp
     src/platform/library_loader.cpp
     src/platform/logging.cpp
+    src/platform/platform_api.cpp
     src/platform/platform.cpp
     src/platform/renderer.cpp
     src/platform/texture.cpp

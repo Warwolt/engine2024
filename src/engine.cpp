@@ -115,7 +115,7 @@ namespace engine {
 
 		/* Modules */
 		{
-			update_editor(&state->editor, input);
+			update_editor(&state->editor, input, platform);
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);
 		}
 	}

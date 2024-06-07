@@ -1,6 +1,7 @@
 #include <engine/editor.h>
 
 #include <platform/input/input.h>
+#include <platform/platform_api.h>
 #include <platform/renderer.h>
 
 #include <algorithm>
@@ -45,7 +46,7 @@ namespace engine {
 		};
 	}
 
-	void update_editor(EditorState* editor, const platform::Input* input) {
+	void update_editor(EditorState* editor, const platform::Input* input, platform::PlatformAPI* platform) {
 		/* Zoom*/
 		{
 			editor->zoom_index = std::clamp<int>(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
@@ -54,7 +55,15 @@ namespace engine {
 
 		/* Mouse drag*/
 		{
-			if (input->mouse.left_button.is_pressed()) {
+			if (input->mouse.middle_button.pressed_now()) {
+				platform->set_cursor(platform::Cursor::SizeAll);
+			}
+
+			if (input->mouse.middle_button.released_now()) {
+				platform->set_cursor(platform::Cursor::Arrow);
+			}
+
+			if (input->mouse.middle_button.is_pressed()) {
 				editor->canvas_pos += input->mouse.pos_delta;
 			}
 		}
@@ -87,7 +96,7 @@ namespace engine {
 			.bottom_right = top_left + canvas.texture.size * editor->zoom,
 		};
 		renderer->draw_texture(canvas.texture, canvas_rect);
-		renderer->draw_rect({ canvas_rect.top_left - glm::vec2 { 1.0f, 1.0f }, canvas_rect.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
+		renderer->draw_rect({ canvas_rect.top_left, canvas_rect.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 	}
 
 } // namespace engine
