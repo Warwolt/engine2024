@@ -67,10 +67,9 @@ namespace engine {
 
 				// Position the canvas so that the zoom happens around the cursor,
 				// by keeping the relative distance from cursor to corner the same.
-				const glm::vec2 top_left_delta = editor->canvas.top_left - input->mouse.pos;
-				const glm::vec2 bottom_right_delta = editor->canvas.bottom_right - input->mouse.pos;
-				editor->canvas.top_left = input->mouse.pos + zoom_scale * top_left_delta;
-				editor->canvas.bottom_right = input->mouse.pos + zoom_scale * bottom_right_delta;
+				const platform::Rect delta = editor->canvas - input->mouse.pos;
+				editor->canvas.top_left = input->mouse.pos + zoom_scale * delta.top_left;
+				editor->canvas.bottom_right = input->mouse.pos + zoom_scale * delta.bottom_right;
 			}
 		}
 
@@ -85,16 +84,14 @@ namespace engine {
 			}
 
 			if (input->mouse.middle_button.is_pressed()) {
-				// FIXME: platform::Rect needs a += operator for glm::vec2
-				editor->canvas.top_left += input->mouse.pos_delta;
-				editor->canvas.bottom_right += input->mouse.pos_delta;
+				editor->canvas += input->mouse.pos_delta;
 			}
 		}
 	}
 
 	void render_editor(platform::Renderer* renderer, const EditorState* editor, platform::Canvas canvas) {
+		/* Draw to canvas */
 		renderer->set_draw_canvas(canvas);
-
 		{
 			const glm::vec4 light_grey = glm::vec4 { 0.75f, 0.75f, 0.75f, 1.0f };
 			const glm::vec4 dark_grey = glm::vec4 { 0.50f, 0.50f, 0.50f, 1.0f };
@@ -113,11 +110,6 @@ namespace engine {
 		renderer->reset_draw_canvas();
 
 		/* Render canvas to screen*/
-		// glm::vec2 top_left = editor->canvas.top_left;
-		// platform::Rect canvas_rect = {
-		// 	.top_left = top_left,
-		// 	.bottom_right = top_left + canvas.texture.size * editor->zoom,
-		// };
 		renderer->draw_texture(canvas.texture, editor->canvas);
 		renderer->draw_rect({ editor->canvas.top_left, editor->canvas.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 	}
