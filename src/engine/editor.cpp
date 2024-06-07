@@ -1,6 +1,7 @@
 #include <engine/editor.h>
 
 #include <platform/input/input.h>
+#include <platform/logging.h>
 #include <platform/platform_api.h>
 #include <platform/renderer.h>
 
@@ -49,8 +50,20 @@ namespace engine {
 	void update_editor(EditorState* editor, const platform::Input* input, platform::PlatformAPI* platform) {
 		/* Zoom*/
 		{
-			editor->zoom_index = std::clamp<int>(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
-			editor->zoom = zoom_multiples[editor->zoom_index];
+			const int new_zoom_index = std::clamp<int>(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
+			const float new_zoom = zoom_multiples[new_zoom_index];
+			const float zoom_scale = new_zoom / editor->zoom;
+			const bool zoom_changed = new_zoom != editor->zoom;
+
+			editor->zoom_index = new_zoom_index;
+			editor->zoom = new_zoom;
+
+			if (zoom_changed) {
+				// Position the canvas so that the zoom happens around the cursor,
+				// by keeping the relative distance from cursor to corner the same.
+				const glm::vec2 pos_delta = editor->canvas_pos - input->mouse.pos;
+				editor->canvas_pos = input->mouse.pos + zoom_scale * pos_delta;
+			}
 		}
 
 		/* Mouse drag*/

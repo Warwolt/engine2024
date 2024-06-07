@@ -13,7 +13,7 @@
 namespace platform {
 
 	struct Mouse {
-		glm::ivec2 pos;
+		glm::vec2 pos;
 		glm::vec2 pos_delta;
 		int scroll_delta = 0;
 		Button left_button;

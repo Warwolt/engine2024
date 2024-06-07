@@ -63,7 +63,7 @@ namespace platform {
 					if (!imgui_io.WantCaptureMouse) {
 						SDL_Rect canvas = stretched_and_centered_canvas(window_size, window_resolution);
 						int scale = canvas.w / window_resolution.x;
-						glm::ivec2 new_mouse_pos = glm::ivec2 {
+						glm::vec2 new_mouse_pos = glm::vec2 {
 							(event.motion.x - canvas.x) / scale,
 							(event.motion.y - canvas.y) / scale
 						};
