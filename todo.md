@@ -15,7 +15,7 @@ Goals:
 
 ## Doing
 - Render level editor canvas (Aseprite style grey checker board)
-  - [] Render to a canvas
+  - [x] Render to a canvas
   - [] Render canvas in an ImGui window
 
 ## Done
