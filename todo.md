@@ -15,7 +15,8 @@ Goals:
 
 ## Doing
 - Render level editor canvas (Aseprite style grey checker board)
-  - [] Render to a canvas and render canvas in an ImGui window
+  - [] Render to a canvas
+  - [] Render canvas in an ImGui window
 
 ## Done
 - Fix debugging of engine DLL (Probably needs to copy PDB when copying DLL)

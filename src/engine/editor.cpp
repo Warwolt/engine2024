@@ -130,13 +130,6 @@ namespace engine {
 
 			// canvas outline
 			renderer->draw_rect({ editor->canvas.top_left, editor->canvas.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
-
-			// canvas shadow
-			platform::Rect shadow_rect = {
-				.top_left = { editor->canvas.top_left.x, editor->canvas.bottom_right.y + 1.0f },
-				.bottom_right = { editor->canvas.bottom_right.x + 1.0f, editor->canvas.bottom_right.y + 3.0f },
-			};
-			renderer->draw_rect_fill(shadow_rect, glm::vec4 { 0.254f, 0.254f, 0.172f, 1.0f });
 		}
 	}
 
