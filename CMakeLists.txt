@@ -39,12 +39,12 @@ set(IMGUI_SRC
 
 set(ENGINE_SRC
     src/engine.cpp
-    src/engine/hot_reloading.cpp
     src/engine/animation.cpp
+    src/engine/editor.cpp
+    src/engine/hot_reloading.cpp
 )
 
 set(PLATFORM_SRC
-    src/platform/commands.cpp
     src/platform/file.cpp
     src/platform/font.cpp
     src/platform/image.cpp
@@ -53,7 +53,9 @@ set(PLATFORM_SRC
     src/platform/input/timing.cpp
     src/platform/library_loader.cpp
     src/platform/logging.cpp
+    src/platform/platform_api.cpp
     src/platform/platform.cpp
+    src/platform/rect.cpp
     src/platform/renderer.cpp
     src/platform/texture.cpp
     src/platform/win32.cpp

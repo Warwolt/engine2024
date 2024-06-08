@@ -177,7 +177,7 @@ namespace platform {
 		glBindTexture(GL_TEXTURE_2D, NULL);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
-		return Canvas { frame_buffer, Texture { texture, width, height } };
+		return Canvas { frame_buffer, Texture { texture, glm::vec2 { width, height } } };
 	}
 
 	void free_canvas(Canvas canvas) {
@@ -196,12 +196,18 @@ namespace platform {
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
 	}
 
-	void Renderer::render_to_canvas(ShaderProgram shader_program, Canvas canvas) {
-		glBindFramebuffer(GL_FRAMEBUFFER, canvas.frame_buffer);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		render(shader_program);
-		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	void Renderer::set_draw_canvas(Canvas canvas) {
+		m_draw_canvas = canvas;
+	}
+	void Renderer::reset_draw_canvas() {
+		m_draw_canvas = {};
+	}
+
+	void Renderer::set_render_canvas(Canvas canvas) {
+		m_render_canvas = canvas;
+	}
+	void Renderer::reset_render_canvas() {
+		m_render_canvas = {};
 	}
 
 	void Renderer::render(ShaderProgram shader_program) {
@@ -217,7 +223,19 @@ namespace platform {
 		for (const VertexSection& section : m_sections) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, section.texture.id);
+
+			std::optional<Canvas> canvas;
+			if (section.canvas)
+				canvas = section.canvas;
+			else if (m_render_canvas)
+				canvas = m_render_canvas;
+
+			if (canvas) {
+				glBindFramebuffer(GL_FRAMEBUFFER, canvas->frame_buffer);
+			}
+
 			glDrawArrays(section.mode, offset, section.length);
+			glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
 			offset += section.length;
 		}
@@ -234,13 +252,13 @@ namespace platform {
 
 	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {
 		m_vertices.push_back(Vertex { .pos = point, .color = color });
-		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 1, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 1, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color) {
 		m_vertices.push_back(Vertex { .pos = start, .color = color });
 		m_vertices.push_back(Vertex { .pos = end, .color = color });
-		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_rect(Rect quad, glm::vec4 color) {
@@ -258,7 +276,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
 		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
 
-		m_sections.push_back(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_rect_fill(Rect quad, glm::vec4 color) {
@@ -282,7 +300,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
 
 		// sections
-		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_circle(glm::vec2 center, float radius, glm::vec4 color) {
@@ -300,7 +318,7 @@ namespace platform {
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, y }, .color = color });
 		}
 
-		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color) {
@@ -330,7 +348,7 @@ namespace platform {
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, y }, .color = color });
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, -y }, .color = color });
 		}
-		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture });
+		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_texture(Texture texture, Rect quad) {
@@ -376,7 +394,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { u1, v0 } });
 
 		// sections
-		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture });
+		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture, .canvas = m_draw_canvas });
 	}
 
 	void Renderer::draw_character(const Font* font, char character, glm::vec2 pos, glm::vec4 color) {
@@ -387,10 +405,10 @@ namespace platform {
 			.bottom_right = { pos.x + glyph.size.x, pos.y + glyph.size.y }
 		};
 
-		float u0 = glyph.atlas_pos.x / (float)font->atlas.width;
-		float v0 = 1 - (glyph.atlas_pos.y + glyph.size.y) / (float)font->atlas.height;
-		float u1 = u0 + glyph.size.x / (float)font->atlas.width;
-		float v1 = v0 + glyph.size.y / (float)font->atlas.height;
+		float u0 = glyph.atlas_pos.x / (float)font->atlas.size.x;
+		float v0 = 1 - (glyph.atlas_pos.y + glyph.size.y) / (float)font->atlas.size.y;
+		float u1 = u0 + glyph.size.x / (float)font->atlas.size.x;
+		float v1 = v0 + glyph.size.y / (float)font->atlas.size.y;
 
 		platform::FlipRect uv = {
 			.bottom_left = { u0, v0 },

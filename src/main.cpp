@@ -163,6 +163,7 @@ int main(int /* argc */, char** /* args */) {
 
 	bool quit = false;
 	Canvas canvas = platform::add_canvas(window_info.resolution.x, window_info.resolution.y);
+	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
 	engine.initialize(&state);
 	while (!quit) {
@@ -185,14 +186,6 @@ int main(int /* argc */, char** /* args */) {
 			/* Platform update */
 			for (const Command& cmd : platform.commands()) {
 				switch (cmd.type) {
-					case CommandType::Quit:
-						quit = true;
-						break;
-
-					case CommandType::ToggleFullscreen:
-						platform::toggle_fullscreen(&window_info);
-						break;
-
 					case CommandType::ChangeResolution: {
 						int width = cmd.change_resolution.width;
 						int height = cmd.change_resolution.height;
@@ -201,16 +194,39 @@ int main(int /* argc */, char** /* args */) {
 						canvas = platform::add_canvas(width, height);
 					} break;
 
-					case CommandType::SetWindowTitle:
-						SDL_SetWindowTitle(window_info.window, cmd.set_window_title.title);
+					case CommandType::Quit:
+						quit = true;
 						break;
 
 					case CommandType::RebuildEngineLibrary:
 						hot_reloader.trigger_rebuild_command();
 						break;
+
+					case CommandType::SetCursor:
+						SDL_FreeCursor(cursor);
+						switch (cmd.set_cursor.cursor) {
+							case platform::Cursor::Arrow:
+								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+								break;
+
+							case platform::Cursor::SizeAll:
+								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
+								break;
+						}
+
+					case CommandType::SetWindowTitle:
+						SDL_SetWindowTitle(window_info.window, cmd.set_window_title.title);
+						break;
+
+					case CommandType::ToggleFullscreen:
+						platform::toggle_fullscreen(&window_info);
+						break;
 				}
 			}
 			platform.clear();
+
+			/* Set Cursor */
+			SDL_SetCursor(cursor);
 		}
 
 		/* Render */
@@ -221,7 +237,10 @@ int main(int /* argc */, char** /* args */) {
 				set_viewport(0, 0, window_info.resolution.x, window_info.resolution.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, window_info.resolution.x, window_info.resolution.y);
 				engine.render(&renderer, &state);
-				renderer.render_to_canvas(shader_program, canvas);
+
+				renderer.set_render_canvas(canvas);
+				renderer.render(shader_program);
+				renderer.reset_render_canvas();
 			}
 			/* Render canvas to window */
 			{

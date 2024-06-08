@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine/animation.h>
+#include <engine/editor.h>
 #include <engine/hot_reloading.h>
 #include <platform/font.h>
 #include <platform/input/input.h>
@@ -20,6 +21,7 @@ namespace engine {
 	struct Resources {
 		std::unordered_map<std::string, platform::Texture> textures;
 		std::unordered_map<std::string, platform::Font> fonts;
+		std::unordered_map<std::string, platform::Canvas> canvases;
 	};
 
 	struct Systems {
@@ -29,13 +31,10 @@ namespace engine {
 	struct State {
 		Resources resources;
 		Systems systems;
-
-		glm::vec2 circle_pos = { -1.0f, -1.0f };
-		int circle_radius = 127;
 		glm::vec2 window_resolution;
-
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
+		EditorState editor;
 	};
 
 } // namespace engine

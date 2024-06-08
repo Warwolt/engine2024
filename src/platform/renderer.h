@@ -2,6 +2,7 @@
 
 #include <platform/font.h>
 #include <platform/image.h>
+#include <platform/rect.h>
 #include <platform/texture.h>
 
 #include <SDL2/SDL.h>
@@ -9,6 +10,7 @@
 #include <glm/glm.hpp>
 
 #include <expected>
+#include <optional>
 #include <vector>
 
 namespace platform {
@@ -28,32 +30,13 @@ namespace platform {
 		GLenum mode;
 		GLsizei length;
 		Texture texture;
+		std::optional<Canvas> canvas;
 	};
 
 	struct ShaderProgram {
 		GLuint id;
 		GLuint vao;
 		GLuint vbo;
-	};
-
-	// Origin in upper left corner (e.g. xy-coordinates)
-	// top_left o-----------o
-	//          |           |
-	//          |           |
-	//          o-----------o bottom_right
-	struct Rect {
-		glm::vec2 top_left;
-		glm::vec2 bottom_right;
-	};
-
-	// Origin in bottom left corner (e.g. uv-coordinates)
-	//             o-----------o top_right
-	//             |           |
-	//             |           |
-	// bottom_left o-----------o
-	struct FlipRect {
-		glm::vec2 bottom_left;
-		glm::vec2 top_right;
 	};
 
 	enum class ShaderProgramError {
@@ -74,7 +57,12 @@ namespace platform {
 
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
 
-		void render_to_canvas(ShaderProgram shader_program, Canvas canvas);
+		void set_draw_canvas(Canvas canvas);
+		void reset_draw_canvas();
+
+		void set_render_canvas(Canvas canvas);
+		void reset_render_canvas();
+
 		void render(ShaderProgram shader_program);
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
@@ -96,6 +84,8 @@ namespace platform {
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;
+		std::optional<Canvas> m_draw_canvas;
+		std::optional<Canvas> m_render_canvas;
 	};
 
 } // namespace platform

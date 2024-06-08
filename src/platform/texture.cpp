@@ -15,7 +15,7 @@ namespace platform {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 		glBindTexture(GL_TEXTURE_2D, NULL);
-		return Texture { texture, width, height };
+		return Texture { texture, glm::vec2 { width, height } };
 	}
 
 	void free_texture(Texture texture) {
