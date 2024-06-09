@@ -51,11 +51,13 @@ void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
 }
 
 void set_viewport_to_fit_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
-	int scale = (int)std::max(std::round(window_width / canvas_width), std::round(window_height / canvas_height));
+	int scale = (int)std::min(std::floor((float)window_width / (float)canvas_width), std::floor((float)window_height / (float)canvas_height));
 	glm::ivec2 window_size = { window_width, window_height };
 	glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
 	glm::ivec2 top_left = (window_size - scaled_canvas_size) / 2;
 	glViewport(top_left.x, top_left.y, scaled_canvas_size.x, scaled_canvas_size.y);
+	ASSERT(scaled_canvas_size.x <= window_width, "canvas width %d scaled larger than window width %d!", scaled_canvas_size.x, window_width);
+	ASSERT(scaled_canvas_size.y <= window_height, "canvas height %d scaled larger than window height %d!", scaled_canvas_size.y, window_height);
 }
 
 void set_pixel_coordinate_projection(Renderer* renderer, ShaderProgram shader_program, int width, int height) {
