@@ -249,8 +249,8 @@ int main(int /* argc */, char** /* args */) {
 
 			/* Render to canvas */
 			{
-				set_viewport(0, 0, window_canvas.texture.size.x, window_canvas.texture.size.y);
-				set_pixel_coordinate_projection(&renderer, shader_program, window_canvas.texture.size.x, window_canvas.texture.size.y);
+				set_viewport(0, 0, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
+				set_pixel_coordinate_projection(&renderer, shader_program, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
 				engine.render(&renderer, &state);
 
 				renderer.set_render_canvas(window_canvas);
@@ -261,7 +261,7 @@ int main(int /* argc */, char** /* args */) {
 			/* Render canvas to window */
 			{
 				if (window.is_fullscreen() || window.is_maximized()) {
-					set_viewport_to_stretch_canvas(window.size().x, window.size().y, window_canvas.texture.size.x, window_canvas.texture.size.y);
+					set_viewport_to_stretch_canvas(window.size().x, window.size().y, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
 				}
 				else {
 					set_viewport_to_center_canvas(window.size().x, window.size().y, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
