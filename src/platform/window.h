@@ -7,18 +7,25 @@
 
 namespace platform {
 
-	struct Window {
-		SDL_Window* sdl_window;
-		glm::ivec2 size;
-		glm::ivec2 resolution;
-		glm::ivec2 windowed_pos;
-		bool is_fullscreen = false;
+	class Window {
+	public:
+		static std::optional<Window> create(int widht, int height, int window_flags);
+		void destroy();
+
+		void toggle_fullscreen();
+		void change_resolution(int width, int height);
+
+		glm::ivec2 size() const;
+		glm::ivec2 resolution() const;
+
+		SDL_Window* sdl_window() const;
+
+	private:
+		SDL_Window* m_sdl_window;
+		glm::ivec2 m_size;
+		glm::ivec2 m_resolution;
+		glm::ivec2 m_windowed_pos;
+		bool m_is_fullscreen = false;
 	};
-
-	std::optional<Window> create_window(int widht, int height, int window_flags);
-	void destroy_window(Window window);
-
-	void toggle_fullscreen(Window* window);
-	void change_resolution(Window* window, int width, int height);
 
 } // namespace platform

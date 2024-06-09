@@ -5,8 +5,8 @@
 
 namespace platform {
 
-	std::optional<Window> create_window(int width, int height, int window_flags) {
-		SDL_Window* window = SDL_CreateWindow(
+	std::optional<Window> Window::create(int width, int height, int window_flags) {
+		SDL_Window* sdl_window = SDL_CreateWindow(
 			"Game Engine 2024",
 			SDL_WINDOWPOS_CENTERED,
 			SDL_WINDOWPOS_CENTERED,
@@ -15,29 +15,34 @@ namespace platform {
 			window_flags | SDL_WINDOW_OPENGL
 		);
 
-		if (!window) {
+		if (!sdl_window) {
 			LOG_ERROR("SDL_CreateWindow failed: %s", SDL_GetError());
 			return {};
 		}
 
 		int x, y;
-		SDL_GetWindowPosition(window, &x, &y);
+		SDL_GetWindowPosition(sdl_window, &x, &y);
 
-		return Window {
-			.sdl_window = window,
-			.size = { width, height },
-			.resolution = { width, height },
-			.windowed_pos = { x, y },
-			.is_fullscreen = false,
-		};
+		Window window;
+		window.m_sdl_window = sdl_window;
+		window.m_size = { width, height };
+		window.m_resolution = { width, height };
+		window.m_windowed_pos = { x, y };
+		window.m_is_fullscreen = false;
+		return window;
 	}
 
-	void destroy_window(Window window) {
-		SDL_DestroyWindow(window.sdl_window);
+	void Window::destroy() {
+		SDL_DestroyWindow(m_sdl_window);
+		m_sdl_window = nullptr;
 	}
 
-	void toggle_fullscreen(Window* window) {
-		int display_index = SDL_GetWindowDisplayIndex(window->sdl_window);
+	SDL_Window* Window::sdl_window() const {
+		return m_sdl_window;
+	}
+
+	void Window::toggle_fullscreen() {
+		int display_index = SDL_GetWindowDisplayIndex(m_sdl_window);
 
 		SDL_DisplayMode display_mode;
 		SDL_GetCurrentDisplayMode(display_index, &display_mode);
@@ -45,43 +50,51 @@ namespace platform {
 		SDL_Rect display_bound;
 		SDL_GetDisplayBounds(display_index, &display_bound);
 
-		if (window->is_fullscreen) {
-			window->is_fullscreen = false;
+		if (m_is_fullscreen) {
+			m_is_fullscreen = false;
 
 			/* Toggle windowed */
-			SDL_SetWindowBordered(window->sdl_window, SDL_TRUE);
-			SDL_SetWindowPosition(window->sdl_window, window->windowed_pos.x, window->windowed_pos.y);
-			SDL_SetWindowSize(window->sdl_window, window->resolution.x, window->resolution.y);
+			SDL_SetWindowBordered(m_sdl_window, SDL_TRUE);
+			SDL_SetWindowPosition(m_sdl_window, m_windowed_pos.x, m_windowed_pos.y);
+			SDL_SetWindowSize(m_sdl_window, m_resolution.x, m_resolution.y);
 
 			/* Update window size */
-			window->size = window->resolution;
+			m_size = m_resolution;
 		}
 		else {
-			window->is_fullscreen = true;
+			m_is_fullscreen = true;
 
 			/* Save current windowed position */
-			SDL_GetWindowPosition(window->sdl_window, &window->windowed_pos.x, &window->windowed_pos.y);
+			SDL_GetWindowPosition(m_sdl_window, &m_windowed_pos.x, &m_windowed_pos.y);
 
 			/* Toggle fullscreen */
-			SDL_SetWindowBordered(window->sdl_window, SDL_FALSE);
-			SDL_SetWindowPosition(window->sdl_window, display_bound.x, display_bound.y);
-			SDL_SetWindowSize(window->sdl_window, display_mode.w, display_mode.h);
+			SDL_SetWindowBordered(m_sdl_window, SDL_FALSE);
+			SDL_SetWindowPosition(m_sdl_window, display_bound.x, display_bound.y);
+			SDL_SetWindowSize(m_sdl_window, display_mode.w, display_mode.h);
 
 			/* Update windowed size */
-			window->size = glm::ivec2 { display_mode.w, display_mode.h };
+			m_size = glm::ivec2 { display_mode.w, display_mode.h };
 		}
 	}
 
-	void change_resolution(Window* window, int width, int height) {
+	void Window::change_resolution(int width, int height) {
 		// update resolution
-		window->resolution.x = width;
-		window->resolution.y = height;
+		m_resolution.x = width;
+		m_resolution.y = height;
 
-		if (!window->is_fullscreen) {
-			window->size.x = width;
-			window->size.y = height;
-			SDL_SetWindowSize(window->sdl_window, window->size.x, window->size.y);
+		if (!m_is_fullscreen) {
+			m_size.x = width;
+			m_size.y = height;
+			SDL_SetWindowSize(m_sdl_window, m_size.x, m_size.y);
 		}
+	}
+
+	glm::ivec2 Window::size() const {
+		return m_size;
+	}
+
+	glm::ivec2 Window::resolution() const {
+		return m_resolution;
 	}
 
 } // namespace platform
