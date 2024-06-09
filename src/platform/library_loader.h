@@ -2,6 +2,7 @@
 
 #include <engine.h>
 #include <platform/input/timing.h>
+#include <platform/win32.h>
 
 #include <lean_mean_windows.h>
 
@@ -57,13 +58,15 @@ namespace platform {
 		void update(EngineLibrary* engine_library);
 		void trigger_rebuild_command();
 		bool rebuild_command_is_running() const;
+		ExitCode last_exit_code() const;
 
 	private:
 		std::string m_library_name;
 		EngineLibraryLoader* m_library_loader;
 		platform::Timer m_hot_reload_timer;
 
-		std::future<void> m_rebuild_engine_future;
+		std::future<ExitCode> m_rebuild_engine_future;
+		ExitCode m_last_exit_code = 0;
 		bool m_rebuild_command_is_running = false;
 	};
 

@@ -170,7 +170,7 @@ namespace platform {
 		/* Check rebuild command progress */
 		if (m_rebuild_command_is_running) {
 			if (util::future_is_ready(m_rebuild_engine_future)) {
-				m_rebuild_engine_future.get();
+				m_last_exit_code = m_rebuild_engine_future.get();
 				m_rebuild_command_is_running = false;
 			}
 		}
@@ -181,16 +181,21 @@ namespace platform {
 			m_rebuild_command_is_running = true;
 			m_rebuild_engine_future = std::async(std::launch::async, [] {
 				const char* cmd = "cmake --build build --target GameEngine2024Engine";
-				std::expected<void, std::string> result = platform::run_command(cmd);
+				std::expected<ExitCode, std::string> result = platform::run_command(cmd);
 				if (!result.has_value()) {
 					LOG_ERROR("run_command failed: %s", result.error().c_str());
 				}
+				return result.value_or(-1);
 			});
 		}
 	}
 
 	bool EngineLibraryHotReloader::rebuild_command_is_running() const {
 		return m_rebuild_command_is_running;
+	}
+
+	ExitCode EngineLibraryHotReloader::last_exit_code() const {
+		return m_last_exit_code;
 	}
 
 	void on_engine_library_loaded(EngineLibrary* engine_library) {

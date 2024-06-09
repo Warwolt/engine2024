@@ -39,6 +39,10 @@ namespace platform {
 			return m_current == x && m_previous != x;
 		}
 
+		bool just_changed() const {
+			return m_current != m_previous;
+		}
+
 	private:
 		T m_current;
 		T m_previous;

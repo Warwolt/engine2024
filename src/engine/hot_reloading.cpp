@@ -21,8 +21,8 @@ namespace engine {
 	void update_hot_reloading(HotReloadingState* hot_reloading, AnimationSystem* animation_system, const platform::Input* input, platform::PlatformAPI* platform) {
 		/* Input */
 		const bool hot_reload_key_pressed = input->keyboard.key_pressed_now(SDLK_F5);
-		const bool library_rebuild_just_started = input->engine_library_is_rebuilding.just_became(true);
-		const bool library_rebuild_just_stopped = input->engine_library_is_rebuilding.just_became(false);
+		const bool library_rebuild_just_started = input->engine_is_rebuilding.just_became(true);
+		const bool library_rebuild_just_stopped = input->engine_is_rebuilding.just_became(false);
 		const uint64_t global_time_ms = input->global_time_ms;
 
 		/* Update */
@@ -39,11 +39,17 @@ namespace engine {
 			platform->rebuild_engine_library();
 		}
 
+		/* Animate title while loading */
 		std::string window_title = "Engine2024";
 		if (std::optional<Animation> animation = animation_system->most_recent_animation("loading_window_title")) {
 			if (animation->is_playing(global_time_ms)) {
 				window_title = loading_window_title_animation(animation->local_time(global_time_ms));
 			}
+		}
+
+		/* Display error message if rebuild failed */
+		if (!input->engine_is_rebuilding && input->engine_rebuild_exit_code != 0) {
+			window_title += " (!! Hot reloading failed !!)";
 		}
 
 		/* Render */
