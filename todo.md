@@ -13,9 +13,9 @@ Goals:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Give feedback in window title if compilation failed
 
 ## Done
+- Give feedback in window title if compilation failed
 - Fix so that engine unit tests links against DLL statically
 - Render level editor canvas (Aseprite style grey checker board)
 - Fix debugging of engine DLL (Probably needs to copy PDB when copying DLL)
