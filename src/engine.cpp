@@ -85,6 +85,7 @@ namespace engine {
 	}
 
 	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
+		const bool window_resolution_changed = state->window_resolution != input->window_resolution;
 		state->window_resolution = input->window_resolution;
 
 		/* Quit */
@@ -99,9 +100,14 @@ namespace engine {
 			if (input->keyboard.key_pressed_now(SDLK_F11)) {
 				platform->toggle_fullscreen();
 			}
+
+			if (window_resolution_changed) {
+				platform::free_canvas(state->resources.canvases[EDITOR_CANVAS]);
+				state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)input->window_resolution.x, (int)input->window_resolution.y);
+			}
 		}
 
-		/* Imgui */
+		/* Debug UI */
 		{
 			if (input->keyboard.key_pressed_now(SDLK_F3)) {
 				state->debug_ui.show_debug_ui = !state->debug_ui.show_debug_ui;

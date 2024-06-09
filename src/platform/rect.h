@@ -13,6 +13,8 @@ namespace platform {
 		glm::vec2 top_left;
 		glm::vec2 bottom_right;
 
+		void set_size(glm::vec2 size);
+
 		Rect& operator+=(const Rect& rhs);
 		Rect& operator-=(const Rect& rhs);
 		Rect& operator*=(const Rect& rhs);
