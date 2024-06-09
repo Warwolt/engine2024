@@ -125,7 +125,7 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	const glm::ivec2 initial_window_size = { 800, 600 };
+	const glm::ivec2 initial_window_size = { 960, 600 };
 	platform::Window window = util::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, SDL_WINDOW_RESIZABLE), [] {
 		ABORT("platform::create_window failed");
 	});

@@ -44,7 +44,7 @@ namespace engine {
 		return EditorState {
 			.zoom_index = 12,
 			.zoom = 1.0,
-			.canvas = {
+			.canvas_rect = {
 				.top_left = { 0, 0 },
 				.bottom_right = canvas_size,
 			},
@@ -54,8 +54,8 @@ namespace engine {
 	void update_editor(EditorState* editor, const platform::Input* input, platform::PlatformAPI* platform) {
 		/* Canvas*/
 		{
-			// For now, keep canvas always the size of the curernt resolution
-			editor->canvas.set_size(input->window_resolution * editor->zoom);
+			// Keep canvas the same size as the curernt resolution
+			editor->canvas_rect.set_size(input->window_resolution * editor->zoom);
 		}
 
 		/* Zoom*/
@@ -84,12 +84,12 @@ namespace engine {
 				// Clamp mouse position to canvas borders so that the canvas doesn't
 				// "run away" outside the screen while zooming.
 				const glm::vec2 clamped_mouse_pos = glm::vec2 {
-					std::clamp(input->mouse.pos.x, editor->canvas.top_left.x, editor->canvas.bottom_right.x),
-					std::clamp(input->mouse.pos.y, editor->canvas.top_left.y, editor->canvas.bottom_right.y),
+					std::clamp(input->mouse.pos.x, editor->canvas_rect.top_left.x, editor->canvas_rect.bottom_right.x),
+					std::clamp(input->mouse.pos.y, editor->canvas_rect.top_left.y, editor->canvas_rect.bottom_right.y),
 				};
-				const platform::Rect delta = editor->canvas - clamped_mouse_pos;
-				editor->canvas.top_left = clamped_mouse_pos + zoom_scale * delta.top_left;
-				editor->canvas.bottom_right = clamped_mouse_pos + zoom_scale * delta.bottom_right;
+				const platform::Rect delta = editor->canvas_rect - clamped_mouse_pos;
+				editor->canvas_rect.top_left = clamped_mouse_pos + zoom_scale * delta.top_left;
+				editor->canvas_rect.bottom_right = clamped_mouse_pos + zoom_scale * delta.bottom_right;
 			}
 		}
 
@@ -104,7 +104,7 @@ namespace engine {
 			}
 
 			if (input->mouse.middle_button.is_pressed()) {
-				editor->canvas += input->mouse.pos_delta;
+				editor->canvas_rect += input->mouse.pos_delta;
 			}
 		}
 	}
@@ -132,10 +132,10 @@ namespace engine {
 		/* Render canvas to screen*/
 		{
 			// canvas texture
-			renderer->draw_texture(canvas.texture, editor->canvas);
+			renderer->draw_texture(canvas.texture, editor->canvas_rect);
 
 			// canvas outline
-			renderer->draw_rect({ editor->canvas.top_left, editor->canvas.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
+			renderer->draw_rect({ editor->canvas_rect.top_left, editor->canvas_rect.bottom_right + glm::vec2 { 1.0f, 1.0f } }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 		}
 	}
 

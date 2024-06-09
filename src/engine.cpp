@@ -20,6 +20,8 @@ namespace engine {
 		const static Resolution resolutions[] = {
 			{ { 800, 600 }, "800x600" },
 			{ { 640, 480 }, "640x480" },
+			{ { 960, 600 }, "960x600" },
+			{ { 480, 300 }, "480x300" },
 
 		};
 

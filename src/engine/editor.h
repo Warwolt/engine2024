@@ -15,7 +15,7 @@ namespace engine {
 	struct EditorState {
 		int zoom_index;
 		float zoom;
-		platform::Rect canvas;
+		platform::Rect canvas_rect;
 	};
 
 	EditorState init_editor(glm::vec2 canvas_size);
