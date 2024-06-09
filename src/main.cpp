@@ -49,7 +49,7 @@ static void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
 	glViewport(x, y, width, height);
 }
 
-static void set_viewport_to_fit_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
+static void set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
 	int scale = (int)std::min(std::floor((float)window_width / (float)canvas_width), std::floor((float)window_height / (float)canvas_height));
 	glm::ivec2 window_size = { window_width, window_height };
 	glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
@@ -245,6 +245,7 @@ int main(int /* argc */, char** /* args */) {
 		/* Render */
 		{
 			clear_screen();
+
 			/* Render to canvas */
 			{
 				set_viewport(0, 0, window.resolution().x, window.resolution().y);
@@ -255,14 +256,20 @@ int main(int /* argc */, char** /* args */) {
 				renderer.render(shader_program);
 				renderer.reset_render_canvas();
 			}
+
 			/* Render canvas to window */
 			{
-				// set_viewport_to_fit_canvas(window.size().x, window.size().y, window.resolution().x, window.resolution().y);
-				set_viewport_to_center_canvas(window.size().x, window.size().y, (int)canvas.texture.size.x, (int)canvas.texture.size.y);
+				if (window.is_fullscreen() || window.is_maximized()) {
+					set_viewport_to_stretch_canvas(window.size().x, window.size().y, window.resolution().x, window.resolution().y);
+				}
+				else {
+					set_viewport_to_center_canvas(window.size().x, window.size().y, (int)canvas.texture.size.x, (int)canvas.texture.size.y);
+				}
 				set_normalized_device_coordinate_projection(&renderer, shader_program);
 				renderer.draw_texture(canvas.texture, platform::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });
 				renderer.render(shader_program);
 			}
+
 			render_imgui();
 			swap_buffer(window.sdl_window());
 		}
@@ -271,7 +278,7 @@ int main(int /* argc */, char** /* args */) {
 	deinit_imgui();
 	engine.shutdown(&state);
 	platform::free_shader_program(shader_program);
-	window.destroy();
 	platform::shutdown(gl_context);
+	window.destroy();
 	return 0;
 }

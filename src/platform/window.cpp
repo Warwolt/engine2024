@@ -41,6 +41,14 @@ namespace platform {
 		return m_sdl_window;
 	}
 
+	bool Window::is_maximized() const {
+		return m_is_maximized;
+	}
+
+	bool Window::is_fullscreen() const {
+		return m_is_fullscreen;
+	}
+
 	glm::ivec2 Window::size() const {
 		return m_size;
 	}
@@ -50,6 +58,7 @@ namespace platform {
 	}
 
 	void Window::on_resize(int width, int height) {
+		m_is_maximized = SDL_GetWindowFlags(m_sdl_window) & SDL_WINDOW_MAXIMIZED;
 		m_size = glm::ivec2 { width, height };
 	}
 
