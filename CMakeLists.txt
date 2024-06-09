@@ -115,7 +115,7 @@ target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${EXTERNAL_LIBS})
 # Tests
 add_executable(${UNIT_TESTS} test/main.cpp ${TEST_SRC})
 target_include_directories(${UNIT_TESTS} PUBLIC test)
-target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB} "D:\\dev\\cpp\\engine2024\\build\\Debug\\GameEngine2024Engine.lib")
+target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB} ${ENGINE_LIB})
 
 # Set compile options for targets
 foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
