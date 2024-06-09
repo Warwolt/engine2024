@@ -177,7 +177,8 @@ int main(int /* argc */, char** /* args */) {
 		{
 			std::vector<SDL_Event> events = platform::read_events();
 			platform::process_events(&events, &input, &frame_timer, window.size(), window_canvas.texture.size);
-			input.engine_library_is_rebuilding = hot_reloader.rebuild_command_is_running();
+			input.engine_is_rebuilding = hot_reloader.rebuild_command_is_running();
+			input.engine_rebuild_exit_code = hot_reloader.last_exit_code();
 
 			for (const SDL_Event& event : events) {
 				if (event.type == SDL_WINDOWEVENT) {

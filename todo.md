@@ -8,13 +8,14 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Give feedback in window title if compilation failed
+- Add editor.dll that can launch engine.dll
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
 
 ## Done
+- Give feedback in window title if compilation failed
 - Fix so that engine unit tests links against DLL statically
 - Render level editor canvas (Aseprite style grey checker board)
 - Fix debugging of engine DLL (Probably needs to copy PDB when copying DLL)

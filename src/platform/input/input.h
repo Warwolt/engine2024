@@ -3,6 +3,7 @@
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
 #include <platform/signal.h>
+#include <platform/win32.h>
 
 #include <SDL2/SDL_events.h>
 #include <glm/glm.hpp>
@@ -28,7 +29,8 @@ namespace platform {
 		uint64_t delta_ms = 0;
 		uint64_t global_time_ms = 0;
 		bool quit_signal_received = false;
-		Signal<bool> engine_library_is_rebuilding = false;
+		Signal<bool> engine_is_rebuilding = false;
+		ExitCode engine_rebuild_exit_code = 0;
 		Keyboard keyboard;
 		Mouse mouse;
 	};

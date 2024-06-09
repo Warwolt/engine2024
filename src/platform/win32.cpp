@@ -28,7 +28,7 @@ namespace platform {
 		return std::string(buffer);
 	}
 
-	std::expected<void, std::string> run_command(const char* cmd_str) {
+	std::expected<ExitCode, std::string> run_command(const char* cmd_str) {
 		// this function based on:
 		// https://learn.microsoft.com/en-gb/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
 
@@ -119,7 +119,7 @@ namespace platform {
 			LOG_INFO("\"%s\" completed successfully", cmd_str);
 		}
 
-		return {};
+		return (int)exit_code;
 	}
 
 } // namespace platform
