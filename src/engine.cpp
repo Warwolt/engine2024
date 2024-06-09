@@ -20,6 +20,8 @@ namespace engine {
 		const static Resolution resolutions[] = {
 			{ { 800, 600 }, "800x600" },
 			{ { 640, 480 }, "640x480" },
+			{ { 960, 600 }, "960x600" },
+			{ { 480, 300 }, "480x300" },
 
 		};
 
@@ -103,7 +105,7 @@ namespace engine {
 
 			if (window_resolution_changed) {
 				platform::free_canvas(state->resources.canvases[EDITOR_CANVAS]);
-				state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)input->window_resolution.x, (int)input->window_resolution.y);
+				state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)state->window_resolution.x, (int)state->window_resolution.y);
 			}
 		}
 
