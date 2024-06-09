@@ -2,6 +2,10 @@
 
 namespace platform {
 
+	void Rect::set_size(glm::vec2 size) {
+		this->bottom_right = this->top_left + size;
+	}
+
 	Rect& Rect::operator+=(const Rect& rhs) {
 		this->top_left += rhs.top_left;
 		this->bottom_right += rhs.bottom_right;

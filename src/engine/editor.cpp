@@ -52,6 +52,12 @@ namespace engine {
 	}
 
 	void update_editor(EditorState* editor, const platform::Input* input, platform::PlatformAPI* platform) {
+		/* Canvas*/
+		{
+			// For now, keep canvas always the size of the curernt resolution
+			editor->canvas.set_size(input->window_resolution * editor->zoom);
+		}
+
 		/* Zoom*/
 		{
 			const int new_zoom_index = std::clamp(editor->zoom_index + input->mouse.scroll_delta, 0, NUM_ZOOM_MULTIPLES - 1);
