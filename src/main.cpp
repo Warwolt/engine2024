@@ -30,19 +30,6 @@
 #include <expected>
 #include <optional>
 
-using Canvas = platform::Canvas;
-using PlatformAPI = platform::PlatformAPI;
-using Command = platform::Command;
-using CommandType = platform::CommandType;
-using CreateGLContextError = platform::CreateGLContextError;
-using EngineLibrary = platform::EngineLibrary;
-using EngineLibraryHotReloader = platform::EngineLibraryHotReloader;
-using EngineLibraryLoader = platform::EngineLibraryLoader;
-using LoadLibraryError = platform::LoadLibraryError;
-using Renderer = platform::Renderer;
-using ShaderProgram = platform::ShaderProgram;
-using ShaderProgramError = platform::ShaderProgramError;
-
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
 static void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
@@ -63,13 +50,13 @@ static void set_viewport_to_center_canvas(int window_width, int window_height, i
 	set_viewport((window_width - canvas_width) / 2, (window_height - canvas_height) / 2, canvas_width, canvas_height);
 }
 
-static void set_pixel_coordinate_projection(Renderer* renderer, ShaderProgram shader_program, int width, int height) {
+static void set_pixel_coordinate_projection(platform::Renderer* renderer, platform::ShaderProgram shader_program, int width, int height) {
 	float grid_offset = 0.375f; // used to avoid missing pixels
 	glm::mat4 projection = glm::ortho(grid_offset, grid_offset + width, grid_offset + height, grid_offset, -1.0f, 1.0f);
 	renderer->set_projection(shader_program, projection);
 }
 
-static void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgram shader_program) {
+static void set_normalized_device_coordinate_projection(platform::Renderer* renderer, platform::ShaderProgram shader_program) {
 	glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	renderer->set_projection(shader_program, projection);
 }
@@ -131,7 +118,7 @@ int main(int /* argc */, char** /* args */) {
 	});
 
 	/* Create OpenGL context */
-	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window.sdl_window()), [](CreateGLContextError error) {
+	SDL_GLContext gl_context = util::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
 		ABORT("platform::create_gl_context() returned %s", util::enum_to_string(error));
 	});
 	init_imgui(window.sdl_window(), gl_context);
@@ -147,15 +134,15 @@ int main(int /* argc */, char** /* args */) {
 	});
 
 	/* Initialize Renderer */
-	Renderer renderer = Renderer(gl_context);
-	ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](ShaderProgramError error) {
+	platform::Renderer renderer = platform::Renderer(gl_context);
+	platform::ShaderProgram shader_program = util::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](platform::ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", util::enum_to_string(error));
 	});
 
 	/* Load engine DLL */
-	EngineLibraryLoader library_loader;
-	EngineLibraryHotReloader hot_reloader = EngineLibraryHotReloader(&library_loader, LIBRARY_NAME);
-	EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](LoadLibraryError error) {
+	platform::EngineLibraryLoader library_loader;
+	platform::EngineLibraryHotReloader hot_reloader = platform::EngineLibraryHotReloader(&library_loader, LIBRARY_NAME);
+	platform::EngineLibrary engine = util::unwrap(library_loader.load_library(LIBRARY_NAME), [](platform::LoadLibraryError error) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, util::enum_to_string(error));
 	});
 	platform::on_engine_library_loaded(&engine);
@@ -168,7 +155,7 @@ int main(int /* argc */, char** /* args */) {
 	engine::State state;
 
 	bool quit = false;
-	Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
+	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
 	engine.initialize(&state);
@@ -199,7 +186,8 @@ int main(int /* argc */, char** /* args */) {
 			engine.update(&state, &input, &platform);
 
 			/* Platform update */
-			for (const Command& cmd : platform.commands()) {
+			for (const platform::Command& cmd : platform.commands()) {
+				using CommandType = platform::CommandType;
 				switch (cmd.type) {
 					case CommandType::ChangeResolution: {
 						const int width = cmd.change_resolution.width;
