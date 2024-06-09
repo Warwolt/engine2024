@@ -9,16 +9,14 @@ Goals:
 
 ## TODO
 - Give feedback in window title if compilation failed
-- Fix so that engine unit tests links against DLL statically
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
-- Render level editor canvas (Aseprite style grey checker board)
-  - [x] Render to a canvas
-  - [] Render canvas in an ImGui window
 
 ## Done
+- Fix so that engine unit tests links against DLL statically
+- Render level editor canvas (Aseprite style grey checker board)
 - Fix debugging of engine DLL (Probably needs to copy PDB when copying DLL)
 - Tidy up window animation
 - Hot reload engine library with F5
