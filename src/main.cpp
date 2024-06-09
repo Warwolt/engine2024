@@ -45,11 +45,11 @@ using ShaderProgramError = platform::ShaderProgramError;
 
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
-void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
+static void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
 	glViewport(x, y, width, height);
 }
 
-void set_viewport_to_fit_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
+static void set_viewport_to_fit_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
 	int scale = (int)std::min(std::floor((float)window_width / (float)canvas_width), std::floor((float)window_height / (float)canvas_height));
 	glm::ivec2 window_size = { window_width, window_height };
 	glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
@@ -59,18 +59,22 @@ void set_viewport_to_fit_canvas(int window_width, int window_height, int canvas_
 	ASSERT(scaled_canvas_size.y <= window_height, "canvas height %d scaled larger than window height %d!", scaled_canvas_size.y, window_height);
 }
 
-void set_pixel_coordinate_projection(Renderer* renderer, ShaderProgram shader_program, int width, int height) {
+static void set_viewport_to_center_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
+	set_viewport((window_width - canvas_width) / 2, (window_height - canvas_height) / 2, canvas_width, canvas_height);
+}
+
+static void set_pixel_coordinate_projection(Renderer* renderer, ShaderProgram shader_program, int width, int height) {
 	float grid_offset = 0.375f; // used to avoid missing pixels
 	glm::mat4 projection = glm::ortho(grid_offset, grid_offset + width, grid_offset + height, grid_offset, -1.0f, 1.0f);
 	renderer->set_projection(shader_program, projection);
 }
 
-void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgram shader_program) {
+static void set_normalized_device_coordinate_projection(Renderer* renderer, ShaderProgram shader_program) {
 	glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	renderer->set_projection(shader_program, projection);
 }
 
-void init_imgui(SDL_Window* window, SDL_GLContext gl_context) {
+static void init_imgui(SDL_Window* window, SDL_GLContext gl_context) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -83,29 +87,29 @@ void init_imgui(SDL_Window* window, SDL_GLContext gl_context) {
 	ImGui_ImplOpenGL3_Init("#version 450");
 }
 
-void clear_screen() {
+static void clear_screen() {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void render_imgui() {
+static void render_imgui() {
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::Render();
 	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void swap_buffer(SDL_Window* window) {
+static void swap_buffer(SDL_Window* window) {
 	SDL_GL_SwapWindow(window);
 }
 
-void deinit_imgui() {
+static void deinit_imgui() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
 }
 
-void start_imgui_frame() {
+static void start_imgui_frame() {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
@@ -173,6 +177,14 @@ int main(int /* argc */, char** /* args */) {
 			std::vector<SDL_Event> events = platform::read_events();
 			platform::process_events(&events, &input, &frame_timer, window.size(), window.resolution());
 			input.engine_library_is_rebuilding = hot_reloader.rebuild_command_is_running();
+
+			for (const SDL_Event& event : events) {
+				if (event.type == SDL_WINDOWEVENT) {
+					if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+						window.on_resize(event.window.data1, event.window.data2);
+					}
+				}
+			}
 		}
 
 		/* Update */
@@ -188,9 +200,8 @@ int main(int /* argc */, char** /* args */) {
 			for (const Command& cmd : platform.commands()) {
 				switch (cmd.type) {
 					case CommandType::ChangeResolution: {
-						int width = cmd.change_resolution.width;
-						int height = cmd.change_resolution.height;
-						window.change_resolution(width, height);
+						const int width = cmd.change_resolution.width;
+						const int height = cmd.change_resolution.height;
 						platform::free_canvas(canvas);
 						canvas = platform::add_canvas(width, height);
 					} break;
@@ -214,6 +225,7 @@ int main(int /* argc */, char** /* args */) {
 								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
 								break;
 						}
+						break;
 
 					case CommandType::SetWindowTitle:
 						SDL_SetWindowTitle(window.sdl_window(), cmd.set_window_title.title);
@@ -245,7 +257,8 @@ int main(int /* argc */, char** /* args */) {
 			}
 			/* Render canvas to window */
 			{
-				set_viewport_to_fit_canvas(window.size().x, window.size().y, window.resolution().x, window.resolution().y);
+				// set_viewport_to_fit_canvas(window.size().x, window.size().y, window.resolution().x, window.resolution().y);
+				set_viewport_to_center_canvas(window.size().x, window.size().y, (int)canvas.texture.size.x, (int)canvas.texture.size.y);
 				set_normalized_device_coordinate_projection(&renderer, shader_program);
 				renderer.draw_texture(canvas.texture, platform::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });
 				renderer.render(shader_program);
