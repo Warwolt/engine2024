@@ -103,7 +103,7 @@ namespace engine {
 
 			if (window_resolution_changed) {
 				platform::free_canvas(state->resources.canvases[EDITOR_CANVAS]);
-				state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)input->window_resolution.x, (int)input->window_resolution.y);
+				state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)state->window_resolution.x, (int)state->window_resolution.y);
 			}
 		}
 

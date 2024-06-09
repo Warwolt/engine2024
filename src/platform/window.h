@@ -13,19 +13,16 @@ namespace platform {
 		void destroy();
 
 		glm::ivec2 size() const;
-		glm::ivec2 resolution() const;
 		SDL_Window* sdl_window() const;
 		bool is_maximized() const;
 		bool is_fullscreen() const;
 
 		void on_resize(int width, int height);
 		void toggle_fullscreen();
-		void change_resolution(int width, int height);
 
 	private:
 		SDL_Window* m_sdl_window;
 		glm::ivec2 m_size;
-		glm::ivec2 m_resolution;
 		glm::ivec2 m_windowed_pos;
 		glm::ivec2 m_windowed_size;
 		bool m_is_maximized = false;

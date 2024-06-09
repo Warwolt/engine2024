@@ -125,7 +125,8 @@ int main(int /* argc */, char** /* args */) {
 	}
 
 	/* Create window */
-	platform::Window window = util::unwrap(platform::Window::create(800, 600, SDL_WINDOW_RESIZABLE), [] {
+	const glm::ivec2 initial_window_size = { 800, 600 };
+	platform::Window window = util::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, SDL_WINDOW_RESIZABLE), [] {
 		ABORT("platform::create_window failed");
 	});
 
@@ -167,7 +168,7 @@ int main(int /* argc */, char** /* args */) {
 	engine::State state;
 
 	bool quit = false;
-	Canvas canvas = platform::add_canvas(window.resolution().x, window.resolution().y);
+	Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
 	engine.initialize(&state);
@@ -175,7 +176,7 @@ int main(int /* argc */, char** /* args */) {
 		/* Input */
 		{
 			std::vector<SDL_Event> events = platform::read_events();
-			platform::process_events(&events, &input, &frame_timer, window.size(), window.resolution());
+			platform::process_events(&events, &input, &frame_timer, window.size(), window_canvas.texture.size);
 			input.engine_library_is_rebuilding = hot_reloader.rebuild_command_is_running();
 
 			for (const SDL_Event& event : events) {
@@ -202,8 +203,8 @@ int main(int /* argc */, char** /* args */) {
 					case CommandType::ChangeResolution: {
 						const int width = cmd.change_resolution.width;
 						const int height = cmd.change_resolution.height;
-						platform::free_canvas(canvas);
-						canvas = platform::add_canvas(width, height);
+						platform::free_canvas(window_canvas);
+						window_canvas = platform::add_canvas(width, height);
 					} break;
 
 					case CommandType::Quit:
@@ -248,11 +249,11 @@ int main(int /* argc */, char** /* args */) {
 
 			/* Render to canvas */
 			{
-				set_viewport(0, 0, window.resolution().x, window.resolution().y);
-				set_pixel_coordinate_projection(&renderer, shader_program, window.resolution().x, window.resolution().y);
+				set_viewport(0, 0, window_canvas.texture.size.x, window_canvas.texture.size.y);
+				set_pixel_coordinate_projection(&renderer, shader_program, window_canvas.texture.size.x, window_canvas.texture.size.y);
 				engine.render(&renderer, &state);
 
-				renderer.set_render_canvas(canvas);
+				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
 				renderer.reset_render_canvas();
 			}
@@ -260,13 +261,13 @@ int main(int /* argc */, char** /* args */) {
 			/* Render canvas to window */
 			{
 				if (window.is_fullscreen() || window.is_maximized()) {
-					set_viewport_to_stretch_canvas(window.size().x, window.size().y, window.resolution().x, window.resolution().y);
+					set_viewport_to_stretch_canvas(window.size().x, window.size().y, window_canvas.texture.size.x, window_canvas.texture.size.y);
 				}
 				else {
-					set_viewport_to_center_canvas(window.size().x, window.size().y, (int)canvas.texture.size.x, (int)canvas.texture.size.y);
+					set_viewport_to_center_canvas(window.size().x, window.size().y, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
 				}
 				set_normalized_device_coordinate_projection(&renderer, shader_program);
-				renderer.draw_texture(canvas.texture, platform::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });
+				renderer.draw_texture(window_canvas.texture, platform::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });
 				renderer.render(shader_program);
 			}
 

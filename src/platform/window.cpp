@@ -26,7 +26,6 @@ namespace platform {
 		Window window;
 		window.m_sdl_window = sdl_window;
 		window.m_size = { width, height };
-		window.m_resolution = { width, height };
 		window.m_windowed_pos = { x, y };
 		window.m_is_fullscreen = false;
 		return window;
@@ -51,10 +50,6 @@ namespace platform {
 
 	glm::ivec2 Window::size() const {
 		return m_size;
-	}
-
-	glm::ivec2 Window::resolution() const {
-		return m_resolution;
 	}
 
 	void Window::on_resize(int width, int height) {
@@ -96,18 +91,6 @@ namespace platform {
 
 			/* Update window size */
 			m_size = glm::ivec2 { display_mode.w, display_mode.h };
-		}
-	}
-
-	void Window::change_resolution(int width, int height) {
-		// update resolution
-		m_resolution.x = width;
-		m_resolution.y = height;
-
-		if (!m_is_fullscreen) {
-			m_size.x = width;
-			m_size.y = height;
-			SDL_SetWindowSize(m_sdl_window, m_size.x, m_size.y);
 		}
 	}
 
