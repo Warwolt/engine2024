@@ -5,14 +5,14 @@
 
 namespace platform {
 
-	std::optional<WindowInfo> create_window(int width, int height) {
+	std::optional<Window> create_window(int width, int height, int window_flags) {
 		SDL_Window* window = SDL_CreateWindow(
 			"Game Engine 2024",
 			SDL_WINDOWPOS_CENTERED,
 			SDL_WINDOWPOS_CENTERED,
 			width,
 			height,
-			SDL_WINDOW_OPENGL
+			window_flags | SDL_WINDOW_OPENGL
 		);
 
 		if (!window) {
@@ -23,8 +23,8 @@ namespace platform {
 		int x, y;
 		SDL_GetWindowPosition(window, &x, &y);
 
-		return WindowInfo {
-			.window = window,
+		return Window {
+			.sdl_window = window,
 			.size = { width, height },
 			.resolution = { width, height },
 			.windowed_pos = { x, y },
@@ -32,12 +32,12 @@ namespace platform {
 		};
 	}
 
-	void destroy_window(WindowInfo window_info) {
-		SDL_DestroyWindow(window_info.window);
+	void destroy_window(Window window) {
+		SDL_DestroyWindow(window.sdl_window);
 	}
 
-	void toggle_fullscreen(WindowInfo* window_info) {
-		int display_index = SDL_GetWindowDisplayIndex(window_info->window);
+	void toggle_fullscreen(Window* window) {
+		int display_index = SDL_GetWindowDisplayIndex(window->sdl_window);
 
 		SDL_DisplayMode display_mode;
 		SDL_GetCurrentDisplayMode(display_index, &display_mode);
@@ -45,42 +45,42 @@ namespace platform {
 		SDL_Rect display_bound;
 		SDL_GetDisplayBounds(display_index, &display_bound);
 
-		if (window_info->is_fullscreen) {
-			window_info->is_fullscreen = false;
+		if (window->is_fullscreen) {
+			window->is_fullscreen = false;
 
 			/* Toggle windowed */
-			SDL_SetWindowBordered(window_info->window, SDL_TRUE);
-			SDL_SetWindowPosition(window_info->window, window_info->windowed_pos.x, window_info->windowed_pos.y);
-			SDL_SetWindowSize(window_info->window, window_info->resolution.x, window_info->resolution.y);
+			SDL_SetWindowBordered(window->sdl_window, SDL_TRUE);
+			SDL_SetWindowPosition(window->sdl_window, window->windowed_pos.x, window->windowed_pos.y);
+			SDL_SetWindowSize(window->sdl_window, window->resolution.x, window->resolution.y);
 
 			/* Update window size */
-			window_info->size = window_info->resolution;
+			window->size = window->resolution;
 		}
 		else {
-			window_info->is_fullscreen = true;
+			window->is_fullscreen = true;
 
 			/* Save current windowed position */
-			SDL_GetWindowPosition(window_info->window, &window_info->windowed_pos.x, &window_info->windowed_pos.y);
+			SDL_GetWindowPosition(window->sdl_window, &window->windowed_pos.x, &window->windowed_pos.y);
 
 			/* Toggle fullscreen */
-			SDL_SetWindowBordered(window_info->window, SDL_FALSE);
-			SDL_SetWindowPosition(window_info->window, display_bound.x, display_bound.y);
-			SDL_SetWindowSize(window_info->window, display_mode.w, display_mode.h);
+			SDL_SetWindowBordered(window->sdl_window, SDL_FALSE);
+			SDL_SetWindowPosition(window->sdl_window, display_bound.x, display_bound.y);
+			SDL_SetWindowSize(window->sdl_window, display_mode.w, display_mode.h);
 
 			/* Update windowed size */
-			window_info->size = glm::ivec2 { display_mode.w, display_mode.h };
+			window->size = glm::ivec2 { display_mode.w, display_mode.h };
 		}
 	}
 
-	void change_resolution(WindowInfo* window_info, int width, int height) {
+	void change_resolution(Window* window, int width, int height) {
 		// update resolution
-		window_info->resolution.x = width;
-		window_info->resolution.y = height;
+		window->resolution.x = width;
+		window->resolution.y = height;
 
-		if (!window_info->is_fullscreen) {
-			window_info->size.x = width;
-			window_info->size.y = height;
-			SDL_SetWindowSize(window_info->window, window_info->size.x, window_info->size.y);
+		if (!window->is_fullscreen) {
+			window->size.x = width;
+			window->size.y = height;
+			SDL_SetWindowSize(window->sdl_window, window->size.x, window->size.y);
 		}
 	}
 
