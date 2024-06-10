@@ -49,7 +49,6 @@ set(PLATFORM_SRC
     src/platform/file.cpp
     src/platform/font.cpp
     src/platform/image.cpp
-    src/platform/input/input.cpp
     src/platform/input/keyboard.cpp
     src/platform/input/timing.cpp
     src/platform/library_loader.cpp
