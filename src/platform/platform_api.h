@@ -9,8 +9,9 @@ namespace platform {
 		ChangeResolution,
 		Quit,
 		RebuildEngineLibrary,
-		SetWindowTitle,
+		RunGame,
 		SetCursor,
+		SetWindowTitle,
 		ToggleFullscreen,
 	};
 
@@ -36,6 +37,10 @@ namespace platform {
 			PlatformCommandType type = PlatformCommandType::RebuildEngineLibrary;
 		} rebuild_engine_library;
 
+		struct RunGame {
+			PlatformCommandType type = PlatformCommandType::RunGame;
+		} run_game;
+
 		struct SetCursor {
 			PlatformCommandType type = PlatformCommandType::SetCursor;
 			Cursor cursor;
@@ -59,6 +64,7 @@ namespace platform {
 		void change_resolution(int width, int height);
 		void quit();
 		void rebuild_engine_library();
+		void run_game();
 		void set_cursor(Cursor cursor);
 		void set_window_title(const char* title);
 		void toggle_fullscreen();

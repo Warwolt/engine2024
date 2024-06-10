@@ -111,6 +111,13 @@ namespace engine {
 		{
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);
 		}
+
+		if (state->is_editor_mode && ImGui::Begin("Editor Window")) {
+			if (ImGui::Button("Run game")) {
+				platform->run_game();
+			}
+			ImGui::End();
+		}
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {

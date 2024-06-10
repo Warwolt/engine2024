@@ -106,13 +106,13 @@ static void start_imgui_frame() {
 
 int main(int argc, char** argv) {
 	/* Parse args */
-	platform::CliCommands cli_cmds = util::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
+	platform::CliCommands cmd_args = util::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
 		fprintf(stderr, "parse error: %s\n", error.c_str());
 		printf("%s\n", platform::usage_string().c_str());
 		exit(1);
 	});
 
-	if (cli_cmds.print_usage) {
+	if (cmd_args.print_usage) {
 		printf("%s\n", platform::usage_string().c_str());
 		return 0;
 	}
@@ -170,6 +170,7 @@ int main(int argc, char** argv) {
 	engine::State state;
 
 	bool quit = false;
+	bool is_editor_mode = !cmd_args.run_game;
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 	engine.initialize(&state);
@@ -250,7 +251,7 @@ int main(int argc, char** argv) {
 			input.engine_is_rebuilding = hot_reloader.rebuild_command_is_running();
 			input.engine_rebuild_exit_code = hot_reloader.last_exit_code();
 			input.window_resolution = window_canvas.texture.size;
-			input.config.is_editor_mode = !cli_cmds.run_game;
+			input.config.is_editor_mode = is_editor_mode;
 			input.keyboard.update();
 			input.mouse.left_button.update(mouse_button_events[SDL_BUTTON_LEFT - 1]);
 			input.mouse.middle_button.update(mouse_button_events[SDL_BUTTON_MIDDLE - 1]);
@@ -285,6 +286,10 @@ int main(int argc, char** argv) {
 
 					case PlatformCommandType::RebuildEngineLibrary:
 						hot_reloader.trigger_rebuild_command();
+						break;
+
+					case PlatformCommandType::RunGame:
+						is_editor_mode = false;
 						break;
 
 					case PlatformCommandType::SetCursor:

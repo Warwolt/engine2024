@@ -23,6 +23,10 @@ namespace platform {
 		m_commands.push_back({ .rebuild_engine_library = PlatformCommand::RebuildEngineLibrary() });
 	}
 
+	void PlatformAPI::run_game() {
+		m_commands.push_back({ .run_game = PlatformCommand::RunGame() });
+	}
+
 	void PlatformAPI::set_cursor(Cursor cursor) {
 		PlatformCommand::SetCursor set_cursor;
 		set_cursor.cursor = cursor;
