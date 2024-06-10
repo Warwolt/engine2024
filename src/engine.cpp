@@ -1,6 +1,5 @@
 #include <engine.h>
 
-#include <engine/editor.h>
 #include <engine/hot_reloading.h>
 #include <imgui/imgui.h>
 #include <platform/assert.h>
@@ -9,8 +8,6 @@
 #include <util.h>
 
 namespace engine {
-
-	constexpr char EDITOR_CANVAS[] = "editor-canvas";
 
 	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform) {
 		struct Resolution {
@@ -59,11 +56,6 @@ namespace engine {
 	}
 
 	void initialize(State* state) {
-		/* Initialize modules */
-		constexpr glm::vec2 canvas_size = { 800, 600 };
-		state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)canvas_size.x, (int)canvas_size.y);
-		state->editor = init_editor(canvas_size);
-
 		/* Add fonts */
 		{
 			const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
@@ -87,7 +79,6 @@ namespace engine {
 	}
 
 	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
-		const bool window_resolution_changed = state->window_resolution != input->window_resolution;
 		state->window_resolution = input->window_resolution;
 
 		/* Quit */
@@ -101,11 +92,6 @@ namespace engine {
 		{
 			if (input->keyboard.key_pressed_now(SDLK_F11)) {
 				platform->toggle_fullscreen();
-			}
-
-			if (window_resolution_changed) {
-				platform::free_canvas(state->resources.canvases[EDITOR_CANVAS]);
-				state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)state->window_resolution.x, (int)state->window_resolution.y);
 			}
 		}
 
@@ -122,15 +108,12 @@ namespace engine {
 
 		/* Modules */
 		{
-			update_editor(&state->editor, input, platform);
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);
 		}
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, glm::vec4 { 0.4f, 0.33f, 0.37f, 1.0f });
-		const platform::Canvas editor_canvas = state->resources.canvases.at(EDITOR_CANVAS);
-		render_editor(renderer, &state->editor, editor_canvas);
 	}
 
 } // namespace engine

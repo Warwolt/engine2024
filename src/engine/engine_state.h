@@ -1,7 +1,6 @@
 #pragma once
 
 #include <engine/animation.h>
-#include <engine/editor.h>
 #include <engine/hot_reloading.h>
 #include <platform/font.h>
 #include <platform/input/input.h>
@@ -34,7 +33,6 @@ namespace engine {
 		glm::vec2 window_resolution;
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
-		EditorState editor;
 	};
 
 } // namespace engine
