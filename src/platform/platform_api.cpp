@@ -29,6 +29,18 @@ namespace platform {
 		m_commands.push_back({ .set_cursor = set_cursor });
 	}
 
+	void PlatformAPI::set_run_mode(RunMode mode) {
+		PlatformCommand::SetRunMode set_run_mode;
+		set_run_mode.mode = mode;
+		m_commands.push_back({ .set_run_mode = set_run_mode });
+	}
+
+	void PlatformAPI::set_window_mode(WindowMode mode) {
+		PlatformCommand::SetWindowMode set_window_mode;
+		set_window_mode.mode = mode;
+		m_commands.push_back({ .set_window_mode = set_window_mode });
+	}
+
 	void PlatformAPI::quit() {
 		m_commands.push_back({ .quit = PlatformCommand::Quit() });
 	}

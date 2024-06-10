@@ -435,4 +435,17 @@ namespace platform {
 		}
 	}
 
+	void Renderer::draw_text_centered(const Font* font, const char* text, glm::vec2 pos, glm::vec4 color) {
+		glm::vec2 box_size = { 0.0f, 0.0f };
+		box_size.y = (float)font->height;
+
+		const char* it = text;
+		for (char character = *it; character != '\0'; character = *(++it)) {
+			const platform::Glyph& glyph = font->glyphs[character];
+			box_size.x += glyph.advance;
+		}
+
+		draw_text(font, text, pos - box_size / 2.0f, color);
+	}
+
 } // namespace platform

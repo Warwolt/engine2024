@@ -2,6 +2,7 @@
 
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
+#include <platform/platform_api.h>
 #include <platform/signal.h>
 #include <platform/win32.h>
 
@@ -25,17 +26,18 @@ namespace platform {
 	};
 
 	struct Input {
-		glm::vec2 window_resolution;
+		bool quit_signal_received = false;
+
 		uint64_t delta_ms = 0;
 		uint64_t global_time_ms = 0;
-		bool quit_signal_received = false;
+
+		glm::vec2 window_resolution;
 		Signal<bool> engine_is_rebuilding = false;
 		ExitCode engine_rebuild_exit_code = 0;
+		Signal<RunMode> mode;
+
 		Keyboard keyboard;
 		Mouse mouse;
 	};
-
-	std::vector<SDL_Event> read_events();
-	void process_events(const std::vector<SDL_Event>* events, Input* input, Timer* frame_timer, glm::ivec2 window_size, glm::ivec2 window_resolution);
 
 } // namespace platform

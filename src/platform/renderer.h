@@ -78,6 +78,7 @@ namespace platform {
 
 		void draw_character(const Font* font, char character, glm::vec2 pos, glm::vec4 color);
 		void draw_text(const Font* font, const char* text, glm::vec2 pos, glm::vec4 color);
+		void draw_text_centered(const Font* font, const char* text, glm::vec2 pos, glm::vec4 color);
 
 
 	private:

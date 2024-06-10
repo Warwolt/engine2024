@@ -23,7 +23,7 @@ namespace platform {
 		static constexpr size_t NUM_GLYPHS = 127;
 		Glyph glyphs[NUM_GLYPHS]; // indexed using ascii values
 		platform::Texture atlas;
-		int line_spacing;
+		int height; // measured from baseline
 	};
 
 	void set_ft(FT_Library ft);

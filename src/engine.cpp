@@ -1,6 +1,5 @@
 #include <engine.h>
 
-#include <engine/editor.h>
 #include <engine/hot_reloading.h>
 #include <imgui/imgui.h>
 #include <platform/assert.h>
@@ -9,8 +8,6 @@
 #include <util.h>
 
 namespace engine {
-
-	constexpr char EDITOR_CANVAS[] = "editor-canvas";
 
 	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform) {
 		struct Resolution {
@@ -59,11 +56,6 @@ namespace engine {
 	}
 
 	void initialize(State* state) {
-		/* Initialize modules */
-		constexpr glm::vec2 canvas_size = { 800, 600 };
-		state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)canvas_size.x, (int)canvas_size.y);
-		state->editor = init_editor(canvas_size);
-
 		/* Add fonts */
 		{
 			const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
@@ -87,13 +79,35 @@ namespace engine {
 	}
 
 	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
-		const bool window_resolution_changed = state->window_resolution != input->window_resolution;
 		state->window_resolution = input->window_resolution;
+		state->editor_is_running = input->mode == platform::RunMode::Editor;
+		const bool game_is_running = input->mode == platform::RunMode::Game;
+		const bool editor_is_running = input->mode == platform::RunMode::Editor;
 
 		/* Quit */
 		{
-			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+			if (input->quit_signal_received) {
 				platform->quit();
+			}
+
+			if (input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+				if (editor_is_running) {
+					platform->quit();
+				}
+
+				if (game_is_running) {
+					platform->set_run_mode(platform::RunMode::Editor);
+					platform->set_window_mode(platform::WindowMode::Windowed);
+				}
+			}
+		}
+
+		/* Update game */
+		if (game_is_running) {
+			state->game.time_ms += input->delta_ms;
+			if (state->game.time_ms >= 1000) {
+				state->game.time_ms -= 1000;
+				state->game.counter += 1;
 			}
 		}
 
@@ -101,11 +115,6 @@ namespace engine {
 		{
 			if (input->keyboard.key_pressed_now(SDLK_F11)) {
 				platform->toggle_fullscreen();
-			}
-
-			if (window_resolution_changed) {
-				platform::free_canvas(state->resources.canvases[EDITOR_CANVAS]);
-				state->resources.canvases[EDITOR_CANVAS] = platform::add_canvas((int)state->window_resolution.x, (int)state->window_resolution.y);
 			}
 		}
 
@@ -122,15 +131,46 @@ namespace engine {
 
 		/* Modules */
 		{
-			update_editor(&state->editor, input, platform);
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);
+		}
+
+		/* Editor window */
+		if (editor_is_running && ImGui::Begin("Editor Window")) {
+			const int step = 1;
+			ImGui::InputScalar("Counter", ImGuiDataType_S16, &state->game.counter, &step, NULL, "%d");
+			bool start_game = false;
+			if (ImGui::Button("Run game")) {
+				start_game = true;
+				/* Initialize game */
+				state->game.counter = 0;
+				state->game.time_ms = 0;
+			}
+			if (ImGui::Button("Resume game")) {
+				start_game = true;
+			}
+
+			if (start_game) {
+				platform->set_run_mode(platform::RunMode::Game);
+				platform->set_window_mode(platform::WindowMode::FullScreen);
+			}
+
+			ImGui::End();
 		}
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, glm::vec4 { 0.4f, 0.33f, 0.37f, 1.0f });
-		const platform::Canvas editor_canvas = state->resources.canvases.at(EDITOR_CANVAS);
-		render_editor(renderer, &state->editor, editor_canvas);
+		platform::Font font = state->resources.fonts.at("arial-16");
+		if (state->editor_is_running) {
+			renderer->draw_text_centered(&font, "Editor", state->window_resolution / 2.0f, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
+		}
+		else {
+			std::string text = std::to_string(state->game.counter);
+			glm::vec2 line1_pos = state->window_resolution / 2.0f;
+			glm::vec2 line2_pos = state->window_resolution / 2.0f + glm::vec2 { 0.0f, font.height };
+			renderer->draw_text_centered(&font, "Game", line1_pos, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
+			renderer->draw_text_centered(&font, text.c_str(), line2_pos, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
+		}
 	}
 
 } // namespace engine
