@@ -4,7 +4,7 @@
 
 namespace platform {
 
-	const std::vector<Command>& PlatformAPI::commands() const {
+	const std::vector<PlatformCommand>& PlatformAPI::commands() const {
 		return m_commands;
 	}
 
@@ -20,25 +20,25 @@ namespace platform {
 	}
 
 	void PlatformAPI::rebuild_engine_library() {
-		m_commands.push_back({ .rebuild_engine_library = Command::RebuildEngineLibrary() });
+		m_commands.push_back({ .rebuild_engine_library = PlatformCommand::RebuildEngineLibrary() });
 	}
 
 	void PlatformAPI::set_cursor(Cursor cursor) {
-		Command::SetCursor set_cursor;
+		PlatformCommand::SetCursor set_cursor;
 		set_cursor.cursor = cursor;
 		m_commands.push_back({ .set_cursor = set_cursor });
 	}
 
 	void PlatformAPI::quit() {
-		m_commands.push_back({ .quit = Command::Quit() });
+		m_commands.push_back({ .quit = PlatformCommand::Quit() });
 	}
 
 	void PlatformAPI::toggle_fullscreen() {
-		m_commands.push_back({ .toggle_full_screen = Command::ToggleFullscreen() });
+		m_commands.push_back({ .toggle_full_screen = PlatformCommand::ToggleFullscreen() });
 	}
 
 	void PlatformAPI::set_window_title(const char* title) {
-		Command::SetWindowTitle data;
+		PlatformCommand::SetWindowTitle data;
 		strcpy_s(data.title, title);
 		m_commands.push_back({ .set_window_title = data });
 	}

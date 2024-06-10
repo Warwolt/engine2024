@@ -5,7 +5,7 @@
 
 namespace platform {
 
-	enum class CommandType {
+	enum class PlatformCommandType {
 		ChangeResolution,
 		Quit,
 		RebuildEngineLibrary,
@@ -19,41 +19,41 @@ namespace platform {
 		SizeAll,
 	};
 
-	union Command {
-		CommandType type;
+	union PlatformCommand {
+		PlatformCommandType type;
 
 		struct ChangeResolution {
-			CommandType type = CommandType::ChangeResolution;
+			PlatformCommandType type = PlatformCommandType::ChangeResolution;
 			int width;
 			int height;
 		} change_resolution;
 
 		struct Quit {
-			CommandType type = CommandType::Quit;
+			PlatformCommandType type = PlatformCommandType::Quit;
 		} quit;
 
 		struct RebuildEngineLibrary {
-			CommandType type = CommandType::RebuildEngineLibrary;
+			PlatformCommandType type = PlatformCommandType::RebuildEngineLibrary;
 		} rebuild_engine_library;
 
 		struct SetCursor {
-			CommandType type = CommandType::SetCursor;
+			PlatformCommandType type = PlatformCommandType::SetCursor;
 			Cursor cursor;
 		} set_cursor;
 
 		struct SetWindowTitle {
-			CommandType type = CommandType::SetWindowTitle;
+			PlatformCommandType type = PlatformCommandType::SetWindowTitle;
 			char title[128];
 		} set_window_title;
 
 		struct ToggleFullscreen {
-			CommandType type = CommandType::ToggleFullscreen;
+			PlatformCommandType type = PlatformCommandType::ToggleFullscreen;
 		} toggle_full_screen;
 	};
 
 	class PlatformAPI {
 	public:
-		const std::vector<Command>& commands() const;
+		const std::vector<PlatformCommand>& commands() const;
 		void clear();
 
 		void change_resolution(int width, int height);
@@ -64,7 +64,7 @@ namespace platform {
 		void toggle_fullscreen();
 
 	private:
-		std::vector<Command> m_commands;
+		std::vector<PlatformCommand> m_commands;
 	};
 
 } // namespace platform
