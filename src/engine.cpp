@@ -139,7 +139,24 @@ namespace engine {
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);
 		}
 
-		/* Editor window */
+		/* Editor Menu Bar*/
+		if (editor_is_running && ImGui::BeginMainMenuBar()) {
+			if (ImGui::BeginMenu("File")) {
+				if (ImGui::MenuItem("New Project")) {
+					LOG_DEBUG("New Project");
+				}
+				if (ImGui::MenuItem("Load Project")) {
+					LOG_DEBUG("Load Project");
+				}
+				if (ImGui::MenuItem("Save Project")) {
+					LOG_DEBUG("Save Project");
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
+		}
+
+		/* Editor Window */
 		if (editor_is_running && ImGui::Begin("Editor Window")) {
 			const int step = 1;
 			ImGui::InputScalar("Counter", ImGuiDataType_S16, &state->game.counter, &step, NULL, "%d");
