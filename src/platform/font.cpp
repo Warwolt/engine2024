@@ -58,7 +58,7 @@ namespace platform {
 		uint32_t texture_height = rows * glyph_height;
 
 		/* Save line spacing */
-		font.line_spacing = face->size->metrics.height / pixels_per_point;
+		font.height = face->size->metrics.height / pixels_per_point;
 
 		/* Compute glyphs */
 		std::vector<uint8_t> glyph_pixels = std::vector<uint8_t>(texture_width * texture_height);

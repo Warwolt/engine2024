@@ -24,18 +24,23 @@ namespace platform {
 		Button x2_button;
 	};
 
+	struct Config {
+		bool is_editor_mode = false;
+	};
+
 	struct Input {
-		glm::vec2 window_resolution;
+		bool quit_signal_received = false;
+
 		uint64_t delta_ms = 0;
 		uint64_t global_time_ms = 0;
-		bool quit_signal_received = false;
+
+		glm::vec2 window_resolution;
 		Signal<bool> engine_is_rebuilding = false;
 		ExitCode engine_rebuild_exit_code = 0;
+
+		Config config;
 		Keyboard keyboard;
 		Mouse mouse;
 	};
-
-	std::vector<SDL_Event> read_events();
-	void process_events(const std::vector<SDL_Event>* events, Input* input, Timer* frame_timer, glm::ivec2 window_size, glm::ivec2 window_resolution);
 
 } // namespace platform

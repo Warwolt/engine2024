@@ -184,7 +184,6 @@ int main(int argc, char** argv) {
 			input.mouse.pos_delta = glm::vec2 { 0, 0 };
 
 			ImGuiIO& imgui_io = ImGui::GetIO();
-
 			SDL_Event event;
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
@@ -249,6 +248,7 @@ int main(int argc, char** argv) {
 			input.engine_is_rebuilding = hot_reloader.rebuild_command_is_running();
 			input.engine_rebuild_exit_code = hot_reloader.last_exit_code();
 			input.window_resolution = window_canvas.texture.size;
+			input.config.is_editor_mode = !cli_cmds.run_game;
 			input.keyboard.update();
 			input.mouse.left_button.update(mouse_button_events[SDL_BUTTON_LEFT - 1]);
 			input.mouse.middle_button.update(mouse_button_events[SDL_BUTTON_MIDDLE - 1]);

@@ -30,6 +30,7 @@ namespace engine {
 	struct State {
 		Resources resources;
 		Systems systems;
+		bool is_editor_mode = false;
 		glm::vec2 window_resolution;
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;

@@ -80,6 +80,7 @@ namespace engine {
 
 	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
 		state->window_resolution = input->window_resolution;
+		state->is_editor_mode = input->config.is_editor_mode;
 
 		/* Quit */
 		{
@@ -114,6 +115,8 @@ namespace engine {
 
 	void render(platform::Renderer* renderer, const State* state) {
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, glm::vec4 { 0.4f, 0.33f, 0.37f, 1.0f });
+		const char* text = state->is_editor_mode ? "Editor" : "Game";
+		renderer->draw_text_centered(&state->resources.fonts.at("arial-16"), text, state->window_resolution / 2.0f, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
 	}
 
 } // namespace engine
