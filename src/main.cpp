@@ -3,6 +3,7 @@
 
 #include <engine.h>
 #include <platform/assert.h>
+#include <platform/cli.h>
 #include <platform/file.h>
 #include <platform/font.h>
 #include <platform/image.h>
@@ -102,9 +103,13 @@ static void start_imgui_frame() {
 	ImGui::NewFrame();
 }
 
-int main(int /* argc */, char** /* args */) {
+int main(int argc, char** args) {
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
+
+	platform::CliCommands cli_cmds = util::unwrap(platform::parse_arguments(argc, args), [](std::string error) {
+		ABORT("parse error: %s", error.c_str());
+	});
 
 	/* Initialize SDL */
 	if (!platform::initialize()) {
@@ -186,25 +191,25 @@ int main(int /* argc */, char** /* args */) {
 			engine.update(&state, &input, &platform);
 
 			/* Platform update */
-			for (const platform::Command& cmd : platform.commands()) {
-				using CommandType = platform::CommandType;
+			for (const platform::PlatformCommand& cmd : platform.commands()) {
+				using PlatformCommandType = platform::PlatformCommandType;
 				switch (cmd.type) {
-					case CommandType::ChangeResolution: {
+					case PlatformCommandType::ChangeResolution: {
 						const int width = cmd.change_resolution.width;
 						const int height = cmd.change_resolution.height;
 						platform::free_canvas(window_canvas);
 						window_canvas = platform::add_canvas(width, height);
 					} break;
 
-					case CommandType::Quit:
+					case PlatformCommandType::Quit:
 						quit = true;
 						break;
 
-					case CommandType::RebuildEngineLibrary:
+					case PlatformCommandType::RebuildEngineLibrary:
 						hot_reloader.trigger_rebuild_command();
 						break;
 
-					case CommandType::SetCursor:
+					case PlatformCommandType::SetCursor:
 						SDL_FreeCursor(cursor);
 						switch (cmd.set_cursor.cursor) {
 							case platform::Cursor::Arrow:
@@ -217,11 +222,11 @@ int main(int /* argc */, char** /* args */) {
 						}
 						break;
 
-					case CommandType::SetWindowTitle:
+					case PlatformCommandType::SetWindowTitle:
 						SDL_SetWindowTitle(window.sdl_window(), cmd.set_window_title.title);
 						break;
 
-					case CommandType::ToggleFullscreen:
+					case PlatformCommandType::ToggleFullscreen:
 						window.toggle_fullscreen();
 						break;
 				}
