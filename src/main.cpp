@@ -173,8 +173,13 @@ int main(int argc, char** argv) {
 	platform::RunMode mode = cmd_args.run_game ? platform::RunMode::Game : platform::RunMode::Editor;
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-	engine.initialize(&state);
 
+	// start game full screen
+	if (mode == platform::RunMode::Game) {
+		window.set_window_mode(platform::WindowMode::FullScreen);
+	}
+
+	engine.initialize(&state);
 	while (!quit) {
 		/* Input */
 		{
