@@ -103,13 +103,22 @@ static void start_imgui_frame() {
 	ImGui::NewFrame();
 }
 
-int main(int argc, char** args) {
+int main(int argc, char** argv) {
+	/* Parse args */
+	platform::CliCommands cli_cmds = util::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
+		fprintf(stderr, "parse error: %s\n", error.c_str());
+		printf("%s\n", platform::usage_string().c_str());
+		exit(1);
+	});
+
+	if (cli_cmds.print_usage) {
+		printf("%s\n", platform::usage_string().c_str());
+		return 0;
+	}
+
+	/* Initialize logging */
 	platform::init_logging();
 	LOG_INFO("Game Engine 2024 initializing");
-
-	platform::CliCommands cli_cmds = util::unwrap(platform::parse_arguments(argc, args), [](std::string error) {
-		ABORT("parse error: %s", error.c_str());
-	});
 
 	/* Initialize SDL */
 	if (!platform::initialize()) {
