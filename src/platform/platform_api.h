@@ -1,5 +1,7 @@
 #pragma once
 
+#include <platform/window.h>
+
 #include <string>
 #include <vector>
 
@@ -9,10 +11,16 @@ namespace platform {
 		ChangeResolution,
 		Quit,
 		RebuildEngineLibrary,
-		RunGame,
+		SetRunMode,
 		SetCursor,
+		SetWindowMode,
 		SetWindowTitle,
 		ToggleFullscreen,
+	};
+
+	enum class RunMode {
+		Game,
+		Editor,
 	};
 
 	enum class Cursor {
@@ -37,14 +45,20 @@ namespace platform {
 			PlatformCommandType type = PlatformCommandType::RebuildEngineLibrary;
 		} rebuild_engine_library;
 
-		struct RunGame {
-			PlatformCommandType type = PlatformCommandType::RunGame;
-		} run_game;
-
 		struct SetCursor {
 			PlatformCommandType type = PlatformCommandType::SetCursor;
 			Cursor cursor;
 		} set_cursor;
+
+		struct SetRunMode {
+			PlatformCommandType type = PlatformCommandType::SetRunMode;
+			RunMode mode;
+		} set_run_mode;
+
+		struct SetWindowMode {
+			PlatformCommandType type = PlatformCommandType::SetWindowMode;
+			WindowMode mode;
+		} set_window_mode;
 
 		struct SetWindowTitle {
 			PlatformCommandType type = PlatformCommandType::SetWindowTitle;
@@ -64,8 +78,9 @@ namespace platform {
 		void change_resolution(int width, int height);
 		void quit();
 		void rebuild_engine_library();
-		void run_game();
 		void set_cursor(Cursor cursor);
+		void set_run_mode(RunMode mode);
+		void set_window_mode(WindowMode mode);
 		void set_window_title(const char* title);
 		void toggle_fullscreen();
 

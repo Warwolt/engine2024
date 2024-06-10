@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
 	engine::State state;
 
 	bool quit = false;
-	bool is_editor_mode = !cmd_args.run_game;
+	platform::RunMode mode = cmd_args.run_game ? platform::RunMode::Game : platform::RunMode::Editor;
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 	engine.initialize(&state);
@@ -201,9 +201,9 @@ int main(int argc, char** argv) {
 						break;
 
 					case SDL_KEYUP:
-						if (!imgui_io.WantCaptureKeyboard) {
-							input.keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
-						}
+						// Note: We never let ImGui to hog up events to avoid
+						// "stuck" keys when switching to an ImGui window
+						input.keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
 						break;
 
 					case SDL_MOUSEMOTION: {
@@ -245,14 +245,15 @@ int main(int argc, char** argv) {
 				}
 			}
 
+			input.keyboard.update();
+
 			input.delta_ms = frame_timer.elapsed_ms();
 			input.global_time_ms += input.delta_ms;
 			frame_timer.reset();
 			input.engine_is_rebuilding = hot_reloader.rebuild_command_is_running();
 			input.engine_rebuild_exit_code = hot_reloader.last_exit_code();
 			input.window_resolution = window_canvas.texture.size;
-			input.config.is_editor_mode = is_editor_mode;
-			input.keyboard.update();
+			input.mode = mode;
 			input.mouse.left_button.update(mouse_button_events[SDL_BUTTON_LEFT - 1]);
 			input.mouse.middle_button.update(mouse_button_events[SDL_BUTTON_MIDDLE - 1]);
 			input.mouse.right_button.update(mouse_button_events[SDL_BUTTON_RIGHT - 1]);
@@ -288,10 +289,6 @@ int main(int argc, char** argv) {
 						hot_reloader.trigger_rebuild_command();
 						break;
 
-					case PlatformCommandType::RunGame:
-						is_editor_mode = false;
-						break;
-
 					case PlatformCommandType::SetCursor:
 						SDL_FreeCursor(cursor);
 						switch (cmd.set_cursor.cursor) {
@@ -303,6 +300,14 @@ int main(int argc, char** argv) {
 								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
 								break;
 						}
+						break;
+
+					case PlatformCommandType::SetRunMode:
+						mode = cmd.set_run_mode.mode;
+						break;
+
+					case PlatformCommandType::SetWindowMode:
+						window.set_window_mode(cmd.set_window_mode.mode);
 						break;
 
 					case PlatformCommandType::SetWindowTitle:

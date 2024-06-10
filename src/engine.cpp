@@ -80,12 +80,34 @@ namespace engine {
 
 	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
 		state->window_resolution = input->window_resolution;
-		state->is_editor_mode = input->config.is_editor_mode;
+		state->editor_is_running = input->mode == platform::RunMode::Editor;
+		const bool game_is_running = input->mode == platform::RunMode::Game;
+		const bool editor_is_running = input->mode == platform::RunMode::Editor;
 
 		/* Quit */
 		{
-			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+			if (input->quit_signal_received) {
 				platform->quit();
+			}
+
+			if (input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+				if (editor_is_running) {
+					platform->quit();
+				}
+
+				if (game_is_running) {
+					platform->set_run_mode(platform::RunMode::Editor);
+					platform->set_window_mode(platform::WindowMode::Windowed);
+				}
+			}
+		}
+
+		/* Update game */
+		if (game_is_running) {
+			state->game.time_ms += input->delta_ms;
+			if (state->game.time_ms >= 1000) {
+				state->game.time_ms -= 1000;
+				state->game.counter += 1;
 			}
 		}
 
@@ -112,18 +134,43 @@ namespace engine {
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);
 		}
 
-		if (state->is_editor_mode && ImGui::Begin("Editor Window")) {
+		/* Editor window */
+		if (editor_is_running && ImGui::Begin("Editor Window")) {
+			const int step = 1;
+			ImGui::InputScalar("Counter", ImGuiDataType_S16, &state->game.counter, &step, NULL, "%d");
+			bool start_game = false;
 			if (ImGui::Button("Run game")) {
-				platform->run_game();
+				start_game = true;
+				/* Initialize game */
+				state->game.counter = 0;
+				state->game.time_ms = 0;
 			}
+			if (ImGui::Button("Resume game")) {
+				start_game = true;
+			}
+
+			if (start_game) {
+				platform->set_run_mode(platform::RunMode::Game);
+				platform->set_window_mode(platform::WindowMode::FullScreen);
+			}
+
 			ImGui::End();
 		}
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, glm::vec4 { 0.4f, 0.33f, 0.37f, 1.0f });
-		const char* text = state->is_editor_mode ? "Editor" : "Game";
-		renderer->draw_text_centered(&state->resources.fonts.at("arial-16"), text, state->window_resolution / 2.0f, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
+		platform::Font font = state->resources.fonts.at("arial-16");
+		if (state->editor_is_running) {
+			renderer->draw_text_centered(&font, "Editor", state->window_resolution / 2.0f, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
+		}
+		else {
+			std::string text = std::to_string(state->game.counter);
+			glm::vec2 line1_pos = state->window_resolution / 2.0f;
+			glm::vec2 line2_pos = state->window_resolution / 2.0f + glm::vec2 { 0.0f, font.height };
+			renderer->draw_text_centered(&font, "Game", line1_pos, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
+			renderer->draw_text_centered(&font, text.c_str(), line2_pos, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
+		}
 	}
 
 } // namespace engine

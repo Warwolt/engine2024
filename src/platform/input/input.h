@@ -2,6 +2,7 @@
 
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
+#include <platform/platform_api.h>
 #include <platform/signal.h>
 #include <platform/win32.h>
 
@@ -24,10 +25,6 @@ namespace platform {
 		Button x2_button;
 	};
 
-	struct Config {
-		bool is_editor_mode = false;
-	};
-
 	struct Input {
 		bool quit_signal_received = false;
 
@@ -37,8 +34,8 @@ namespace platform {
 		glm::vec2 window_resolution;
 		Signal<bool> engine_is_rebuilding = false;
 		ExitCode engine_rebuild_exit_code = 0;
+		Signal<RunMode> mode;
 
-		Config config;
 		Keyboard keyboard;
 		Mouse mouse;
 	};

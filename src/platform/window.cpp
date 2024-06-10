@@ -57,7 +57,25 @@ namespace platform {
 		m_size = glm::ivec2 { width, height };
 	}
 
+	void Window::set_window_mode(WindowMode mode) {
+		if (!m_is_fullscreen && mode == WindowMode::FullScreen) {
+			_set_fullscreen_mode();
+		}
+		if (m_is_fullscreen && mode == WindowMode::Windowed) {
+			_set_windowed_mode();
+		}
+	}
+
 	void Window::toggle_fullscreen() {
+		if (m_is_fullscreen) {
+			_set_windowed_mode();
+		}
+		else {
+			_set_fullscreen_mode();
+		}
+	}
+
+	void Window::_set_fullscreen_mode() {
 		int display_index = SDL_GetWindowDisplayIndex(m_sdl_window);
 
 		SDL_DisplayMode display_mode;
@@ -66,32 +84,31 @@ namespace platform {
 		SDL_Rect display_bound;
 		SDL_GetDisplayBounds(display_index, &display_bound);
 
-		if (m_is_fullscreen) {
-			m_is_fullscreen = false;
+		m_is_fullscreen = true;
 
-			/* Toggle windowed */
-			SDL_SetWindowBordered(m_sdl_window, SDL_TRUE);
-			SDL_SetWindowPosition(m_sdl_window, m_windowed_pos.x, m_windowed_pos.y);
-			SDL_SetWindowSize(m_sdl_window, m_windowed_size.x, m_windowed_size.y);
+		/* Save current windowed position and size */
+		SDL_GetWindowPosition(m_sdl_window, &m_windowed_pos.x, &m_windowed_pos.y);
+		SDL_GetWindowSize(m_sdl_window, &m_windowed_size.x, &m_windowed_size.y);
 
-			/* Update window size */
-			m_size = m_windowed_size;
-		}
-		else {
-			m_is_fullscreen = true;
+		/* Toggle fullscreen */
+		SDL_SetWindowBordered(m_sdl_window, SDL_FALSE);
+		SDL_SetWindowPosition(m_sdl_window, display_bound.x, display_bound.y);
+		SDL_SetWindowSize(m_sdl_window, display_mode.w, display_mode.h);
 
-			/* Save current windowed position and size */
-			SDL_GetWindowPosition(m_sdl_window, &m_windowed_pos.x, &m_windowed_pos.y);
-			SDL_GetWindowSize(m_sdl_window, &m_windowed_size.x, &m_windowed_size.y);
+		/* Update window size */
+		m_size = glm::ivec2 { display_mode.w, display_mode.h };
+	}
 
-			/* Toggle fullscreen */
-			SDL_SetWindowBordered(m_sdl_window, SDL_FALSE);
-			SDL_SetWindowPosition(m_sdl_window, display_bound.x, display_bound.y);
-			SDL_SetWindowSize(m_sdl_window, display_mode.w, display_mode.h);
+	void Window::_set_windowed_mode() {
+		m_is_fullscreen = false;
 
-			/* Update window size */
-			m_size = glm::ivec2 { display_mode.w, display_mode.h };
-		}
+		/* Toggle windowed */
+		SDL_SetWindowBordered(m_sdl_window, SDL_TRUE);
+		SDL_SetWindowPosition(m_sdl_window, m_windowed_pos.x, m_windowed_pos.y);
+		SDL_SetWindowSize(m_sdl_window, m_windowed_size.x, m_windowed_size.y);
+
+		/* Update window size */
+		m_size = m_windowed_size;
 	}
 
 } // namespace platform
