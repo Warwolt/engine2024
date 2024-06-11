@@ -148,22 +148,27 @@ namespace engine {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::MenuItem("New Project")) {
 					LOG_DEBUG("New Project");
+					state->game = {};
 				}
 				if (ImGui::MenuItem("Load Project")) {
 					LOG_DEBUG("Load Project");
-					std::ifstream file("my_proj.json");
-					nlohmann::json json_object;
-					file >> json_object;
-					state->game.counter = json_object["counter"];
+					std::ifstream file("build/my_proj.json");
+					if (file.is_open()) {
+						nlohmann::json json_object;
+						file >> json_object;
+						state->game.counter = json_object["counter"];
+					}
 				}
 				if (ImGui::MenuItem("Save Project")) {
 					LOG_DEBUG("Save Project");
 					std::ofstream file;
-					nlohmann::json json_object = {
-						{ "counter", state->game.counter }
-					};
-					file.open("my_proj.json");
-					file << std::setw(4) << json_object << std::endl;
+					file.open("build/my_proj.json");
+					if (file.is_open()) {
+						nlohmann::json json_object = {
+							{ "counter", state->game.counter }
+						};
+						file << std::setw(4) << json_object << std::endl;
+					}
 				}
 				ImGui::EndMenu();
 			}

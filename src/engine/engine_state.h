@@ -33,6 +33,11 @@ namespace engine {
 		uint64_t time_ms = 0;
 	};
 
+	struct Project {
+		std::string name;
+		std::string path;
+	};
+
 	struct State {
 		Resources resources;
 		Systems systems;
@@ -41,6 +46,7 @@ namespace engine {
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
 		GameState game;
+		Project project;
 	};
 
 } // namespace engine
