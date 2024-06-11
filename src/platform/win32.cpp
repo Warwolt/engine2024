@@ -2,7 +2,7 @@
 
 #include <platform/logging.h>
 
-#include <lean_mean_windows.h>
+#include <commdlg.h>
 
 namespace platform {
 
@@ -120,6 +120,31 @@ namespace platform {
 		}
 
 		return (int)exit_code;
+	}
+
+	std::optional<std::string> show_save_dialog(HWND hwnd, const char* title, const char* filter, const char* extension) {
+		char path[MAX_PATH] = "";
+
+		OPENFILENAME ofn;
+		ZeroMemory(&ofn, sizeof(ofn));
+		ofn.lStructSize = sizeof(ofn);
+		ofn.hwndOwner = hwnd;
+		ofn.lpstrFile = path;
+		ofn.nMaxFile = MAX_PATH - 1;
+		ofn.lpstrFilter = filter;
+		ofn.lpstrDefExt = extension;
+		ofn.nFilterIndex = 1;
+		ofn.lpstrFileTitle = nullptr;
+		ofn.nMaxFileTitle = 0;
+		ofn.lpstrInitialDir = nullptr;
+		ofn.lpstrTitle = title;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+
+		if (GetSaveFileNameA(&ofn)) {
+			return path;
+		}
+
+		return {};
 	}
 
 } // namespace platform

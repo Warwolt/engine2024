@@ -332,38 +332,14 @@ int main(int argc, char** argv) {
 						break;
 
 					case PlatformCommandType::SaveFileWithDialog: {
-						LOG_DEBUG("SaveFileWithDialog");
-
 						SDL_SysWMinfo wmInfo;
 						SDL_VERSION(&wmInfo.version);
 						SDL_GetWindowWMInfo(window.sdl_window(), &wmInfo);
 						HWND hwnd = wmInfo.info.win.window;
 
-						char buf[MAX_PATH] = "";
-
-						OPENFILENAME ofn;
-						ZeroMemory(&ofn, sizeof(ofn));
-						ofn.lStructSize = sizeof(ofn);
-						ofn.hwndOwner = hwnd;
-						ofn.lpstrFile = buf;
-						ofn.nMaxFile = MAX_PATH - 1;
-						ofn.lpstrFilter = "JSON (*.json)\0*.txt\0All Files (*.*)\0*.*\0";
-						ofn.lpstrDefExt = nullptr; // didn't have any luck getting this to work, leaving it null
-						ofn.nFilterIndex = 1;
-						ofn.lpstrFileTitle = nullptr;
-						ofn.nMaxFileTitle = 0;
-						ofn.lpstrInitialDir = nullptr;
-						ofn.lpstrTitle = "Save project";
-						ofn.Flags = OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-
-						if (GetSaveFileName(&ofn)) {
-							std::string path = buf;
-							if (path.find('.') == std::string::npos) {
-								path += ".json";
-							}
-
+						if (std::optional<std::string> path = platform::show_save_dialog(hwnd, "Save project", "JSON (*.json)\0*.json\0All Files (*.*)\0*.*\0", ".json")) {
 							std::ofstream file;
-							file.open(path);
+							file.open(*path);
 							if (file.is_open()) {
 								file.write((char*)cmd.save_file_with_dialog.data, cmd.save_file_with_dialog.length);
 							}
