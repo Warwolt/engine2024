@@ -43,6 +43,7 @@ namespace platform {
 
 	void PlatformAPI::save_file_with_dialog(const uint8_t* data, size_t length) {
 		PlatformCommand::SaveFileWithDialog save_file_with_dialog;
+		save_file_with_dialog.length = length;
 		save_file_with_dialog.data = (uint8_t*)malloc(length);
 		memcpy(save_file_with_dialog.data, data, length);
 		m_commands.push_back({ .save_file_with_dialog = save_file_with_dialog });
