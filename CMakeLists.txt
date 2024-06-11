@@ -15,12 +15,14 @@ set(FT_ENABLE_ERROR_STRINGS TRUE)
 add_subdirectory(libs/google-test)
 add_subdirectory(libs/stb_image)
 add_subdirectory(libs/freetype2)
+add_subdirectory(libs/json)
 
 set(INC
     src
     libs/glm
     libs/plog/include
     libs/magic_enum/include
+    libs/json/include
     ${GLEW_DIR}/include
     ${SDL_DIR}/include
     ${IMGUI_DIR}
