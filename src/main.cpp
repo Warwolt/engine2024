@@ -32,6 +32,13 @@
 #include <expected>
 #include <optional>
 
+// save file with dialog
+#include <SDL2/SDL_syswm.h>
+#include <commdlg.h>
+#include <fstream>
+#include <lean_mean_windows.h>
+#include <string.h>
+
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
 static void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
@@ -323,6 +330,46 @@ int main(int argc, char** argv) {
 					case PlatformCommandType::ToggleFullscreen:
 						window.toggle_fullscreen();
 						break;
+
+					case PlatformCommandType::SaveFileWithDialog: {
+						LOG_DEBUG("SaveFileWithDialog");
+
+						SDL_SysWMinfo wmInfo;
+						SDL_VERSION(&wmInfo.version);
+						SDL_GetWindowWMInfo(window.sdl_window(), &wmInfo);
+						HWND hwnd = wmInfo.info.win.window;
+
+						char buf[MAX_PATH] = "";
+
+						OPENFILENAME ofn;
+						ZeroMemory(&ofn, sizeof(ofn));
+						ofn.lStructSize = sizeof(ofn);
+						ofn.hwndOwner = hwnd;
+						ofn.lpstrFile = buf;
+						ofn.nMaxFile = MAX_PATH - 1;
+						ofn.lpstrFilter = "JSON (*.json)\0*.txt\0All Files (*.*)\0*.*\0";
+						ofn.lpstrDefExt = nullptr; // didn't have any luck getting this to work, leaving it null
+						ofn.nFilterIndex = 1;
+						ofn.lpstrFileTitle = nullptr;
+						ofn.nMaxFileTitle = 0;
+						ofn.lpstrInitialDir = nullptr;
+						ofn.lpstrTitle = "Save project";
+						ofn.Flags = OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+
+						if (GetSaveFileName(&ofn)) {
+							std::string path = buf;
+							if (path.find('.') == std::string::npos) {
+								path += ".json";
+							}
+
+							std::ofstream file;
+							file.open(path);
+							if (file.is_open()) {
+								file.write((char*)cmd.save_file_with_dialog.data, cmd.save_file_with_dialog.length);
+							}
+						}
+
+					} break;
 				}
 			}
 			platform.clear();

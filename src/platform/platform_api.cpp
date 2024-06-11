@@ -1,5 +1,6 @@
 #include <platform/platform_api.h>
 
+#include <memory.h>
 #include <string.h>
 
 namespace platform {
@@ -9,6 +10,11 @@ namespace platform {
 	}
 
 	void PlatformAPI::clear() {
+		for (const PlatformCommand& cmd : m_commands) {
+			if (cmd.type == PlatformCommandType::SaveFileWithDialog) {
+				free(cmd.save_file_with_dialog.data);
+			}
+		}
 		m_commands.clear();
 	}
 
@@ -35,12 +41,19 @@ namespace platform {
 		m_commands.push_back({ .rebuild_engine_library = PlatformCommand::RebuildEngineLibrary() });
 	}
 
+	void PlatformAPI::save_file_with_dialog(const uint8_t* data, size_t length) {
+		PlatformCommand::SaveFileWithDialog save_file_with_dialog;
+		save_file_with_dialog.data = (uint8_t*)malloc(length);
+		memcpy(save_file_with_dialog.data, data, length);
+		m_commands.push_back({ .save_file_with_dialog = save_file_with_dialog });
+	}
+
 	/* Window */
 	void PlatformAPI::change_resolution(int width, int height) {
-		m_commands.push_back({ .change_resolution = {
-								   .width = width,
-								   .height = height,
-							   } });
+		PlatformCommand::ChangeResolution change_resolution;
+		change_resolution.width = width;
+		change_resolution.height = height;
+		m_commands.push_back({ .change_resolution = change_resolution });
 	}
 
 	void PlatformAPI::set_window_mode(WindowMode mode) {

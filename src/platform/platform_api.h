@@ -26,14 +26,14 @@ namespace platform {
 		ToggleFullscreen,
 	};
 
-	enum class RunMode {
-		Game,
-		Editor,
-	};
-
 	enum class Cursor {
 		Arrow,
 		SizeAll,
+	};
+
+	enum class RunMode {
+		Game,
+		Editor,
 	};
 
 	union PlatformCommand {
@@ -58,6 +58,8 @@ namespace platform {
 		// file
 		struct SaveFileWithDialog {
 			PlatformCommandType type = PlatformCommandType::SaveFileWithDialog;
+			uint8_t* data;
+			size_t length;
 		} save_file_with_dialog;
 
 		struct RebuildEngineLibrary {
@@ -101,6 +103,7 @@ namespace platform {
 
 		// file
 		void rebuild_engine_library();
+		void save_file_with_dialog(const uint8_t* data, size_t length);
 
 		// window
 		void change_resolution(int width, int height);
