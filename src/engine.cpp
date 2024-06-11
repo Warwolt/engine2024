@@ -7,6 +7,10 @@
 #include <plog/Init.h>
 #include <util.h>
 
+// test file write
+#include <fstream>
+#include <nlohmann/json.hpp>
+
 namespace engine {
 
 	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform) {
@@ -147,9 +151,19 @@ namespace engine {
 				}
 				if (ImGui::MenuItem("Load Project")) {
 					LOG_DEBUG("Load Project");
+					std::ifstream file("my_proj.json");
+					nlohmann::json json_object;
+					file >> json_object;
+					state->game.counter = json_object["counter"];
 				}
 				if (ImGui::MenuItem("Save Project")) {
 					LOG_DEBUG("Save Project");
+					std::ofstream file;
+					nlohmann::json json_object = {
+						{ "counter", state->game.counter }
+					};
+					file.open("my_proj.json");
+					file << std::setw(4) << json_object << std::endl;
 				}
 				ImGui::EndMenu();
 			}

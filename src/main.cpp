@@ -28,7 +28,6 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/imgui.h>
-#include <nlohmann/json.hpp>
 
 #include <expected>
 #include <optional>
@@ -179,17 +178,6 @@ int main(int argc, char** argv) {
 	if (mode == platform::RunMode::Game) {
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
-
-	nlohmann::json j2 = {
-		{ "pi", 3.141 },
-		{ "happy", true },
-		{ "name", "Niels" },
-		{ "nothing", nullptr },
-		{ "answer", { { "everything", 42 } } },
-		{ "list", { 1, 0, 2 } },
-		{ "object", { { "currency", "USD" }, { "value", 42.99 } } }
-	};
-	LOG_DEBUG("j2 = %s", j2.dump().c_str());
 
 	/* Main loop */
 	engine.initialize(&state);
