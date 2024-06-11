@@ -8,11 +8,19 @@
 namespace platform {
 
 	enum class PlatformCommandType {
-		ChangeResolution,
+		// application
 		Quit,
-		RebuildEngineLibrary,
 		SetRunMode,
+
+		// cursor
 		SetCursor,
+
+		// file
+		RebuildEngineLibrary,
+		SaveFileWithDialog,
+
+		// window
+		ChangeResolution,
 		SetWindowMode,
 		SetWindowTitle,
 		ToggleFullscreen,
@@ -31,30 +39,32 @@ namespace platform {
 	union PlatformCommand {
 		PlatformCommandType type;
 
-		struct ChangeResolution {
-			PlatformCommandType type = PlatformCommandType::ChangeResolution;
-			int width;
-			int height;
-		} change_resolution;
-
+		// application
 		struct Quit {
 			PlatformCommandType type = PlatformCommandType::Quit;
 		} quit;
-
-		struct RebuildEngineLibrary {
-			PlatformCommandType type = PlatformCommandType::RebuildEngineLibrary;
-		} rebuild_engine_library;
-
-		struct SetCursor {
-			PlatformCommandType type = PlatformCommandType::SetCursor;
-			Cursor cursor;
-		} set_cursor;
 
 		struct SetRunMode {
 			PlatformCommandType type = PlatformCommandType::SetRunMode;
 			RunMode mode;
 		} set_run_mode;
 
+		// cursor
+		struct SetCursor {
+			PlatformCommandType type = PlatformCommandType::SetCursor;
+			Cursor cursor;
+		} set_cursor;
+
+		// file
+		struct SaveFileWithDialog {
+			PlatformCommandType type = PlatformCommandType::SaveFileWithDialog;
+		} save_file_with_dialog;
+
+		struct RebuildEngineLibrary {
+			PlatformCommandType type = PlatformCommandType::RebuildEngineLibrary;
+		} rebuild_engine_library;
+
+		// window
 		struct SetWindowMode {
 			PlatformCommandType type = PlatformCommandType::SetWindowMode;
 			WindowMode mode;
@@ -68,18 +78,32 @@ namespace platform {
 		struct ToggleFullscreen {
 			PlatformCommandType type = PlatformCommandType::ToggleFullscreen;
 		} toggle_full_screen;
+
+		struct ChangeResolution {
+			PlatformCommandType type = PlatformCommandType::ChangeResolution;
+			int width;
+			int height;
+		} change_resolution;
 	};
 
 	class PlatformAPI {
 	public:
 		const std::vector<PlatformCommand>& commands() const;
+
 		void clear();
 
-		void change_resolution(int width, int height);
+		// application
 		void quit();
-		void rebuild_engine_library();
-		void set_cursor(Cursor cursor);
 		void set_run_mode(RunMode mode);
+
+		// cursor
+		void set_cursor(Cursor cursor);
+
+		// file
+		void rebuild_engine_library();
+
+		// window
+		void change_resolution(int width, int height);
 		void set_window_mode(WindowMode mode);
 		void set_window_title(const char* title);
 		void toggle_fullscreen();

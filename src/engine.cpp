@@ -7,8 +7,11 @@
 #include <plog/Init.h>
 #include <util.h>
 
-// test file write
+// new load save prototyping
+#include <SDL2/SDL.h>
+#include <commdlg.h>
 #include <fstream>
+#include <lean_mean_windows.h>
 #include <nlohmann/json.hpp>
 
 namespace engine {
@@ -152,6 +155,7 @@ namespace engine {
 				}
 				if (ImGui::MenuItem("Load Project")) {
 					LOG_DEBUG("Load Project");
+
 					std::ifstream file("build/my_proj.json");
 					if (file.is_open()) {
 						nlohmann::json json_object;
