@@ -111,6 +111,13 @@ static void start_imgui_frame() {
 	ImGui::NewFrame();
 }
 
+static HWND get_window_handle(const platform::Window* window) {
+	SDL_SysWMinfo wmInfo;
+	SDL_VERSION(&wmInfo.version);
+	SDL_GetWindowWMInfo(window->sdl_window(), &wmInfo);
+	return wmInfo.info.win.window;
+}
+
 int main(int argc, char** argv) {
 	/* Parse args */
 	platform::CliCommands cmd_args = util::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
@@ -332,12 +339,9 @@ int main(int argc, char** argv) {
 						break;
 
 					case PlatformCommandType::SaveFileWithDialog: {
-						SDL_SysWMinfo wmInfo;
-						SDL_VERSION(&wmInfo.version);
-						SDL_GetWindowWMInfo(window.sdl_window(), &wmInfo);
-						HWND hwnd = wmInfo.info.win.window;
-
-						if (std::optional<std::string> path = platform::show_save_dialog(hwnd, "Save project", "JSON (*.json)\0*.json\0All Files (*.*)\0*.*\0", ".json")) {
+						HWND hwnd = get_window_handle(&window);
+						platform::FileExplorerDialog dialog = cmd.save_file_with_dialog.dialog;
+						if (std::optional<std::string> path = platform::show_save_dialog(hwnd, dialog.title, dialog.file_extension, dialog.extension_description)) {
 							std::ofstream file;
 							file.open(*path);
 							if (file.is_open()) {

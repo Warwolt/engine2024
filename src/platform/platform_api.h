@@ -36,6 +36,12 @@ namespace platform {
 		Editor,
 	};
 
+	struct FileExplorerDialog {
+		char title[128];
+		char extension_description[128];
+		char file_extension[128];
+	};
+
 	union PlatformCommand {
 		PlatformCommandType type;
 
@@ -60,6 +66,7 @@ namespace platform {
 			PlatformCommandType type = PlatformCommandType::SaveFileWithDialog;
 			uint8_t* data;
 			size_t length;
+			FileExplorerDialog dialog;
 		} save_file_with_dialog;
 
 		struct RebuildEngineLibrary {
@@ -103,7 +110,7 @@ namespace platform {
 
 		// file
 		void rebuild_engine_library();
-		void save_file_with_dialog(const uint8_t* data, size_t length);
+		void save_file_with_dialog(const uint8_t* data, size_t length, FileExplorerDialog dialog);
 
 		// window
 		void change_resolution(int width, int height);

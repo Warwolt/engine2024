@@ -41,11 +41,12 @@ namespace platform {
 		m_commands.push_back({ .rebuild_engine_library = PlatformCommand::RebuildEngineLibrary() });
 	}
 
-	void PlatformAPI::save_file_with_dialog(const uint8_t* data, size_t length) {
+	void PlatformAPI::save_file_with_dialog(const uint8_t* data, size_t length, FileExplorerDialog dialog) {
 		PlatformCommand::SaveFileWithDialog save_file_with_dialog;
 		save_file_with_dialog.length = length;
 		save_file_with_dialog.data = (uint8_t*)malloc(length);
 		memcpy(save_file_with_dialog.data, data, length);
+		save_file_with_dialog.dialog = dialog;
 		m_commands.push_back({ .save_file_with_dialog = save_file_with_dialog });
 	}
 

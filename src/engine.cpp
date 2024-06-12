@@ -169,7 +169,12 @@ namespace engine {
 						{ "counter", state->game.counter }
 					};
 					std::string data = json_object.dump();
-					platform->save_file_with_dialog((uint8_t*)data.data(), data.length());
+					platform::FileExplorerDialog dialog = {
+						.title = "Save project",
+						.extension_description = "JSON (*.json)",
+						.file_extension = "json",
+					};
+					platform->save_file_with_dialog((uint8_t*)data.data(), data.length(), dialog);
 				}
 				ImGui::EndMenu();
 			}

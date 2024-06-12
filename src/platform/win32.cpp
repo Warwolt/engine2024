@@ -122,8 +122,11 @@ namespace platform {
 		return (int)exit_code;
 	}
 
-	std::optional<std::string> show_save_dialog(HWND hwnd, const char* title, const char* filter, const char* extension) {
+	std::optional<std::string> show_save_dialog(HWND hwnd, const char* title, const char* extension, const char* description) {
 		char path[MAX_PATH] = "";
+
+		char filter[256] = "";
+		snprintf(filter, 256, "%s%c*.%s%cAll Files (*.*)%c*.*%c\0", description, '\0', extension, '\0', '\0');
 
 		OPENFILENAME ofn;
 		ZeroMemory(&ofn, sizeof(ofn));

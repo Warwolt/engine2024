@@ -8,6 +8,8 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- add std::variant wrapper that contains a "type" tag for switch-cases
+  - (this would allow storing std::vector, std:: string etc.)
 - Setup ImGui docking branch
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
