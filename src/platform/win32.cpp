@@ -126,7 +126,7 @@ namespace platform {
 		char path[MAX_PATH] = "";
 
 		char filter[256] = "";
-		snprintf(filter, 256, "%s%c*.%s%cAll Files (*.*)%c*.*%c\0", description, '\0', extension, '\0', '\0');
+		snprintf(filter, 256, "%s%c*.%s%cAll Files (*.*)%c*.*\0", description, '\0', extension, '\0', '\0');
 
 		OPENFILENAME ofn;
 		ZeroMemory(&ofn, sizeof(ofn));
