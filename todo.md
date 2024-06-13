@@ -13,6 +13,7 @@ Goals:
   - https://v8.dev/docs/embed
 
 ## Doing
+- Use std::variant for PlatformAPI commands
 
 ## Done
 - Give feedback in window title if compilation failed
