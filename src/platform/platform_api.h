@@ -1,5 +1,6 @@
 #pragma once
 
+#include <platform/tagged_variant.h>
 #include <platform/window.h>
 
 #include <string>
@@ -8,15 +9,15 @@
 namespace platform {
 
 	enum class PlatformCommandType {
-		// application
+		// app
 		Quit,
+		RebuildEngineLibrary,
 		SetRunMode,
 
 		// cursor
 		SetCursor,
 
 		// file
-		RebuildEngineLibrary,
 		SaveFileWithDialog,
 
 		// window
@@ -42,58 +43,77 @@ namespace platform {
 		char file_extension[128];
 	};
 
-	union PlatformCommand {
-		PlatformCommandType type;
+	namespace cmd::app {
 
-		// application
 		struct Quit {
-			PlatformCommandType type = PlatformCommandType::Quit;
-		} quit;
-
-		struct SetRunMode {
-			PlatformCommandType type = PlatformCommandType::SetRunMode;
-			RunMode mode;
-		} set_run_mode;
-
-		// cursor
-		struct SetCursor {
-			PlatformCommandType type = PlatformCommandType::SetCursor;
-			Cursor cursor;
-		} set_cursor;
-
-		// file
-		struct SaveFileWithDialog {
-			PlatformCommandType type = PlatformCommandType::SaveFileWithDialog;
-			uint8_t* data;
-			size_t length;
-			FileExplorerDialog dialog;
-		} save_file_with_dialog;
+			static constexpr auto TAG = PlatformCommandType::Quit;
+		};
 
 		struct RebuildEngineLibrary {
-			PlatformCommandType type = PlatformCommandType::RebuildEngineLibrary;
-		} rebuild_engine_library;
+			static constexpr auto TAG = PlatformCommandType::RebuildEngineLibrary;
+		};
 
-		// window
-		struct SetWindowMode {
-			PlatformCommandType type = PlatformCommandType::SetWindowMode;
-			WindowMode mode;
-		} set_window_mode;
+		struct SetRunMode {
+			static constexpr auto TAG = PlatformCommandType::SetRunMode;
+			RunMode mode;
+		};
 
-		struct SetWindowTitle {
-			PlatformCommandType type = PlatformCommandType::SetWindowTitle;
-			char title[128];
-		} set_window_title;
+	} // namespace cmd::app
 
-		struct ToggleFullscreen {
-			PlatformCommandType type = PlatformCommandType::ToggleFullscreen;
-		} toggle_full_screen;
+	namespace cmd::cursor {
+
+		struct SetCursor {
+			static constexpr auto TAG = PlatformCommandType::SetCursor;
+			Cursor cursor;
+		};
+
+	} // namespace cmd::cursor
+
+	namespace cmd::file {
+
+		struct SaveFileWithDialog {
+			static constexpr auto TAG = PlatformCommandType::SaveFileWithDialog;
+			std::vector<uint8_t> data;
+			FileExplorerDialog dialog;
+		};
+
+	} // namespace cmd::file
+
+	namespace cmd::window {
 
 		struct ChangeResolution {
-			PlatformCommandType type = PlatformCommandType::ChangeResolution;
+			static constexpr auto TAG = PlatformCommandType::ChangeResolution;
 			int width;
 			int height;
-		} change_resolution;
-	};
+		};
+
+		struct SetWindowMode {
+			static constexpr auto TAG = PlatformCommandType::SetWindowMode;
+			WindowMode mode;
+		};
+
+		struct SetWindowTitle {
+			static constexpr auto TAG = PlatformCommandType::SetWindowTitle;
+			std::string title;
+		};
+
+		struct ToggleFullscreen {
+			static constexpr auto TAG = PlatformCommandType::ToggleFullscreen;
+		};
+
+	} // namespace cmd::window
+
+	using PlatformCommand = TaggedVariant<
+		PlatformCommandType,
+		cmd::app::Quit,
+		cmd::app::RebuildEngineLibrary,
+		cmd::app::SetRunMode,
+		cmd::cursor::SetCursor,
+		cmd::file::SaveFileWithDialog,
+		cmd::window::ChangeResolution,
+		cmd::window::SetWindowMode,
+		cmd::window::SetWindowTitle,
+		cmd::window::ToggleFullscreen>;
 
 	class PlatformAPI {
 	public:
@@ -110,7 +130,7 @@ namespace platform {
 
 		// file
 		void rebuild_engine_library();
-		void save_file_with_dialog(const uint8_t* data, size_t length, FileExplorerDialog dialog);
+		void save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog);
 
 		// window
 		void change_resolution(int width, int height);

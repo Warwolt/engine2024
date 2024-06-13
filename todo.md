@@ -8,8 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- add std::variant wrapper that contains a "type" tag for switch-cases
-  - (this would allow storing std::vector, std:: string etc.)
 - Setup ImGui docking branch
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
@@ -18,6 +16,7 @@ Goals:
 - Add projects, load / save game data
 
 ## Done
+- Use std::variant for PlatformAPI commands
 - Switch between editor mode / game mode
 - Give feedback in window title if compilation failed
 - Fix so that engine unit tests links against DLL statically

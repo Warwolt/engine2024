@@ -10,68 +10,49 @@ namespace platform {
 	}
 
 	void PlatformAPI::clear() {
-		for (const PlatformCommand& cmd : m_commands) {
-			if (cmd.type == PlatformCommandType::SaveFileWithDialog) {
-				free(cmd.save_file_with_dialog.data);
-			}
-		}
 		m_commands.clear();
 	}
 
-	/* Application */
 	void PlatformAPI::quit() {
-		m_commands.push_back({ .quit = PlatformCommand::Quit() });
+		m_commands.push_back(cmd::app::Quit {});
 	}
 
-	void PlatformAPI::set_run_mode(RunMode mode) {
-		PlatformCommand::SetRunMode set_run_mode;
-		set_run_mode.mode = mode;
-		m_commands.push_back({ .set_run_mode = set_run_mode });
+	void PlatformAPI::set_run_mode(RunMode run_mode) {
+		m_commands.push_back(cmd::app::SetRunMode { run_mode });
 	}
 
-	/* Cursor */
-	void PlatformAPI::set_cursor(Cursor cursor) {
-		PlatformCommand::SetCursor set_cursor;
-		set_cursor.cursor = cursor;
-		m_commands.push_back({ .set_cursor = set_cursor });
-	}
-
-	/* File */
 	void PlatformAPI::rebuild_engine_library() {
-		m_commands.push_back({ .rebuild_engine_library = PlatformCommand::RebuildEngineLibrary() });
+		m_commands.push_back(cmd::app::RebuildEngineLibrary {});
 	}
 
-	void PlatformAPI::save_file_with_dialog(const uint8_t* data, size_t length, FileExplorerDialog dialog) {
-		PlatformCommand::SaveFileWithDialog save_file_with_dialog;
-		save_file_with_dialog.length = length;
-		save_file_with_dialog.data = (uint8_t*)malloc(length);
-		memcpy(save_file_with_dialog.data, data, length);
-		save_file_with_dialog.dialog = dialog;
-		m_commands.push_back({ .save_file_with_dialog = save_file_with_dialog });
+	void PlatformAPI::set_cursor(Cursor cursor) {
+		m_commands.push_back(cmd::cursor::SetCursor { cursor });
 	}
 
-	/* Window */
+	void PlatformAPI::save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog) {
+		m_commands.push_back(cmd::file::SaveFileWithDialog {
+			.data = data,
+			.dialog = dialog,
+		});
+	}
+
 	void PlatformAPI::change_resolution(int width, int height) {
-		PlatformCommand::ChangeResolution change_resolution;
-		change_resolution.width = width;
-		change_resolution.height = height;
-		m_commands.push_back({ .change_resolution = change_resolution });
+		m_commands.push_back(cmd::window::ChangeResolution {
+			.width = width,
+			.height = height,
+		});
 	}
 
-	void PlatformAPI::set_window_mode(WindowMode mode) {
-		PlatformCommand::SetWindowMode set_window_mode;
-		set_window_mode.mode = mode;
-		m_commands.push_back({ .set_window_mode = set_window_mode });
-	}
-
-	void PlatformAPI::set_window_title(const char* title) {
-		PlatformCommand::SetWindowTitle data;
-		strcpy_s(data.title, title);
-		m_commands.push_back({ .set_window_title = data });
+	void PlatformAPI::set_window_mode(WindowMode window_mode) {
+		m_commands.push_back(cmd::window::SetWindowMode { window_mode });
 	}
 
 	void PlatformAPI::toggle_fullscreen() {
-		m_commands.push_back({ .toggle_full_screen = PlatformCommand::ToggleFullscreen() });
+		m_commands.push_back(cmd::window::ToggleFullscreen {});
+	}
+
+	void PlatformAPI::set_window_title(const char* title) {
+		m_commands.push_back(cmd::window::SetWindowTitle { title });
 	}
 
 } // namespace platform

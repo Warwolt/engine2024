@@ -174,7 +174,7 @@ namespace engine {
 						.extension_description = "JSON (*.json)",
 						.file_extension = "json",
 					};
-					platform->save_file_with_dialog((uint8_t*)data.data(), data.length(), dialog);
+					platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
 				}
 				ImGui::EndMenu();
 			}
