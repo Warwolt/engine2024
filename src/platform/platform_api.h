@@ -1,5 +1,6 @@
 #pragma once
 
+#include <platform/tagged_variant.h>
 #include <platform/window.h>
 
 #include <string>
@@ -8,11 +9,16 @@
 namespace platform {
 
 	enum class PlatformCommandType {
-		ChangeResolution,
+		// app
 		Quit,
 		RebuildEngineLibrary,
 		SetRunMode,
+
+		// cursor
 		SetCursor,
+
+		// window
+		ChangeResolution,
 		SetWindowMode,
 		SetWindowTitle,
 		ToggleFullscreen,
@@ -28,47 +34,66 @@ namespace platform {
 		SizeAll,
 	};
 
-	union PlatformCommand {
-		PlatformCommandType type;
-
-		struct ChangeResolution {
-			PlatformCommandType type = PlatformCommandType::ChangeResolution;
-			int width;
-			int height;
-		} change_resolution;
+	namespace cmd::app {
 
 		struct Quit {
-			PlatformCommandType type = PlatformCommandType::Quit;
-		} quit;
+			static constexpr auto TAG = PlatformCommandType::Quit;
+		};
 
 		struct RebuildEngineLibrary {
-			PlatformCommandType type = PlatformCommandType::RebuildEngineLibrary;
-		} rebuild_engine_library;
-
-		struct SetCursor {
-			PlatformCommandType type = PlatformCommandType::SetCursor;
-			Cursor cursor;
-		} set_cursor;
+			static constexpr auto TAG = PlatformCommandType::RebuildEngineLibrary;
+		};
 
 		struct SetRunMode {
-			PlatformCommandType type = PlatformCommandType::SetRunMode;
+			static constexpr auto TAG = PlatformCommandType::SetRunMode;
 			RunMode mode;
-		} set_run_mode;
+		};
+
+	} // namespace cmd::app
+
+	namespace cmd::cursor {
+
+		struct SetCursor {
+			static constexpr auto TAG = PlatformCommandType::SetCursor;
+			Cursor cursor;
+		};
+
+	} // namespace cmd::cursor
+
+	namespace cmd::window {
+
+		struct ChangeResolution {
+			static constexpr auto TAG = PlatformCommandType::ChangeResolution;
+			int width;
+			int height;
+		};
 
 		struct SetWindowMode {
-			PlatformCommandType type = PlatformCommandType::SetWindowMode;
+			static constexpr auto TAG = PlatformCommandType::SetWindowMode;
 			WindowMode mode;
-		} set_window_mode;
+		};
 
 		struct SetWindowTitle {
-			PlatformCommandType type = PlatformCommandType::SetWindowTitle;
-			char title[128];
-		} set_window_title;
+			static constexpr auto TAG = PlatformCommandType::SetWindowTitle;
+			std::string title;
+		};
 
 		struct ToggleFullscreen {
-			PlatformCommandType type = PlatformCommandType::ToggleFullscreen;
-		} toggle_full_screen;
-	};
+			static constexpr auto TAG = PlatformCommandType::ToggleFullscreen;
+		};
+
+	} // namespace cmd::window
+
+	using PlatformCommand = TaggedVariant<
+		PlatformCommandType,
+		cmd::app::Quit,
+		cmd::app::RebuildEngineLibrary,
+		cmd::app::SetRunMode,
+		cmd::cursor::SetCursor,
+		cmd::window::ChangeResolution,
+		cmd::window::SetWindowMode,
+		cmd::window::SetWindowTitle,
+		cmd::window::ToggleFullscreen>;
 
 	class PlatformAPI {
 	public:

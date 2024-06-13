@@ -278,10 +278,11 @@ int main(int argc, char** argv) {
 			/* Platform update */
 			for (const platform::PlatformCommand& cmd : platform.commands()) {
 				using PlatformCommandType = platform::PlatformCommandType;
-				switch (cmd.type) {
+				switch (cmd.tag()) {
 					case PlatformCommandType::ChangeResolution: {
-						const int width = cmd.change_resolution.width;
-						const int height = cmd.change_resolution.height;
+						auto change_resolution = std::get<platform::cmd::window::ChangeResolution>(cmd);
+						const int width = change_resolution.width;
+						const int height = change_resolution.height;
 						platform::free_canvas(window_canvas);
 						window_canvas = platform::add_canvas(width, height);
 					} break;
@@ -295,8 +296,9 @@ int main(int argc, char** argv) {
 						break;
 
 					case PlatformCommandType::SetCursor:
+						auto set_cursor = std::get<platform::cmd::cursor::SetCursor>(cmd);
 						SDL_FreeCursor(cursor);
-						switch (cmd.set_cursor.cursor) {
+						switch (set_cursor.cursor) {
 							case platform::Cursor::Arrow:
 								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 								break;
@@ -307,17 +309,20 @@ int main(int argc, char** argv) {
 						}
 						break;
 
-					case PlatformCommandType::SetRunMode:
-						mode = cmd.set_run_mode.mode;
-						break;
+					case PlatformCommandType::SetRunMode: {
+						auto set_run_mode = std::get<platform::cmd::app::SetRunMode>(cmd);
+						mode = set_run_mode.mode;
+					} break;
 
-					case PlatformCommandType::SetWindowMode:
-						window.set_window_mode(cmd.set_window_mode.mode);
-						break;
+					case PlatformCommandType::SetWindowMode: {
+						auto set_window_mode = std::get<platform::cmd::window::SetWindowMode>(cmd);
+						window.set_window_mode(set_window_mode.mode);
+					} break;
 
-					case PlatformCommandType::SetWindowTitle:
-						SDL_SetWindowTitle(window.sdl_window(), cmd.set_window_title.title);
-						break;
+					case PlatformCommandType::SetWindowTitle: {
+						auto set_window_title = std::get<platform::cmd::window::SetWindowTitle>(cmd);
+						SDL_SetWindowTitle(window.sdl_window(), set_window_title.title.c_str());
+					} break;
 
 					case PlatformCommandType::ToggleFullscreen:
 						window.toggle_fullscreen();
