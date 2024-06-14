@@ -1,8 +1,10 @@
 #pragma once
 
 #include <platform/tagged_variant.h>
+#include <platform/win32.h>
 #include <platform/window.h>
 
+#include <future>
 #include <string>
 #include <vector>
 
@@ -18,6 +20,7 @@ namespace platform {
 		SetCursor,
 
 		// file
+		LoadFileWithDialog,
 		SaveFileWithDialog,
 
 		// window
@@ -35,12 +38,6 @@ namespace platform {
 	enum class RunMode {
 		Game,
 		Editor,
-	};
-
-	struct FileExplorerDialog {
-		char title[128];
-		char extension_description[128];
-		char file_extension[128];
 	};
 
 	namespace cmd::app {
@@ -70,6 +67,12 @@ namespace platform {
 	} // namespace cmd::cursor
 
 	namespace cmd::file {
+
+		struct LoadFileWithDialog {
+			static constexpr auto TAG = PlatformCommandType::LoadFileWithDialog;
+			std::promise<std::vector<uint8_t>> promise;
+			FileExplorerDialog dialog;
+		};
 
 		struct SaveFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::SaveFileWithDialog;
@@ -109,6 +112,7 @@ namespace platform {
 		cmd::app::RebuildEngineLibrary,
 		cmd::app::SetRunMode,
 		cmd::cursor::SetCursor,
+		cmd::file::LoadFileWithDialog,
 		cmd::file::SaveFileWithDialog,
 		cmd::window::ChangeResolution,
 		cmd::window::SetWindowMode,
@@ -123,13 +127,14 @@ namespace platform {
 
 		// application
 		void quit();
+		void rebuild_engine_library();
 		void set_run_mode(RunMode mode);
 
 		// cursor
 		void set_cursor(Cursor cursor);
 
 		// file
-		void rebuild_engine_library();
+		std::future<std::vector<uint8_t>> load_file_with_dialog(FileExplorerDialog dialog);
 		void save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog);
 
 		// window

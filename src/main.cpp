@@ -343,18 +343,28 @@ int main(int argc, char** argv) {
 						window.toggle_fullscreen();
 						break;
 
+					case PlatformCommandType::LoadFileWithDialog: {
+						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
+						HWND hwnd = get_window_handle(&window);
+						if (std::optional<std::string> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
+							// std::ofstream file;
+							// file.open(path.value());
+							// if (file.is_open()) {
+							// 	file.write((char*)load_file_with_dialog.data.data(), load_file_with_dialog.data.size());
+							// }
+						}
+					} break;
+
 					case PlatformCommandType::SaveFileWithDialog: {
 						auto save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
-						platform::FileExplorerDialog dialog = save_file_with_dialog.dialog;
-						if (std::optional<std::string> path = platform::show_save_dialog(hwnd, dialog.title, dialog.file_extension, dialog.extension_description)) {
+						if (std::optional<std::string> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
 							std::ofstream file;
 							file.open(path.value());
 							if (file.is_open()) {
 								file.write((char*)save_file_with_dialog.data.data(), save_file_with_dialog.data.size());
 							}
 						}
-
 					} break;
 				}
 			}
