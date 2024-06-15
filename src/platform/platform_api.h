@@ -121,7 +121,7 @@ namespace platform {
 
 	class PlatformAPI {
 	public:
-		const std::vector<PlatformCommand>& commands() const;
+		std::vector<PlatformCommand>& commands();
 
 		void clear();
 

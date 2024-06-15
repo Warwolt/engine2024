@@ -39,6 +39,8 @@
 #include <lean_mean_windows.h>
 #include <string.h>
 
+#include <filesystem>
+
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
 static void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
@@ -116,6 +118,18 @@ static HWND get_window_handle(const platform::Window* window) {
 	SDL_VERSION(&wmInfo.version);
 	SDL_GetWindowWMInfo(window->sdl_window(), &wmInfo);
 	return wmInfo.info.win.window;
+}
+
+static std::vector<uint8_t> read_file(const std::filesystem::path& path) {
+	auto length = std::filesystem::file_size(path);
+	if (length == 0) {
+		return {}; // empty vector
+	}
+	std::vector<uint8_t> buffer(length);
+	std::ifstream file(path, std::ios_base::binary);
+	file.read((char*)buffer.data(), length);
+	file.close();
+	return buffer;
 }
 
 int main(int argc, char** argv) {
@@ -291,11 +305,11 @@ int main(int argc, char** argv) {
 			engine.update(&state, &input, &platform);
 
 			/* Platform update */
-			for (const platform::PlatformCommand& cmd : platform.commands()) {
+			for (platform::PlatformCommand& cmd : platform.commands()) {
 				using PlatformCommandType = platform::PlatformCommandType;
 				switch (cmd.tag()) {
 					case PlatformCommandType::ChangeResolution: {
-						auto change_resolution = std::get<platform::cmd::window::ChangeResolution>(cmd);
+						auto& change_resolution = std::get<platform::cmd::window::ChangeResolution>(cmd);
 						const int width = change_resolution.width;
 						const int height = change_resolution.height;
 						platform::free_canvas(window_canvas);
@@ -310,8 +324,8 @@ int main(int argc, char** argv) {
 						hot_reloader.trigger_rebuild_command();
 						break;
 
-					case PlatformCommandType::SetCursor:
-						auto set_cursor = std::get<platform::cmd::cursor::SetCursor>(cmd);
+					case PlatformCommandType::SetCursor: {
+						auto& set_cursor = std::get<platform::cmd::cursor::SetCursor>(cmd);
 						SDL_FreeCursor(cursor);
 						switch (set_cursor.cursor) {
 							case platform::Cursor::Arrow:
@@ -322,20 +336,20 @@ int main(int argc, char** argv) {
 								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
 								break;
 						}
-						break;
+					} break;
 
 					case PlatformCommandType::SetRunMode: {
-						auto set_run_mode = std::get<platform::cmd::app::SetRunMode>(cmd);
+						auto& set_run_mode = std::get<platform::cmd::app::SetRunMode>(cmd);
 						mode = set_run_mode.mode;
 					} break;
 
 					case PlatformCommandType::SetWindowMode: {
-						auto set_window_mode = std::get<platform::cmd::window::SetWindowMode>(cmd);
+						auto& set_window_mode = std::get<platform::cmd::window::SetWindowMode>(cmd);
 						window.set_window_mode(set_window_mode.mode);
 					} break;
 
 					case PlatformCommandType::SetWindowTitle: {
-						auto set_window_title = std::get<platform::cmd::window::SetWindowTitle>(cmd);
+						auto& set_window_title = std::get<platform::cmd::window::SetWindowTitle>(cmd);
 						SDL_SetWindowTitle(window.sdl_window(), set_window_title.title.c_str());
 					} break;
 
@@ -344,19 +358,16 @@ int main(int argc, char** argv) {
 						break;
 
 					case PlatformCommandType::LoadFileWithDialog: {
-						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
+						platform::cmd::file::LoadFileWithDialog& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
 						if (std::optional<std::string> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
-							// std::ofstream file;
-							// file.open(path.value());
-							// if (file.is_open()) {
-							// 	file.write((char*)load_file_with_dialog.data.data(), load_file_with_dialog.data.size());
-							// }
+							std::vector<uint8_t> data = read_file(std::filesystem::path { path.value() });
+							load_file_with_dialog.promise.set_value(std::move(data));
 						}
 					} break;
 
 					case PlatformCommandType::SaveFileWithDialog: {
-						auto save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
+						auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
 						if (std::optional<std::string> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
 							std::ofstream file;

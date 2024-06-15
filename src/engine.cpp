@@ -156,18 +156,11 @@ namespace engine {
 				if (ImGui::MenuItem("Load Project")) {
 					LOG_DEBUG("Load Project");
 					platform::FileExplorerDialog dialog = {
-						.title = "Save project",
+						.title = "Load project",
 						.description = "JSON (*.json)",
 						.extension = "json",
 					};
-					platform->load_file_with_dialog(dialog);
-
-					// std::ifstream file("my_proj.json");
-					// if (file.is_open()) {
-					// 	nlohmann::json json_object;
-					// 	file >> json_object;
-					// 	state->game.counter = json_object["counter"];
-					// }
+					state->editor.load_project_future = platform->load_file_with_dialog(dialog);
 				}
 				if (ImGui::MenuItem("Save Project")) {
 					LOG_DEBUG("Save Project");
@@ -185,6 +178,14 @@ namespace engine {
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
+		}
+
+		if (util::future_is_ready(state->editor.load_project_future)) {
+			std::vector<uint8_t> buffer = state->editor.load_project_future.get();
+			if (!buffer.empty()) {
+				nlohmann::json json_object = nlohmann::json::parse(buffer);
+				state->game.counter = json_object["counter"];
+			}
 		}
 
 		/* Editor Window */

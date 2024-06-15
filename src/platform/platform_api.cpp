@@ -5,7 +5,7 @@
 
 namespace platform {
 
-	const std::vector<PlatformCommand>& PlatformAPI::commands() const {
+	std::vector<PlatformCommand>& PlatformAPI::commands() {
 		return m_commands;
 	}
 

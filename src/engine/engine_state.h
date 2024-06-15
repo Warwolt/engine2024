@@ -7,6 +7,7 @@
 #include <platform/platform_api.h>
 #include <platform/renderer.h>
 
+#include <future>
 #include <stdint.h>
 #include <string>
 #include <unordered_map>
@@ -16,6 +17,10 @@ namespace engine {
 	struct DebugUiState {
 		bool show_debug_ui = false;
 		int resolution_index = 0;
+	};
+
+	struct EditorState {
+		std::future<std::vector<uint8_t>> load_project_future;
 	};
 
 	struct Resources {
@@ -46,6 +51,7 @@ namespace engine {
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
 		GameState game;
+		EditorState editor;
 		Project project;
 	};
 
