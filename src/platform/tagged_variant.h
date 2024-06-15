@@ -10,8 +10,14 @@ namespace platform {
 		TaggedVariant() = default;
 
 		template <typename T>
-		TaggedVariant(T t)
+		TaggedVariant(const T& t)
 			: std::variant<First, Types...>(t)
+			, m_tag(T::TAG) {
+		}
+
+		template <typename T>
+		TaggedVariant(T&& t)
+			: std::variant<First, Types...>(std::move(t))
 			, m_tag(T::TAG) {
 		}
 

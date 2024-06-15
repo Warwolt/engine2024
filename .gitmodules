@@ -13,3 +13,6 @@
 [submodule "libs/freetype2"]
 	path = libs/freetype2
 	url = https://github.com/aseprite/freetype2.git
+[submodule "libs/json"]
+	path = libs/json
+	url = https://github.com/nlohmann/json.git

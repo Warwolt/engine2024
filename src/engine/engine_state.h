@@ -1,6 +1,8 @@
 #pragma once
 
 #include <engine/animation.h>
+#include <engine/editor.h>
+#include <engine/game_state.h>
 #include <engine/hot_reloading.h>
 #include <platform/font.h>
 #include <platform/input/input.h>
@@ -28,11 +30,6 @@ namespace engine {
 		AnimationSystem animation;
 	};
 
-	struct GameState {
-		int counter = 0;
-		uint64_t time_ms = 0;
-	};
-
 	struct State {
 		Resources resources;
 		Systems systems;
@@ -41,6 +38,7 @@ namespace engine {
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
 		GameState game;
+		EditorState editor;
 	};
 
 } // namespace engine

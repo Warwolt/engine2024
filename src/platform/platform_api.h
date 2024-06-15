@@ -1,8 +1,10 @@
 #pragma once
 
 #include <platform/tagged_variant.h>
+#include <platform/win32.h>
 #include <platform/window.h>
 
+#include <future>
 #include <string>
 #include <vector>
 
@@ -17,6 +19,10 @@ namespace platform {
 		// cursor
 		SetCursor,
 
+		// file
+		LoadFileWithDialog,
+		SaveFileWithDialog,
+
 		// window
 		ChangeResolution,
 		SetWindowMode,
@@ -24,14 +30,14 @@ namespace platform {
 		ToggleFullscreen,
 	};
 
-	enum class RunMode {
-		Game,
-		Editor,
-	};
-
 	enum class Cursor {
 		Arrow,
 		SizeAll,
+	};
+
+	enum class RunMode {
+		Game,
+		Editor,
 	};
 
 	namespace cmd::app {
@@ -59,6 +65,22 @@ namespace platform {
 		};
 
 	} // namespace cmd::cursor
+
+	namespace cmd::file {
+
+		struct LoadFileWithDialog {
+			static constexpr auto TAG = PlatformCommandType::LoadFileWithDialog;
+			std::promise<std::vector<uint8_t>> promise;
+			FileExplorerDialog dialog;
+		};
+
+		struct SaveFileWithDialog {
+			static constexpr auto TAG = PlatformCommandType::SaveFileWithDialog;
+			std::vector<uint8_t> data;
+			FileExplorerDialog dialog;
+		};
+
+	} // namespace cmd::file
 
 	namespace cmd::window {
 
@@ -90,6 +112,8 @@ namespace platform {
 		cmd::app::RebuildEngineLibrary,
 		cmd::app::SetRunMode,
 		cmd::cursor::SetCursor,
+		cmd::file::LoadFileWithDialog,
+		cmd::file::SaveFileWithDialog,
 		cmd::window::ChangeResolution,
 		cmd::window::SetWindowMode,
 		cmd::window::SetWindowTitle,
@@ -97,14 +121,24 @@ namespace platform {
 
 	class PlatformAPI {
 	public:
-		const std::vector<PlatformCommand>& commands() const;
+		std::vector<PlatformCommand>& commands();
+
 		void clear();
 
-		void change_resolution(int width, int height);
+		// application
 		void quit();
 		void rebuild_engine_library();
-		void set_cursor(Cursor cursor);
 		void set_run_mode(RunMode mode);
+
+		// cursor
+		void set_cursor(Cursor cursor);
+
+		// file
+		std::future<std::vector<uint8_t>> load_file_with_dialog(FileExplorerDialog dialog);
+		void save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog);
+
+		// window
+		void change_resolution(int width, int height);
 		void set_window_mode(WindowMode mode);
 		void set_window_title(const char* title);
 		void toggle_fullscreen();

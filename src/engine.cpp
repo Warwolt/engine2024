@@ -137,22 +137,7 @@ namespace engine {
 		/* Modules */
 		{
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);
-		}
-
-		/* Editor window */
-		if (editor_is_running && ImGui::Begin("Editor Window")) {
-			const int step = 1;
-			ImGui::InputScalar("Counter", ImGuiDataType_S16, &state->game.counter, &step, NULL, "%d");
-			if (ImGui::Button("Run game")) {
-				platform->set_run_mode(platform::RunMode::Game);
-				state->game.counter = 0;
-				state->game.time_ms = 0;
-			}
-			if (ImGui::Button("Resume game")) {
-				platform->set_run_mode(platform::RunMode::Game);
-			}
-
-			ImGui::End();
+			update_editor(&state->editor, &state->game, input, platform);
 		}
 	}
 
