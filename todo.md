@@ -9,6 +9,7 @@ Goals:
 
 ## TODO
 - Rename engine.cpp to engine_api.cpp
+- Add infrastructure for building a game binary
 - Setup ImGui docking branch
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed

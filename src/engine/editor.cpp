@@ -61,13 +61,31 @@ namespace engine {
 		return commands;
 	}
 
+	static std::optional<nlohmann::json> get_loaded_project_data(std::future<std::vector<uint8_t>>* project_data) {
+		if (util::future_has_value(*project_data)) {
+			std::vector<uint8_t> buffer = project_data->get();
+			if (!buffer.empty()) {
+				return nlohmann::json::parse(buffer);
+			}
+		}
+		return {};
+	}
+
 	void update_editor(
 		EditorState* editor,
 		GameState* game,
 		const platform::Input* input,
 		platform::PlatformAPI* platform
 	) {
+		/* Input */
 		const bool editor_is_running = input->mode == platform::RunMode::Editor;
+		const std::optional<nlohmann::json> loaded_project_data = get_loaded_project_data(&editor->input.project_data);
+
+		/* Process input */
+		if (loaded_project_data.has_value()) {
+			nlohmann::json json_object = loaded_project_data.value();
+			game->counter = json_object["counter"];
+		}
 
 		/* Run UI */
 		std::vector<EditorCommand> commands;
@@ -78,9 +96,9 @@ namespace engine {
 		/* Process commands */
 		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
-				case EditorCommand::NewProject: {
+				case EditorCommand::NewProject:
 					*game = {};
-				} break;
+				break;
 
 				case EditorCommand::LoadProject: {
 					platform::FileExplorerDialog dialog = {
@@ -113,15 +131,6 @@ namespace engine {
 				case EditorCommand::ContinueGame:
 					platform->set_run_mode(platform::RunMode::Game);
 					break;
-			}
-		}
-
-		/* Process input */
-		if (util::future_has_value(editor->input.project_data)) {
-			std::vector<uint8_t> buffer = editor->input.project_data.get();
-			if (!buffer.empty()) {
-				nlohmann::json json_object = nlohmann::json::parse(buffer);
-				game->counter = json_object["counter"];
 			}
 		}
 	}
