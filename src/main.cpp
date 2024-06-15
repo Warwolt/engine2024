@@ -22,6 +22,7 @@
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_syswm.h>
 #include <freetype/freetype.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp> // glm::ortho
@@ -30,16 +31,9 @@
 #include <imgui/imgui.h>
 
 #include <expected>
-#include <optional>
-
-// save file with dialog
-#include <SDL2/SDL_syswm.h>
-#include <commdlg.h>
-#include <fstream>
-#include <lean_mean_windows.h>
-#include <string.h>
-
 #include <filesystem>
+#include <fstream>
+#include <optional>
 
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
