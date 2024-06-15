@@ -1,5 +1,7 @@
 #pragma once
 
+#include <platform/assert.h>
+
 #include <magic_enum/magic_enum.h>
 
 #include <expected>

@@ -8,6 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Rename engine.cpp to engine_api.cpp
 - Setup ImGui docking branch
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
