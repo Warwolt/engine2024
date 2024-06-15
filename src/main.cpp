@@ -1,7 +1,7 @@
 #include <GL/glew.h>
 #include <ft2build.h>
 
-#include <engine.h>
+#include <engine/engine_api.h>
 #include <platform/assert.h>
 #include <platform/cli.h>
 #include <platform/file.h>
