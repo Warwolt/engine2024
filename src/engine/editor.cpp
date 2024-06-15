@@ -11,6 +11,56 @@
 
 namespace engine {
 
+	enum class EditorCommand {
+		NewProject,
+		LoadProject,
+		SaveProject,
+		RestartGame,
+		ContinueGame,
+	};
+
+	static std::vector<EditorCommand> update_editor_ui(GameState* game) {
+		std::vector<EditorCommand> commands;
+
+		/* Editor Menu Bar*/
+		if (ImGui::BeginMainMenuBar()) {
+			if (ImGui::BeginMenu("File")) {
+				if (ImGui::MenuItem("New Project")) {
+					commands.push_back(EditorCommand::NewProject);
+				}
+
+				if (ImGui::MenuItem("Load Project")) {
+					commands.push_back(EditorCommand::LoadProject);
+				}
+
+				if (ImGui::MenuItem("Save Project")) {
+					commands.push_back(EditorCommand::SaveProject);
+				}
+
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
+		}
+
+		/* Editor Window */
+		if (ImGui::Begin("Editor Window")) {
+			const int step = 1;
+			ImGui::InputScalar("Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
+
+			if (ImGui::Button("Run game")) {
+				commands.push_back(EditorCommand::RestartGame);
+			}
+
+			if (ImGui::Button("Resume game")) {
+				commands.push_back(EditorCommand::ContinueGame);
+			}
+
+			ImGui::End();
+		}
+
+		return commands;
+	}
+
 	void update_editor(
 		EditorState* editor,
 		GameState* game,
@@ -19,24 +69,29 @@ namespace engine {
 	) {
 		const bool editor_is_running = input->mode == platform::RunMode::Editor;
 
-		/* Editor Menu Bar*/
-		if (editor_is_running && ImGui::BeginMainMenuBar()) {
-			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem("New Project")) {
-					LOG_DEBUG("New Project");
+		/* Run UI */
+		std::vector<EditorCommand> commands;
+		if (editor_is_running) {
+			commands = update_editor_ui(game);
+		}
+
+		/* Process commands */
+		for (const EditorCommand& cmd : commands) {
+			switch (cmd) {
+				case EditorCommand::NewProject: {
 					*game = {};
-				}
-				if (ImGui::MenuItem("Load Project")) {
-					LOG_DEBUG("Load Project");
+				} break;
+
+				case EditorCommand::LoadProject: {
 					platform::FileExplorerDialog dialog = {
 						.title = "Load project",
 						.description = "JSON (*.json)",
 						.extension = "json",
 					};
 					editor->load_project_future = platform->load_file_with_dialog(dialog);
-				}
-				if (ImGui::MenuItem("Save Project")) {
-					LOG_DEBUG("Save Project");
+				} break;
+
+				case EditorCommand::SaveProject: {
 					nlohmann::json json_object = {
 						{ "counter", game->counter }
 					};
@@ -47,34 +102,27 @@ namespace engine {
 						.extension = "json",
 					};
 					platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
-				}
-				ImGui::EndMenu();
+				} break;
+
+				case EditorCommand::RestartGame:
+					platform->set_run_mode(platform::RunMode::Game);
+					game->counter = 0;
+					game->time_ms = 0;
+					break;
+
+				case EditorCommand::ContinueGame:
+					platform->set_run_mode(platform::RunMode::Game);
+					break;
 			}
-			ImGui::EndMainMenuBar();
 		}
 
+		/* Process input */
 		if (util::future_is_ready(editor->load_project_future)) {
 			std::vector<uint8_t> buffer = editor->load_project_future.get();
 			if (!buffer.empty()) {
 				nlohmann::json json_object = nlohmann::json::parse(buffer);
 				game->counter = json_object["counter"];
 			}
-		}
-
-		/* Editor Window */
-		if (editor_is_running && ImGui::Begin("Editor Window")) {
-			const int step = 1;
-			ImGui::InputScalar("Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
-			if (ImGui::Button("Run game")) {
-				platform->set_run_mode(platform::RunMode::Game);
-				game->counter = 0;
-				game->time_ms = 0;
-			}
-			if (ImGui::Button("Resume game")) {
-				platform->set_run_mode(platform::RunMode::Game);
-			}
-
-			ImGui::End();
 		}
 	}
 
