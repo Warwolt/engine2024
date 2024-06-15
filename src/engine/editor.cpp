@@ -15,8 +15,8 @@ namespace engine {
 		NewProject,
 		LoadProject,
 		SaveProject,
-		RestartGame,
-		ContinueGame,
+		ResetGameState,
+		RunGame,
 	};
 
 	static std::vector<EditorCommand> update_editor_ui(GameState* game) {
@@ -48,11 +48,12 @@ namespace engine {
 			ImGui::InputScalar("Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
 
 			if (ImGui::Button("Run game")) {
-				commands.push_back(EditorCommand::RestartGame);
+				commands.push_back(EditorCommand::ResetGameState);
+				commands.push_back(EditorCommand::RunGame);
 			}
 
 			if (ImGui::Button("Resume game")) {
-				commands.push_back(EditorCommand::ContinueGame);
+				commands.push_back(EditorCommand::RunGame);
 			}
 
 			ImGui::End();
@@ -98,7 +99,7 @@ namespace engine {
 			switch (cmd) {
 				case EditorCommand::NewProject:
 					*game = {};
-				break;
+					break;
 
 				case EditorCommand::LoadProject: {
 					platform::FileExplorerDialog dialog = {
@@ -122,13 +123,12 @@ namespace engine {
 					platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
 				} break;
 
-				case EditorCommand::RestartGame:
-					platform->set_run_mode(platform::RunMode::Game);
+				case EditorCommand::ResetGameState:
 					game->counter = 0;
 					game->time_ms = 0;
 					break;
 
-				case EditorCommand::ContinueGame:
+				case EditorCommand::RunGame:
 					platform->set_run_mode(platform::RunMode::Game);
 					break;
 			}

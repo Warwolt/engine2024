@@ -9,15 +9,18 @@ Goals:
 
 ## TODO
 - Rename engine.cpp to engine_api.cpp
+- Track if project as unsaved changes
+  - Prompt before "quit" and "new" before closing if unsaved changes
+  - Save As option
 - Add infrastructure for building a game binary
 - Setup ImGui docking branch
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
-- Add projects, load / save game data
 
 ## Done
+- Add projects, load / save game data
 - Use std::variant for PlatformAPI commands
 - Switch between editor mode / game mode
 - Give feedback in window title if compilation failed
