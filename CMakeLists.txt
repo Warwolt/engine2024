@@ -40,9 +40,9 @@ set(IMGUI_SRC
 )
 
 set(ENGINE_SRC
-    src/engine.cpp
     src/engine/animation.cpp
     src/engine/editor.cpp
+    src/engine/engine_api.cpp
     src/engine/hot_reloading.cpp
 )
 

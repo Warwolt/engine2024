@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Rename engine.cpp to engine_api.cpp
 - Track if project as unsaved changes
   - Prompt before "quit" and "new" before closing if unsaved changes
   - Save As option
@@ -18,6 +17,7 @@ Goals:
   - https://v8.dev/docs/embed
 
 ## Doing
+- Rename engine.cpp to engine_api.cpp
 
 ## Done
 - Add projects, load / save game data
