@@ -7,13 +7,6 @@
 #include <plog/Init.h>
 #include <util.h>
 
-// new load save prototyping
-#include <SDL2/SDL.h>
-#include <commdlg.h>
-#include <fstream>
-#include <lean_mean_windows.h>
-#include <nlohmann/json.hpp>
-
 namespace engine {
 
 	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform) {
