@@ -30,11 +30,6 @@ namespace engine {
 		AnimationSystem animation;
 	};
 
-	struct Project {
-		std::string name;
-		std::string path;
-	};
-
 	struct State {
 		Resources resources;
 		Systems systems;
@@ -44,7 +39,6 @@ namespace engine {
 		HotReloadingState hot_reloading;
 		GameState game;
 		EditorState editor;
-		Project project;
 	};
 
 } // namespace engine
