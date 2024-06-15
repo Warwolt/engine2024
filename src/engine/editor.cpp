@@ -88,7 +88,7 @@ namespace engine {
 						.description = "JSON (*.json)",
 						.extension = "json",
 					};
-					editor->load_project_future = platform->load_file_with_dialog(dialog);
+					editor->input.project_data = platform->load_file_with_dialog(dialog);
 				} break;
 
 				case EditorCommand::SaveProject: {
@@ -117,8 +117,8 @@ namespace engine {
 		}
 
 		/* Process input */
-		if (util::future_is_ready(editor->load_project_future)) {
-			std::vector<uint8_t> buffer = editor->load_project_future.get();
+		if (util::future_has_value(editor->input.project_data)) {
+			std::vector<uint8_t> buffer = editor->input.project_data.get();
 			if (!buffer.empty()) {
 				nlohmann::json json_object = nlohmann::json::parse(buffer);
 				game->counter = json_object["counter"];

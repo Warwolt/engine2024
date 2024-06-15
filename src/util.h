@@ -29,7 +29,7 @@ namespace util {
 	}
 
 	template <typename T>
-	bool future_is_ready(const std::future<T>& future) {
+	bool future_has_value(const std::future<T>& future) {
 		return future.valid() && future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 	}
 
