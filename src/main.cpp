@@ -202,6 +202,33 @@ int main(int argc, char** argv) {
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
 
+	// TEST ZIP CODE
+	{
+		mz_zip_archive zip_archive = { 0 };
+
+		// load zip
+		const char* file_name = "D:\\dev\\cpp\\engine2024\\hello.zip";
+		mz_uint32 flags = 0;
+		bool could_read = mz_zip_reader_init_file(&zip_archive, file_name, flags);
+		mz_zip_error error = mz_zip_get_last_error(&zip_archive);
+		const char* error_str = mz_zip_get_error_string(error);
+		ASSERT(could_read, "Could not open zip archive from file \"%s\": %s", file_name, error_str);
+
+		// print file names
+		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&zip_archive); i++) {
+			mz_zip_archive_file_stat file_stat;
+			if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) {
+				mz_zip_reader_end(&zip_archive);
+				ABORT("mz_zip_reader_file_stat() failed!");
+			}
+
+			LOG_DEBUG("Filename: \"%s\"", file_stat.m_filename);
+		}
+
+		// unload zip
+		mz_zip_reader_end(&zip_archive);
+	}
+
 	/* Main loop */
 	engine.initialize(&state);
 	while (!quit) {
