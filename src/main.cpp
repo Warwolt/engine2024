@@ -207,23 +207,38 @@ int main(int argc, char** argv) {
 		mz_zip_archive zip_archive = { 0 };
 
 		// load zip
-		const char* file_name = "D:\\dev\\cpp\\engine2024\\hello.zip";
-		mz_uint32 flags = 0;
-		bool could_read = mz_zip_reader_init_file(&zip_archive, file_name, flags);
-		mz_zip_error error = mz_zip_get_last_error(&zip_archive);
-		const char* error_str = mz_zip_get_error_string(error);
-		ASSERT(could_read, "Could not open zip archive from file \"%s\": %s", file_name, error_str);
+		{
+			const char* file_name = "D:\\dev\\cpp\\engine2024\\hello.zip";
+			bool could_read = mz_zip_reader_init_file(&zip_archive, file_name, 0);
+			mz_zip_error error = mz_zip_get_last_error(&zip_archive);
+			const char* error_str = mz_zip_get_error_string(error);
+			ASSERT(could_read, "Could not open zip archive from file \"%s\": %s", file_name, error_str);
+		}
 
 		// print file names
 		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&zip_archive); i++) {
 			mz_zip_archive_file_stat file_stat;
-			if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) {
-				mz_zip_reader_end(&zip_archive);
-				ABORT("mz_zip_reader_file_stat() failed!");
-			}
-
+			mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
 			LOG_DEBUG("Filename: \"%s\"", file_stat.m_filename);
 		}
+
+		// print content of file `hello.txt`
+		std::string hello_txt;
+		{
+			char* data = nullptr;
+			size_t num_bytes;
+			const char* file_name = "hello.txt";
+			data = (char*)mz_zip_reader_extract_file_to_heap(&zip_archive, file_name, &num_bytes, 0);
+			mz_zip_error error = mz_zip_get_last_error(&zip_archive);
+			const char* error_str = mz_zip_get_error_string(error);
+			ASSERT(data, "Could not read file \"%s\" inside archive: %s", file_name, error_str);
+			hello_txt = std::string(data, num_bytes);
+			mz_free((void*)data);
+		}
+		LOG_DEBUG("%s", hello_txt.c_str());
+
+		// print content of file `world/world.txt`
+		// TODO
 
 		// unload zip
 		mz_zip_reader_end(&zip_archive);
