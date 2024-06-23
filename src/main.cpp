@@ -229,6 +229,7 @@ int main(int argc, char** argv) {
 			size_t num_bytes;
 			const char* file_name = "hello.txt";
 			data = (char*)mz_zip_reader_extract_file_to_heap(&zip_archive, file_name, &num_bytes, 0);
+			LOG_DEBUG("Read %zu bytes from \"%s\"", num_bytes, file_name);
 			mz_zip_error error = mz_zip_get_last_error(&zip_archive);
 			const char* error_str = mz_zip_get_error_string(error);
 			ASSERT(data, "Could not read file \"%s\" inside archive: %s", file_name, error_str);
@@ -238,7 +239,20 @@ int main(int argc, char** argv) {
 		LOG_DEBUG("%s", hello_txt.c_str());
 
 		// print content of file `world/world.txt`
-		// TODO
+		std::string world_txt;
+		{
+			char* data = nullptr;
+			size_t num_bytes;
+			const char* file_name = "world/world.txt";
+			data = (char*)mz_zip_reader_extract_file_to_heap(&zip_archive, file_name, &num_bytes, 0);
+			LOG_DEBUG("Read %zu bytes from \"%s\"", num_bytes, file_name);
+			mz_zip_error error = mz_zip_get_last_error(&zip_archive);
+			const char* error_str = mz_zip_get_error_string(error);
+			ASSERT(data, "Could not read file \"%s\" inside archive: %s", file_name, error_str);
+			world_txt = std::string(data, num_bytes);
+			mz_free((void*)data);
+		}
+		LOG_DEBUG("%s", world_txt.c_str());
 
 		// unload zip
 		mz_zip_reader_end(&zip_archive);
