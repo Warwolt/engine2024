@@ -204,21 +204,21 @@ int main(int argc, char** argv) {
 
 	// TEST ZIP CODE
 	{
-		mz_zip_archive zip_archive = { 0 };
+		mz_zip_archive read_archive = { 0 };
 
 		const char* archive_path = "D:\\dev\\cpp\\engine2024\\hello.zip";
 		// load zip
 		{
-			bool could_read = mz_zip_reader_init_file(&zip_archive, archive_path, 0);
-			mz_zip_error error = mz_zip_get_last_error(&zip_archive);
+			bool could_read = mz_zip_reader_init_file(&read_archive, archive_path, 0);
+			mz_zip_error error = mz_zip_get_last_error(&read_archive);
 			const char* error_str = mz_zip_get_error_string(error);
 			ASSERT(could_read, "Could not open zip archive from file \"%s\": %s", archive_path, error_str);
 		}
 
 		// print file names
-		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&zip_archive); i++) {
+		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&read_archive); i++) {
 			mz_zip_archive_file_stat file_stat;
-			mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
+			mz_zip_reader_file_stat(&read_archive, i, &file_stat);
 			LOG_DEBUG("Filename: \"%s\"", file_stat.m_filename);
 		}
 
@@ -228,9 +228,9 @@ int main(int argc, char** argv) {
 			char* data = nullptr;
 			size_t num_bytes;
 			const char* file_name = "hello.txt";
-			data = (char*)mz_zip_reader_extract_file_to_heap(&zip_archive, file_name, &num_bytes, 0);
+			data = (char*)mz_zip_reader_extract_file_to_heap(&read_archive, file_name, &num_bytes, 0);
 			LOG_DEBUG("Read %zu bytes from \"%s\"", num_bytes, file_name);
-			mz_zip_error error = mz_zip_get_last_error(&zip_archive);
+			mz_zip_error error = mz_zip_get_last_error(&read_archive);
 			const char* error_str = mz_zip_get_error_string(error);
 			ASSERT(data, "Could not read file \"%s\" inside archive: %s", file_name, error_str);
 			hello_txt = std::string(data, num_bytes);
@@ -244,9 +244,9 @@ int main(int argc, char** argv) {
 			char* data = nullptr;
 			size_t num_bytes;
 			const char* file_name = "world/world.txt";
-			data = (char*)mz_zip_reader_extract_file_to_heap(&zip_archive, file_name, &num_bytes, 0);
+			data = (char*)mz_zip_reader_extract_file_to_heap(&read_archive, file_name, &num_bytes, 0);
 			LOG_DEBUG("Read %zu bytes from \"%s\"", num_bytes, file_name);
-			mz_zip_error error = mz_zip_get_last_error(&zip_archive);
+			mz_zip_error error = mz_zip_get_last_error(&read_archive);
 			const char* error_str = mz_zip_get_error_string(error);
 			ASSERT(data, "Could not read file \"%s\" inside archive: %s", file_name, error_str);
 			world_txt = std::string(data, num_bytes);
@@ -254,33 +254,63 @@ int main(int argc, char** argv) {
 		}
 		LOG_DEBUG("%s", world_txt.c_str());
 
-		// close zip
-		mz_zip_reader_end(&zip_archive);
-
-		// write data to `hello.txt`
+		// HACK: get a file name to index map
+		std::unordered_map<std::string, mz_uint> file_indicies;
 		{
-			std::string temp_archive_path = std::string(archive_path, strlen(archive_path) - strlen(".zip")) + "-temp.zip"; // FIXME: this should utilize `std::filesystem::path` and `replace_filename`
+			for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&read_archive); i++) {
+				mz_zip_archive_file_stat file_stat;
+				mz_zip_reader_file_stat(&read_archive, i, &file_stat);
+				file_indicies[file_stat.m_filename] = file_stat.m_file_index;
+				LOG_DEBUG("file \"%s\" has index %zu", file_stat.m_filename, file_stat.m_file_index);
+			}
+		}
+
+		// write to `hello.txt` inside temporary archive
+		{
+			const std::string temp_archive_path = std::string(archive_path, strlen(archive_path) - strlen(".zip")) + "-temp.zip"; // FIXME: this should utilize `std::filesystem::path` and `replace_filename`
 
 			// write to string
-			hello_txt.append(":)");
+			hello_txt.append(" :)");
 
 			// delete temp archive if exists
 			if (std::filesystem::exists(temp_archive_path)) {
 				std::filesystem::remove(temp_archive_path);
 			}
 
-			// create temp archive and write hello_txt to it
+			// create temp archive
+			mz_zip_archive write_archive = { 0 };
 			{
-				bool result = mz_zip_add_mem_to_archive_file_in_place(temp_archive_path.c_str(), "hello.txt", hello_txt.data(), hello_txt.size(), nullptr, 0, 0);
-				mz_zip_error error = mz_zip_get_last_error(&zip_archive);
+				mz_bool result = mz_zip_writer_init_file(&write_archive, temp_archive_path.c_str(), 0);
+				mz_zip_error error = mz_zip_get_last_error(&read_archive);
 				const char* error_str = mz_zip_get_error_string(error);
-				ASSERT(result, "Could not write file \"%s\" to archive: %s", temp_archive_path.c_str(), error_str);
+				ASSERT(result, "Could not create new zip file \"%s\": %s", temp_archive_path.c_str(), error_str);
+			}
+
+			// write hello_txt to temp archive
+			{
+				bool result = mz_zip_writer_add_mem(&write_archive, "hello.txt", hello_txt.data(), hello_txt.size(), 0);
+				mz_zip_error error = mz_zip_get_last_error(&read_archive);
+				const char* error_str = mz_zip_get_error_string(error);
+				ASSERT(result, "Could not write file \"%s\" to archive: %s", "hello.txt", error_str);
 			}
 
 			// copy non-modified file to temp archive
 			{
-				// TODO
+				bool result = mz_zip_writer_add_from_zip_reader(&write_archive, &read_archive, file_indicies["world/world.txt"]);
+				mz_zip_error error = mz_zip_get_last_error(&read_archive);
+				const char* error_str = mz_zip_get_error_string(error);
+				ASSERT(result, "Could not write file \"%s\" to archive: %s", "world/world.txt", error_str);
 			}
+
+			// finalize
+			{
+				bool result = mz_zip_writer_finalize_archive(&write_archive);
+				ASSERT(result, "Could not finalize archive \"%s\"", temp_archive_path.c_str());
+				mz_zip_writer_end(&write_archive);
+			}
+
+			// close reader zip
+			mz_zip_reader_end(&read_archive);
 
 			// replace old file with temp
 			std::filesystem::rename(temp_archive_path, archive_path);
