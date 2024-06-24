@@ -206,13 +206,13 @@ int main(int argc, char** argv) {
 	{
 		mz_zip_archive read_archive = { 0 };
 
-		const char* archive_path = "D:\\dev\\cpp\\engine2024\\hello.zip";
+		std::filesystem::path archive_path = "D:\\dev\\cpp\\engine2024\\hello.zip";
 		// load zip
 		{
-			bool could_read = mz_zip_reader_init_file(&read_archive, archive_path, 0);
+			bool could_read = mz_zip_reader_init_file(&read_archive, archive_path.string().c_str(), 0);
 			mz_zip_error error = mz_zip_get_last_error(&read_archive);
 			const char* error_str = mz_zip_get_error_string(error);
-			ASSERT(could_read, "Could not open zip archive from file \"%s\": %s", archive_path, error_str);
+			ASSERT(could_read, "Could not open zip archive from file \"%s\": %s", archive_path.string().c_str(), error_str);
 		}
 
 		// print file names
@@ -254,7 +254,7 @@ int main(int argc, char** argv) {
 		}
 		LOG_DEBUG("%s", world_txt.c_str());
 
-		// HACK: get a file name to index map
+		// create mappin from file names to archive file indicies
 		std::unordered_map<std::string, mz_uint> file_indicies;
 		{
 			for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&read_archive); i++) {
@@ -267,7 +267,8 @@ int main(int argc, char** argv) {
 
 		// write to `hello.txt` inside temporary archive
 		{
-			const std::string temp_archive_path = std::string(archive_path, strlen(archive_path) - strlen(".zip")) + "-temp.zip"; // FIXME: this should utilize `std::filesystem::path` and `replace_filename`
+			std::filesystem::path temp_archive_path = archive_path;
+			temp_archive_path.replace_filename(archive_path.filename().string() + "-temp");
 
 			// write to string
 			hello_txt.append(" :)");
@@ -280,10 +281,10 @@ int main(int argc, char** argv) {
 			// create temp archive
 			mz_zip_archive write_archive = { 0 };
 			{
-				mz_bool result = mz_zip_writer_init_file(&write_archive, temp_archive_path.c_str(), 0);
+				mz_bool result = mz_zip_writer_init_file(&write_archive, temp_archive_path.string().c_str(), 0);
 				mz_zip_error error = mz_zip_get_last_error(&read_archive);
 				const char* error_str = mz_zip_get_error_string(error);
-				ASSERT(result, "Could not create new zip file \"%s\": %s", temp_archive_path.c_str(), error_str);
+				ASSERT(result, "Could not create new zip file \"%s\": %s", temp_archive_path.string().c_str(), error_str);
 			}
 
 			// write hello_txt to temp archive
@@ -305,7 +306,7 @@ int main(int argc, char** argv) {
 			// finalize
 			{
 				bool result = mz_zip_writer_finalize_archive(&write_archive);
-				ASSERT(result, "Could not finalize archive \"%s\"", temp_archive_path.c_str());
+				ASSERT(result, "Could not finalize archive \"%s\"", temp_archive_path.string().c_str());
 				mz_zip_writer_end(&write_archive);
 			}
 
