@@ -17,6 +17,7 @@
 #include <platform/renderer.h>
 #include <platform/win32.h>
 #include <platform/window.h>
+#include <platform/zip.h>
 #include <util.h>
 
 #include <GL/glu.h>
@@ -127,6 +128,15 @@ static std::vector<uint8_t> read_file(const std::filesystem::path& path) {
 	return buffer;
 }
 
+static std::optional<platform::Archive> read_archive2(const std::filesystem::path& path) {
+	std::optional<platform::Archive> project_archive = platform::Archive();
+	bool could_read = mz_zip_reader_init_file(&project_archive->m_archive, path.string().c_str(), 0);
+	mz_zip_error error = mz_zip_get_last_error(&project_archive->m_archive);
+	const char* error_str = mz_zip_get_error_string(error);
+	ASSERT(could_read, "Could not open zip archive from file \"%s\": %s", path.string().c_str(), error_str);
+	return project_archive;
+}
+
 int main(int argc, char** argv) {
 	/* Parse args */
 	platform::CliCommands cmd_args = util::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
@@ -203,22 +213,50 @@ int main(int argc, char** argv) {
 	}
 
 	// TEST ZIP CODE
-	{
-		mz_zip_archive read_archive = { 0 };
+	// TODO:
+	//   1. Read project zip file from disk
+	//   2. Deserialize project data into struct
+	//   3. Modify project data in memory
+	//   4. Serialize project data to file
+	//   5. Write file back to zip on disk
 
+	// NOTE:
+	// What if we have _a lot_ of data, and only need _some_ of it at a time?
+	// It seems sensible that some resource manager module would be able to
+	// provide accessing data from a zip-archive without having to read and
+	// deserialize everything at once.
+	//
+	// Basically, we'd want to treat the archive just as if it was files on disk
+	// and read data when we need it.
+	//
+	// Additionally, we probably also want to be able to access data from BOTH
+	// zip archives _as well as_ from disk. (E.g. we're working on a project and
+	// are trying out some new assets, but we haven't commited them to game yet).
+
+	// How do we differntiate between files on disk and files in an archive?
+	// Should we have "read_from_archive" and "read_from_file" functions?
+	// (This seems the most explicit and less risky, we can just resource identifiers
+	// as a pair of a (path, FILE/ZIP) pair).
+
+	// 1. Read archive from disk into an archive struct
+	// 2. Deserialize project metadata from archive
+	// 3. Update project metadata in memory
+	// 4. Serialize project metadata and write back to temp archive
+	// 5. Copy all non-touched files from archive to temp archive
+	// 6. Replace archive with temp archive
+
+	{
+		platform::Archive project_archive;
 		std::filesystem::path archive_path = "D:\\dev\\cpp\\engine2024\\hello.zip";
-		// load zip
-		{
-			bool could_read = mz_zip_reader_init_file(&read_archive, archive_path.string().c_str(), 0);
-			mz_zip_error error = mz_zip_get_last_error(&read_archive);
-			const char* error_str = mz_zip_get_error_string(error);
-			ASSERT(could_read, "Could not open zip archive from file \"%s\": %s", archive_path.string().c_str(), error_str);
+		std::optional<std::string> archive_error = platform::Archive::open_from_file(&project_archive, archive_path);
+		if (archive_error) {
+			ABORT("Could not open zip archive from file \"%s\": %s", archive_path.string().c_str(), archive_error->c_str());
 		}
 
 		// print file names
-		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&read_archive); i++) {
+		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&project_archive.m_archive); i++) {
 			mz_zip_archive_file_stat file_stat;
-			mz_zip_reader_file_stat(&read_archive, i, &file_stat);
+			mz_zip_reader_file_stat(&project_archive.m_archive, i, &file_stat);
 			LOG_DEBUG("Filename: \"%s\"", file_stat.m_filename);
 		}
 
@@ -228,9 +266,9 @@ int main(int argc, char** argv) {
 			char* data = nullptr;
 			size_t num_bytes;
 			const char* file_name = "hello.txt";
-			data = (char*)mz_zip_reader_extract_file_to_heap(&read_archive, file_name, &num_bytes, 0);
+			data = (char*)mz_zip_reader_extract_file_to_heap(&project_archive.m_archive, file_name, &num_bytes, 0);
 			LOG_DEBUG("Read %zu bytes from \"%s\"", num_bytes, file_name);
-			mz_zip_error error = mz_zip_get_last_error(&read_archive);
+			mz_zip_error error = mz_zip_get_last_error(&project_archive.m_archive);
 			const char* error_str = mz_zip_get_error_string(error);
 			ASSERT(data, "Could not read file \"%s\" inside archive: %s", file_name, error_str);
 			hello_txt = std::string(data, num_bytes);
@@ -244,26 +282,15 @@ int main(int argc, char** argv) {
 			char* data = nullptr;
 			size_t num_bytes;
 			const char* file_name = "world/world.txt";
-			data = (char*)mz_zip_reader_extract_file_to_heap(&read_archive, file_name, &num_bytes, 0);
+			data = (char*)mz_zip_reader_extract_file_to_heap(&project_archive.m_archive, file_name, &num_bytes, 0);
 			LOG_DEBUG("Read %zu bytes from \"%s\"", num_bytes, file_name);
-			mz_zip_error error = mz_zip_get_last_error(&read_archive);
+			mz_zip_error error = mz_zip_get_last_error(&project_archive.m_archive);
 			const char* error_str = mz_zip_get_error_string(error);
 			ASSERT(data, "Could not read file \"%s\" inside archive: %s", file_name, error_str);
 			world_txt = std::string(data, num_bytes);
 			mz_free((void*)data);
 		}
 		LOG_DEBUG("%s", world_txt.c_str());
-
-		// create mappin from file names to archive file indicies
-		std::unordered_map<std::string, mz_uint> file_indicies;
-		{
-			for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&read_archive); i++) {
-				mz_zip_archive_file_stat file_stat;
-				mz_zip_reader_file_stat(&read_archive, i, &file_stat);
-				file_indicies[file_stat.m_filename] = file_stat.m_file_index;
-				LOG_DEBUG("file \"%s\" has index %zu", file_stat.m_filename, file_stat.m_file_index);
-			}
-		}
 
 		// write to `hello.txt` inside temporary archive
 		{
@@ -282,7 +309,7 @@ int main(int argc, char** argv) {
 			mz_zip_archive write_archive = { 0 };
 			{
 				mz_bool result = mz_zip_writer_init_file(&write_archive, temp_archive_path.string().c_str(), 0);
-				mz_zip_error error = mz_zip_get_last_error(&read_archive);
+				mz_zip_error error = mz_zip_get_last_error(&project_archive.m_archive);
 				const char* error_str = mz_zip_get_error_string(error);
 				ASSERT(result, "Could not create new zip file \"%s\": %s", temp_archive_path.string().c_str(), error_str);
 			}
@@ -290,15 +317,15 @@ int main(int argc, char** argv) {
 			// write hello_txt to temp archive
 			{
 				bool result = mz_zip_writer_add_mem(&write_archive, "hello.txt", hello_txt.data(), hello_txt.size(), 0);
-				mz_zip_error error = mz_zip_get_last_error(&read_archive);
+				mz_zip_error error = mz_zip_get_last_error(&project_archive.m_archive);
 				const char* error_str = mz_zip_get_error_string(error);
 				ASSERT(result, "Could not write file \"%s\" to archive: %s", "hello.txt", error_str);
 			}
 
 			// copy non-modified file to temp archive
 			{
-				bool result = mz_zip_writer_add_from_zip_reader(&write_archive, &read_archive, file_indicies["world/world.txt"]);
-				mz_zip_error error = mz_zip_get_last_error(&read_archive);
+				bool result = mz_zip_writer_add_from_zip_reader(&write_archive, &project_archive.m_archive, project_archive.m_file_indicies["world/world.txt"]);
+				mz_zip_error error = mz_zip_get_last_error(&project_archive.m_archive);
 				const char* error_str = mz_zip_get_error_string(error);
 				ASSERT(result, "Could not write file \"%s\" to archive: %s", "world/world.txt", error_str);
 			}
@@ -311,10 +338,12 @@ int main(int argc, char** argv) {
 			}
 
 			// close reader zip
-			mz_zip_reader_end(&read_archive);
+			mz_zip_reader_end(&project_archive.m_archive);
 
 			// replace old file with temp
 			std::filesystem::rename(temp_archive_path, archive_path);
+
+			LOG_DEBUG("Done with zip test");
 		}
 	}
 

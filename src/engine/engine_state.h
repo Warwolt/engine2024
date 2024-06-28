@@ -30,6 +30,10 @@ namespace engine {
 		AnimationSystem animation;
 	};
 
+	struct Project {
+		std::string name;
+	};
+
 	struct State {
 		Resources resources;
 		Systems systems;
@@ -37,6 +41,7 @@ namespace engine {
 		glm::vec2 window_resolution;
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
+		Project project;
 		GameState game;
 		EditorState editor;
 	};

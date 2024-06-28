@@ -63,6 +63,7 @@ set(PLATFORM_SRC
     src/platform/texture.cpp
     src/platform/win32.cpp
     src/platform/window.cpp
+    src/platform/zip.cpp
 )
 
 set(TEST_SRC
