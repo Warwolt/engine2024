@@ -31,7 +31,7 @@ namespace platform {
 		static std::optional<std::string> open_from_file(FileArchive* archive, const std::filesystem::path& path);
 
 		const std::vector<std::string> file_names() const;
-		std::expected<std::vector<uint8_t>, FileArchiveError> read_file(std::string file_name);
+		std::expected<std::vector<uint8_t>, FileArchiveError> read_from_archive(std::string file_name);
 
 		mz_zip_archive m_mz_archive = { 0 };
 		ArchiveMode m_mode = ArchiveMode::Read;

@@ -2,6 +2,8 @@
 
 #include <platform/logging.h>
 
+#include <algorithm>
+
 namespace platform {
 
 	std::optional<std::string> FileArchive::open_from_file(FileArchive* archive, const std::filesystem::path& path) {
@@ -28,7 +30,11 @@ namespace platform {
 		return m_file_names;
 	}
 
-	std::expected<std::vector<uint8_t>, FileArchiveError> FileArchive::read_file(std::string file_name) {
+	std::expected<std::vector<uint8_t>, FileArchiveError> FileArchive::read_from_archive(std::string file_name) {
+		if (std::find(m_file_names.begin(), m_file_names.end(), file_name) == m_file_names.end()) {
+			return std::unexpected(FileArchiveError::NoSuchFile);
+		}
+
 		/* Try to read data */
 		char* data = nullptr;
 		size_t num_bytes;

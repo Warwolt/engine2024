@@ -230,7 +230,7 @@ int main(int argc, char** argv) {
 		std::string hello_txt;
 		{
 			const char* file_name = "hello.txt";
-			std::expected<std::vector<uint8_t>, platform::FileArchiveError> read_result = project_archive.read_file(file_name);
+			std::expected<std::vector<uint8_t>, platform::FileArchiveError> read_result = project_archive.read_from_archive(file_name);
 			if (!read_result.has_value()) {
 				ABORT("Could not read file \"%s\" inside archive", file_name);
 			}
@@ -240,27 +240,26 @@ int main(int argc, char** argv) {
 
 		// print content of file `world/world.txt`
 		std::string world_txt;
-		if (0) {
-			char* data = nullptr;
-			size_t num_bytes;
+		{
 			const char* file_name = "world/world.txt";
-			data = (char*)mz_zip_reader_extract_file_to_heap(&project_archive.m_mz_archive, file_name, &num_bytes, 0);
-			LOG_DEBUG("Read %zu bytes from \"%s\"", num_bytes, file_name);
-			mz_zip_error error = mz_zip_get_last_error(&project_archive.m_mz_archive);
-			const char* error_str = mz_zip_get_error_string(error);
-			ASSERT(data, "Could not read file \"%s\" inside archive: %s", file_name, error_str);
-			world_txt = std::string(data, num_bytes);
-			mz_free((void*)data);
+			std::expected<std::vector<uint8_t>, platform::FileArchiveError> read_result = project_archive.read_from_archive(file_name);
+			if (!read_result.has_value()) {
+				ABORT("Could not read file \"%s\" inside archive", file_name);
+			}
+			world_txt = std::string(read_result.value().begin(), read_result.value().end());
 		}
 		LOG_DEBUG("%s", world_txt.c_str());
+
+		// write to string
+		hello_txt.append(" :)");
+
+		// project_archive.write_to_archive("hello.txt", hello_txt.data(), hello_txt.size());
+		// project_archive.write_archive_to_disk();
 
 		// write to `hello.txt` inside temporary archive
 		{
 			std::filesystem::path temp_archive_path = archive_path;
 			temp_archive_path.replace_filename(archive_path.filename().string() + "-temp");
-
-			// write to string
-			hello_txt.append(" :)");
 
 			// delete temp archive if exists
 			if (std::filesystem::exists(temp_archive_path)) {
