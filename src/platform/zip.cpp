@@ -140,6 +140,8 @@ namespace platform {
 
 		/* Re-open archive */
 		FileArchive::open_from_file(this, m_path);
+
+		return {};
 	}
 
 } // namespace platform

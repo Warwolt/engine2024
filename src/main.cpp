@@ -128,15 +128,6 @@ static std::vector<uint8_t> read_file(const std::filesystem::path& path) {
 	return buffer;
 }
 
-static std::optional<platform::FileArchive> read_archive2(const std::filesystem::path& path) {
-	std::optional<platform::FileArchive> project_archive = platform::FileArchive();
-	bool could_read = mz_zip_reader_init_file(&project_archive->m_mz_archive, path.string().c_str(), 0);
-	mz_zip_error error = mz_zip_get_last_error(&project_archive->m_mz_archive);
-	const char* error_str = mz_zip_get_error_string(error);
-	ASSERT(could_read, "Could not open zip archive from file \"%s\": %s", path.string().c_str(), error_str);
-	return project_archive;
-}
-
 int main(int argc, char** argv) {
 	/* Parse args */
 	platform::CliCommands cmd_args = util::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {

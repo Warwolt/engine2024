@@ -30,6 +30,7 @@ namespace platform {
 		void write_to_archive(std::string file_name, uint8_t* data, size_t num_bytes);
 		std::expected<void, FileArchiveError> write_archive_to_disk(const std::filesystem::path& path);
 
+	private:
 		mz_zip_archive m_mz_archive = { 0 };
 		std::filesystem::path m_path;
 		std::unordered_map<std::string, mz_uint> m_file_indicies;
