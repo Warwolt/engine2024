@@ -8,6 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Move util.h header into a "core" namespace (i.e. project standard library)
 - Track if project as unsaved changes
   - Prompt before "quit" and "new" before closing if unsaved changes
   - Save As option
@@ -16,7 +17,7 @@ Goals:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Add infrastructure for building a game binary
+- Add infrastructure for running engine as standalone game
 
 ## Done
 - Rename engine.cpp to engine_api.cpp

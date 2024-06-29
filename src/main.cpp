@@ -253,59 +253,11 @@ int main(int argc, char** argv) {
 		// write to string
 		hello_txt.append(" :)");
 
-		// project_archive.write_to_archive("hello.txt", hello_txt.data(), hello_txt.size());
-		// project_archive.write_archive_to_disk();
+		// write to archive
+		project_archive.write_to_archive("hello.txt", (uint8_t*)hello_txt.data(), hello_txt.size());
+		project_archive.write_archive_to_disk(archive_path);
 
-		// write to `hello.txt` inside temporary archive
-		{
-			std::filesystem::path temp_archive_path = archive_path;
-			temp_archive_path.replace_filename(archive_path.filename().string() + "-temp");
-
-			// delete temp archive if exists
-			if (std::filesystem::exists(temp_archive_path)) {
-				std::filesystem::remove(temp_archive_path);
-			}
-
-			// create temp archive
-			mz_zip_archive write_archive = { 0 };
-			{
-				mz_bool result = mz_zip_writer_init_file(&write_archive, temp_archive_path.string().c_str(), 0);
-				mz_zip_error error = mz_zip_get_last_error(&project_archive.m_mz_archive);
-				const char* error_str = mz_zip_get_error_string(error);
-				ASSERT(result, "Could not create new zip file \"%s\": %s", temp_archive_path.string().c_str(), error_str);
-			}
-
-			// write hello_txt to temp archive
-			{
-				bool result = mz_zip_writer_add_mem(&write_archive, "hello.txt", hello_txt.data(), hello_txt.size(), 0);
-				mz_zip_error error = mz_zip_get_last_error(&project_archive.m_mz_archive);
-				const char* error_str = mz_zip_get_error_string(error);
-				ASSERT(result, "Could not write file \"%s\" to archive: %s", "hello.txt", error_str);
-			}
-
-			// copy non-modified file to temp archive
-			{
-				bool result = mz_zip_writer_add_from_zip_reader(&write_archive, &project_archive.m_mz_archive, project_archive.m_file_indicies["world/world.txt"]);
-				mz_zip_error error = mz_zip_get_last_error(&project_archive.m_mz_archive);
-				const char* error_str = mz_zip_get_error_string(error);
-				ASSERT(result, "Could not write file \"%s\" to archive: %s", "world/world.txt", error_str);
-			}
-
-			// finalize
-			{
-				bool result = mz_zip_writer_finalize_archive(&write_archive);
-				ASSERT(result, "Could not finalize archive \"%s\"", temp_archive_path.string().c_str());
-				mz_zip_writer_end(&write_archive);
-			}
-
-			// close reader zip
-			mz_zip_reader_end(&project_archive.m_mz_archive);
-
-			// replace old file with temp
-			std::filesystem::rename(temp_archive_path, archive_path);
-
-			LOG_DEBUG("Done with zip test");
-		}
+		LOG_DEBUG("Done with zip test");
 	}
 
 	return 0; // just do zip stuff atm

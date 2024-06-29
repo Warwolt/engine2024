@@ -4,6 +4,7 @@
 
 #include <magic_enum/magic_enum.h>
 
+#include <algorithm>
 #include <expected>
 #include <future>
 #include <optional>
@@ -31,6 +32,18 @@ namespace util {
 	template <typename T>
 	bool future_has_value(const std::future<T>& future) {
 		return future.valid() && future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+	}
+
+	template <typename Container, typename T>
+	bool contains(const Container& container, const T& value) {
+		return std::find(container.begin(), container.end(), value) != container.end();
+	}
+
+	template <typename Container, typename Predicate>
+	Container filter(const Container& container, Predicate predicate) {
+		Container result;
+		std::copy_if(container.begin(), container.end(), std::back_inserter(result), predicate);
+		return result;
 	}
 
 	template <typename T>

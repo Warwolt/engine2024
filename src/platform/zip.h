@@ -11,32 +11,29 @@
 
 namespace platform {
 
-	enum class ArchiveMode {
-		Read,
-		Write,
-	};
-
 	enum class FileArchiveError {
 		NoSuchFile,
 		ReadFailed,
+		CouldNotCreateArchive,
+		CouldNotWriteArchive,
+		WritingFileFailed,
 	};
 
 	class FileArchive {
 	public:
 		FileArchive() = default;
 
-		// NOTE: For some cursed reason we can't just return a `mz_zip_archive` inside a std::expected,
-		// because when later using the archive we end up with some pointer not having beed copied?
-		// The only safe way to initialize is by-reference. Who knows, something something UB maybe.
 		static std::optional<std::string> open_from_file(FileArchive* archive, const std::filesystem::path& path);
 
 		const std::vector<std::string> file_names() const;
-		std::expected<std::vector<uint8_t>, FileArchiveError> read_from_archive(std::string file_name);
+		std::expected<std::vector<uint8_t>, FileArchiveError> read_from_archive(const std::string& file_name);
+		void write_to_archive(std::string file_name, uint8_t* data, size_t num_bytes);
+		std::expected<void, FileArchiveError> write_archive_to_disk(const std::filesystem::path& path);
 
 		mz_zip_archive m_mz_archive = { 0 };
-		ArchiveMode m_mode = ArchiveMode::Read;
-
+		std::filesystem::path m_path;
 		std::unordered_map<std::string, mz_uint> m_file_indicies;
+		std::unordered_map<std::string, std::vector<uint8_t>> m_write_data;
 		std::vector<std::string> m_file_names;
 	};
 
