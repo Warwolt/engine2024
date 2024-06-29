@@ -25,6 +25,7 @@ namespace platform {
 		}
 
 		archive->m_path = path;
+		archive->m_is_valid = true;
 
 		/* Read file stats from archive */
 		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&archive->m_mz_archive); i++) {
@@ -35,6 +36,10 @@ namespace platform {
 		}
 
 		return {};
+	}
+
+	bool FileArchive::is_valid() const {
+		return m_is_valid;
 	}
 
 	const std::vector<std::string> FileArchive::file_names() const {

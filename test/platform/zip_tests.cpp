@@ -16,7 +16,14 @@ public:
 
 std::filesystem::path ZipTests::m_test_zip_path;
 
-TEST_F(ZipTests, Hello) {
-	// TODO write some zip archive unit tests
-	EXPECT_EQ(1 + 1, 3) << "Hello world!";
+TEST_F(ZipTests, DefaultConstructedArchive_IsNotYetValid) {
+	platform::FileArchive archive;
+	EXPECT_FALSE(archive.is_valid());
+}
+
+TEST_F(ZipTests, ArchiveLoadedFromZipFile_IfZipFileExists_ArchiveIsValid) {
+	platform::FileArchive archive;
+	std::optional<std::string> error = platform::FileArchive::open_from_file(&archive, m_test_zip_path.c_str());
+	EXPECT_FALSE(error.has_value()) << "Opening an exising archive should not result in any errors";
+	EXPECT_TRUE(archive.is_valid());
 }
