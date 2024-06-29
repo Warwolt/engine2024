@@ -8,6 +8,12 @@
 
 namespace platform {
 
+	FileArchive::~FileArchive() {
+		if (m_is_valid) {
+			mz_zip_end(&m_mz_archive);
+		}
+	}
+
 	std::optional<std::string> FileArchive::open_from_file(FileArchive* archive, const std::filesystem::path& path) {
 		// FIXME: For some reason we can't just return an `mz_zip_archive`
 		// inside a std::expected, because when we later use the archive we end
@@ -112,6 +118,11 @@ namespace platform {
 		FileArchive::open_from_file(this, m_path); // re-open the original archive again
 
 		return {};
+	}
+
+	void FileArchive::close() {
+		m_is_valid = false;
+		mz_zip_end(&m_mz_archive);
 	}
 
 	std::expected<void, FileArchiveError> FileArchive::_open_from_file_in_write_mode(mz_zip_archive* mz_archive, const std::filesystem::path& path) {
