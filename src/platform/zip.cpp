@@ -38,6 +38,14 @@ namespace platform {
 		return {};
 	}
 
+	void FileArchive::initialize_archive(FileArchive* archive) {
+		*archive = {};
+		archive->m_mz_archive = { 0 };
+		archive->m_is_valid = true;
+
+		mz_zip_writer_init(&archive->m_mz_archive, 0);
+	}
+
 	bool FileArchive::is_valid() const {
 		return m_is_valid;
 	}

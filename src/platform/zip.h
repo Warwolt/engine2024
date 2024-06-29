@@ -24,6 +24,7 @@ namespace platform {
 		FileArchive() = default;
 
 		static std::optional<std::string> open_from_file(FileArchive* archive, const std::filesystem::path& path);
+		static void initialize_archive(FileArchive* archive);
 
 		bool is_valid() const;
 		const std::vector<std::string> file_names() const;
