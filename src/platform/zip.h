@@ -31,6 +31,9 @@ namespace platform {
 		std::expected<void, FileArchiveError> write_archive_to_disk(const std::filesystem::path& path);
 
 	private:
+		static std::expected<void, FileArchiveError> _open_from_file_in_write_mode(mz_zip_archive* mz_archive, const std::filesystem::path& path);
+		std::expected<void, FileArchiveError> _write_archive_to_disk(mz_zip_archive* temp_mz_archive, const std::filesystem::path& temp_mz_archive_path);
+
 		mz_zip_archive m_mz_archive = { 0 };
 		std::filesystem::path m_path;
 		std::unordered_map<std::string, mz_uint> m_file_indicies;

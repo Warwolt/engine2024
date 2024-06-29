@@ -9,6 +9,7 @@ Goals:
 
 ## TODO
 - Move util.h header into a "core" namespace (i.e. project standard library)
+- Move tagged_variant.h to "core"
 - Track if project as unsaved changes
   - Prompt before "quit" and "new" before closing if unsaved changes
   - Save As option

@@ -79,28 +79,52 @@ namespace platform {
 		std::filesystem::path temp_archive_path = path;
 		temp_archive_path.replace_filename(path.filename().string() + "-temp");
 
-		/* Delete temp archive if already exists */
-		if (std::filesystem::exists(temp_archive_path)) {
-			std::filesystem::remove(temp_archive_path);
-		}
-
 		/* Create temp archive */
-		mz_zip_archive temp_mz_archive = { 0 };
-		{
-			mz_bool result = mz_zip_writer_init_file(&temp_mz_archive, temp_archive_path.string().c_str(), 0);
-			if (!result) {
-				mz_zip_error error = mz_zip_get_last_error(&temp_mz_archive);
-				const char* error_str = mz_zip_get_error_string(error);
-				LOG_ERROR("Could not create new zip file \"%s\": %s", temp_archive_path.string().c_str(), error_str);
-				return std::unexpected(FileArchiveError::CouldNotCreateArchive);
-			}
+		mz_zip_archive temp_mz_archive;
+		std::expected<void, FileArchiveError> open_result = FileArchive::_open_from_file_in_write_mode(&temp_mz_archive, temp_archive_path);
+		if (!open_result.has_value()) {
+			return open_result;
 		}
 
+		/* Write to disk */
+		std::expected<void, FileArchiveError> write_result = _write_archive_to_disk(&temp_mz_archive, temp_archive_path);
+		if (!write_result.has_value()) {
+			return write_result;
+		}
+
+		/* Replace old file with temp file */
+		mz_zip_writer_end(&temp_mz_archive); // done with temp archive, free it
+		mz_zip_reader_end(&m_mz_archive); // close original archive file so we can write to it
+		std::filesystem::rename(temp_archive_path, path); // replace old archive with new
+		FileArchive::open_from_file(this, m_path); // re-open the original archive again
+
+		return {};
+	}
+
+	std::expected<void, FileArchiveError> FileArchive::_open_from_file_in_write_mode(mz_zip_archive* mz_archive, const std::filesystem::path& path) {
+		/* Delete archive if it already exists */
+		if (std::filesystem::exists(path)) {
+			std::filesystem::remove(path);
+		}
+
+		/* Create archive */
+		*mz_archive = { 0 };
+		mz_bool result = mz_zip_writer_init_file(mz_archive, path.string().c_str(), 0);
+		if (!result) {
+			mz_zip_error error = mz_zip_get_last_error(mz_archive);
+			const char* error_str = mz_zip_get_error_string(error);
+			LOG_ERROR("Could not create new zip file \"%s\": %s", path.string().c_str(), error_str);
+			return std::unexpected(FileArchiveError::CouldNotCreateArchive);
+		}
+
+		return {};
+	}
+
+	std::expected<void, FileArchiveError> FileArchive::_write_archive_to_disk(mz_zip_archive* temp_mz_archive, const std::filesystem::path& temp_mz_archive_path) {
 		/* Write new files to archive */
 		for (auto& [file_name, buffer] : m_write_data) {
-			bool result = mz_zip_writer_add_mem(&temp_mz_archive, file_name.c_str(), buffer.data(), buffer.size(), 0);
+			bool result = mz_zip_writer_add_mem(temp_mz_archive, file_name.c_str(), buffer.data(), buffer.size(), 0);
 			if (!result) {
-				mz_zip_writer_end(&temp_mz_archive);
 				mz_zip_error error = mz_zip_get_last_error(&m_mz_archive);
 				const char* error_str = mz_zip_get_error_string(error);
 				LOG_ERROR("Could not write file \"%s\" to archive: %s", file_name.c_str(), error_str);
@@ -113,9 +137,8 @@ namespace platform {
 			return !m_write_data.contains(file_name);
 		});
 		for (const std::string& file_name : non_modified_file_names) {
-			bool result = mz_zip_writer_add_from_zip_reader(&temp_mz_archive, &m_mz_archive, m_file_indicies[file_name]);
+			bool result = mz_zip_writer_add_from_zip_reader(temp_mz_archive, &m_mz_archive, m_file_indicies[file_name]);
 			if (!result) {
-				mz_zip_writer_end(&temp_mz_archive);
 				mz_zip_error error = mz_zip_get_last_error(&m_mz_archive);
 				const char* error_str = mz_zip_get_error_string(error);
 				LOG_ERROR("Could not write file \"%s\" to archive: %s", file_name.c_str(), error_str);
@@ -125,21 +148,12 @@ namespace platform {
 
 		/* Write archive to disk */
 		{
-			bool result = mz_zip_writer_finalize_archive(&temp_mz_archive);
+			bool result = mz_zip_writer_finalize_archive(temp_mz_archive);
 			if (!result) {
-				mz_zip_writer_end(&temp_mz_archive);
-				LOG_ERROR("Could not finalize archive \"%s\"", temp_archive_path.string().c_str());
+				LOG_ERROR("Could not finalize archive \"%s\"", temp_mz_archive_path.string().c_str());
 				return std::unexpected(FileArchiveError::CouldNotWriteArchive);
 			}
-			mz_zip_writer_end(&temp_mz_archive);
-
-			// replace old file with temp
-			mz_zip_reader_end(&m_mz_archive);
-			std::filesystem::rename(temp_archive_path, path);
 		}
-
-		/* Re-open archive */
-		FileArchive::open_from_file(this, m_path);
 
 		return {};
 	}
