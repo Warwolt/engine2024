@@ -48,7 +48,7 @@ TEST(SignalTests, IntSignal_WhenCopyAssignedTwice_DidNotJustBecomeThatValue) {
 	EXPECT_FALSE(signal.just_became(234));
 }
 
-TEST(SignalTests, StringSignal_CanBeAssignedConstChar) {
+TEST(SignalTests, StringSignal_CanBeAssignedCString) {
 	core::Signal<std::string> signal;
 	const char* string = "Hello World";
 	signal = "Hello World";
