@@ -205,12 +205,10 @@ int main(int argc, char** argv) {
 
 	// ZIP TEST
 	{
-		platform::FileArchive project_archive;
 		std::filesystem::path archive_path = "D:\\dev\\cpp\\engine2024\\hello.zip";
-		std::optional<std::string> archive_error = platform::FileArchive::open_from_file(&project_archive, archive_path);
-		if (archive_error) {
-			ABORT("Could not open zip archive from file \"%s\": %s", archive_path.string().c_str(), archive_error->c_str());
-		}
+		platform::FileArchive project_archive = util::unwrap(platform::FileArchive::open_from_file(archive_path), [&archive_path](const std::string& error_msg) {
+			ABORT("Could not open zip archive from file \"%s\": %s", archive_path.string().c_str(), error_msg.c_str());
+		});
 
 		// print file names
 		for (const std::string& file_name : project_archive.file_names()) {

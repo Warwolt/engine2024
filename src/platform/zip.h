@@ -16,23 +16,21 @@ namespace platform {
 		ReadFailed,
 		CouldNotCreateArchive,
 		CouldNotWriteArchive,
+		CouldNotReopenArchive,
 		WritingFileFailed,
 	};
 
-	// NOTE: there's a stupid "pointer to self" in mz_zip_archive!
-	// That means we really can't _copy_ a mz_zip_archive without also updating the
-	// value of mz_zip_archive::m_pIO_opaque
-	// We should probably verify that just doing copying a mz_zip_archive fucks it up
-	// and second make sure FileArchive only has constructors that allow us to keep
-	// that stupid m_pIO_opaque value correctly set.
-
 	class FileArchive {
 	public:
-		FileArchive() = default;
+		FileArchive();
+		FileArchive(const FileArchive& other) = delete;
+		FileArchive(FileArchive&& other);
+		FileArchive& operator=(const FileArchive& other) = delete;
+		FileArchive& operator=(FileArchive&& other);
+
 		~FileArchive();
 
-		static std::optional<std::string> open_from_file(FileArchive* archive, const std::filesystem::path& path);
-		static void initialize_archive(FileArchive* archive);
+		static std::expected<FileArchive, std::string> open_from_file(const std::filesystem::path& path);
 
 		bool is_valid() const;
 		const std::vector<std::string> file_names() const;

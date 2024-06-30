@@ -4,9 +4,42 @@
 #include <util.h>
 
 #include <algorithm>
+#include <cstring>
 #include <filesystem>
 
 namespace platform {
+
+	FileArchive::FileArchive()
+		: m_mz_archive { 0 }
+		, m_is_valid(true) {
+		mz_zip_writer_init_heap(&m_mz_archive, 0, 0);
+		m_mz_archive.m_pIO_opaque = &m_mz_archive;
+	}
+
+	FileArchive::FileArchive(FileArchive&& other) {
+		m_mz_archive = other.m_mz_archive;
+		m_mz_archive.m_pIO_opaque = &m_mz_archive;
+		m_is_valid = other.m_is_valid;
+		m_path = other.m_path;
+		m_file_indicies = std::move(other.m_file_indicies);
+		m_write_data = std::move(other.m_write_data);
+		m_file_names = std::move(other.m_file_names);
+
+		other.m_is_valid = false;
+	}
+
+	FileArchive& FileArchive::operator=(FileArchive&& other) {
+		m_mz_archive = other.m_mz_archive;
+		m_mz_archive.m_pIO_opaque = &m_mz_archive;
+		m_is_valid = other.m_is_valid;
+		m_path = other.m_path;
+		m_file_indicies = std::move(other.m_file_indicies);
+		m_write_data = std::move(other.m_write_data);
+		m_file_names = std::move(other.m_file_names);
+
+		other.m_is_valid = false;
+		return *this;
+	}
 
 	FileArchive::~FileArchive() {
 		if (m_is_valid) {
@@ -14,42 +47,31 @@ namespace platform {
 		}
 	}
 
-	std::optional<std::string> FileArchive::open_from_file(FileArchive* archive, const std::filesystem::path& path) {
-		// FIXME: For some reason we can't just return an `mz_zip_archive`
-		// inside a std::expected, because when we later use the archive we end
-		// up with m_pState in some bad state that causes miniz to assert when
-		// trying to read files from the archive. The only safe way to
-		// initialize is by-reference. Who knows why, something something UB maybe.
+	std::expected<FileArchive, std::string> FileArchive::open_from_file(const std::filesystem::path& path) {
+		FileArchive archive;
 
 		/* Read Zip from file */
-		archive->m_mz_archive = { 0 };
-		bool could_read = mz_zip_reader_init_file(&archive->m_mz_archive, path.string().c_str(), 0);
+		archive.m_mz_archive = { 0 };
+		bool could_read = mz_zip_reader_init_file(&archive.m_mz_archive, path.string().c_str(), 0);
 		if (!could_read) {
-			mz_zip_error error = mz_zip_get_last_error(&archive->m_mz_archive);
+			archive.m_is_valid = false;
+			mz_zip_error error = mz_zip_get_last_error(&archive.m_mz_archive);
 			const char* error_str = mz_zip_get_error_string(error);
-			return error_str;
+			return std::unexpected(error_str);
 		}
 
-		archive->m_path = path;
-		archive->m_is_valid = true;
+		archive.m_path = path;
+		archive.m_is_valid = true;
 
 		/* Read file stats from archive */
-		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&archive->m_mz_archive); i++) {
+		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&archive.m_mz_archive); i++) {
 			mz_zip_archive_file_stat file_stat;
-			mz_zip_reader_file_stat(&archive->m_mz_archive, i, &file_stat);
-			archive->m_file_names.push_back(file_stat.m_filename);
-			archive->m_file_indicies[file_stat.m_filename] = file_stat.m_file_index;
+			mz_zip_reader_file_stat(&archive.m_mz_archive, i, &file_stat);
+			archive.m_file_names.push_back(file_stat.m_filename);
+			archive.m_file_indicies[file_stat.m_filename] = file_stat.m_file_index;
 		}
 
-		return {};
-	}
-
-	void FileArchive::initialize_archive(FileArchive* archive) {
-		*archive = {};
-		archive->m_mz_archive = { 0 };
-		archive->m_is_valid = true;
-
-		mz_zip_writer_init(&archive->m_mz_archive, 0);
+		return archive;
 	}
 
 	bool FileArchive::is_valid() const {
@@ -96,7 +118,7 @@ namespace platform {
 	std::expected<void, FileArchiveError> FileArchive::write_archive_to_disk(const std::filesystem::path& path) {
 		/* Create name of temp archive */
 		std::filesystem::path temp_archive_path = path;
-		temp_archive_path.replace_filename(path.filename().string() + "-temp");
+		temp_archive_path.replace_filename(path.stem().string() + "-temp" + path.extension().string());
 
 		/* Create temp archive */
 		mz_zip_archive temp_mz_archive;
@@ -115,9 +137,25 @@ namespace platform {
 		mz_zip_writer_end(&temp_mz_archive); // done with temp archive, free it
 		mz_zip_reader_end(&m_mz_archive); // close original archive file so we can write to it
 		std::filesystem::rename(temp_archive_path, path); // replace old archive with new
-		FileArchive::open_from_file(this, m_path); // re-open the original archive again
-
-		return {};
+		if (!m_path.empty()) {
+			// re-open original archive if archive created with file path
+			std::expected<FileArchive, std::string> reopen_result = FileArchive::open_from_file(m_path);
+			if (reopen_result.has_value()) {
+				*this = std::move(reopen_result.value());
+				return {};
+			}
+			else {
+				LOG_ERROR("Could not re-open archive: %s", reopen_result.error().c_str());
+				m_is_valid = false;
+				return std::unexpected(FileArchiveError::CouldNotReopenArchive);
+			}
+		}
+		else {
+			// else, just re-initialize the mz_zip_archive
+			m_mz_archive = { 0 };
+			mz_zip_writer_init_heap(&m_mz_archive, 0, 0);
+			return {};
+		}
 	}
 
 	void FileArchive::close() {
