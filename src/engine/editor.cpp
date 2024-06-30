@@ -2,7 +2,7 @@
 
 #include <core/container.h>
 #include <engine/game_state.h>
-#include <engine/project_state.h>
+#include <engine/project.h>
 #include <platform/input/input.h>
 #include <platform/logging.h>
 #include <platform/platform_api.h>
@@ -96,7 +96,7 @@ namespace engine {
 		/* Process input */
 		if (loaded_project_data.has_value()) {
 			nlohmann::json json_object = loaded_project_data.value();
-			game->counter = json_object["counter"];
+			project->name = json_object["project_name"];
 		}
 
 		/* Run UI */
@@ -115,21 +115,21 @@ namespace engine {
 				case EditorCommand::LoadProject: {
 					platform::FileExplorerDialog dialog = {
 						.title = "Load project",
-						.description = "JSON (*.json)",
-						.extension = "json",
+						.description = "(PAK *.pak)",
+						.extension = "pak",
 					};
 					editor->input.project_data = platform->load_file_with_dialog(dialog);
 				} break;
 
 				case EditorCommand::SaveProject: {
 					nlohmann::json json_object = {
-						{ "counter", game->counter }
+						{ "project_name", project->name }
 					};
 					std::string data = json_object.dump();
 					platform::FileExplorerDialog dialog = {
 						.title = "Save project",
-						.description = "JSON (*.json)",
-						.extension = "json",
+						.description = "PAK (*.pak)",
+						.extension = "pak",
 					};
 					platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
 				} break;
