@@ -1,6 +1,6 @@
 #pragma once
 
-namespace platform {
+namespace core {
 
 	template <typename T>
 	class Signal {
@@ -48,4 +48,4 @@ namespace platform {
 		T m_previous;
 	};
 
-} // namespace platform
+} // namespace core

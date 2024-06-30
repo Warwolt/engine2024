@@ -1,9 +1,9 @@
 #pragma once
 
+#include <core/signal.h>
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
 #include <platform/platform_api.h>
-#include <platform/signal.h>
 #include <platform/win32.h>
 
 #include <SDL2/SDL_events.h>
@@ -32,9 +32,9 @@ namespace platform {
 		uint64_t global_time_ms = 0;
 
 		glm::vec2 window_resolution;
-		Signal<bool> engine_is_rebuilding = false;
+		core::Signal<bool> engine_is_rebuilding = false;
 		ExitCode engine_rebuild_exit_code = 0;
-		Signal<RunMode> mode;
+		core::Signal<RunMode> mode;
 
 		Keyboard keyboard;
 		Mouse mouse;
