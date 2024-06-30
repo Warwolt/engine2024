@@ -2,6 +2,8 @@
 
 #include <core/signal.h>
 
+#include <string>
+
 TEST(SignalTests, BooleanSignal_ImplicityConvertsToBool) {
 	core::Signal<bool> signal = true;
 	EXPECT_EQ(signal, true);
@@ -44,4 +46,11 @@ TEST(SignalTests, IntSignal_WhenCopyAssignedTwice_DidNotJustBecomeThatValue) {
 	signal = signal2;
 	signal = signal2;
 	EXPECT_FALSE(signal.just_became(234));
+}
+
+TEST(SignalTests, StringSignal_CanBeAssignedCString) {
+	core::Signal<std::string> signal;
+	const char* string = "Hello World";
+	signal = "Hello World";
+	EXPECT_STREQ(signal.value().c_str(), string);
 }

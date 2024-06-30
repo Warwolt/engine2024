@@ -33,7 +33,19 @@ namespace core {
 			return *this;
 		}
 
-		operator T() const { return m_current; }
+		Signal& operator=(const T& value) {
+			m_previous = m_current;
+			m_current = value;
+			return *this;
+		}
+
+		operator T() const {
+			return m_current;
+		}
+
+		const T& value() {
+			return m_current;
+		}
 
 		bool just_became(const T& x) const {
 			return m_current == x && m_previous != x;
