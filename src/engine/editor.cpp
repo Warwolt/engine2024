@@ -99,17 +99,28 @@ namespace engine {
 		const platform::Input* input,
 		platform::PlatformAPI* platform
 	) {
+		/* Skip */
+		// FIXME: Uh, why is the caller not just skipping the update_editor call .. ?
+		if (input->mode != platform::RunMode::Editor) {
+			return;
+		}
+
 		/* Input */
 		const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.futures.project_data);
-		const std::optional<platform::SaveResult<std::filesystem::path>> save_project_result = core::container::try_get_future_value(editor->input.futures.save_project_result);
-		std::filesystem::path saved_project_path;
-		if (save_project_result.has_value() && save_project_result.value().has_value()) {
-			saved_project_path = save_project_result.value().value();
-		}
-		const bool editor_is_running = input->mode == platform::RunMode::Editor;
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 
-		/* Process input */
+		/* Process events */
+		// if (std::optional<platform::SaveResult<std::filesystem::path>> result = core::future::get_value(editor->input.save_project_result)) {
+		if (std::optional<platform::SaveResult<std::filesystem::path>> save_result = core::container::try_get_future_value(editor->input.futures.save_project_result)) {
+			if (save_result.value().has_value()) {
+				std::filesystem::path path = **save_result;
+				if (!path.empty()) {
+					project->path = path;
+					editor->ui.saved_project_hash = current_project_hash;
+				}
+			}
+		}
+
 		if (loaded_project_data.has_value()) {
 			nlohmann::json json_object = loaded_project_data.value();
 			project->name = json_object["project_name"];
@@ -117,17 +128,16 @@ namespace engine {
 			editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
 		}
 
-		if (!saved_project_path.empty()) {
-			project->path = saved_project_path;
-			editor->ui.saved_project_hash = current_project_hash;
-		}
-
 		/* Run UI */
 		const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
 		std::vector<EditorCommand> commands;
-		if (editor_is_running) {
-			commands = update_editor_ui(&editor->ui, game, project, project_has_unsaved_changes);
-		}
+		commands = update_editor_ui(&editor->ui, game, project, project_has_unsaved_changes);
+
+		// TODO:
+		// - update project path when loading from file
+		// - warn when closing editor with unsaved changes
+		// - warn when loading project if unsaved changes
+		// - add save-as menu option
 
 		/* Process commands */
 		for (const EditorCommand& cmd : commands) {
