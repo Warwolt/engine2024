@@ -203,54 +203,6 @@ int main(int argc, char** argv) {
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
 
-	// ZIP TEST
-	{
-		std::filesystem::path archive_path = "D:\\dev\\cpp\\engine2024\\hello.zip";
-		platform::FileArchive project_archive = util::unwrap(platform::FileArchive::open_from_file(archive_path), [&archive_path](const std::string& error_msg) {
-			ABORT("Could not open zip archive from file \"%s\": %s", archive_path.string().c_str(), error_msg.c_str());
-		});
-
-		// print file names
-		for (const std::string& file_name : project_archive.file_names()) {
-			LOG_DEBUG("Filename: \"%s\"", file_name.c_str());
-		}
-
-		// print content of file `hello.txt`
-		std::string hello_txt;
-		{
-			const char* file_name = "hello.txt";
-			std::expected<std::vector<uint8_t>, platform::FileArchiveError> read_result = project_archive.read_from_archive(file_name);
-			if (!read_result.has_value()) {
-				ABORT("Could not read file \"%s\" inside archive", file_name);
-			}
-			hello_txt = std::string(read_result.value().begin(), read_result.value().end());
-		}
-		LOG_DEBUG("%s", hello_txt.c_str());
-
-		// print content of file `world/world.txt`
-		std::string world_txt;
-		{
-			const char* file_name = "world/world.txt";
-			std::expected<std::vector<uint8_t>, platform::FileArchiveError> read_result = project_archive.read_from_archive(file_name);
-			if (!read_result.has_value()) {
-				ABORT("Could not read file \"%s\" inside archive", file_name);
-			}
-			world_txt = std::string(read_result.value().begin(), read_result.value().end());
-		}
-		LOG_DEBUG("%s", world_txt.c_str());
-
-		// write to string
-		hello_txt.append(" :)");
-
-		// write to archive
-		project_archive.write_to_archive("hello.txt", (uint8_t*)hello_txt.data(), hello_txt.size());
-		project_archive.write_archive_to_disk(archive_path);
-
-		LOG_DEBUG("Done with zip test");
-	}
-
-	return 0; // just do zip stuff atm
-
 	/* Main loop */
 	engine.initialize(&state);
 	while (!quit) {
