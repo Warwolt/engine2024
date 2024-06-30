@@ -89,7 +89,7 @@ namespace engine {
 
 	void init_editor(EditorState* editor, const ProjectState* project) {
 		editor->ui.project_name_buf = project->name;
-		editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
+		editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
 	}
 
 	void update_editor(
@@ -102,23 +102,25 @@ namespace engine {
 		/* Input */
 		const bool editor_is_running = input->mode == platform::RunMode::Editor;
 		const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.futures.project_data);
-		const std::optional<std::filesystem::path> project_path = core::container::try_get_future_value(editor->input.futures.project_path);
+		const std::optional<std::filesystem::path> saved_project_path = core::container::try_get_future_value(editor->input.futures.saved_project_path);
+		const bool project_data_synced_with_disk = saved_project_path.has_value() && !saved_project_path->empty(); // use path updated as heuristic
+		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 
 		/* Process input */
 		if (loaded_project_data.has_value()) {
 			nlohmann::json json_object = loaded_project_data.value();
 			project->name = json_object["project_name"];
 			editor->ui.project_name_buf = project->name;
-			editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
+			editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
 		}
 
-		if (project_path.has_value()) {
-			project->path = project_path.value();
+		if (project_data_synced_with_disk) {
+			project->path = saved_project_path.value();
+			editor->ui.saved_project_hash = current_project_hash;
 		}
 
 		/* Run UI */
-		size_t current_project_hash = std::hash<ProjectState>()(*project);
-		const bool project_has_unsaved_changes = editor->ui.loaded_project_hash != current_project_hash;
+		const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
 
 		std::vector<EditorCommand> commands;
 		if (editor_is_running) {
@@ -151,12 +153,12 @@ namespace engine {
 						.description = "PAK (*.pak)",
 						.extension = "pak",
 					};
-					const bool project_file_exists = false;
+					const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
 					if (project_file_exists && project_has_unsaved_changes) {
-						// save file
+						LOG_DEBUG("SAVE FILE");
 					}
-					else {
-						editor->input.futures.project_path = platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
+					if (!project_file_exists) {
+						editor->input.futures.saved_project_path = platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
 					}
 				} break;
 

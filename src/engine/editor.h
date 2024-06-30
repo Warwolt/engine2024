@@ -1,9 +1,9 @@
 #pragma once
 
+#include <filesystem>
 #include <future>
 #include <stdint.h>
 #include <vector>
-#include <filesystem>
 
 namespace platform {
 	struct Input;
@@ -18,12 +18,12 @@ namespace engine {
 	struct EditorInput {
 		struct Futures {
 			std::future<std::vector<uint8_t>> project_data;
-			std::future<std::filesystem::path> project_path;
+			std::future<std::filesystem::path> saved_project_path;
 		} futures;
 	};
 
 	struct EditorUiState {
-		size_t loaded_project_hash; // for "unsaved changes" prompts
+		size_t saved_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
 	};
 
