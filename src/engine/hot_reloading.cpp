@@ -6,19 +6,25 @@
 
 namespace engine {
 
-	static std::string loading_window_title_animation(float t) {
+	static std::string loading_window_title_animation(float t, const std::string& window_title) {
 		if (t < 1.0 / 3.0) {
-			return "Engine2024 (rebuilding)";
+			return window_title + " (rebuilding)";
 		}
 		if (t < 2.0 / 3.0) {
-			return "Engine2024 (rebuilding.)";
+			return window_title + " (rebuilding.)";
 		}
 		else /* t < 3.0 / 3.0 */ {
-			return "Engine2024 (rebuilding..)";
+			return window_title + " (rebuilding..)";
 		}
 	}
 
-	void update_hot_reloading(HotReloadingState* hot_reloading, AnimationSystem* animation_system, const platform::Input* input, platform::PlatformAPI* platform) {
+	void update_hot_reloading(
+		HotReloadingState* hot_reloading,
+		AnimationSystem* animation_system,
+		const platform::Input* input,
+		platform::PlatformAPI* platform,
+		const std::string& window_title
+	) {
 		/* Input */
 		const bool hot_reload_key_pressed = input->keyboard.key_pressed_now(SDLK_F5);
 		const bool library_rebuild_just_started = input->engine_is_rebuilding.just_became(true);
@@ -40,20 +46,20 @@ namespace engine {
 		}
 
 		/* Animate title while loading */
-		std::string window_title = "Engine2024";
+		std::string new_window_title = window_title;
 		if (std::optional<Animation> animation = animation_system->most_recent_animation("loading_window_title")) {
 			if (animation->is_playing(global_time_ms)) {
-				window_title = loading_window_title_animation(animation->local_time(global_time_ms));
+				new_window_title = loading_window_title_animation(animation->local_time(global_time_ms), window_title);
 			}
 		}
 
 		/* Display error message if rebuild failed */
 		if (!input->engine_is_rebuilding && input->engine_rebuild_exit_code != 0) {
-			window_title += " (!! Hot reloading failed !!)";
+			new_window_title += " (!! Hot reloading failed !!)";
 		}
 
 		/* Render */
-		platform->set_window_title(window_title.c_str());
+		platform->set_window_title(new_window_title.c_str());
 	}
 
 } // namespace engine

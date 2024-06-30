@@ -2,11 +2,13 @@
 
 #include <core/container.h>
 #include <engine/game_state.h>
+#include <engine/project.h>
 #include <platform/input/input.h>
 #include <platform/logging.h>
 #include <platform/platform_api.h>
 
 #include <imgui/imgui.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 #include <nlohmann/json.hpp>
 
 namespace engine {
@@ -19,7 +21,7 @@ namespace engine {
 		RunGame,
 	};
 
-	static std::vector<EditorCommand> update_editor_ui(GameState* game) {
+	static std::vector<EditorCommand> update_editor_ui(EditorUiState* ui, GameState* game, ProjectState* project) {
 		std::vector<EditorCommand> commands;
 
 		/* Editor Menu Bar*/
@@ -42,10 +44,19 @@ namespace engine {
 			ImGui::EndMainMenuBar();
 		}
 
+		size_t current_project_hash = std::hash<ProjectState>()(*project);
+		const bool unsaved_changes = ui->loaded_project_hash != current_project_hash;
+
 		/* Editor Window */
 		if (ImGui::Begin("Editor Window")) {
 			const int step = 1;
 			ImGui::InputScalar("Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
+
+			ImGui::Text("Unsaved changes: %s", unsaved_changes ? "yes" : "no");
+
+			if (ImGui::InputText("Project name", &ui->project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
+				project->name = ui->project_name_buf;
+			}
 
 			if (ImGui::Button("Run game")) {
 				commands.push_back(EditorCommand::ResetGameState);
@@ -72,9 +83,15 @@ namespace engine {
 		return {};
 	}
 
+	void init_editor(EditorState* editor, const ProjectState* project) {
+		editor->ui.project_name_buf = project->name;
+		editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
+	}
+
 	void update_editor(
 		EditorState* editor,
 		GameState* game,
+		ProjectState* project,
 		const platform::Input* input,
 		platform::PlatformAPI* platform
 	) {
@@ -85,13 +102,15 @@ namespace engine {
 		/* Process input */
 		if (loaded_project_data.has_value()) {
 			nlohmann::json json_object = loaded_project_data.value();
-			game->counter = json_object["counter"];
+			project->name = json_object["project_name"];
+			editor->ui.project_name_buf = project->name;
+			editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
 		}
 
 		/* Run UI */
 		std::vector<EditorCommand> commands;
 		if (editor_is_running) {
-			commands = update_editor_ui(game);
+			commands = update_editor_ui(&editor->ui, game, project);
 		}
 
 		/* Process commands */
@@ -104,21 +123,21 @@ namespace engine {
 				case EditorCommand::LoadProject: {
 					platform::FileExplorerDialog dialog = {
 						.title = "Load project",
-						.description = "JSON (*.json)",
-						.extension = "json",
+						.description = "(PAK *.pak)",
+						.extension = "pak",
 					};
 					editor->input.project_data = platform->load_file_with_dialog(dialog);
 				} break;
 
 				case EditorCommand::SaveProject: {
 					nlohmann::json json_object = {
-						{ "counter", game->counter }
+						{ "project_name", project->name }
 					};
 					std::string data = json_object.dump();
 					platform::FileExplorerDialog dialog = {
 						.title = "Save project",
-						.description = "JSON (*.json)",
-						.extension = "json",
+						.description = "PAK (*.pak)",
+						.extension = "pak",
 					};
 					platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
 				} break;

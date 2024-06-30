@@ -56,6 +56,12 @@ namespace engine {
 	}
 
 	void initialize(State* state) {
+		/* Initialize */
+		{
+			state->project.name = "Untitled Project";
+			init_editor(&state->editor, &state->project);
+		}
+
 		/* Add fonts */
 		{
 			const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
@@ -136,8 +142,8 @@ namespace engine {
 
 		/* Modules */
 		{
-			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform);
-			update_editor(&state->editor, &state->game, input, platform);
+			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, state->project.name);
+			update_editor(&state->editor, &state->game, &state->project, input, platform);
 		}
 	}
 

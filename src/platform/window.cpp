@@ -5,9 +5,9 @@
 
 namespace platform {
 
-	std::optional<Window> Window::create(int width, int height, int window_flags) {
+	std::optional<Window> Window::create(int width, int height, int window_flags, const std::string& window_title) {
 		SDL_Window* sdl_window = SDL_CreateWindow(
-			"Game Engine 2024",
+			window_title.c_str(),
 			SDL_WINDOWPOS_CENTERED,
 			SDL_WINDOWPOS_CENTERED,
 			width,
