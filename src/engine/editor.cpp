@@ -99,6 +99,10 @@ namespace engine {
 			project->name = json_object["project_name"];
 		}
 
+		if (project->name.just_changed()) {
+			editor->ui.project_name_buf = project->name;
+		}
+
 		/* Run UI */
 		std::vector<EditorCommand> commands;
 		if (editor_is_running) {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <core/signal.h>
+
 #include <string>
 
 namespace engine {
@@ -8,7 +10,7 @@ namespace engine {
 	 * The meta data for the game project.
 	 */
 	struct ProjectState {
-		std::string name;
+		core::Signal<std::string> name;
 	};
 
 } // namespace engine
