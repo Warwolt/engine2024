@@ -100,18 +100,13 @@ namespace engine {
 		platform::PlatformAPI* platform
 	) {
 		/* Input */
-		// futures
-		// FIXME:
-		// always make the save return expected<path, error>
 		const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.futures.project_data);
-		const std::optional<std::expected<void, platform::SaveFileError>> save_project_result = core::container::try_get_future_value(editor->input.futures.save_project_result);
-		const std::optional<std::filesystem::path> saved_project_path = core::container::try_get_future_value(editor->input.futures.saved_project_path);
-
-		// other
+		const std::optional<std::expected<std::filesystem::path, platform::SaveFileError>> save_project_result = core::container::try_get_future_value(editor->input.futures.save_project_result);
+		std::filesystem::path saved_project_path;
+		if (save_project_result.has_value() && save_project_result.value().has_value()) {
+			saved_project_path = save_project_result.value().value();
+		}
 		const bool editor_is_running = input->mode == platform::RunMode::Editor;
-		const bool project_data_synced_with_disk =
-			(saved_project_path.has_value() && !saved_project_path->empty()) ||
-			(save_project_result.has_value());
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 
 		/* Process input */
@@ -122,11 +117,8 @@ namespace engine {
 			editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
 		}
 
-		if (project_data_synced_with_disk) {
-			// FIXME: this if is temporary, just use same result-type for both "save" and "save as"
-			if (saved_project_path) {
-				project->path = saved_project_path.value();
-			}
+		if (!saved_project_path.empty()) {
+			project->path = saved_project_path;
 			editor->ui.saved_project_hash = current_project_hash;
 		}
 
@@ -169,7 +161,7 @@ namespace engine {
 						editor->input.futures.save_project_result = platform->save_file(std::vector<uint8_t>(json_data.begin(), json_data.end()), project->path);
 					}
 					if (!project_file_exists) {
-						editor->input.futures.saved_project_path = platform->save_file_with_dialog(std::vector<uint8_t>(json_data.begin(), json_data.end()), dialog);
+						editor->input.futures.save_project_result = platform->save_file_with_dialog(std::vector<uint8_t>(json_data.begin(), json_data.end()), dialog);
 					}
 				} break;
 

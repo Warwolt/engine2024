@@ -20,8 +20,7 @@ namespace engine {
 	struct EditorInput {
 		struct Futures {
 			std::future<std::vector<uint8_t>> project_data;
-			std::future<std::expected<void, platform::SaveFileError>> save_project_result;
-			std::future<std::filesystem::path> saved_project_path;
+			std::future<std::expected<std::filesystem::path, platform::SaveFileError>> save_project_result;
 		} futures;
 	};
 

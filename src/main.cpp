@@ -365,7 +365,7 @@ int main(int argc, char** argv) {
 						file.open(save_file.path);
 						if (file.is_open()) {
 							file.write((char*)save_file.data.data(), save_file.data.size());
-							save_file.result_promise.set_value({}); // signal done
+							save_file.result_promise.set_value(std::move(save_file.path));
 						}
 						else {
 							save_file.result_promise.set_value(std::unexpected(platform::SaveFileError::CouldNotCreateFile));
@@ -376,7 +376,7 @@ int main(int argc, char** argv) {
 						auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
 						if (std::optional<std::string> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
-							save_file_with_dialog.path_promise.set_value(path.value());
+							save_file_with_dialog.result_promise.set_value(path.value());
 							std::ofstream file;
 							file.open(path.value());
 							if (file.is_open()) {
@@ -384,7 +384,8 @@ int main(int argc, char** argv) {
 							}
 						}
 						else {
-							save_file_with_dialog.path_promise.set_value(std::filesystem::path());
+							// user cancelled the dialog, so still signal a success
+							save_file_with_dialog.result_promise.set_value(std::filesystem::path());
 						}
 					} break;
 				}

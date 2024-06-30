@@ -29,17 +29,6 @@ namespace platform {
 		m_commands.push_back(cmd::cursor::SetCursor { cursor });
 	}
 
-	std::future<std::expected<void, SaveFileError>> PlatformAPI::save_file(const std::vector<uint8_t>& data, const std::filesystem::path& path) {
-		std::promise<std::expected<void, SaveFileError>> result_promise;
-		std::future<std::expected<void, SaveFileError>> result_future = result_promise.get_future();
-		m_commands.push_back(cmd::file::SaveFile {
-			.result_promise = std::move(result_promise),
-			.path = path,
-			.data = data,
-		});
-		return result_future;
-	}
-
 	std::future<std::vector<uint8_t>> PlatformAPI::load_file_with_dialog(FileExplorerDialog dialog) {
 		std::promise<std::vector<uint8_t>> data_promise;
 		std::future<std::vector<uint8_t>> data_future = data_promise.get_future();
@@ -51,15 +40,26 @@ namespace platform {
 		return data_future;
 	}
 
-	std::future<std::filesystem::path> PlatformAPI::save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog) {
-		std::promise<std::filesystem::path> path_promise;
-		std::future<std::filesystem::path> path_future = path_promise.get_future();
+	std::future<std::expected<std::filesystem::path, SaveFileError>> PlatformAPI::save_file(const std::vector<uint8_t>& data, const std::filesystem::path& path) {
+		std::promise<std::expected<std::filesystem::path, SaveFileError>> result_promise;
+		std::future<std::expected<std::filesystem::path, SaveFileError>> result_future = result_promise.get_future();
+		m_commands.push_back(cmd::file::SaveFile {
+			.result_promise = std::move(result_promise),
+			.path = path,
+			.data = data,
+		});
+		return result_future;
+	}
+
+	std::future<std::expected<std::filesystem::path, SaveFileError>> PlatformAPI::save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog) {
+		std::promise<std::expected<std::filesystem::path, SaveFileError>> result_promise;
+		std::future<std::expected<std::filesystem::path, SaveFileError>> result_future = result_promise.get_future();
 		m_commands.push_back(cmd::file::SaveFileWithDialog {
-			.path_promise = std::move(path_promise),
+			.result_promise = std::move(result_promise),
 			.data = data,
 			.dialog = dialog,
 		});
-		return path_future;
+		return result_future;
 	}
 
 	void PlatformAPI::change_resolution(int width, int height) {
