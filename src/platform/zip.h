@@ -18,6 +18,7 @@ namespace platform {
 		CouldNotWriteArchive,
 		CouldNotReopenArchive,
 		WritingFileFailed,
+		ArchiveNotValid,
 	};
 
 	class FileArchive {

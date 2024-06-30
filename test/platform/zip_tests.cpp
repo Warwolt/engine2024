@@ -97,6 +97,12 @@ TEST_F(ZipTests, WriteToArchive_DataWrittenToDisk_CanBeReadBack) {
 	std::filesystem::remove(m_write_archive_path);
 }
 
-// cannot write to a default constructed archive
+TEST_F(ZipTests, WriteToArchive_IfClosed_GivesError) {
+	platform::FileArchive archive;
 
-// cannot write to a closed archive
+	archive.close();
+	std::expected<void, platform::FileArchiveError> write_result = archive.write_archive_to_disk(m_write_archive_path);
+
+	ASSERT_FALSE(write_result.has_value());
+	EXPECT_EQ(write_result.error(), platform::FileArchiveError::ArchiveNotValid);
+}

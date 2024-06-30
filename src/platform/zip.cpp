@@ -116,6 +116,10 @@ namespace platform {
 	}
 
 	std::expected<void, FileArchiveError> FileArchive::write_archive_to_disk(const std::filesystem::path& path) {
+		if (!m_is_valid) {
+			return std::unexpected(FileArchiveError::ArchiveNotValid);
+		}
+
 		/* Create name of temp archive */
 		std::filesystem::path temp_archive_path = path;
 		temp_archive_path.replace_filename(path.stem().string() + "-temp" + path.extension().string());
