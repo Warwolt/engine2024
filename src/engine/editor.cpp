@@ -77,16 +77,6 @@ namespace engine {
 		return commands;
 	}
 
-	static std::optional<nlohmann::json> try_get_loaded_project_data(std::future<std::vector<uint8_t>>* project_data) {
-		if (core::future::has_value(*project_data)) {
-			std::vector<uint8_t> buffer = project_data->get();
-			if (!buffer.empty()) {
-				return nlohmann::json::parse(buffer);
-			}
-		}
-		return {};
-	}
-
 	void init_editor(EditorState* editor, const ProjectState* project) {
 		editor->ui.project_name_buf = project->name;
 		editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
@@ -103,6 +93,7 @@ namespace engine {
 
 		/* Process events */
 		{
+			/* On project saved */
 			const std::optional<platform::SaveResult<std::filesystem::path>> maybe_save_result = core::future::get_value(editor->input.save_project_result);
 			if (maybe_save_result.has_value()) {
 				const platform::SaveResult<std::filesystem::path>& save_result = maybe_save_result.value();
@@ -115,9 +106,10 @@ namespace engine {
 				}
 			}
 
-			const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.project_data);
-			if (loaded_project_data.has_value()) {
-				nlohmann::json json_object = loaded_project_data.value();
+			/* On project loaded */
+			const std::optional<std::vector<uint8_t>> loaded_bytes = core::future::get_value(editor->input.project_data);
+			if (loaded_bytes.has_value() && !loaded_bytes->empty()) {
+				nlohmann::json json_object = nlohmann::json::parse(loaded_bytes.value());
 				project->name = json_object["project_name"];
 				editor->ui.project_name_buf = project->name;
 				editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
