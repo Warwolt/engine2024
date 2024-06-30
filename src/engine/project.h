@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <functional>
 #include <string>
 
@@ -10,6 +11,7 @@ namespace engine {
 	 */
 	struct ProjectState {
 		std::string name;
+		std::filesystem::path path;
 	};
 
 } // namespace engine

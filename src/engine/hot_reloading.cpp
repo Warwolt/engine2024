@@ -55,7 +55,7 @@ namespace engine {
 
 		/* Display error message if rebuild failed */
 		if (!input->engine_is_rebuilding && input->engine_rebuild_exit_code != 0) {
-			new_window_title += " (!! Hot reloading failed !!)";
+			new_window_title += " (Hot reloading failed!)";
 		}
 
 		/* Render */

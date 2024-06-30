@@ -21,7 +21,12 @@ namespace engine {
 		RunGame,
 	};
 
-	static std::vector<EditorCommand> update_editor_ui(EditorUiState* ui, GameState* game, ProjectState* project) {
+	static std::vector<EditorCommand> update_editor_ui(
+		EditorUiState* ui,
+		GameState* game,
+		ProjectState* project,
+		bool unsaved_changes
+	) {
 		std::vector<EditorCommand> commands;
 
 		/* Editor Menu Bar*/
@@ -44,9 +49,6 @@ namespace engine {
 			ImGui::EndMainMenuBar();
 		}
 
-		size_t current_project_hash = std::hash<ProjectState>()(*project);
-		const bool unsaved_changes = ui->loaded_project_hash != current_project_hash;
-
 		/* Editor Window */
 		if (ImGui::Begin("Editor Window")) {
 			const int step = 1;
@@ -57,6 +59,8 @@ namespace engine {
 			if (ImGui::InputText("Project name", &ui->project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
 				project->name = ui->project_name_buf;
 			}
+
+			ImGui::Text("Project path: %s", project->path.string().c_str());
 
 			if (ImGui::Button("Run game")) {
 				commands.push_back(EditorCommand::ResetGameState);
@@ -73,7 +77,7 @@ namespace engine {
 		return commands;
 	}
 
-	static std::optional<nlohmann::json> get_loaded_project_data(std::future<std::vector<uint8_t>>* project_data) {
+	static std::optional<nlohmann::json> try_get_loaded_project_data(std::future<std::vector<uint8_t>>* project_data) {
 		if (core::container::future_has_value(*project_data)) {
 			std::vector<uint8_t> buffer = project_data->get();
 			if (!buffer.empty()) {
@@ -97,7 +101,8 @@ namespace engine {
 	) {
 		/* Input */
 		const bool editor_is_running = input->mode == platform::RunMode::Editor;
-		const std::optional<nlohmann::json> loaded_project_data = get_loaded_project_data(&editor->input.project_data);
+		const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.futures.project_data);
+		const std::optional<std::filesystem::path> project_path = core::container::try_get_future_value(editor->input.futures.project_path);
 
 		/* Process input */
 		if (loaded_project_data.has_value()) {
@@ -107,10 +112,17 @@ namespace engine {
 			editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
 		}
 
+		if (project_path.has_value()) {
+			project->path = project_path.value();
+		}
+
 		/* Run UI */
+		size_t current_project_hash = std::hash<ProjectState>()(*project);
+		const bool project_has_unsaved_changes = editor->ui.loaded_project_hash != current_project_hash;
+
 		std::vector<EditorCommand> commands;
 		if (editor_is_running) {
-			commands = update_editor_ui(&editor->ui, game, project);
+			commands = update_editor_ui(&editor->ui, game, project, project_has_unsaved_changes);
 		}
 
 		/* Process commands */
@@ -126,7 +138,7 @@ namespace engine {
 						.description = "(PAK *.pak)",
 						.extension = "pak",
 					};
-					editor->input.project_data = platform->load_file_with_dialog(dialog);
+					editor->input.futures.project_data = platform->load_file_with_dialog(dialog);
 				} break;
 
 				case EditorCommand::SaveProject: {
@@ -139,7 +151,13 @@ namespace engine {
 						.description = "PAK (*.pak)",
 						.extension = "pak",
 					};
-					platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
+					const bool project_file_exists = false;
+					if (project_file_exists && project_has_unsaved_changes) {
+						// save file
+					}
+					else {
+						editor->input.futures.project_path = platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
+					}
 				} break;
 
 				case EditorCommand::ResetGameState:

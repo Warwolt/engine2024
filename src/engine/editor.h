@@ -3,6 +3,7 @@
 #include <future>
 #include <stdint.h>
 #include <vector>
+#include <filesystem>
 
 namespace platform {
 	struct Input;
@@ -15,7 +16,10 @@ namespace engine {
 	struct ProjectState;
 
 	struct EditorInput {
-		std::future<std::vector<uint8_t>> project_data;
+		struct Futures {
+			std::future<std::vector<uint8_t>> project_data;
+			std::future<std::filesystem::path> project_path;
+		} futures;
 	};
 
 	struct EditorUiState {

@@ -356,18 +356,22 @@ int main(int argc, char** argv) {
 						if (std::optional<std::string> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
 							data = read_file(std::filesystem::path { path.value() });
 						}
-						load_file_with_dialog.promise.set_value(std::move(data));
+						load_file_with_dialog.data_promise.set_value(std::move(data));
 					} break;
 
 					case PlatformCommandType::SaveFileWithDialog: {
 						auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
 						if (std::optional<std::string> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
+							save_file_with_dialog.path_promise.set_value(path.value());
 							std::ofstream file;
 							file.open(path.value());
 							if (file.is_open()) {
 								file.write((char*)save_file_with_dialog.data.data(), save_file_with_dialog.data.size());
 							}
+						}
+						else {
+							save_file_with_dialog.path_promise.set_value(std::filesystem::path());
 						}
 					} break;
 				}

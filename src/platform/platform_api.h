@@ -4,6 +4,7 @@
 #include <platform/win32.h>
 #include <platform/window.h>
 
+#include <filesystem>
 #include <future>
 #include <string>
 #include <vector>
@@ -70,12 +71,13 @@ namespace platform {
 
 		struct LoadFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::LoadFileWithDialog;
-			std::promise<std::vector<uint8_t>> promise;
+			std::promise<std::vector<uint8_t>> data_promise;
 			FileExplorerDialog dialog;
 		};
 
 		struct SaveFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::SaveFileWithDialog;
+			std::promise<std::filesystem::path> path_promise;
 			std::vector<uint8_t> data;
 			FileExplorerDialog dialog;
 		};
@@ -135,7 +137,7 @@ namespace platform {
 
 		// file
 		std::future<std::vector<uint8_t>> load_file_with_dialog(FileExplorerDialog dialog);
-		void save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog);
+		std::future<std::filesystem::path> save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog);
 
 		// window
 		void change_resolution(int width, int height);

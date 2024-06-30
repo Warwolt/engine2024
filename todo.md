@@ -15,6 +15,13 @@ Goals:
   - https://v8.dev/docs/embed
 
 ## Doing
+- Save as
+  - On save:
+    - New file, save via dialog
+    - Existing file, just overwrite
+  - Save as:
+    - Always save via dialog
+  - If trying to overwrite existing file, show dialog
 - Add infrastructure for running engine as standalone game
 
 ## Done

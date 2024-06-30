@@ -30,21 +30,25 @@ namespace platform {
 	}
 
 	std::future<std::vector<uint8_t>> PlatformAPI::load_file_with_dialog(FileExplorerDialog dialog) {
-		std::promise<std::vector<uint8_t>> promise;
-		std::future<std::vector<uint8_t>> future = promise.get_future();
+		std::promise<std::vector<uint8_t>> data_promise;
+		std::future<std::vector<uint8_t>> data_future = data_promise.get_future();
 		auto load_file_with_dialog = cmd::file::LoadFileWithDialog {
-			.promise = std::move(promise),
+			.data_promise = std::move(data_promise),
 			.dialog = dialog
 		};
 		m_commands.push_back(std::move(load_file_with_dialog));
-		return future;
+		return data_future;
 	}
 
-	void PlatformAPI::save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog) {
+	std::future<std::filesystem::path> PlatformAPI::save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog) {
+		std::promise<std::filesystem::path> path_promise;
+		std::future<std::filesystem::path> path_future = path_promise.get_future();
 		m_commands.push_back(cmd::file::SaveFileWithDialog {
+			.path_promise = std::move(path_promise),
 			.data = data,
 			.dialog = dialog,
 		});
+		return path_future;
 	}
 
 	void PlatformAPI::change_resolution(int width, int height) {
