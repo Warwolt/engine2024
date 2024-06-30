@@ -13,7 +13,6 @@ namespace platform {
 		: m_mz_archive { 0 }
 		, m_is_valid(true) {
 		mz_zip_writer_init_heap(&m_mz_archive, 0, 0);
-		m_mz_archive.m_pIO_opaque = &m_mz_archive;
 	}
 
 	FileArchive::FileArchive(FileArchive&& other) {
