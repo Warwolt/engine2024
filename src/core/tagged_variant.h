@@ -2,7 +2,7 @@
 
 #include <variant>
 
-namespace platform {
+namespace core {
 
 	template <typename Tag, typename First, typename... Types>
 	class TaggedVariant : public std::variant<First, Types...> {
@@ -29,4 +29,4 @@ namespace platform {
 		Tag m_tag = First::TAG;
 	};
 
-} // namespace platform
+} // namespace core

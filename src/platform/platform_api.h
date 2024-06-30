@@ -1,6 +1,6 @@
 #pragma once
 
-#include <platform/tagged_variant.h>
+#include <core/tagged_variant.h>
 #include <platform/win32.h>
 #include <platform/window.h>
 
@@ -106,7 +106,7 @@ namespace platform {
 
 	} // namespace cmd::window
 
-	using PlatformCommand = TaggedVariant<
+	using PlatformCommand = core::TaggedVariant<
 		PlatformCommandType,
 		cmd::app::Quit,
 		cmd::app::RebuildEngineLibrary,

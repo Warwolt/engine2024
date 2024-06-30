@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <platform/tagged_variant.h>
+#include <core/tagged_variant.h>
 
 enum class Tag {
 	A,
@@ -15,7 +15,7 @@ struct VariantB {
 	static constexpr Tag TAG = Tag::B;
 };
 
-using TestVariant = platform::TaggedVariant<Tag, VariantA, VariantB>;
+using TestVariant = core::TaggedVariant<Tag, VariantA, VariantB>;
 
 TEST(TaggedVariantTests, DefaultVariantHasDefaultTag) {
 	TestVariant variant;
