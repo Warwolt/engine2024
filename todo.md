@@ -8,7 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Track if project as unsaved changes
+- Track if project has unsaved changes
   - Prompt before "quit" and "new" before closing if unsaved changes
   - Save As option
 - Setup ImGui docking branch
