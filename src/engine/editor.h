@@ -18,10 +18,8 @@ namespace engine {
 	struct ProjectState;
 
 	struct EditorInput {
-		struct Futures {
-			std::future<std::vector<uint8_t>> project_data;
-			std::future<platform::SaveResult<std::filesystem::path>> save_project_result;
-		} futures;
+		std::future<std::vector<uint8_t>> project_data;
+		std::future<platform::SaveResult<std::filesystem::path>> save_project_result;
 	};
 
 	struct EditorUiState {
@@ -40,7 +38,6 @@ namespace engine {
 		EditorState* editor,
 		GameState* game,
 		ProjectState* project,
-		const platform::Input* input,
 		platform::PlatformAPI* platform
 	);
 

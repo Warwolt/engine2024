@@ -143,7 +143,9 @@ namespace engine {
 		/* Modules */
 		{
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, state->project.name);
-			update_editor(&state->editor, &state->game, &state->project, input, platform);
+			if (input->mode == platform::RunMode::Editor) {
+				update_editor(&state->editor, &state->game, &state->project, platform);
+			}
 		}
 	}
 

@@ -96,22 +96,15 @@ namespace engine {
 		EditorState* editor,
 		GameState* game,
 		ProjectState* project,
-		const platform::Input* input,
 		platform::PlatformAPI* platform
 	) {
-		/* Skip */
-		// FIXME: Uh, why is the caller not just skipping the update_editor call .. ?
-		if (input->mode != platform::RunMode::Editor) {
-			return;
-		}
-
 		/* Input */
-		const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.futures.project_data);
+		const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.project_data);
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 
 		/* Process events */
 		// if (std::optional<platform::SaveResult<std::filesystem::path>> result = core::future::get_value(editor->input.save_project_result)) {
-		if (std::optional<platform::SaveResult<std::filesystem::path>> save_result = core::container::try_get_future_value(editor->input.futures.save_project_result)) {
+		if (std::optional<platform::SaveResult<std::filesystem::path>> save_result = core::container::try_get_future_value(editor->input.save_project_result)) {
 			if (save_result.value().has_value()) {
 				std::filesystem::path path = **save_result;
 				if (!path.empty()) {
@@ -152,7 +145,7 @@ namespace engine {
 						.description = "(PAK *.pak)",
 						.extension = "pak",
 					};
-					editor->input.futures.project_data = platform->load_file_with_dialog(dialog);
+					editor->input.project_data = platform->load_file_with_dialog(dialog);
 				} break;
 
 				case EditorCommand::SaveProject: {
@@ -167,10 +160,10 @@ namespace engine {
 					};
 					const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
 					if (project_file_exists && project_has_unsaved_changes) {
-						editor->input.futures.save_project_result = platform->save_file(std::vector<uint8_t>(json_data.begin(), json_data.end()), project->path);
+						editor->input.save_project_result = platform->save_file(std::vector<uint8_t>(json_data.begin(), json_data.end()), project->path);
 					}
 					if (!project_file_exists) {
-						editor->input.futures.save_project_result = platform->save_file_with_dialog(std::vector<uint8_t>(json_data.begin(), json_data.end()), dialog);
+						editor->input.save_project_result = platform->save_file_with_dialog(std::vector<uint8_t>(json_data.begin(), json_data.end()), dialog);
 					}
 				} break;
 
