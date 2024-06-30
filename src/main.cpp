@@ -17,6 +17,7 @@
 #include <platform/renderer.h>
 #include <platform/win32.h>
 #include <platform/window.h>
+#include <platform/zip.h>
 #include <util.h>
 
 #include <GL/glu.h>
@@ -30,10 +31,7 @@
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/imgui.h>
 
-#include <expected>
-#include <filesystem>
 #include <fstream>
-#include <optional>
 
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
