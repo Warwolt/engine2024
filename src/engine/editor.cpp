@@ -100,10 +100,18 @@ namespace engine {
 		platform::PlatformAPI* platform
 	) {
 		/* Input */
-		const bool editor_is_running = input->mode == platform::RunMode::Editor;
+		// futures
+		// FIXME:
+		// always make the save return expected<path, error>
 		const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.futures.project_data);
+		const std::optional<std::expected<void, platform::SaveFileError>> save_project_result = core::container::try_get_future_value(editor->input.futures.save_project_result);
 		const std::optional<std::filesystem::path> saved_project_path = core::container::try_get_future_value(editor->input.futures.saved_project_path);
-		const bool project_data_synced_with_disk = saved_project_path.has_value() && !saved_project_path->empty(); // use path updated as heuristic
+
+		// other
+		const bool editor_is_running = input->mode == platform::RunMode::Editor;
+		const bool project_data_synced_with_disk =
+			(saved_project_path.has_value() && !saved_project_path->empty()) ||
+			(save_project_result.has_value());
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 
 		/* Process input */
@@ -115,7 +123,10 @@ namespace engine {
 		}
 
 		if (project_data_synced_with_disk) {
-			project->path = saved_project_path.value();
+			// FIXME: this if is temporary, just use same result-type for both "save" and "save as"
+			if (saved_project_path) {
+				project->path = saved_project_path.value();
+			}
 			editor->ui.saved_project_hash = current_project_hash;
 		}
 
@@ -147,7 +158,7 @@ namespace engine {
 					nlohmann::json json_object = {
 						{ "project_name", project->name }
 					};
-					std::string data = json_object.dump();
+					std::string json_data = json_object.dump();
 					platform::FileExplorerDialog dialog = {
 						.title = "Save project",
 						.description = "PAK (*.pak)",
@@ -155,10 +166,10 @@ namespace engine {
 					};
 					const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
 					if (project_file_exists && project_has_unsaved_changes) {
-						LOG_DEBUG("SAVE FILE");
+						editor->input.futures.save_project_result = platform->save_file(std::vector<uint8_t>(json_data.begin(), json_data.end()), project->path);
 					}
 					if (!project_file_exists) {
-						editor->input.futures.saved_project_path = platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
+						editor->input.futures.saved_project_path = platform->save_file_with_dialog(std::vector<uint8_t>(json_data.begin(), json_data.end()), dialog);
 					}
 				} break;
 

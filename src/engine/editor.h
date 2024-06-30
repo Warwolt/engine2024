@@ -1,5 +1,8 @@
 #pragma once
 
+#include <platform/platform_api.h>
+
+#include <expected>
 #include <filesystem>
 #include <future>
 #include <stdint.h>
@@ -7,7 +10,6 @@
 
 namespace platform {
 	struct Input;
-	class PlatformAPI;
 }
 
 namespace engine {
@@ -18,6 +20,7 @@ namespace engine {
 	struct EditorInput {
 		struct Futures {
 			std::future<std::vector<uint8_t>> project_data;
+			std::future<std::expected<void, platform::SaveFileError>> save_project_result;
 			std::future<std::filesystem::path> saved_project_path;
 		} futures;
 	};

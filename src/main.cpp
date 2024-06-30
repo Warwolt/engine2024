@@ -359,6 +359,19 @@ int main(int argc, char** argv) {
 						load_file_with_dialog.data_promise.set_value(std::move(data));
 					} break;
 
+					case PlatformCommandType::SaveFile: {
+						auto& save_file = std::get<platform::cmd::file::SaveFile>(cmd);
+						std::ofstream file;
+						file.open(save_file.path);
+						if (file.is_open()) {
+							file.write((char*)save_file.data.data(), save_file.data.size());
+							save_file.result_promise.set_value({}); // signal done
+						}
+						else {
+							save_file.result_promise.set_value(std::unexpected(platform::SaveFileError::CouldNotCreateFile));
+						}
+					} break;
+
 					case PlatformCommandType::SaveFileWithDialog: {
 						auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
