@@ -1,14 +1,6 @@
 #include <platform/input/keyboard.h>
 
-namespace util {
-
-	template <typename K, typename V>
-	std::optional<V> map_get(const std::unordered_map<K, V>& map, const K& key) {
-		auto it = map.find(key);
-		return it == map.cend() ? std::nullopt : std::make_optional(it->second);
-	}
-
-}
+#include <core/container.h>
 
 namespace platform {
 
@@ -63,7 +55,7 @@ namespace platform {
 
 		/* Process events */
 		for (auto& [keycode, button] : m_keys) {
-			ButtonEvent event = util::map_get(m_events, keycode).value_or(ButtonEvent::None);
+			ButtonEvent event = core::container::map_get(m_events, keycode).value_or(ButtonEvent::None);
 			button.update(event);
 		}
 	}
@@ -93,11 +85,11 @@ namespace platform {
 	}
 
 	Button Keyboard::_key(int keycode) const {
-		return util::map_get(m_keys, keycode).value_or(Button());
+		return core::container::map_get(m_keys, keycode).value_or(Button());
 	}
 
 	std::optional<int> Keyboard::_modifier(int keycode) const {
-		return util::map_get(m_modifiers, keycode);
+		return core::container::map_get(m_modifiers, keycode);
 	}
 
 } // namespace platform

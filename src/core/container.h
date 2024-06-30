@@ -2,20 +2,18 @@
 
 #include <platform/assert.h>
 
-#include <magic_enum/magic_enum.h>
-
 #include <algorithm>
 #include <expected>
 #include <future>
 #include <optional>
 
-namespace util {
+namespace core::container {
 
 	template <typename T, typename E, typename F>
 	T unwrap(std::expected<T, E>&& result, F&& on_error_fn) {
 		if (!result.has_value()) {
 			on_error_fn(result.error());
-			ABORT("util::unwrap called with std::expected not holding a value");
+			ABORT("core::container::unwrap called with std::expected not holding a value");
 		}
 		return std::move(result.value());
 	}
@@ -24,7 +22,7 @@ namespace util {
 	T unwrap(std::optional<T>&& result, F&& on_error_fn) {
 		if (!result.has_value()) {
 			on_error_fn();
-			ABORT("util::unwrap called with std::optional not holding a value");
+			ABORT("core::container::unwrap called with std::optional not holding a value");
 		}
 		return std::move(result.value());
 	}
@@ -46,9 +44,10 @@ namespace util {
 		return result;
 	}
 
-	template <typename T>
-	const char* enum_to_string(T value) {
-		return magic_enum::enum_name(value).data();
+	template <typename K, typename V>
+	std::optional<V> map_get(const std::unordered_map<K, V>& map, const K& key) {
+		auto it = map.find(key);
+		return it == map.cend() ? std::nullopt : std::make_optional(it->second);
 	}
 
-} // namespace util
+} // namespace core::container

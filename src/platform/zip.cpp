@@ -1,7 +1,7 @@
 #include <platform/zip.h>
 
+#include <core/container.h>
 #include <platform/logging.h>
-#include <util.h>
 
 #include <algorithm>
 #include <cstring>
@@ -82,7 +82,7 @@ namespace platform {
 	}
 
 	std::expected<std::vector<uint8_t>, FileArchiveError> FileArchive::read_from_archive(const std::string& file_name) {
-		if (!util::contains(m_file_names, file_name)) {
+		if (!core::container::contains(m_file_names, file_name)) {
 			return std::unexpected(FileArchiveError::NoSuchFile);
 		}
 
@@ -109,7 +109,7 @@ namespace platform {
 		buf.insert(buf.end(), data, data + num_bytes);
 
 		/* Save name if new */
-		if (!util::contains(m_file_names, file_name)) {
+		if (!core::container::contains(m_file_names, file_name)) {
 			m_file_names.push_back(file_name);
 		}
 	}
@@ -198,7 +198,7 @@ namespace platform {
 		}
 
 		/* Copy non-modified files from original archive */
-		const std::vector<std::string> non_modified_file_names = util::filter(m_file_names, [this](const std::string& file_name) {
+		const std::vector<std::string> non_modified_file_names = core::container::filter(m_file_names, [this](const std::string& file_name) {
 			return !m_write_data.contains(file_name);
 		});
 		for (const std::string& file_name : non_modified_file_names) {

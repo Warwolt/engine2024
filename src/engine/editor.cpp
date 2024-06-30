@@ -1,10 +1,10 @@
 #include <engine/editor.h>
 
+#include <core/container.h>
 #include <engine/game_state.h>
 #include <platform/input/input.h>
 #include <platform/logging.h>
 #include <platform/platform_api.h>
-#include <util.h>
 
 #include <imgui/imgui.h>
 #include <nlohmann/json.hpp>
@@ -63,7 +63,7 @@ namespace engine {
 	}
 
 	static std::optional<nlohmann::json> get_loaded_project_data(std::future<std::vector<uint8_t>>* project_data) {
-		if (util::future_has_value(*project_data)) {
+		if (core::container::future_has_value(*project_data)) {
 			std::vector<uint8_t> buffer = project_data->get();
 			if (!buffer.empty()) {
 				return nlohmann::json::parse(buffer);

@@ -1,10 +1,12 @@
 #include <platform/library_loader.h>
 
-#include <imgui/imgui.h>
+#include <core/container.h>
+#include <core/util.h>
 #include <platform/assert.h>
 #include <platform/logging.h>
 #include <platform/win32.h>
-#include <util.h>
+
+#include <imgui/imgui.h>
 
 #define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                          \
 	do {                                                                                                                               \
@@ -159,8 +161,8 @@ namespace platform {
 
 			if (m_library_loader->library_file_has_been_modified()) {
 				m_library_loader->unload_library();
-				*engine_library = util::unwrap(m_library_loader->load_library(m_library_name.c_str()), [&](LoadLibraryError error) {
-					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", m_library_name.c_str(), util::enum_to_string(error));
+				*engine_library = core::container::unwrap(m_library_loader->load_library(m_library_name.c_str()), [&](LoadLibraryError error) {
+					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", m_library_name.c_str(), core::util::enum_to_string(error));
 				});
 				on_engine_library_loaded(engine_library);
 				LOG_INFO("Engine library reloaded");
@@ -169,7 +171,7 @@ namespace platform {
 
 		/* Check rebuild command progress */
 		if (m_rebuild_command_is_running) {
-			if (util::future_has_value(m_rebuild_engine_future)) {
+			if (core::container::future_has_value(m_rebuild_engine_future)) {
 				m_last_exit_code = m_rebuild_engine_future.get();
 				m_rebuild_command_is_running = false;
 			}
