@@ -8,11 +8,8 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Move signal.h to core
+- set VS_DEBUGGER_WORKING_DIRECTORY to project root
 - Move all state headers into "engine/state" directory
-- Track if project has unsaved changes
-  - Prompt before "quit" and "new" before closing if unsaved changes
-  - Save As option
 - Setup ImGui docking branch
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
@@ -21,6 +18,8 @@ Goals:
 - Add infrastructure for running engine as standalone game
 
 ## Done
+- Track if project has unsaved changes
+- Move signal.h to core
 - Move tagged_variant.h to "core"
 - Move util.h header into a "core" namespace (i.e. project standard library)
 - Add interface for writing and reading zip files

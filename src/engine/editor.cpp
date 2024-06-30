@@ -44,10 +44,15 @@ namespace engine {
 			ImGui::EndMainMenuBar();
 		}
 
+		size_t current_project_hash = std::hash<ProjectState>()(*project);
+		const bool unsaved_changes = ui->loaded_project_hash != current_project_hash;
+
 		/* Editor Window */
 		if (ImGui::Begin("Editor Window")) {
 			const int step = 1;
 			ImGui::InputScalar("Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
+
+			ImGui::Text("Unsaved changes: %s", unsaved_changes ? "yes" : "no");
 
 			if (ImGui::InputText("Project name", &ui->project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
 				project->name = ui->project_name_buf;
@@ -80,6 +85,7 @@ namespace engine {
 
 	void init_editor(EditorState* editor, const ProjectState* project) {
 		editor->ui.project_name_buf = project->name;
+		editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
 	}
 
 	void update_editor(
@@ -97,10 +103,8 @@ namespace engine {
 		if (loaded_project_data.has_value()) {
 			nlohmann::json json_object = loaded_project_data.value();
 			project->name = json_object["project_name"];
-		}
-
-		if (project->name.just_changed()) {
 			editor->ui.project_name_buf = project->name;
+			editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
 		}
 
 		/* Run UI */

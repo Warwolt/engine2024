@@ -19,6 +19,7 @@ namespace engine {
 	};
 
 	struct EditorUiState {
+		size_t loaded_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
 	};
 

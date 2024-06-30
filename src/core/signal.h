@@ -43,7 +43,7 @@ namespace core {
 			return m_current;
 		}
 
-		const T& value() {
+		const T& value() const {
 			return m_current;
 		}
 
