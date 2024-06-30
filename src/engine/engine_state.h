@@ -30,10 +30,6 @@ namespace engine {
 		AnimationSystem animation;
 	};
 
-	struct Project {
-		std::string name;
-	};
-
 	struct State {
 		Resources resources;
 		Systems systems;
