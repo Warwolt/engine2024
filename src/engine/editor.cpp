@@ -1,6 +1,6 @@
 #include <engine/editor.h>
 
-#include <core/container.h>
+#include <core/future.h>
 #include <engine/game_state.h>
 #include <engine/project.h>
 #include <platform/input/input.h>
@@ -78,7 +78,7 @@ namespace engine {
 	}
 
 	static std::optional<nlohmann::json> try_get_loaded_project_data(std::future<std::vector<uint8_t>>* project_data) {
-		if (core::container::future_has_value(*project_data)) {
+		if (core::future::has_value(*project_data)) {
 			std::vector<uint8_t> buffer = project_data->get();
 			if (!buffer.empty()) {
 				return nlohmann::json::parse(buffer);
@@ -99,26 +99,29 @@ namespace engine {
 		platform::PlatformAPI* platform
 	) {
 		/* Input */
-		const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.project_data);
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 
 		/* Process events */
-		// if (std::optional<platform::SaveResult<std::filesystem::path>> result = core::future::get_value(editor->input.save_project_result)) {
-		if (std::optional<platform::SaveResult<std::filesystem::path>> save_result = core::container::try_get_future_value(editor->input.save_project_result)) {
-			if (save_result.value().has_value()) {
-				std::filesystem::path path = **save_result;
-				if (!path.empty()) {
-					project->path = path;
-					editor->ui.saved_project_hash = current_project_hash;
+		{
+			const std::optional<platform::SaveResult<std::filesystem::path>> maybe_save_result = core::future::get_value(editor->input.save_project_result);
+			if (maybe_save_result.has_value()) {
+				const platform::SaveResult<std::filesystem::path>& save_result = maybe_save_result.value();
+				if (save_result.has_value()) {
+					const std::filesystem::path& path = save_result.value();
+					if (!path.empty()) {
+						project->path = path;
+						editor->ui.saved_project_hash = current_project_hash;
+					}
 				}
 			}
-		}
 
-		if (loaded_project_data.has_value()) {
-			nlohmann::json json_object = loaded_project_data.value();
-			project->name = json_object["project_name"];
-			editor->ui.project_name_buf = project->name;
-			editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
+			const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.project_data);
+			if (loaded_project_data.has_value()) {
+				nlohmann::json json_object = loaded_project_data.value();
+				project->name = json_object["project_name"];
+				editor->ui.project_name_buf = project->name;
+				editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
+			}
 		}
 
 		/* Run UI */
