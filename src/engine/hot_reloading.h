@@ -2,6 +2,8 @@
 
 #include <engine/animation.h>
 
+#include <string>
+
 namespace platform {
 	struct Input;
 	class PlatformAPI;
@@ -20,7 +22,8 @@ namespace engine {
 		HotReloadingState* hot_reloading,
 		AnimationSystem* animation_system,
 		const platform::Input* input,
-		platform::PlatformAPI* platform
+		platform::PlatformAPI* platform,
+		const std::string& window_title
 	);
 
 } // namespace engine

@@ -4,6 +4,7 @@
 #include <engine/editor.h>
 #include <engine/game_state.h>
 #include <engine/hot_reloading.h>
+#include <engine/project_state.h>
 #include <platform/font.h>
 #include <platform/input/input.h>
 #include <platform/platform_api.h>
@@ -37,6 +38,7 @@ namespace engine {
 		glm::vec2 window_resolution;
 		DebugUiState debug_ui;
 		HotReloadingState hot_reloading;
+		ProjectState project;
 		GameState game;
 		EditorState editor;
 	};

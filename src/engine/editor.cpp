@@ -2,11 +2,13 @@
 
 #include <core/container.h>
 #include <engine/game_state.h>
+#include <engine/project_state.h>
 #include <platform/input/input.h>
 #include <platform/logging.h>
 #include <platform/platform_api.h>
 
 #include <imgui/imgui.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 #include <nlohmann/json.hpp>
 
 namespace engine {
@@ -19,7 +21,7 @@ namespace engine {
 		RunGame,
 	};
 
-	static std::vector<EditorCommand> update_editor_ui(GameState* game) {
+	static std::vector<EditorCommand> update_editor_ui(EditorUiState* ui, GameState* game, ProjectState* project) {
 		std::vector<EditorCommand> commands;
 
 		/* Editor Menu Bar*/
@@ -47,6 +49,10 @@ namespace engine {
 			const int step = 1;
 			ImGui::InputScalar("Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
 
+			if (ImGui::InputText("Project name", &ui->project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
+				project->name = ui->project_name_buf;
+			}
+
 			if (ImGui::Button("Run game")) {
 				commands.push_back(EditorCommand::ResetGameState);
 				commands.push_back(EditorCommand::RunGame);
@@ -72,9 +78,14 @@ namespace engine {
 		return {};
 	}
 
+	void init_editor(EditorState* editor, const ProjectState* project) {
+		editor->ui.project_name_buf = project->name;
+	}
+
 	void update_editor(
 		EditorState* editor,
 		GameState* game,
+		ProjectState* project,
 		const platform::Input* input,
 		platform::PlatformAPI* platform
 	) {
@@ -91,7 +102,7 @@ namespace engine {
 		/* Run UI */
 		std::vector<EditorCommand> commands;
 		if (editor_is_running) {
-			commands = update_editor_ui(game);
+			commands = update_editor_ui(&editor->ui, game, project);
 		}
 
 		/* Process commands */

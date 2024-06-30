@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include <optional>
+#include <string>
 
 namespace platform {
 
@@ -14,7 +15,7 @@ namespace platform {
 
 	class Window {
 	public:
-		static std::optional<Window> create(int widht, int height, int window_flags);
+		static std::optional<Window> create(int widht, int height, int window_flags, const std::string& window_title);
 		void destroy();
 
 		glm::ivec2 size() const;

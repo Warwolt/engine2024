@@ -8,6 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Move all state headers into "engine/state" directory
 - Track if project has unsaved changes
   - Prompt before "quit" and "new" before closing if unsaved changes
   - Save As option

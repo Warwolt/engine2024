@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
 
 	/* Initialize logging */
 	platform::init_logging();
-	LOG_INFO("Game Engine 2024 initializing");
+	LOG_INFO("R2K Game Engine 2024 initializing");
 
 	/* Initialize SDL */
 	if (!platform::initialize()) {
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
 
 	/* Create window */
 	const glm::ivec2 initial_window_size = { 960, 600 };
-	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, SDL_WINDOW_RESIZABLE), [] {
+	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, SDL_WINDOW_RESIZABLE, "Untitled Project"), [] {
 		ABORT("platform::create_window failed");
 	});
 
@@ -273,7 +273,6 @@ int main(int argc, char** argv) {
 			}
 
 			input.keyboard.update();
-
 			input.delta_ms = frame_timer.elapsed_ms();
 			input.global_time_ms += input.delta_ms;
 			frame_timer.reset();
