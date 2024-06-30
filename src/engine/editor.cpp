@@ -1,6 +1,6 @@
 #include <engine/editor.h>
 
-#include <core/util.h>
+#include <core/container.h>
 #include <engine/game_state.h>
 #include <platform/input/input.h>
 #include <platform/logging.h>
@@ -63,7 +63,7 @@ namespace engine {
 	}
 
 	static std::optional<nlohmann::json> get_loaded_project_data(std::future<std::vector<uint8_t>>* project_data) {
-		if (core::util::future_has_value(*project_data)) {
+		if (core::container::future_has_value(*project_data)) {
 			std::vector<uint8_t> buffer = project_data->get();
 			if (!buffer.empty()) {
 				return nlohmann::json::parse(buffer);

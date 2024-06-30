@@ -1,10 +1,11 @@
 #include <engine/engine_api.h>
 
-#include <core/util.h>
+#include <core/container.h>
 #include <engine/hot_reloading.h>
-#include <imgui/imgui.h>
 #include <platform/assert.h>
 #include <platform/logging.h>
+
+#include <imgui/imgui.h>
 #include <plog/Init.h>
 
 namespace engine {
@@ -58,7 +59,7 @@ namespace engine {
 		/* Add fonts */
 		{
 			const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-			platform::Font font = core::util::unwrap(platform::add_ttf_font(arial_font_path, 16), [&] {
+			platform::Font font = core::container::unwrap(platform::add_ttf_font(arial_font_path, 16), [&] {
 				ABORT("Failed to load font \"%s\"", arial_font_path);
 			});
 			state->resources.fonts["arial-16"] = font;

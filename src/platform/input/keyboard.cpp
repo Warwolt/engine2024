@@ -1,6 +1,6 @@
 #include <platform/input/keyboard.h>
 
-#include <core/util.h>
+#include <core/container.h>
 
 namespace platform {
 
@@ -55,7 +55,7 @@ namespace platform {
 
 		/* Process events */
 		for (auto& [keycode, button] : m_keys) {
-			ButtonEvent event = core::util::map_get(m_events, keycode).value_or(ButtonEvent::None);
+			ButtonEvent event = core::container::map_get(m_events, keycode).value_or(ButtonEvent::None);
 			button.update(event);
 		}
 	}
@@ -85,11 +85,11 @@ namespace platform {
 	}
 
 	Button Keyboard::_key(int keycode) const {
-		return core::util::map_get(m_keys, keycode).value_or(Button());
+		return core::container::map_get(m_keys, keycode).value_or(Button());
 	}
 
 	std::optional<int> Keyboard::_modifier(int keycode) const {
-		return core::util::map_get(m_modifiers, keycode);
+		return core::container::map_get(m_modifiers, keycode);
 	}
 
 } // namespace platform
