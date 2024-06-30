@@ -36,6 +36,9 @@ namespace platform {
 		CouldNotCreateFile,
 	};
 
+	template <typename T>
+	using SaveResult = std::expected<T, SaveFileError>;
+
 	enum class Cursor {
 		Arrow,
 		SizeAll,
@@ -82,14 +85,14 @@ namespace platform {
 
 		struct SaveFile {
 			static constexpr auto TAG = PlatformCommandType::SaveFile;
-			std::promise<std::expected<std::filesystem::path, SaveFileError>> result_promise;
+			std::promise<SaveResult<std::filesystem::path>> result_promise;
 			std::filesystem::path path;
 			std::vector<uint8_t> data;
 		};
 
 		struct SaveFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::SaveFileWithDialog;
-			std::promise<std::expected<std::filesystem::path, SaveFileError>> result_promise;
+			std::promise<SaveResult<std::filesystem::path>> result_promise;
 			std::vector<uint8_t> data;
 			FileExplorerDialog dialog;
 		};
@@ -150,8 +153,8 @@ namespace platform {
 
 		// file
 		std::future<std::vector<uint8_t>> load_file_with_dialog(FileExplorerDialog dialog);
-		std::future<std::expected<std::filesystem::path, SaveFileError>> save_file(const std::vector<uint8_t>& data, const std::filesystem::path&);
-		std::future<std::expected<std::filesystem::path, SaveFileError>> save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog);
+		std::future<SaveResult<std::filesystem::path>> save_file(const std::vector<uint8_t>& data, const std::filesystem::path&);
+		std::future<SaveResult<std::filesystem::path>> save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog);
 
 		// window
 		void change_resolution(int width, int height);

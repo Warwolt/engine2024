@@ -40,9 +40,9 @@ namespace platform {
 		return data_future;
 	}
 
-	std::future<std::expected<std::filesystem::path, SaveFileError>> PlatformAPI::save_file(const std::vector<uint8_t>& data, const std::filesystem::path& path) {
-		std::promise<std::expected<std::filesystem::path, SaveFileError>> result_promise;
-		std::future<std::expected<std::filesystem::path, SaveFileError>> result_future = result_promise.get_future();
+	std::future<SaveResult<std::filesystem::path>> PlatformAPI::save_file(const std::vector<uint8_t>& data, const std::filesystem::path& path) {
+		std::promise<SaveResult<std::filesystem::path>> result_promise;
+		std::future<SaveResult<std::filesystem::path>> result_future = result_promise.get_future();
 		m_commands.push_back(cmd::file::SaveFile {
 			.result_promise = std::move(result_promise),
 			.path = path,
@@ -51,9 +51,9 @@ namespace platform {
 		return result_future;
 	}
 
-	std::future<std::expected<std::filesystem::path, SaveFileError>> PlatformAPI::save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog) {
-		std::promise<std::expected<std::filesystem::path, SaveFileError>> result_promise;
-		std::future<std::expected<std::filesystem::path, SaveFileError>> result_future = result_promise.get_future();
+	std::future<SaveResult<std::filesystem::path>> PlatformAPI::save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog) {
+		std::promise<SaveResult<std::filesystem::path>> result_promise;
+		std::future<SaveResult<std::filesystem::path>> result_future = result_promise.get_future();
 		m_commands.push_back(cmd::file::SaveFileWithDialog {
 			.result_promise = std::move(result_promise),
 			.data = data,

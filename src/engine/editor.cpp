@@ -101,7 +101,7 @@ namespace engine {
 	) {
 		/* Input */
 		const std::optional<nlohmann::json> loaded_project_data = try_get_loaded_project_data(&editor->input.futures.project_data);
-		const std::optional<std::expected<std::filesystem::path, platform::SaveFileError>> save_project_result = core::container::try_get_future_value(editor->input.futures.save_project_result);
+		const std::optional<platform::SaveResult<std::filesystem::path>> save_project_result = core::container::try_get_future_value(editor->input.futures.save_project_result);
 		std::filesystem::path saved_project_path;
 		if (save_project_result.has_value() && save_project_result.value().has_value()) {
 			saved_project_path = save_project_result.value().value();
@@ -124,7 +124,6 @@ namespace engine {
 
 		/* Run UI */
 		const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
-
 		std::vector<EditorCommand> commands;
 		if (editor_is_running) {
 			commands = update_editor_ui(&editor->ui, game, project, project_has_unsaved_changes);
