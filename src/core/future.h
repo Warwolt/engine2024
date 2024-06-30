@@ -13,12 +13,4 @@ namespace core::future {
 		return false;
 	}
 
-	template <typename T>
-	std::optional<T> get_value(std::future<T>& future) {
-		if (has_value(future)) {
-			return future.get();
-		}
-		return {};
-	}
-
 } // namespace core::future
