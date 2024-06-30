@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Move util.h header into a "core" namespace (i.e. project standard library)
 - Move tagged_variant.h to "core"
 - Track if project as unsaved changes
   - Prompt before "quit" and "new" before closing if unsaved changes
@@ -18,9 +17,11 @@ Goals:
   - https://v8.dev/docs/embed
 
 ## Doing
+- Move util.h header into a "core" namespace (i.e. project standard library)
 - Add infrastructure for running engine as standalone game
 
 ## Done
+- Add interface for writing and reading zip files
 - Rename engine.cpp to engine_api.cpp
 - Add projects, load / save game data
 - Use std::variant for PlatformAPI commands
