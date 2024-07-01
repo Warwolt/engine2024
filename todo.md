@@ -8,7 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Add "core::expected" wrapper for std::expected with a "has_error" method
+- Add a core::task wrapper for std::future to make PlatformAPI task handling a little nicer
 - Disable RTTI and exceptions in both project and standard library
 - set VS_DEBUGGER_WORKING_DIRECTORY to project root
 - Move all state headers into "engine/state" directory

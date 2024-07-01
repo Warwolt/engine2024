@@ -2,7 +2,20 @@
 
 #include <platform/logging.h>
 
+#include <commctrl.h>
 #include <commdlg.h>
+
+// Spooky linker magic courtesy of https://stackoverflow.com/a/43215416/3157744
+// This makes sure that we load some control related stuff for Comctl32.lib
+#if defined _M_IX86
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_IA64
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='ia64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_X64
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#else
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#endif
 
 namespace platform {
 
@@ -120,6 +133,39 @@ namespace platform {
 		}
 
 		return (int)exit_code;
+	}
+
+	UnsavedChangesDialogChoice show_unsaved_changes_dialog(const std::string& document_name) {
+		wchar_t main_instruction[256];
+		swprintf_s(main_instruction, 256, L"Do you want to save the changes you made to %S?", document_name.c_str());
+
+		TASKDIALOGCONFIG config = { 0 };
+		const TASKDIALOG_BUTTON buttons[] = {
+			{ IDYES, L"&Save" },
+			{ IDNO, L"Do&n't Save" },
+		};
+		config.cbSize = sizeof(config);
+		config.hInstance = GetModuleHandle(NULL);
+		config.dwCommonButtons = TDCBF_CANCEL_BUTTON;
+		config.pszMainIcon = TD_WARNING_ICON;
+		config.pszMainInstruction = main_instruction;
+		config.pszContent = L"Your changes will be lost if you don't save them.";
+		config.pButtons = buttons;
+		config.cButtons = ARRAYSIZE(buttons);
+
+		int pressed_button = 0;
+		TaskDialogIndirect(&config, &pressed_button, NULL, NULL);
+		switch (pressed_button) {
+			case IDYES:
+				return UnsavedChangesDialogChoice::Save;
+
+			case IDNO:
+				return UnsavedChangesDialogChoice::DontSave;
+
+			case IDCANCEL:
+			default:
+				return UnsavedChangesDialogChoice::Cancel;
+		}
 	}
 
 	std::optional<std::string> show_load_dialog(HWND hwnd, const FileExplorerDialog* dialog) {

@@ -200,6 +200,21 @@ int main(int argc, char** argv) {
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
 
+	switch (platform::show_unsaved_changes_dialog("My Project")) {
+		case platform::UnsavedChangesDialogChoice::Save:
+			LOG_DEBUG("Save");
+			break;
+
+		case platform::UnsavedChangesDialogChoice::DontSave:
+			LOG_DEBUG("DontSave");
+			break;
+
+		case platform::UnsavedChangesDialogChoice::Cancel:
+			LOG_DEBUG("Cancel");
+			break;
+	}
+	return 0;
+
 	/* Main loop */
 	engine.initialize(&state);
 	while (!quit) {
@@ -412,6 +427,7 @@ int main(int argc, char** argv) {
 			{
 				set_viewport(0, 0, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
+
 				engine.render(&renderer, &state);
 
 				renderer.set_render_canvas(window_canvas);

@@ -90,6 +90,12 @@ namespace engine {
 		platform::PlatformAPI* platform
 	) {
 		/* Input */
+		// NOTE: once this hashing starts to become expensive we should strongly
+		// consider a solution where we re-compute this only when we've edited
+		// something in the ProjectState _or_ on some kind of timer.
+		//
+		// We _could_ consider making ProjectState a class and use setters to
+		// keep track of the dirty state, and only re-compute this on dirty.
 		size_t current_project_hash = std::hash<ProjectState>()(*project);
 
 		/* Process events */
