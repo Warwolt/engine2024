@@ -38,6 +38,7 @@ namespace engine {
 		EditorState* editor,
 		GameState* game,
 		ProjectState* project,
+		const platform::Input* input,
 		platform::PlatformAPI* platform
 	);
 

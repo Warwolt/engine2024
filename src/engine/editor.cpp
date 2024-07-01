@@ -86,6 +86,7 @@ namespace engine {
 		EditorState* editor,
 		GameState* game,
 		ProjectState* project,
+		const platform::Input* input,
 		platform::PlatformAPI* platform
 	) {
 		/* Input */
@@ -118,6 +119,17 @@ namespace engine {
 						current_project_hash = std::hash<ProjectState>()(*project);
 						editor->ui.saved_project_hash = current_project_hash;
 					}
+				}
+			}
+
+			/* Quit */
+			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+				const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
+				if (project_has_unsaved_changes) {
+					LOG_DEBUG("UNSAVED CHANGES");
+				}
+				else {
+					platform->quit();
 				}
 			}
 		}

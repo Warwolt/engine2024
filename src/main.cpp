@@ -210,6 +210,7 @@ int main(int argc, char** argv) {
 			std::array<ButtonEvent, NUM_MOUSE_BUTTONS> mouse_button_events = { ButtonEvent::None };
 			input.mouse.scroll_delta = 0;
 			input.mouse.pos_delta = glm::vec2 { 0, 0 };
+			input.quit_signal_received = false;
 
 			ImGuiIO& imgui_io = ImGui::GetIO();
 			SDL_Event event;
