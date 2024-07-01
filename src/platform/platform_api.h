@@ -24,6 +24,7 @@ namespace platform {
 		LoadFileWithDialog,
 		SaveFile,
 		SaveFileWithDialog,
+		ShowUnsavedChangesDialog,
 
 		// window
 		ChangeResolution,
@@ -109,6 +110,12 @@ namespace platform {
 			FileExplorerDialog dialog;
 		};
 
+		struct ShowUnsavedChangesDialog {
+			static constexpr auto TAG = PlatformCommandType::ShowUnsavedChangesDialog;
+			std::promise<platform::UnsavedChangesDialogChoice> choice_promise;
+			std::string document_name;
+		};
+
 	} // namespace cmd::file
 
 	namespace cmd::window {
@@ -144,6 +151,7 @@ namespace platform {
 		cmd::file::LoadFileWithDialog,
 		cmd::file::SaveFile,
 		cmd::file::SaveFileWithDialog,
+		cmd::file::ShowUnsavedChangesDialog,
 		cmd::window::ChangeResolution,
 		cmd::window::SetWindowMode,
 		cmd::window::SetWindowTitle,
@@ -167,6 +175,7 @@ namespace platform {
 		std::future<LoadFileResult<LoadFileData>> load_file_with_dialog(FileExplorerDialog dialog);
 		std::future<SaveFileResult<std::filesystem::path>> save_file(const std::vector<uint8_t>& data, const std::filesystem::path&);
 		std::future<SaveFileResult<std::filesystem::path>> save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog);
+		std::future<platform::UnsavedChangesDialogChoice> show_unsaved_changes_dialog(const std::string& document_name);
 
 		// window
 		void change_resolution(int width, int height);

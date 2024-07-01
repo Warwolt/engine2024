@@ -200,21 +200,6 @@ int main(int argc, char** argv) {
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
 
-	switch (platform::show_unsaved_changes_dialog("My Project")) {
-		case platform::UnsavedChangesDialogChoice::Save:
-			LOG_DEBUG("Save");
-			break;
-
-		case platform::UnsavedChangesDialogChoice::DontSave:
-			LOG_DEBUG("DontSave");
-			break;
-
-		case platform::UnsavedChangesDialogChoice::Cancel:
-			LOG_DEBUG("Cancel");
-			break;
-	}
-	return 0;
-
 	/* Main loop */
 	engine.initialize(&state);
 	while (!quit) {
@@ -410,6 +395,12 @@ int main(int argc, char** argv) {
 							// user cancelled the dialog, so still signal a success
 							save_file_with_dialog.result_promise.set_value(std::filesystem::path());
 						}
+					} break;
+
+					case PlatformCommandType::ShowUnsavedChangesDialog: {
+						auto& show_unsaved_changes_dialog = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
+						platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(show_unsaved_changes_dialog.document_name);
+						show_unsaved_changes_dialog.choice_promise.set_value(choice);
 					} break;
 				}
 			}

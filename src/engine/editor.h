@@ -20,6 +20,7 @@ namespace engine {
 	struct EditorInput {
 		std::future<platform::LoadFileResult<platform::LoadFileData>> load_project_result;
 		std::future<platform::SaveFileResult<std::filesystem::path>> save_project_result;
+		std::future<platform::UnsavedChangesDialogChoice> save_before_quit_choice;
 	};
 
 	struct EditorUiState {
