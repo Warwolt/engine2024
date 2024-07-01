@@ -89,13 +89,13 @@ namespace engine {
 		platform::PlatformAPI* platform
 	) {
 		/* Input */
-		const size_t current_project_hash = std::hash<ProjectState>()(*project);
+		size_t current_project_hash = std::hash<ProjectState>()(*project);
 
 		/* Process events */
 		{
 			/* On project saved */
 			if (core::future::has_value(editor->input.save_project_result)) {
-				const platform::SaveResult<std::filesystem::path>& save_result = editor->input.save_project_result.get();
+				const platform::SaveFileResult<std::filesystem::path> save_result = editor->input.save_project_result.get();
 				if (save_result.has_value()) {
 					const std::filesystem::path& path = save_result.value();
 					if (!path.empty()) {
@@ -106,13 +106,18 @@ namespace engine {
 			}
 
 			/* On project loaded */
-			if (core::future::has_value(editor->input.project_data)) {
-				const std::vector<uint8_t>& loaded_bytes = editor->input.project_data.get();
-				if (!loaded_bytes.empty()) {
-					nlohmann::json json_object = nlohmann::json::parse(loaded_bytes);
-					project->name = json_object["project_name"];
-					editor->ui.project_name_buf = project->name;
-					editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
+			if (core::future::has_value(editor->input.load_project_result)) {
+				const platform::LoadFileResult<platform::LoadFileData> load_result = editor->input.load_project_result.get();
+				if (load_result.has_value()) {
+					const platform::LoadFileData& loaded_project = load_result.value();
+					if (!loaded_project.data.empty() && !loaded_project.path.empty()) {
+						nlohmann::json json_object = nlohmann::json::parse(loaded_project.data);
+						project->path = loaded_project.path;
+						project->name = json_object["project_name"];
+						editor->ui.project_name_buf = project->name;
+						current_project_hash = std::hash<ProjectState>()(*project);
+						editor->ui.saved_project_hash = current_project_hash;
+					}
 				}
 			}
 		}
@@ -123,7 +128,6 @@ namespace engine {
 		commands = update_editor_ui(&editor->ui, game, project, project_has_unsaved_changes);
 
 		// TODO:
-		// - update project path when loading from file
 		// - warn when closing editor with unsaved changes
 		// - warn when loading project if unsaved changes
 		// - add save-as menu option
@@ -141,7 +145,7 @@ namespace engine {
 						.description = "(PAK *.pak)",
 						.extension = "pak",
 					};
-					editor->input.project_data = platform->load_file_with_dialog(dialog);
+					editor->input.load_project_result = platform->load_file_with_dialog(dialog);
 				} break;
 
 				case EditorCommand::SaveProject: {

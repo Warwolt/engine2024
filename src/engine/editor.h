@@ -18,8 +18,8 @@ namespace engine {
 	struct ProjectState;
 
 	struct EditorInput {
-		std::future<std::vector<uint8_t>> project_data;
-		std::future<platform::SaveResult<std::filesystem::path>> save_project_result;
+		std::future<platform::LoadFileResult<platform::LoadFileData>> load_project_result;
+		std::future<platform::SaveFileResult<std::filesystem::path>> save_project_result;
 	};
 
 	struct EditorUiState {

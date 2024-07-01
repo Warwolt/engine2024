@@ -32,12 +32,24 @@ namespace platform {
 		ToggleFullscreen,
 	};
 
+	struct LoadFileData {
+		std::vector<uint8_t> data;
+		std::filesystem::path path;
+	};
+
+	enum class LoadFileError {
+		NoSuchFile,
+	};
+
+	template <typename T>
+	using LoadFileResult = std::expected<T, LoadFileError>;
+
 	enum class SaveFileError {
 		CouldNotCreateFile,
 	};
 
 	template <typename T>
-	using SaveResult = std::expected<T, SaveFileError>;
+	using SaveFileResult = std::expected<T, SaveFileError>;
 
 	enum class Cursor {
 		Arrow,
@@ -79,20 +91,20 @@ namespace platform {
 
 		struct LoadFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::LoadFileWithDialog;
-			std::promise<std::vector<uint8_t>> data_promise;
+			std::promise<LoadFileResult<LoadFileData>> result_promise;
 			FileExplorerDialog dialog;
 		};
 
 		struct SaveFile {
 			static constexpr auto TAG = PlatformCommandType::SaveFile;
-			std::promise<SaveResult<std::filesystem::path>> result_promise;
+			std::promise<SaveFileResult<std::filesystem::path>> result_promise;
 			std::filesystem::path path;
 			std::vector<uint8_t> data;
 		};
 
 		struct SaveFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::SaveFileWithDialog;
-			std::promise<SaveResult<std::filesystem::path>> result_promise;
+			std::promise<SaveFileResult<std::filesystem::path>> result_promise;
 			std::vector<uint8_t> data;
 			FileExplorerDialog dialog;
 		};
@@ -152,9 +164,9 @@ namespace platform {
 		void set_cursor(Cursor cursor);
 
 		// file
-		std::future<std::vector<uint8_t>> load_file_with_dialog(FileExplorerDialog dialog);
-		std::future<SaveResult<std::filesystem::path>> save_file(const std::vector<uint8_t>& data, const std::filesystem::path&);
-		std::future<SaveResult<std::filesystem::path>> save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog);
+		std::future<LoadFileResult<LoadFileData>> load_file_with_dialog(FileExplorerDialog dialog);
+		std::future<SaveFileResult<std::filesystem::path>> save_file(const std::vector<uint8_t>& data, const std::filesystem::path&);
+		std::future<SaveFileResult<std::filesystem::path>> save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog);
 
 		// window
 		void change_resolution(int width, int height);

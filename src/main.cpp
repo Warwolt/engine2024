@@ -350,13 +350,20 @@ int main(int argc, char** argv) {
 						break;
 
 					case PlatformCommandType::LoadFileWithDialog: {
-						platform::cmd::file::LoadFileWithDialog& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
+						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
 						std::vector<uint8_t> data;
-						if (std::optional<std::string> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
-							data = read_file(std::filesystem::path { path.value() });
+						std::filesystem::path path;
+						if (std::optional<std::string> path_str = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
+							path = std::filesystem::path { path_str.value() };
+							data = read_file(path);
 						}
-						load_file_with_dialog.data_promise.set_value(std::move(data));
+						load_file_with_dialog.result_promise.set_value(
+							platform::LoadFileData {
+								.data = std::move(data),
+								.path = std::move(path),
+							}
+						);
 					} break;
 
 					case PlatformCommandType::SaveFile: {
