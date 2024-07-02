@@ -20,10 +20,11 @@ Goals:
     // continuation
   });
   ```
-- Disable RTTI and exceptions in both project and standard library
-- set VS_DEBUGGER_WORKING_DIRECTORY to project root
+- Add keyboard ctrl+s and ctrl+o shortcuts for save and load
 - Move all state headers into "engine/state" directory
 - Setup ImGui docking branch
+- Disable RTTI and exceptions in both project and standard library
+- set VS_DEBUGGER_WORKING_DIRECTORY to project root
 - Add tooling to measure memory usage
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed

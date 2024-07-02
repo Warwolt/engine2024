@@ -16,8 +16,9 @@ namespace engine {
 
 	enum class EditorCommand {
 		NewProject,
-		LoadProject,
+		OpenProject,
 		SaveProject,
+		SaveProjectAs,
 		ResetGameState,
 		RunGame,
 		Quit,
@@ -52,16 +53,24 @@ namespace engine {
 		/* Editor Menu Bar*/
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem("New Project")) {
+				if (ImGui::MenuItem("  New Project")) {
 					commands.push_back(EditorCommand::NewProject);
 				}
 
-				if (ImGui::MenuItem("Load Project")) {
-					commands.push_back(EditorCommand::LoadProject);
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("  Open Project")) {
+					commands.push_back(EditorCommand::OpenProject);
 				}
 
-				if (ImGui::MenuItem("Save Project")) {
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("  Save Project")) {
 					commands.push_back(EditorCommand::SaveProject);
+				}
+
+				if (ImGui::MenuItem("  Save Project As")) {
+					commands.push_back(EditorCommand::SaveProjectAs);
 				}
 
 				ImGui::EndMenu();
@@ -104,7 +113,7 @@ namespace engine {
 		return json_object.dump();
 	}
 
-	static void load_project(
+	static void open_project(
 		EditorState* editor,
 		ProjectState* project,
 		platform::PlatformAPI* platform
@@ -118,7 +127,7 @@ namespace engine {
 		});
 	}
 
-	static void save_project(
+	static void save_project_as(
 		EditorState* editor,
 		ProjectState* project,
 		platform::PlatformAPI* platform,
@@ -127,9 +136,25 @@ namespace engine {
 	) {
 		const std::string json = serialize_project_to_json_string(project);
 		const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
+		platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
+			project->path = path;
+			editor->ui.cached_project_hash = current_project_hash;
+			on_file_saved();
+		});
+	}
+
+	static void save_project(
+		EditorState* editor,
+		ProjectState* project,
+		platform::PlatformAPI* platform,
+		size_t current_project_hash,
+		std::function<void()> on_file_saved = []() {}
+	) {
 		const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
 		/* Save existing file */
 		if (project_file_exists) {
+			const std::string json = serialize_project_to_json_string(project);
+			const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 			platform->save_file(bytes, project->path, [=]() {
 				editor->ui.cached_project_hash = current_project_hash;
 				on_file_saved();
@@ -137,11 +162,7 @@ namespace engine {
 		}
 		/* Save new file */
 		else {
-			platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
-				project->path = path;
-				editor->ui.cached_project_hash = current_project_hash;
-				on_file_saved();
-			});
+			save_project_as(editor, project, platform, current_project_hash, on_file_saved);
 		}
 	}
 
@@ -187,6 +208,7 @@ namespace engine {
 
 		// TODO:
 		// - add save-as menu option
+		// - disable save menu option if no unsaved changes
 
 		/* Process commands */
 		for (const EditorCommand& cmd : commands) {
@@ -195,21 +217,24 @@ namespace engine {
 					*game = {};
 					break;
 
-				case EditorCommand::LoadProject: {
+				case EditorCommand::OpenProject:
 					if (project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
-							load_project(editor, project, platform);
+							open_project(editor, project, platform);
 						});
 					}
 					else {
-						load_project(editor, project, platform);
+						open_project(editor, project, platform);
 					}
+					break;
 
-				} break;
-
-				case EditorCommand::SaveProject: {
+				case EditorCommand::SaveProject:
 					save_project(editor, project, platform, current_project_hash);
-				} break;
+					break;
+
+				case EditorCommand::SaveProjectAs:
+					save_project_as(editor, project, platform, current_project_hash);
+					break;
 
 				case EditorCommand::ResetGameState:
 					game->counter = 0;
@@ -220,7 +245,7 @@ namespace engine {
 					platform->set_run_mode(platform::RunMode::Game);
 					break;
 
-				case EditorCommand::Quit: {
+				case EditorCommand::Quit:
 					if (project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
 							platform->quit();
@@ -229,7 +254,7 @@ namespace engine {
 					else {
 						platform->quit();
 					}
-				} break;
+					break;
 			}
 		}
 	}
