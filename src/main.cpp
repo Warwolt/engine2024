@@ -298,7 +298,7 @@ int main(int argc, char** argv) {
 			engine.update(&state, &input, &platform);
 
 			/* Platform update */
-			for (platform::PlatformCommand& cmd : platform.commands()) {
+			for (platform::PlatformCommand& cmd : platform.drain_commands()) {
 				using PlatformCommandType = platform::PlatformCommandType;
 				switch (cmd.tag()) {
 					case PlatformCommandType::ChangeResolution: {
@@ -353,18 +353,11 @@ int main(int argc, char** argv) {
 					case PlatformCommandType::LoadFileWithDialog: {
 						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
-						std::vector<uint8_t> data;
-						std::filesystem::path path;
 						if (std::optional<std::string> path_str = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
-							path = std::filesystem::path { path_str.value() };
-							data = read_file(path);
+							std::filesystem::path path = path_str.value();
+							std::vector<uint8_t> data = read_file(path);
+							load_file_with_dialog.on_file_loaded(data, path);
 						}
-						load_file_with_dialog.result_promise.set_value(
-							platform::LoadFileData {
-								.data = std::move(data),
-								.path = std::move(path),
-							}
-						);
 					} break;
 
 					case PlatformCommandType::SaveFile: {
@@ -404,7 +397,6 @@ int main(int argc, char** argv) {
 					} break;
 				}
 			}
-			platform.clear();
 
 			/* Set Cursor */
 			SDL_SetCursor(cursor);

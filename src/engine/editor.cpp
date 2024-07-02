@@ -191,7 +191,13 @@ namespace engine {
 						.description = "(PAK *.pak)",
 						.extension = "pak",
 					};
-					editor->input.load_project_result = platform->load_file_with_dialog(dialog);
+					platform->load_file_with_dialog(dialog, [project, editor](std::vector<uint8_t> data, std::filesystem::path path) {
+						nlohmann::json json_object = nlohmann::json::parse(data);
+						project->name = json_object["project_name"];
+						project->path = path;
+						editor->ui.project_name_buf = project->name;
+						editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
+					});
 				} break;
 
 				case EditorCommand::SaveProject: {

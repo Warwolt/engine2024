@@ -5,6 +5,7 @@
 #include <platform/window.h>
 
 #include <filesystem>
+#include <functional>
 #include <future>
 #include <string>
 #include <vector>
@@ -92,7 +93,7 @@ namespace platform {
 
 		struct LoadFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::LoadFileWithDialog;
-			std::promise<LoadFileResult<LoadFileData>> result_promise;
+			std::function<void(std::vector<uint8_t>, std::filesystem::path)> on_file_loaded;
 			FileExplorerDialog dialog;
 		};
 
@@ -159,9 +160,7 @@ namespace platform {
 
 	class PlatformAPI {
 	public:
-		std::vector<PlatformCommand>& commands();
-
-		void clear();
+		std::vector<PlatformCommand> drain_commands();
 
 		// application
 		void quit();
@@ -172,7 +171,7 @@ namespace platform {
 		void set_cursor(Cursor cursor);
 
 		// file
-		std::future<LoadFileResult<LoadFileData>> load_file_with_dialog(FileExplorerDialog dialog);
+		void load_file_with_dialog(FileExplorerDialog dialog, std::function<void(std::vector<uint8_t>, std::filesystem::path)> on_file_loaded);
 		std::future<SaveFileResult<std::filesystem::path>> save_file(const std::vector<uint8_t>& data, const std::filesystem::path&);
 		std::future<SaveFileResult<std::filesystem::path>> save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog);
 		std::future<platform::UnsavedChangesDialogChoice> show_unsaved_changes_dialog(const std::string& document_name);
