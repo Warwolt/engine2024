@@ -123,6 +123,7 @@ namespace engine {
 		GameState* game,
 		ProjectState* project
 	) {
+		LOG_INFO("Opened new project");
 		*project = {};
 		*game = {};
 		init_editor(editor, project);
@@ -139,6 +140,7 @@ namespace engine {
 			project->path = path;
 			editor->ui.project_name_buf = project->name;
 			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+			LOG_INFO("Opened project \"%s\"", project->name.c_str());
 		});
 	}
 
@@ -152,6 +154,7 @@ namespace engine {
 		const std::string json = serialize_project_to_json_string(project);
 		const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 		platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
+			LOG_INFO("Saved project \"%s\"", project->name.c_str());
 			project->path = path;
 			editor->ui.cached_project_hash = current_project_hash;
 			on_file_saved();
@@ -171,6 +174,7 @@ namespace engine {
 			const std::string json = serialize_project_to_json_string(project);
 			const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 			platform->save_file(bytes, project->path, [=]() {
+				LOG_INFO("Saved project \"%s\"", project->name.c_str());
 				editor->ui.cached_project_hash = current_project_hash;
 				on_file_saved();
 			});
@@ -202,6 +206,11 @@ namespace engine {
 					break;
 			}
 		});
+	}
+
+	static void quit_editor(platform::PlatformAPI* platform) {
+		platform->quit();
+		LOG_INFO("Editor quit");
 	}
 
 	void init_editor(EditorState* editor, const ProjectState* project) {
@@ -266,11 +275,11 @@ namespace engine {
 				case EditorCommand::Quit:
 					if (project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
-							platform->quit();
+							quit_editor(platform);
 						});
 					}
 					else {
-						platform->quit();
+						quit_editor(platform);
 					}
 					break;
 			}
