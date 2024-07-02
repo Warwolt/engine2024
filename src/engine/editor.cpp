@@ -139,6 +139,16 @@ namespace engine {
 				}
 			}
 
+			// TODO
+			// This is complex enough to warrant a big fat flowchart!
+			//
+			// There's enough different cases here that we need to know how to
+			// unify things and make things neat and tiny now that we're in this
+			// always-async development mode.
+			//
+			// Somehow, we need to NEATLY keep track of all these this-then-that
+			// continuations without wanting to blow our brains out.
+
 			/* Unsaved changes on quit dialog */
 			if (core::future::has_value(editor->input.save_before_quit_choice)) {
 				const platform::UnsavedChangesDialogChoice choice = editor->input.save_before_quit_choice.get();
