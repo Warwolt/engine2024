@@ -5,12 +5,8 @@
 
 namespace platform {
 
-	std::vector<PlatformCommand>& PlatformAPI::commands() {
-		return m_commands;
-	}
-
-	void PlatformAPI::clear() {
-		m_commands.clear();
+	std::vector<PlatformCommand> PlatformAPI::drain_commands() {
+		return std::move(m_commands);
 	}
 
 	void PlatformAPI::quit() {

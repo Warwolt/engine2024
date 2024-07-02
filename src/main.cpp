@@ -297,7 +297,7 @@ int main(int argc, char** argv) {
 			engine.update(&state, &input, &platform);
 
 			/* Platform update */
-			for (platform::PlatformCommand& cmd : platform.commands()) {
+			for (platform::PlatformCommand& cmd : platform.drain_commands()) {
 				using PlatformCommandType = platform::PlatformCommandType;
 				switch (cmd.tag()) {
 					case PlatformCommandType::ChangeResolution: {
@@ -371,7 +371,6 @@ int main(int argc, char** argv) {
 					} break;
 				}
 			}
-			platform.clear();
 
 			/* Set Cursor */
 			SDL_SetCursor(cursor);

@@ -122,9 +122,7 @@ namespace platform {
 
 	class PlatformAPI {
 	public:
-		std::vector<PlatformCommand>& commands();
-
-		void clear();
+		std::vector<PlatformCommand> drain_commands();
 
 		// application
 		void quit();
