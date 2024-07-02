@@ -13,6 +13,7 @@ Goals:
 - set VS_DEBUGGER_WORKING_DIRECTORY to project root
 - Move all state headers into "engine/state" directory
 - Setup ImGui docking branch
+- Add tooling to measure memory usage
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 

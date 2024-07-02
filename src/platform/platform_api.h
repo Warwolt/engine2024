@@ -87,14 +87,14 @@ namespace platform {
 
 		struct SaveFile {
 			static constexpr auto TAG = PlatformCommandType::SaveFile;
-			std::promise<SaveFileResult<std::filesystem::path>> result_promise;
+			std::function<void()> on_file_saved;
 			std::filesystem::path path;
 			std::vector<uint8_t> data;
 		};
 
 		struct SaveFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::SaveFileWithDialog;
-			std::promise<SaveFileResult<std::filesystem::path>> result_promise;
+			std::function<void(std::filesystem::path)> on_file_saved;
 			std::vector<uint8_t> data;
 			FileExplorerDialog dialog;
 		};
@@ -160,8 +160,8 @@ namespace platform {
 
 		// file
 		void load_file_with_dialog(FileExplorerDialog dialog, std::function<void(std::vector<uint8_t>, std::filesystem::path)> on_file_loaded);
-		std::future<SaveFileResult<std::filesystem::path>> save_file(const std::vector<uint8_t>& data, const std::filesystem::path&);
-		std::future<SaveFileResult<std::filesystem::path>> save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog);
+		void save_file(const std::vector<uint8_t>& data, const std::filesystem::path& path, std::function<void()> on_file_saved);
+		void save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog, std::function<void(std::filesystem::path)> on_file_saved);
 		std::future<platform::UnsavedChangesDialogChoice> show_unsaved_changes_dialog(const std::string& document_name);
 
 		// window

@@ -100,18 +100,6 @@ namespace engine {
 
 		/* Process events */
 		{
-			/* On project saved */
-			if (core::future::has_value(editor->input.save_project_result)) {
-				const platform::SaveFileResult<std::filesystem::path> save_result = editor->input.save_project_result.get();
-				if (save_result.has_value()) {
-					const std::filesystem::path& path = save_result.value();
-					if (!path.empty()) {
-						project->path = path;
-						editor->ui.saved_project_hash = current_project_hash;
-					}
-				}
-			}
-
 			/* Quit */
 			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
 				const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
@@ -170,7 +158,7 @@ namespace engine {
 					break;
 
 				case EditorCommand::LoadProject: {
-					platform::FileExplorerDialog {
+					platform::FileExplorerDialog dialog = {
 						.title = "Load project",
 						.description = "(PAK *.pak)",
 						.extension = "pak",
@@ -186,18 +174,26 @@ namespace engine {
 				} break;
 
 				case EditorCommand::SaveProject: {
-					const std::string json_data = serialize_project_to_json_string(project);
+					const std::string json = serialize_project_to_json_string(project);
+					const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 					const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
-					if (project_file_exists && project_has_unsaved_changes) {
-						editor->input.save_project_result = platform->save_file(std::vector<uint8_t>(json_data.begin(), json_data.end()), project->path);
+					/* Save existing file */
+					if (project_file_exists) {
+						platform->save_file(bytes, project->path, [editor, current_project_hash]() {
+							editor->ui.saved_project_hash = current_project_hash;
+						});
 					}
-					if (!project_file_exists) {
+					/* Save new file */
+					else {
 						platform::FileExplorerDialog dialog = {
 							.title = "Save project",
 							.description = "PAK (*.pak)",
 							.extension = "pak",
 						};
-						editor->input.save_project_result = platform->save_file_with_dialog(std::vector<uint8_t>(json_data.begin(), json_data.end()), dialog);
+						platform->save_file_with_dialog(bytes, dialog, [project, editor, current_project_hash](std::filesystem::path path) {
+							project->path = path;
+							editor->ui.saved_project_hash = current_project_hash;
+						});
 					}
 				} break;
 

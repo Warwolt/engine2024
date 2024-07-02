@@ -32,26 +32,20 @@ namespace platform {
 		});
 	}
 
-	std::future<SaveFileResult<std::filesystem::path>> PlatformAPI::save_file(const std::vector<uint8_t>& data, const std::filesystem::path& path) {
-		std::promise<SaveFileResult<std::filesystem::path>> result_promise;
-		std::future<SaveFileResult<std::filesystem::path>> result_future = result_promise.get_future();
+	void PlatformAPI::save_file(const std::vector<uint8_t>& data, const std::filesystem::path& path, std::function<void()> on_file_saved) {
 		m_commands.push_back(cmd::file::SaveFile {
-			.result_promise = std::move(result_promise),
+			.on_file_saved = on_file_saved,
 			.path = path,
 			.data = data,
 		});
-		return result_future;
 	}
 
-	std::future<SaveFileResult<std::filesystem::path>> PlatformAPI::save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog) {
-		std::promise<SaveFileResult<std::filesystem::path>> result_promise;
-		std::future<SaveFileResult<std::filesystem::path>> result_future = result_promise.get_future();
+	void PlatformAPI::save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog, std::function<void(std::filesystem::path)> on_file_saved) {
 		m_commands.push_back(cmd::file::SaveFileWithDialog {
-			.result_promise = std::move(result_promise),
+			.on_file_saved = on_file_saved,
 			.data = data,
 			.dialog = dialog,
 		});
-		return result_future;
 	}
 
 	std::future<platform::UnsavedChangesDialogChoice> PlatformAPI::show_unsaved_changes_dialog(const std::string& document_name) {

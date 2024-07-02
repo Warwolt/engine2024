@@ -168,7 +168,7 @@ namespace platform {
 		}
 	}
 
-	std::optional<std::string> show_load_dialog(HWND hwnd, const FileExplorerDialog* dialog) {
+	std::optional<std::filesystem::path> show_load_dialog(HWND hwnd, const FileExplorerDialog* dialog) {
 		char path[MAX_PATH] = "";
 
 		char filter[256] = "";
@@ -190,13 +190,13 @@ namespace platform {
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 		if (GetOpenFileNameA(&ofn)) {
-			return path;
+			return std::filesystem::path(path);
 		}
 
 		return {};
 	}
 
-	std::optional<std::string> show_save_dialog(HWND hwnd, const FileExplorerDialog* dialog) {
+	std::optional<std::filesystem::path> show_save_dialog(HWND hwnd, const FileExplorerDialog* dialog) {
 		char path[MAX_PATH] = "";
 
 		char filter[256] = "";
@@ -218,7 +218,7 @@ namespace platform {
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
 
 		if (GetSaveFileNameA(&ofn)) {
-			return path;
+			return std::filesystem::path(path);
 		}
 
 		return {};
