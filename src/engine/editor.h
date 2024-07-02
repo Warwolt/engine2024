@@ -22,7 +22,7 @@ namespace engine {
 	};
 
 	struct EditorUiState {
-		size_t saved_project_hash; // for "unsaved changes" prompts
+		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
 	};
 

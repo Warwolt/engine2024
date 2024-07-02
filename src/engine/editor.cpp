@@ -104,9 +104,36 @@ namespace engine {
 		return json_object.dump();
 	}
 
+	static void save_project(
+		EditorState* editor,
+		ProjectState* project,
+		platform::PlatformAPI* platform,
+		size_t current_project_hash,
+		std::function<void()> on_file_saved = []() {}
+	) {
+		const std::string json = serialize_project_to_json_string(project);
+		const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
+		const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
+		/* Save existing file */
+		if (project_file_exists) {
+			platform->save_file(bytes, project->path, [editor, current_project_hash, on_file_saved]() {
+				editor->ui.cached_project_hash = current_project_hash;
+				on_file_saved();
+			});
+		}
+		/* Save new file */
+		else {
+			platform->save_file_with_dialog(bytes, g_save_project_dialog, [project, editor, current_project_hash, on_file_saved](std::filesystem::path path) {
+				project->path = path;
+				editor->ui.cached_project_hash = current_project_hash;
+				on_file_saved();
+			});
+		}
+	}
+
 	void init_editor(EditorState* editor, const ProjectState* project) {
 		editor->ui.project_name_buf = project->name;
-		editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
+		editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
 	}
 
 	void update_editor(
@@ -118,7 +145,7 @@ namespace engine {
 	) {
 		/* Run UI */
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
-		const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
+		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
 
 		// TODO:
@@ -138,28 +165,13 @@ namespace engine {
 						project->name = json_object["project_name"];
 						project->path = path;
 						editor->ui.project_name_buf = project->name;
-						editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
+						editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
 					});
 
 				} break;
 
 				case EditorCommand::SaveProject: {
-					const std::string json = serialize_project_to_json_string(project);
-					const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
-					const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
-					/* Save existing file */
-					if (project_file_exists) {
-						platform->save_file(bytes, project->path, [editor, current_project_hash]() {
-							editor->ui.saved_project_hash = current_project_hash;
-						});
-					}
-					/* Save new file */
-					else {
-						platform->save_file_with_dialog(bytes, g_save_project_dialog, [project, editor, current_project_hash](std::filesystem::path path) {
-							project->path = path;
-							editor->ui.saved_project_hash = current_project_hash;
-						});
-					}
+					save_project(editor, project, platform, current_project_hash);
 				} break;
 
 				case EditorCommand::ResetGameState:
@@ -173,28 +185,13 @@ namespace engine {
 
 				case EditorCommand::Quit: {
 					if (project_has_unsaved_changes) {
-						platform->show_unsaved_changes_dialog(project->name, [platform, project, editor, current_project_hash](platform::UnsavedChangesDialogChoice choice) {
+						platform->show_unsaved_changes_dialog(project->name, [editor, project, platform, current_project_hash](platform::UnsavedChangesDialogChoice choice) {
 							switch (choice) {
-								case platform::UnsavedChangesDialogChoice::Save: {
-									const std::string json = serialize_project_to_json_string(project);
-									const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
-									const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
-									/* Save existing file, then quit */
-									if (project_file_exists) {
-										platform->save_file(bytes, project->path, [platform, editor, current_project_hash]() {
-											editor->ui.saved_project_hash = current_project_hash;
-											platform->quit();
-										});
-									}
-									/* Save new file, then quit */
-									else {
-										platform->save_file_with_dialog(bytes, g_save_project_dialog, [platform, project, editor, current_project_hash](std::filesystem::path path) {
-											project->path = path;
-											editor->ui.saved_project_hash = current_project_hash;
-											platform->quit();
-										});
-									}
-								} break;
+								case platform::UnsavedChangesDialogChoice::Save:
+									save_project(editor, project, platform, current_project_hash, [platform]() {
+										platform->quit();
+									});
+									break;
 
 								case platform::UnsavedChangesDialogChoice::DontSave:
 									platform->quit();
