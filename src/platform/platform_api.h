@@ -4,7 +4,7 @@
 #include <platform/win32.h>
 #include <platform/window.h>
 
-#include <future>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -70,7 +70,7 @@ namespace platform {
 
 		struct LoadFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::LoadFileWithDialog;
-			std::promise<std::vector<uint8_t>> promise;
+			std::function<void(const std::vector<uint8_t>&)> on_file_loaded;
 			FileExplorerDialog dialog;
 		};
 
@@ -121,9 +121,7 @@ namespace platform {
 
 	class PlatformAPI {
 	public:
-		std::vector<PlatformCommand>& commands();
-
-		void clear();
+		std::vector<PlatformCommand> drain_commands();
 
 		// application
 		void quit();
@@ -134,7 +132,7 @@ namespace platform {
 		void set_cursor(Cursor cursor);
 
 		// file
-		std::future<std::vector<uint8_t>> load_file_with_dialog(FileExplorerDialog dialog);
+		void load_file_with_dialog(FileExplorerDialog dialog, std::function<void(const std::vector<uint8_t>&)> on_file_loaded);
 		void save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog);
 
 		// window

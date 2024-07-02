@@ -5,12 +5,8 @@
 
 namespace platform {
 
-	std::vector<PlatformCommand>& PlatformAPI::commands() {
-		return m_commands;
-	}
-
-	void PlatformAPI::clear() {
-		m_commands.clear();
+	std::vector<PlatformCommand> PlatformAPI::drain_commands() {
+		return std::move(m_commands);
 	}
 
 	void PlatformAPI::quit() {
@@ -29,15 +25,11 @@ namespace platform {
 		m_commands.push_back(cmd::cursor::SetCursor { cursor });
 	}
 
-	std::future<std::vector<uint8_t>> PlatformAPI::load_file_with_dialog(FileExplorerDialog dialog) {
-		std::promise<std::vector<uint8_t>> promise;
-		std::future<std::vector<uint8_t>> future = promise.get_future();
-		auto load_file_with_dialog = cmd::file::LoadFileWithDialog {
-			.promise = std::move(promise),
-			.dialog = dialog
-		};
-		m_commands.push_back(std::move(load_file_with_dialog));
-		return future;
+	void PlatformAPI::load_file_with_dialog(FileExplorerDialog dialog, std::function<void(const std::vector<uint8_t>&)> on_file_loaded) {
+		m_commands.push_back(cmd::file::LoadFileWithDialog {
+			.on_file_loaded = std::move(on_file_loaded),
+			.dialog = dialog,
+		});
 	}
 
 	void PlatformAPI::save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog) {
