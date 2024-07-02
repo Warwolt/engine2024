@@ -48,14 +48,11 @@ namespace platform {
 		});
 	}
 
-	std::future<platform::UnsavedChangesDialogChoice> PlatformAPI::show_unsaved_changes_dialog(const std::string& document_name) {
-		std::promise<platform::UnsavedChangesDialogChoice> choice_promise;
-		std::future<platform::UnsavedChangesDialogChoice> choice_future = choice_promise.get_future();
+	void PlatformAPI::show_unsaved_changes_dialog(const std::string& document_name, std::function<void(platform::UnsavedChangesDialogChoice)> on_dialog_choice) {
 		m_commands.push_back(cmd::file::ShowUnsavedChangesDialog {
-			.choice_promise = std::move(choice_promise),
+			.on_dialog_choice = on_dialog_choice,
 			.document_name = document_name,
 		});
-		return choice_future;
 	}
 
 	void PlatformAPI::change_resolution(int width, int height) {

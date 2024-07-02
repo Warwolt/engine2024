@@ -385,7 +385,7 @@ int main(int argc, char** argv) {
 					case PlatformCommandType::ShowUnsavedChangesDialog: {
 						auto& show_unsaved_changes_dialog = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
 						platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(show_unsaved_changes_dialog.document_name);
-						show_unsaved_changes_dialog.choice_promise.set_value(choice);
+						show_unsaved_changes_dialog.on_dialog_choice(choice);
 					} break;
 				}
 			}

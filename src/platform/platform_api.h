@@ -6,7 +6,6 @@
 
 #include <filesystem>
 #include <functional>
-#include <future>
 #include <string>
 #include <vector>
 
@@ -33,13 +32,6 @@ namespace platform {
 		SetWindowTitle,
 		ToggleFullscreen,
 	};
-
-	enum class SaveFileError {
-		CouldNotCreateFile,
-	};
-
-	template <typename T>
-	using SaveFileResult = std::expected<T, SaveFileError>;
 
 	enum class Cursor {
 		Arrow,
@@ -101,7 +93,7 @@ namespace platform {
 
 		struct ShowUnsavedChangesDialog {
 			static constexpr auto TAG = PlatformCommandType::ShowUnsavedChangesDialog;
-			std::promise<platform::UnsavedChangesDialogChoice> choice_promise;
+			std::function<void(platform::UnsavedChangesDialogChoice)> on_dialog_choice;
 			std::string document_name;
 		};
 
@@ -162,7 +154,7 @@ namespace platform {
 		void load_file_with_dialog(FileExplorerDialog dialog, std::function<void(std::vector<uint8_t>, std::filesystem::path)> on_file_loaded);
 		void save_file(const std::vector<uint8_t>& data, const std::filesystem::path& path, std::function<void()> on_file_saved);
 		void save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog, std::function<void(std::filesystem::path)> on_file_saved);
-		std::future<platform::UnsavedChangesDialogChoice> show_unsaved_changes_dialog(const std::string& document_name);
+		void show_unsaved_changes_dialog(const std::string& document_name, std::function<void(platform::UnsavedChangesDialogChoice)> on_dialog_choice);
 
 		// window
 		void change_resolution(int width, int height);

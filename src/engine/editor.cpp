@@ -104,39 +104,24 @@ namespace engine {
 			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
 				const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
 				if (project_has_unsaved_changes) {
-					editor->input.save_before_quit_choice = platform->show_unsaved_changes_dialog(project->name);
+					platform->show_unsaved_changes_dialog(project->name, [](platform::UnsavedChangesDialogChoice choice) {
+						switch (choice) {
+							case platform::UnsavedChangesDialogChoice::Save:
+								LOG_DEBUG("Choice: Save");
+								break;
+
+							case platform::UnsavedChangesDialogChoice::DontSave:
+								LOG_DEBUG("Choice: Don't Save");
+								break;
+
+							case platform::UnsavedChangesDialogChoice::Cancel:
+								LOG_DEBUG("Choice: Cancel");
+								break;
+						}
+					});
 				}
 				else {
 					platform->quit();
-				}
-			}
-
-			// TODO
-			// This is complex enough to warrant a big fat flowchart!
-			//
-			// There's enough different cases here that we need to know how to
-			// unify things and make things neat and tiny now that we're in this
-			// always-async development mode.
-			//
-			// Somehow, we need to NEATLY keep track of all these this-then-that
-			// continuations without wanting to blow our brains out.
-
-			/* Unsaved changes on quit dialog */
-			if (core::future::has_value(editor->input.save_before_quit_choice)) {
-				const platform::UnsavedChangesDialogChoice choice = editor->input.save_before_quit_choice.get();
-				switch (choice) {
-					case platform::UnsavedChangesDialogChoice::Save:
-						editor_cmds.push_back(EditorCommand::SaveProject);
-						// FIXME: we should not quit if we cancel the "save as" dialog
-						editor_cmds.push_back(EditorCommand::Quit);
-						break;
-
-					case platform::UnsavedChangesDialogChoice::DontSave:
-						editor_cmds.push_back(EditorCommand::Quit);
-						break;
-
-					case platform::UnsavedChangesDialogChoice::Cancel:
-						break;
 				}
 			}
 		}
