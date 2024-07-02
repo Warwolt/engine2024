@@ -5,7 +5,6 @@
 #include <platform/window.h>
 
 #include <functional>
-#include <future>
 #include <string>
 #include <vector>
 
