@@ -104,6 +104,20 @@ namespace engine {
 		return json_object.dump();
 	}
 
+	static void load_project(
+		EditorState* editor,
+		ProjectState* project,
+		platform::PlatformAPI* platform
+	) {
+		platform->load_file_with_dialog(g_load_project_dialog, [=](std::vector<uint8_t> data, std::filesystem::path path) {
+			nlohmann::json json_object = nlohmann::json::parse(data);
+			project->name = json_object["project_name"];
+			project->path = path;
+			editor->ui.project_name_buf = project->name;
+			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+		});
+	}
+
 	static void save_project(
 		EditorState* editor,
 		ProjectState* project,
@@ -116,19 +130,42 @@ namespace engine {
 		const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
 		/* Save existing file */
 		if (project_file_exists) {
-			platform->save_file(bytes, project->path, [editor, current_project_hash, on_file_saved]() {
+			platform->save_file(bytes, project->path, [=]() {
 				editor->ui.cached_project_hash = current_project_hash;
 				on_file_saved();
 			});
 		}
 		/* Save new file */
 		else {
-			platform->save_file_with_dialog(bytes, g_save_project_dialog, [project, editor, current_project_hash, on_file_saved](std::filesystem::path path) {
+			platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
 				project->path = path;
 				editor->ui.cached_project_hash = current_project_hash;
 				on_file_saved();
 			});
 		}
+	}
+
+	static void show_unsaved_project_changes_dialog(
+		EditorState* editor,
+		ProjectState* project,
+		platform::PlatformAPI* platform,
+		size_t current_project_hash,
+		std::function<void()> on_dialog_not_cancelled = []() {}
+	) {
+		platform->show_unsaved_changes_dialog(project->name, [=](platform::UnsavedChangesDialogChoice choice) {
+			switch (choice) {
+				case platform::UnsavedChangesDialogChoice::Save:
+					save_project(editor, project, platform, current_project_hash, on_dialog_not_cancelled);
+					break;
+
+				case platform::UnsavedChangesDialogChoice::DontSave:
+					on_dialog_not_cancelled();
+					break;
+
+				case platform::UnsavedChangesDialogChoice::Cancel:
+					break;
+			}
+		});
 	}
 
 	void init_editor(EditorState* editor, const ProjectState* project) {
@@ -149,7 +186,6 @@ namespace engine {
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
 
 		// TODO:
-		// - warn when loading project if unsaved changes
 		// - add save-as menu option
 
 		/* Process commands */
@@ -160,13 +196,14 @@ namespace engine {
 					break;
 
 				case EditorCommand::LoadProject: {
-					platform->load_file_with_dialog(g_load_project_dialog, [project, editor](std::vector<uint8_t> data, std::filesystem::path path) {
-						nlohmann::json json_object = nlohmann::json::parse(data);
-						project->name = json_object["project_name"];
-						project->path = path;
-						editor->ui.project_name_buf = project->name;
-						editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
-					});
+					if (project_has_unsaved_changes) {
+						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
+							load_project(editor, project, platform);
+						});
+					}
+					else {
+						load_project(editor, project, platform);
+					}
 
 				} break;
 
@@ -185,21 +222,8 @@ namespace engine {
 
 				case EditorCommand::Quit: {
 					if (project_has_unsaved_changes) {
-						platform->show_unsaved_changes_dialog(project->name, [editor, project, platform, current_project_hash](platform::UnsavedChangesDialogChoice choice) {
-							switch (choice) {
-								case platform::UnsavedChangesDialogChoice::Save:
-									save_project(editor, project, platform, current_project_hash, [platform]() {
-										platform->quit();
-									});
-									break;
-
-								case platform::UnsavedChangesDialogChoice::DontSave:
-									platform->quit();
-									break;
-
-								case platform::UnsavedChangesDialogChoice::Cancel:
-									break;
-							}
+						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
+							platform->quit();
 						});
 					}
 					else {

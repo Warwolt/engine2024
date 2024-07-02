@@ -8,7 +8,18 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Add a core::task wrapper for std::future to make PlatformAPI task handling a little nicer
+- Explore if we can make support `and_then` for command continuations:
+  ```C++
+  do_thing(arg1, arg2).and_then([]() {
+    // continuation
+  });
+  ```
+  instead of the current:
+  ```C++
+  do_thing(arg1, arg2, []() {
+    // continuation
+  });
+  ```
 - Disable RTTI and exceptions in both project and standard library
 - set VS_DEBUGGER_WORKING_DIRECTORY to project root
 - Move all state headers into "engine/state" directory
