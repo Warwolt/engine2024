@@ -23,6 +23,18 @@ namespace engine {
 		Quit,
 	};
 
+	static const platform::FileExplorerDialog g_load_project_dialog = {
+		.title = "Load project",
+		.description = "(PAK *.pak)",
+		.extension = "pak",
+	};
+
+	static const platform::FileExplorerDialog g_save_project_dialog = {
+		.title = "Save project",
+		.description = "PAK (*.pak)",
+		.extension = "pak",
+	};
+
 	static std::vector<EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		GameState* game,
@@ -110,7 +122,6 @@ namespace engine {
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
 
 		// TODO:
-		// - warn when closing editor with unsaved changes
 		// - warn when loading project if unsaved changes
 		// - add save-as menu option
 
@@ -122,12 +133,7 @@ namespace engine {
 					break;
 
 				case EditorCommand::LoadProject: {
-					platform::FileExplorerDialog dialog = {
-						.title = "Load project",
-						.description = "(PAK *.pak)",
-						.extension = "pak",
-					};
-					platform->load_file_with_dialog(dialog, [project, editor](std::vector<uint8_t> data, std::filesystem::path path) {
+					platform->load_file_with_dialog(g_load_project_dialog, [project, editor](std::vector<uint8_t> data, std::filesystem::path path) {
 						nlohmann::json json_object = nlohmann::json::parse(data);
 						project->name = json_object["project_name"];
 						project->path = path;
@@ -149,12 +155,7 @@ namespace engine {
 					}
 					/* Save new file */
 					else {
-						platform::FileExplorerDialog dialog = {
-							.title = "Save project",
-							.description = "PAK (*.pak)",
-							.extension = "pak",
-						};
-						platform->save_file_with_dialog(bytes, dialog, [project, editor, current_project_hash](std::filesystem::path path) {
+						platform->save_file_with_dialog(bytes, g_save_project_dialog, [project, editor, current_project_hash](std::filesystem::path path) {
 							project->path = path;
 							editor->ui.saved_project_hash = current_project_hash;
 						});
@@ -172,18 +173,34 @@ namespace engine {
 
 				case EditorCommand::Quit: {
 					if (project_has_unsaved_changes) {
-						platform->show_unsaved_changes_dialog(project->name, [](platform::UnsavedChangesDialogChoice choice) {
+						platform->show_unsaved_changes_dialog(project->name, [platform, project, editor, current_project_hash](platform::UnsavedChangesDialogChoice choice) {
 							switch (choice) {
-								case platform::UnsavedChangesDialogChoice::Save:
-									LOG_DEBUG("Choice: Save");
-									break;
+								case platform::UnsavedChangesDialogChoice::Save: {
+									const std::string json = serialize_project_to_json_string(project);
+									const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
+									const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
+									/* Save existing file, then quit */
+									if (project_file_exists) {
+										platform->save_file(bytes, project->path, [platform, editor, current_project_hash]() {
+											editor->ui.saved_project_hash = current_project_hash;
+											platform->quit();
+										});
+									}
+									/* Save new file, then quit */
+									else {
+										platform->save_file_with_dialog(bytes, g_save_project_dialog, [platform, project, editor, current_project_hash](std::filesystem::path path) {
+											project->path = path;
+											editor->ui.saved_project_hash = current_project_hash;
+											platform->quit();
+										});
+									}
+								} break;
 
 								case platform::UnsavedChangesDialogChoice::DontSave:
-									LOG_DEBUG("Choice: Don't Save");
+									platform->quit();
 									break;
 
 								case platform::UnsavedChangesDialogChoice::Cancel:
-									LOG_DEBUG("Choice: Cancel");
 									break;
 							}
 						});
