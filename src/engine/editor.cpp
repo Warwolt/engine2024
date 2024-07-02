@@ -126,7 +126,12 @@ namespace engine {
 						.description = "(PAK *.pak)",
 						.extension = "pak",
 					};
-					editor->input.project_data = platform->load_file_with_dialog(dialog);
+					platform->load_file_with_dialog(dialog, [project, editor](const std::vector<uint8_t>& data) {
+						nlohmann::json json_object = nlohmann::json::parse(data);
+						project->name = json_object["project_name"];
+						editor->ui.project_name_buf = project->name;
+						editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
+					});
 				} break;
 
 				case EditorCommand::SaveProject: {
