@@ -83,6 +83,7 @@ set(EXTERNAL_LIBS
     miniz
     opengl32
     stb_image
+    Comctl32
     ${GLEW_DIR}/lib/glew32.lib
     ${SDL_DIR}/lib/SDL2main.lib
     ${SDL_DIR}/lib/SDL2.lib

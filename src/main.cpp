@@ -210,6 +210,7 @@ int main(int argc, char** argv) {
 			std::array<ButtonEvent, NUM_MOUSE_BUTTONS> mouse_button_events = { ButtonEvent::None };
 			input.mouse.scroll_delta = 0;
 			input.mouse.pos_delta = glm::vec2 { 0, 0 };
+			input.quit_signal_received = false;
 
 			ImGuiIO& imgui_io = ImGui::GetIO();
 			SDL_Event event;
@@ -350,24 +351,41 @@ int main(int argc, char** argv) {
 						break;
 
 					case PlatformCommandType::LoadFileWithDialog: {
-						platform::cmd::file::LoadFileWithDialog& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
+						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
-						if (std::optional<std::string> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
-							std::vector<uint8_t> data = read_file(std::filesystem::path { path.value() });
-							load_file_with_dialog.on_file_loaded(data);
+						if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
+							std::vector<uint8_t> data = read_file(path.value());
+							load_file_with_dialog.on_file_loaded(data, path.value());
+						}
+					} break;
+
+					case PlatformCommandType::SaveFile: {
+						auto& save_file = std::get<platform::cmd::file::SaveFile>(cmd);
+						std::ofstream file;
+						file.open(save_file.path);
+						if (file.is_open()) {
+							file.write((char*)save_file.data.data(), save_file.data.size());
+							save_file.on_file_saved();
 						}
 					} break;
 
 					case PlatformCommandType::SaveFileWithDialog: {
 						auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
-						if (std::optional<std::string> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
+						if (std::optional<std::filesystem::path> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
 							std::ofstream file;
-							file.open(path.value());
+							file.open(path.value().string().c_str());
 							if (file.is_open()) {
 								file.write((char*)save_file_with_dialog.data.data(), save_file_with_dialog.data.size());
+								save_file_with_dialog.on_file_saved(path.value());
 							}
 						}
+					} break;
+
+					case PlatformCommandType::ShowUnsavedChangesDialog: {
+						auto& show_unsaved_changes_dialog = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
+						platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(show_unsaved_changes_dialog.document_name);
+						show_unsaved_changes_dialog.on_dialog_choice(choice);
 					} break;
 				}
 			}
@@ -384,6 +402,7 @@ int main(int argc, char** argv) {
 			{
 				set_viewport(0, 0, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
 				set_pixel_coordinate_projection(&renderer, shader_program, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
+
 				engine.render(&renderer, &state);
 
 				renderer.set_render_canvas(window_canvas);

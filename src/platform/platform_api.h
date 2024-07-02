@@ -4,6 +4,7 @@
 #include <platform/win32.h>
 #include <platform/window.h>
 
+#include <filesystem>
 #include <functional>
 #include <string>
 #include <vector>
@@ -21,7 +22,9 @@ namespace platform {
 
 		// file
 		LoadFileWithDialog,
+		SaveFile,
 		SaveFileWithDialog,
+		ShowUnsavedChangesDialog,
 
 		// window
 		ChangeResolution,
@@ -70,14 +73,28 @@ namespace platform {
 
 		struct LoadFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::LoadFileWithDialog;
-			std::function<void(const std::vector<uint8_t>&)> on_file_loaded;
+			std::function<void(std::vector<uint8_t>, std::filesystem::path)> on_file_loaded;
 			FileExplorerDialog dialog;
+		};
+
+		struct SaveFile {
+			static constexpr auto TAG = PlatformCommandType::SaveFile;
+			std::function<void()> on_file_saved;
+			std::filesystem::path path;
+			std::vector<uint8_t> data;
 		};
 
 		struct SaveFileWithDialog {
 			static constexpr auto TAG = PlatformCommandType::SaveFileWithDialog;
+			std::function<void(std::filesystem::path)> on_file_saved;
 			std::vector<uint8_t> data;
 			FileExplorerDialog dialog;
+		};
+
+		struct ShowUnsavedChangesDialog {
+			static constexpr auto TAG = PlatformCommandType::ShowUnsavedChangesDialog;
+			std::function<void(platform::UnsavedChangesDialogChoice)> on_dialog_choice;
+			std::string document_name;
 		};
 
 	} // namespace cmd::file
@@ -113,7 +130,9 @@ namespace platform {
 		cmd::app::SetRunMode,
 		cmd::cursor::SetCursor,
 		cmd::file::LoadFileWithDialog,
+		cmd::file::SaveFile,
 		cmd::file::SaveFileWithDialog,
+		cmd::file::ShowUnsavedChangesDialog,
 		cmd::window::ChangeResolution,
 		cmd::window::SetWindowMode,
 		cmd::window::SetWindowTitle,
@@ -132,8 +151,10 @@ namespace platform {
 		void set_cursor(Cursor cursor);
 
 		// file
-		void load_file_with_dialog(FileExplorerDialog dialog, std::function<void(const std::vector<uint8_t>&)> on_file_loaded);
-		void save_file_with_dialog(std::vector<uint8_t> data, FileExplorerDialog dialog);
+		void load_file_with_dialog(FileExplorerDialog dialog, std::function<void(std::vector<uint8_t>, std::filesystem::path)> on_file_loaded);
+		void save_file(const std::vector<uint8_t>& data, const std::filesystem::path& path, std::function<void()> on_file_saved);
+		void save_file_with_dialog(const std::vector<uint8_t>& data, FileExplorerDialog dialog, std::function<void(std::filesystem::path)> on_file_saved);
+		void show_unsaved_changes_dialog(const std::string& document_name, std::function<void(platform::UnsavedChangesDialogChoice)> on_dialog_choice);
 
 		// window
 		void change_resolution(int width, int height);

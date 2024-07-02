@@ -1,12 +1,15 @@
 #pragma once
 
+#include <platform/platform_api.h>
+
+#include <expected>
+#include <filesystem>
 #include <future>
 #include <stdint.h>
 #include <vector>
 
 namespace platform {
 	struct Input;
-	class PlatformAPI;
 }
 
 namespace engine {
@@ -15,11 +18,11 @@ namespace engine {
 	struct ProjectState;
 
 	struct EditorInput {
-		std::future<std::vector<uint8_t>> project_data;
+		std::future<platform::UnsavedChangesDialogChoice> save_before_quit_choice;
 	};
 
 	struct EditorUiState {
-		size_t loaded_project_hash; // for "unsaved changes" prompts
+		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
 	};
 

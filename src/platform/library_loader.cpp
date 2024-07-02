@@ -1,6 +1,7 @@
 #include <platform/library_loader.h>
 
 #include <core/container.h>
+#include <core/future.h>
 #include <core/util.h>
 #include <platform/assert.h>
 #include <platform/logging.h>
@@ -171,7 +172,7 @@ namespace platform {
 
 		/* Check rebuild command progress */
 		if (m_rebuild_command_is_running) {
-			if (core::container::future_has_value(m_rebuild_engine_future)) {
+			if (core::future::has_value(m_rebuild_engine_future)) {
 				m_last_exit_code = m_rebuild_engine_future.get();
 				m_rebuild_command_is_running = false;
 			}

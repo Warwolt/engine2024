@@ -27,11 +27,6 @@ namespace core::container {
 		return std::move(result.value());
 	}
 
-	template <typename T>
-	bool future_has_value(const std::future<T>& future) {
-		return future.valid() && future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
-	}
-
 	template <typename Container, typename T>
 	bool contains(const Container& container, const T& value) {
 		return std::find(container.begin(), container.end(), value) != container.end();

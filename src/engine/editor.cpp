@@ -1,6 +1,7 @@
 #include <engine/editor.h>
 
 #include <core/container.h>
+#include <core/future.h>
 #include <engine/game_state.h>
 #include <engine/project.h>
 #include <platform/input/input.h>
@@ -15,37 +16,67 @@ namespace engine {
 
 	enum class EditorCommand {
 		NewProject,
-		LoadProject,
+		OpenProject,
 		SaveProject,
+		SaveProjectAs,
 		ResetGameState,
 		RunGame,
+		Quit,
 	};
 
-	static std::vector<EditorCommand> update_editor_ui(EditorUiState* ui, GameState* game, ProjectState* project) {
+	static const platform::FileExplorerDialog g_load_project_dialog = {
+		.title = "Load project",
+		.description = "(PAK *.pak)",
+		.extension = "pak",
+	};
+
+	static const platform::FileExplorerDialog g_save_project_dialog = {
+		.title = "Save project",
+		.description = "PAK (*.pak)",
+		.extension = "pak",
+	};
+
+	static std::vector<EditorCommand> update_editor_ui(
+		EditorUiState* ui,
+		GameState* game,
+		ProjectState* project,
+		const platform::Input* input,
+		bool unsaved_changes
+	) {
 		std::vector<EditorCommand> commands;
+
+		/* Quit */
+		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+			commands.push_back(EditorCommand::Quit);
+		}
 
 		/* Editor Menu Bar*/
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem("New Project")) {
+				if (ImGui::MenuItem(" New Project")) {
 					commands.push_back(EditorCommand::NewProject);
 				}
 
-				if (ImGui::MenuItem("Load Project")) {
-					commands.push_back(EditorCommand::LoadProject);
+				ImGui::Separator();
+
+				if (ImGui::MenuItem(" Open Project")) {
+					commands.push_back(EditorCommand::OpenProject);
 				}
 
-				if (ImGui::MenuItem("Save Project")) {
+				ImGui::Separator();
+
+				if (ImGui::MenuItem(" Save Project", NULL, false, unsaved_changes)) {
 					commands.push_back(EditorCommand::SaveProject);
+				}
+
+				if (ImGui::MenuItem(" Save Project As")) {
+					commands.push_back(EditorCommand::SaveProjectAs);
 				}
 
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
 		}
-
-		size_t current_project_hash = std::hash<ProjectState>()(*project);
-		const bool unsaved_changes = ui->loaded_project_hash != current_project_hash;
 
 		/* Editor Window */
 		if (ImGui::Begin("Editor Window")) {
@@ -57,6 +88,8 @@ namespace engine {
 			if (ImGui::InputText("Project name", &ui->project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
 				project->name = ui->project_name_buf;
 			}
+
+			ImGui::Text("Project path: %s", project->path.string().c_str());
 
 			if (ImGui::Button("Run game")) {
 				commands.push_back(EditorCommand::ResetGameState);
@@ -73,19 +106,111 @@ namespace engine {
 		return commands;
 	}
 
-	static std::optional<nlohmann::json> get_loaded_project_data(std::future<std::vector<uint8_t>>* project_data) {
-		if (core::container::future_has_value(*project_data)) {
-			std::vector<uint8_t> buffer = project_data->get();
-			if (!buffer.empty()) {
-				return nlohmann::json::parse(buffer);
-			}
+	static std::string serialize_project_to_json_string(const ProjectState* project) {
+		nlohmann::json json_object = {
+			{ "project_name", project->name }
+		};
+		return json_object.dump();
+	}
+
+	static void new_project(
+		EditorState* editor,
+		GameState* game,
+		ProjectState* project
+	) {
+		LOG_INFO("Opened new project");
+		*project = {};
+		*game = {};
+		init_editor(editor, project);
+	}
+
+	static void open_project(
+		EditorState* editor,
+		ProjectState* project,
+		platform::PlatformAPI* platform
+	) {
+		platform->load_file_with_dialog(g_load_project_dialog, [=](std::vector<uint8_t> data, std::filesystem::path path) {
+			nlohmann::json json_object = nlohmann::json::parse(data);
+			project->name = json_object["project_name"];
+			project->path = path;
+			editor->ui.project_name_buf = project->name;
+			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+			LOG_INFO("Opened project \"%s\"", project->name.c_str());
+		});
+	}
+
+	static void save_project_as(
+		EditorState* editor,
+		ProjectState* project,
+		platform::PlatformAPI* platform,
+		size_t current_project_hash,
+		std::function<void()> on_file_saved = []() {}
+	) {
+		const std::string json = serialize_project_to_json_string(project);
+		const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
+		platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
+			LOG_INFO("Saved project \"%s\"", project->name.c_str());
+			project->path = path;
+			editor->ui.cached_project_hash = current_project_hash;
+			on_file_saved();
+		});
+	}
+
+	static void save_project(
+		EditorState* editor,
+		ProjectState* project,
+		platform::PlatformAPI* platform,
+		size_t current_project_hash,
+		std::function<void()> on_file_saved = []() {}
+	) {
+		const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
+		/* Save existing file */
+		if (project_file_exists) {
+			const std::string json = serialize_project_to_json_string(project);
+			const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
+			platform->save_file(bytes, project->path, [=]() {
+				LOG_INFO("Saved project \"%s\"", project->name.c_str());
+				editor->ui.cached_project_hash = current_project_hash;
+				on_file_saved();
+			});
 		}
-		return {};
+		/* Save new file */
+		else {
+			save_project_as(editor, project, platform, current_project_hash, on_file_saved);
+		}
+	}
+
+	static void show_unsaved_project_changes_dialog(
+		EditorState* editor,
+		ProjectState* project,
+		platform::PlatformAPI* platform,
+		size_t current_project_hash,
+		std::function<void()> on_dialog_not_cancelled = []() {}
+	) {
+		platform->show_unsaved_changes_dialog(project->name, [=](platform::UnsavedChangesDialogChoice choice) {
+			switch (choice) {
+				case platform::UnsavedChangesDialogChoice::Save:
+					save_project(editor, project, platform, current_project_hash, on_dialog_not_cancelled);
+					break;
+
+				case platform::UnsavedChangesDialogChoice::DontSave:
+					on_dialog_not_cancelled();
+					break;
+
+				case platform::UnsavedChangesDialogChoice::Cancel:
+					break;
+			}
+		});
+	}
+
+	static void quit_editor(platform::PlatformAPI* platform) {
+		platform->quit();
+		LOG_INFO("Editor quit");
 	}
 
 	void init_editor(EditorState* editor, const ProjectState* project) {
 		editor->ui.project_name_buf = project->name;
-		editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
+		editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
 	}
 
 	void update_editor(
@@ -95,57 +220,43 @@ namespace engine {
 		const platform::Input* input,
 		platform::PlatformAPI* platform
 	) {
-		/* Input */
-		const bool editor_is_running = input->mode == platform::RunMode::Editor;
-		const std::optional<nlohmann::json> loaded_project_data = get_loaded_project_data(&editor->input.project_data);
-
-		/* Process input */
-		if (loaded_project_data.has_value()) {
-			nlohmann::json json_object = loaded_project_data.value();
-			project->name = json_object["project_name"];
-			editor->ui.project_name_buf = project->name;
-			editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
-		}
-
 		/* Run UI */
-		std::vector<EditorCommand> commands;
-		if (editor_is_running) {
-			commands = update_editor_ui(&editor->ui, game, project);
-		}
+		const size_t current_project_hash = std::hash<ProjectState>()(*project);
+		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
+		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
 
 		/* Process commands */
 		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
 				case EditorCommand::NewProject:
-					*game = {};
+					if (project_has_unsaved_changes) {
+						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
+							new_project(editor, game, project);
+						});
+					}
+					else {
+						new_project(editor, game, project);
+					}
 					break;
 
-				case EditorCommand::LoadProject: {
-					platform::FileExplorerDialog dialog = {
-						.title = "Load project",
-						.description = "(PAK *.pak)",
-						.extension = "pak",
-					};
-					platform->load_file_with_dialog(dialog, [project, editor](const std::vector<uint8_t>& data) {
-						nlohmann::json json_object = nlohmann::json::parse(data);
-						project->name = json_object["project_name"];
-						editor->ui.project_name_buf = project->name;
-						editor->ui.loaded_project_hash = std::hash<ProjectState>()(*project);
-					});
-				} break;
+				case EditorCommand::OpenProject:
+					if (project_has_unsaved_changes) {
+						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
+							open_project(editor, project, platform);
+						});
+					}
+					else {
+						open_project(editor, project, platform);
+					}
+					break;
 
-				case EditorCommand::SaveProject: {
-					nlohmann::json json_object = {
-						{ "project_name", project->name }
-					};
-					std::string data = json_object.dump();
-					platform::FileExplorerDialog dialog = {
-						.title = "Save project",
-						.description = "PAK (*.pak)",
-						.extension = "pak",
-					};
-					platform->save_file_with_dialog(std::vector<uint8_t>(data.begin(), data.end()), dialog);
-				} break;
+				case EditorCommand::SaveProject:
+					save_project(editor, project, platform, current_project_hash);
+					break;
+
+				case EditorCommand::SaveProjectAs:
+					save_project_as(editor, project, platform, current_project_hash);
+					break;
 
 				case EditorCommand::ResetGameState:
 					game->counter = 0;
@@ -154,6 +265,17 @@ namespace engine {
 
 				case EditorCommand::RunGame:
 					platform->set_run_mode(platform::RunMode::Game);
+					break;
+
+				case EditorCommand::Quit:
+					if (project_has_unsaved_changes) {
+						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
+							quit_editor(platform);
+						});
+					}
+					else {
+						quit_editor(platform);
+					}
 					break;
 			}
 		}

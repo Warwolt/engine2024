@@ -89,20 +89,16 @@ namespace engine {
 		state->editor_is_running = input->mode == platform::RunMode::Editor;
 		const bool game_just_started = input->mode.just_became(platform::RunMode::Game);
 		const bool game_is_running = input->mode == platform::RunMode::Game;
-		const bool editor_is_running = input->mode == platform::RunMode::Editor;
 
 		/* Quit */
 		{
-			if (input->quit_signal_received) {
-				platform->quit();
-			}
-
-			if (input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
-				if (editor_is_running) {
+			// editor handles quit in editor mode
+			if (game_is_running) {
+				if (input->quit_signal_received) {
 					platform->quit();
 				}
 
-				if (game_is_running) {
+				if (input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
 					platform->set_run_mode(platform::RunMode::Editor);
 					platform->set_window_mode(platform::WindowMode::Windowed);
 				}
@@ -143,7 +139,9 @@ namespace engine {
 		/* Modules */
 		{
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, state->project.name);
-			update_editor(&state->editor, &state->game, &state->project, input, platform);
+			if (input->mode == platform::RunMode::Editor) {
+				update_editor(&state->editor, &state->game, &state->project, input, platform);
+			}
 		}
 	}
 

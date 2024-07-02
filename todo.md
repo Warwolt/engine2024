@@ -8,13 +8,35 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- set VS_DEBUGGER_WORKING_DIRECTORY to project root
+- Explore if we can make support `and_then` for command continuations:
+  ```C++
+  do_thing(arg1, arg2).and_then([]() {
+    // continuation
+  });
+  ```
+  instead of the current:
+  ```C++
+  do_thing(arg1, arg2, []() {
+    // continuation
+  });
+  ```
+- Add keyboard ctrl+s and ctrl+o shortcuts for save and load
 - Move all state headers into "engine/state" directory
 - Setup ImGui docking branch
+- Disable RTTI and exceptions in both project and standard library
+- set VS_DEBUGGER_WORKING_DIRECTORY to project root
+- Add tooling to measure memory usage
 - Add TypeScript for game scripting
   - https://v8.dev/docs/embed
 
 ## Doing
+- Save as
+  - On save:
+    - New file, save via dialog
+    - Existing file, just overwrite
+  - Save as:
+    - Always save via dialog
+  - If trying to overwrite existing file, show dialog
 - Add infrastructure for running engine as standalone game
 
 ## Done
