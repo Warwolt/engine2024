@@ -53,23 +53,28 @@ namespace engine {
 		/* Editor Menu Bar*/
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem("  New Project")) {
+				//
+				//
+				// FIXME: use WindowPadding here instead of spaces in the strings
+				//
+				//
+				if (ImGui::MenuItem(" New Project")) {
 					commands.push_back(EditorCommand::NewProject);
 				}
 
 				ImGui::Separator();
 
-				if (ImGui::MenuItem("  Open Project")) {
+				if (ImGui::MenuItem(" Open Project")) {
 					commands.push_back(EditorCommand::OpenProject);
 				}
 
 				ImGui::Separator();
 
-				if (ImGui::MenuItem("  Save Project", NULL, false, unsaved_changes)) {
+				if (ImGui::MenuItem(" Save Project", NULL, false, unsaved_changes)) {
 					commands.push_back(EditorCommand::SaveProject);
 				}
 
-				if (ImGui::MenuItem("  Save Project As")) {
+				if (ImGui::MenuItem(" Save Project As")) {
 					commands.push_back(EditorCommand::SaveProjectAs);
 				}
 
@@ -111,6 +116,16 @@ namespace engine {
 			{ "project_name", project->name }
 		};
 		return json_object.dump();
+	}
+
+	static void new_project(
+		EditorState* editor,
+		GameState* game,
+		ProjectState* project
+	) {
+		*project = {};
+		*game = {};
+		init_editor(editor, project);
 	}
 
 	static void open_project(
@@ -210,7 +225,14 @@ namespace engine {
 		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
 				case EditorCommand::NewProject:
-					*game = {};
+					if (project_has_unsaved_changes) {
+						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
+							new_project(editor, game, project);
+						});
+					}
+					else {
+						new_project(editor, game, project);
+					}
 					break;
 
 				case EditorCommand::OpenProject:
