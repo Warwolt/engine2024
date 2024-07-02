@@ -23,26 +23,33 @@ namespace engine {
 		Quit,
 	};
 
-	static void update_editor_ui(
+	static std::vector<EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		GameState* game,
 		ProjectState* project,
-		bool unsaved_changes,
-		std::vector<EditorCommand>* editor_cmds
+		const platform::Input* input,
+		bool unsaved_changes
 	) {
+		std::vector<EditorCommand> commands;
+
+		/* Quit */
+		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+			commands.push_back(EditorCommand::Quit);
+		}
+
 		/* Editor Menu Bar*/
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::MenuItem("New Project")) {
-					editor_cmds->push_back(EditorCommand::NewProject);
+					commands.push_back(EditorCommand::NewProject);
 				}
 
 				if (ImGui::MenuItem("Load Project")) {
-					editor_cmds->push_back(EditorCommand::LoadProject);
+					commands.push_back(EditorCommand::LoadProject);
 				}
 
 				if (ImGui::MenuItem("Save Project")) {
-					editor_cmds->push_back(EditorCommand::SaveProject);
+					commands.push_back(EditorCommand::SaveProject);
 				}
 
 				ImGui::EndMenu();
@@ -64,16 +71,18 @@ namespace engine {
 			ImGui::Text("Project path: %s", project->path.string().c_str());
 
 			if (ImGui::Button("Run game")) {
-				editor_cmds->push_back(EditorCommand::ResetGameState);
-				editor_cmds->push_back(EditorCommand::RunGame);
+				commands.push_back(EditorCommand::ResetGameState);
+				commands.push_back(EditorCommand::RunGame);
 			}
 
 			if (ImGui::Button("Resume game")) {
-				editor_cmds->push_back(EditorCommand::RunGame);
+				commands.push_back(EditorCommand::RunGame);
 			}
 
 			ImGui::End();
 		}
+
+		return commands;
 	}
 
 	static std::string serialize_project_to_json_string(const ProjectState* project) {
@@ -95,40 +104,10 @@ namespace engine {
 		const platform::Input* input,
 		platform::PlatformAPI* platform
 	) {
-		size_t current_project_hash = std::hash<ProjectState>()(*project);
-		std::vector<EditorCommand> editor_cmds;
-
-		/* Process events */
-		{
-			/* Quit */
-			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
-				const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
-				if (project_has_unsaved_changes) {
-					platform->show_unsaved_changes_dialog(project->name, [](platform::UnsavedChangesDialogChoice choice) {
-						switch (choice) {
-							case platform::UnsavedChangesDialogChoice::Save:
-								LOG_DEBUG("Choice: Save");
-								break;
-
-							case platform::UnsavedChangesDialogChoice::DontSave:
-								LOG_DEBUG("Choice: Don't Save");
-								break;
-
-							case platform::UnsavedChangesDialogChoice::Cancel:
-								LOG_DEBUG("Choice: Cancel");
-								break;
-						}
-					});
-				}
-				else {
-					platform->quit();
-				}
-			}
-		}
-
 		/* Run UI */
+		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 		const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
-		update_editor_ui(&editor->ui, game, project, project_has_unsaved_changes, &editor_cmds);
+		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
 
 		// TODO:
 		// - warn when closing editor with unsaved changes
@@ -136,7 +115,7 @@ namespace engine {
 		// - add save-as menu option
 
 		/* Process commands */
-		for (const EditorCommand& cmd : editor_cmds) {
+		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
 				case EditorCommand::NewProject:
 					*game = {};
@@ -191,8 +170,28 @@ namespace engine {
 					platform->set_run_mode(platform::RunMode::Game);
 					break;
 
-				case EditorCommand::Quit:
-					platform->quit();
+				case EditorCommand::Quit: {
+					if (project_has_unsaved_changes) {
+						platform->show_unsaved_changes_dialog(project->name, [](platform::UnsavedChangesDialogChoice choice) {
+							switch (choice) {
+								case platform::UnsavedChangesDialogChoice::Save:
+									LOG_DEBUG("Choice: Save");
+									break;
+
+								case platform::UnsavedChangesDialogChoice::DontSave:
+									LOG_DEBUG("Choice: Don't Save");
+									break;
+
+								case platform::UnsavedChangesDialogChoice::Cancel:
+									LOG_DEBUG("Choice: Cancel");
+									break;
+							}
+						});
+					}
+					else {
+						platform->quit();
+					}
+				} break;
 			}
 		}
 	}
