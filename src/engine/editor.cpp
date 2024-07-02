@@ -53,11 +53,6 @@ namespace engine {
 		/* Editor Menu Bar*/
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
-				//
-				//
-				// FIXME: use WindowPadding here instead of spaces in the strings
-				//
-				//
 				if (ImGui::MenuItem(" New Project")) {
 					commands.push_back(EditorCommand::NewProject);
 				}
