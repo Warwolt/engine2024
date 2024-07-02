@@ -65,7 +65,7 @@ namespace engine {
 
 				ImGui::Separator();
 
-				if (ImGui::MenuItem("  Save Project")) {
+				if (ImGui::MenuItem("  Save Project", NULL, false, unsaved_changes)) {
 					commands.push_back(EditorCommand::SaveProject);
 				}
 
@@ -205,10 +205,6 @@ namespace engine {
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
-
-		// TODO:
-		// - add save-as menu option
-		// - disable save menu option if no unsaved changes
 
 		/* Process commands */
 		for (const EditorCommand& cmd : commands) {
