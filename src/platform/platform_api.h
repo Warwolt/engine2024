@@ -34,18 +34,6 @@ namespace platform {
 		ToggleFullscreen,
 	};
 
-	struct LoadFileData {
-		std::vector<uint8_t> data;
-		std::filesystem::path path;
-	};
-
-	enum class LoadFileError {
-		NoSuchFile,
-	};
-
-	template <typename T>
-	using LoadFileResult = std::expected<T, LoadFileError>;
-
 	enum class SaveFileError {
 		CouldNotCreateFile,
 	};

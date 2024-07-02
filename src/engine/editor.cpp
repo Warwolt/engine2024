@@ -112,22 +112,6 @@ namespace engine {
 				}
 			}
 
-			/* On project loaded */
-			if (core::future::has_value(editor->input.load_project_result)) {
-				const platform::LoadFileResult<platform::LoadFileData> load_result = editor->input.load_project_result.get();
-				if (load_result.has_value()) {
-					const platform::LoadFileData& loaded_project = load_result.value();
-					if (!loaded_project.data.empty() && !loaded_project.path.empty()) {
-						nlohmann::json json_object = nlohmann::json::parse(loaded_project.data);
-						project->path = loaded_project.path;
-						project->name = json_object["project_name"];
-						editor->ui.project_name_buf = project->name;
-						current_project_hash = std::hash<ProjectState>()(*project);
-						editor->ui.saved_project_hash = current_project_hash;
-					}
-				}
-			}
-
 			/* Quit */
 			if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
 				const bool project_has_unsaved_changes = editor->ui.saved_project_hash != current_project_hash;
@@ -186,7 +170,7 @@ namespace engine {
 					break;
 
 				case EditorCommand::LoadProject: {
-					platform::FileExplorerDialog dialog = {
+					platform::FileExplorerDialog {
 						.title = "Load project",
 						.description = "(PAK *.pak)",
 						.extension = "pak",
@@ -198,6 +182,7 @@ namespace engine {
 						editor->ui.project_name_buf = project->name;
 						editor->ui.saved_project_hash = std::hash<ProjectState>()(*project);
 					});
+
 				} break;
 
 				case EditorCommand::SaveProject: {
