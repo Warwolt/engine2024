@@ -225,14 +225,13 @@ namespace engine {
 		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
 
-		{
-			if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, KMOD_CTRL)) {
-				LOG_DEBUG("CTRL + o");
-			}
+		/* Input */
+		if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, KMOD_CTRL)) {
+			commands.push_back(EditorCommand::OpenProject);
+		}
 
-			if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, KMOD_CTRL)) {
-				LOG_DEBUG("CTRL + s");
-			}
+		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, KMOD_CTRL)) {
+			commands.push_back(EditorCommand::SaveProject);
 		}
 
 		/* Process commands */
@@ -261,7 +260,9 @@ namespace engine {
 					break;
 
 				case EditorCommand::SaveProject:
-					save_project(editor, project, platform, current_project_hash);
+					if (project_has_unsaved_changes) {
+						save_project(editor, project, platform, current_project_hash);
+					}
 					break;
 
 				case EditorCommand::SaveProjectAs:
