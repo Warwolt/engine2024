@@ -224,7 +224,7 @@ int main(int argc, char** argv) {
 
 					case SDL_KEYDOWN:
 						if (!imgui_io.WantCaptureKeyboard) {
-							input.keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
+							input.keyboard.register_event_with_modifier(event.key.keysym.sym, ButtonEvent::Down, event.key.keysym.mod);
 						}
 						break;
 

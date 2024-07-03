@@ -41,7 +41,7 @@ namespace platform {
 
 	private:
 		Button _key(int keycode) const;
-		std::optional<int> _modifier(int keycode) const;
+		bool _key_has_modifier(int keycode, int modifier) const;
 
 		std::unordered_map<int, ButtonEvent> m_events;
 		std::unordered_map<int, int> m_modifiers;

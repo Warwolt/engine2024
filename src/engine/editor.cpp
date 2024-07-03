@@ -225,6 +225,16 @@ namespace engine {
 		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
 
+		{
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, KMOD_CTRL)) {
+				LOG_DEBUG("CTRL + o");
+			}
+
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, KMOD_CTRL)) {
+				LOG_DEBUG("CTRL + s");
+			}
+		}
+
 		/* Process commands */
 		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
