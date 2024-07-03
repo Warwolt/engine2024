@@ -77,20 +77,19 @@ namespace platform {
 	}
 
 	bool Keyboard::key_pressed_with_modifier(int keycode, int modifier) const {
-		return key_pressed(keycode) && _key_has_modifier(keycode, modifier);
+		return key_pressed(keycode) && _modifier(keycode) == modifier;
 	}
 
 	bool Keyboard::key_pressed_now_with_modifier(int keycode, int modifier) const {
-		return key_pressed_now(keycode) && _key_has_modifier(keycode, modifier);
+		return key_pressed_now(keycode) && _modifier(keycode) == modifier;
 	}
 
 	Button Keyboard::_key(int keycode) const {
 		return core::container::map_get(m_keys, keycode).value_or(Button());
 	}
 
-	bool Keyboard::_key_has_modifier(int keycode, int modifier) const {
-		const int key_modifiers = core::container::map_get(m_modifiers, keycode).value_or(0);
-		return key_modifiers & modifier;
+	int Keyboard::_modifier(int keycode) const {
+		return core::container::map_get(m_modifiers, keycode).value_or(0);
 	}
 
 } // namespace platform

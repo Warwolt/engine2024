@@ -57,10 +57,7 @@ namespace engine {
 
 	void initialize(State* state) {
 		/* Initialize */
-		{
-			state->project.name = "Untitled Project";
-			init_editor(&state->editor, &state->project);
-		}
+		init_editor(&state->editor, &state->project);
 
 		/* Add fonts */
 		{

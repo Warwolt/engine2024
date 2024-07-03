@@ -11,6 +11,12 @@ namespace platform {
 		Up,
 	};
 
+	enum KeyboardModifier {
+		KEY_MOD_CTLR = 1 << 0,
+		KEY_MOD_SHIFT = 1 << 1,
+		KEY_MOD_ALT = 1 << 2,
+	};
+
 	class Button {
 	public:
 		void update(ButtonEvent event);
@@ -41,7 +47,7 @@ namespace platform {
 
 	private:
 		Button _key(int keycode) const;
-		bool _key_has_modifier(int keycode, int modifier) const;
+		int _modifier(int keycode) const;
 
 		std::unordered_map<int, ButtonEvent> m_events;
 		std::unordered_map<int, int> m_modifiers;
