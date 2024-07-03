@@ -223,14 +223,19 @@ namespace engine {
 		/* Run UI */
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
+		const bool is_new_file = project->path.empty();
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
 
 		/* Input */
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, KMOD_CTRL)) {
+		if (input->keyboard.key_pressed_now_with_modifier(SDLK_n, KMOD_LCTRL)) {
+			commands.push_back(EditorCommand::NewProject);
+		}
+
+		if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, KMOD_LCTRL)) {
 			commands.push_back(EditorCommand::OpenProject);
 		}
 
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, KMOD_CTRL)) {
+		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, KMOD_LCTRL)) {
 			commands.push_back(EditorCommand::SaveProject);
 		}
 
@@ -260,7 +265,7 @@ namespace engine {
 					break;
 
 				case EditorCommand::SaveProject:
-					if (project_has_unsaved_changes) {
+					if (project_has_unsaved_changes || is_new_file) {
 						save_project(editor, project, platform, current_project_hash);
 					}
 					break;
