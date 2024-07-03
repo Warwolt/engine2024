@@ -88,8 +88,8 @@ namespace platform {
 		return core::container::map_get(m_keys, keycode).value_or(Button());
 	}
 
-	std::optional<int> Keyboard::_modifier(int keycode) const {
-		return core::container::map_get(m_modifiers, keycode);
+	int Keyboard::_modifier(int keycode) const {
+		return core::container::map_get(m_modifiers, keycode).value_or(0);
 	}
 
 } // namespace platform

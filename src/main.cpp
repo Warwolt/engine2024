@@ -224,7 +224,11 @@ int main(int argc, char** argv) {
 
 					case SDL_KEYDOWN:
 						if (!imgui_io.WantCaptureKeyboard) {
-							input.keyboard.register_event(event.key.keysym.sym, ButtonEvent::Down);
+							int modifiers = 0;
+							modifiers |= (event.key.keysym.mod & KMOD_CTRL) ? platform::KEY_MOD_CTRL : 0;
+							modifiers |= (event.key.keysym.mod & KMOD_SHIFT) ? platform::KEY_MOD_SHIFT : 0;
+							modifiers |= (event.key.keysym.mod & KMOD_ALT) ? platform::KEY_MOD_ALT : 0;
+							input.keyboard.register_event_with_modifier(event.key.keysym.sym, ButtonEvent::Down, modifiers);
 						}
 						break;
 

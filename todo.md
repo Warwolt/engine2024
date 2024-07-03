@@ -8,19 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Explore if we can make support `and_then` for command continuations:
-  ```C++
-  do_thing(arg1, arg2).and_then([]() {
-    // continuation
-  });
-  ```
-  instead of the current:
-  ```C++
-  do_thing(arg1, arg2, []() {
-    // continuation
-  });
-  ```
-- Add keyboard ctrl+s and ctrl+o shortcuts for save and load
 - Move all state headers into "engine/state" directory
 - Setup ImGui docking branch
 - Disable RTTI and exceptions in both project and standard library
@@ -30,16 +17,12 @@ Goals:
   - https://v8.dev/docs/embed
 
 ## Doing
-- Save as
-  - On save:
-    - New file, save via dialog
-    - Existing file, just overwrite
-  - Save as:
-    - Always save via dialog
-  - If trying to overwrite existing file, show dialog
+- Add keyboard ctrl+s and ctrl+o shortcuts for save and load
 - Add infrastructure for running engine as standalone game
 
 ## Done
+- Save as option
+- Warn before discarding unsaved changes
 - Track if project has unsaved changes
 - Move signal.h to core
 - Move tagged_variant.h to "core"
