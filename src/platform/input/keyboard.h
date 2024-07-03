@@ -12,7 +12,7 @@ namespace platform {
 	};
 
 	enum KeyboardModifier {
-		KEY_MOD_CTLR = 1 << 0,
+		KEY_MOD_CTRL = 1 << 0,
 		KEY_MOD_SHIFT = 1 << 1,
 		KEY_MOD_ALT = 1 << 2,
 	};

@@ -227,19 +227,19 @@ namespace engine {
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
 
 		/* Input */
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTLR)) {
+		if (input->keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
 			commands.push_back(EditorCommand::NewProject);
 		}
 
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTLR)) {
+		if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTRL)) {
 			commands.push_back(EditorCommand::OpenProject);
 		}
 
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTLR)) {
+		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL)) {
 			commands.push_back(EditorCommand::SaveProject);
 		}
 
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTLR | platform::KEY_MOD_SHIFT)) {
+		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
 			commands.push_back(EditorCommand::SaveProjectAs);
 		}
 

@@ -58,21 +58,35 @@ TEST(KeyboardTests, ButtonPressedNow_DownEvent_IsPressed) {
 TEST(KeyboardTests, ButtonPressedNow_WithModifier_IsPressedWithThatModifier) {
 	platform::Keyboard keyboard;
 
-	keyboard.register_event_with_modifier(KEY, ButtonEvent::Down, 64);
+	keyboard.register_event_with_modifier(KEY, ButtonEvent::Down, platform::KEY_MOD_CTRL);
 	keyboard.update();
 
 	EXPECT_EQ(keyboard.key_pressed(KEY), true);
-	EXPECT_EQ(keyboard.key_pressed_with_modifier(KEY, 64), true);
+	EXPECT_EQ(keyboard.key_pressed_with_modifier(KEY, platform::KEY_MOD_CTRL), true);
 }
 
 TEST(KeyboardTests, ButtonPressedNow_WithModifier_IsNotPressedWithOtherModifier) {
 	platform::Keyboard keyboard;
 
-	keyboard.register_event_with_modifier(KEY, ButtonEvent::Down, 64);
+	keyboard.register_event_with_modifier(KEY, ButtonEvent::Down, platform::KEY_MOD_CTRL);
 	keyboard.update();
 
 	EXPECT_EQ(keyboard.key_pressed(KEY), true);
 	EXPECT_EQ(keyboard.key_pressed_now(KEY), true);
-	EXPECT_EQ(keyboard.key_pressed_with_modifier(KEY, 128), false);
-	EXPECT_EQ(keyboard.key_pressed_now_with_modifier(KEY, 128), false);
+	EXPECT_EQ(keyboard.key_pressed_with_modifier(KEY, platform::KEY_MOD_ALT), false);
+	EXPECT_EQ(keyboard.key_pressed_now_with_modifier(KEY, platform::KEY_MOD_ALT), false);
+}
+
+TEST(KeyboardTests, ButtonPressedNow_WithTwoModifiers_NotPressedWithJustOneOfThem) {
+	platform::Keyboard keyboard;
+
+	keyboard.register_event_with_modifier(KEY, ButtonEvent::Down, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT);
+	keyboard.update();
+
+	EXPECT_EQ(keyboard.key_pressed(KEY), true);
+	EXPECT_EQ(keyboard.key_pressed_now(KEY), true);
+	EXPECT_EQ(keyboard.key_pressed_with_modifier(KEY, platform::KEY_MOD_ALT), false);
+	EXPECT_EQ(keyboard.key_pressed_with_modifier(KEY, platform::KEY_MOD_CTRL), false);
+	EXPECT_EQ(keyboard.key_pressed_now_with_modifier(KEY, platform::KEY_MOD_ALT), false);
+	EXPECT_EQ(keyboard.key_pressed_now_with_modifier(KEY, platform::KEY_MOD_CTRL), false);
 }
