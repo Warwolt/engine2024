@@ -2,7 +2,7 @@
 
 #include <core/container.h>
 #include <core/future.h>
-#include <engine/game_state.h>
+#include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <platform/input/input.h>
 #include <platform/logging.h>
