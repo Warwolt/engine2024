@@ -269,6 +269,7 @@ namespace engine {
 
 		/* Run game keyboard shortcuts*/
 		{
+			/* Run */
 			if (input->keyboard.key_pressed_now(SDLK_F5)) {
 				if (editor->game_is_running) {
 					commands.push_back(EditorCommand::RunGame);
@@ -277,6 +278,12 @@ namespace engine {
 					commands.push_back(EditorCommand::ResetGameState);
 					commands.push_back(EditorCommand::RunGame);
 				}
+			}
+
+			/* Restart */
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_F5, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
+				commands.push_back(EditorCommand::ResetGameState);
+				commands.push_back(EditorCommand::RunGame);
 			}
 		}
 
