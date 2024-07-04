@@ -195,6 +195,13 @@ int main(int argc, char** argv) {
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
+	if (mode == platform::RunMode::Game) {
+		std::filesystem::path pak_path = std::filesystem::path(platform::application_path()).replace_extension("pak");
+		if (std::filesystem::is_regular_file(pak_path)) {
+			LOG_DEBUG("Loading %s", pak_path.filename().string().c_str());
+		}
+	}
+
 	// Start in full screen if running game
 	if (mode == platform::RunMode::Game) {
 		// FIXME: Update `Window::create` to allow creating a full screen window

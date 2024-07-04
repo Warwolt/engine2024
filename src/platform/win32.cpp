@@ -44,16 +44,19 @@ namespace platform {
 	}
 
 	std::string application_name() {
-		static std::string name = ""; // memoize sine this should be constant for entire program lifetime
+		return application_path().string();
+	}
 
-		if (name.empty()) {
+	const std::filesystem::path& application_path() {
+		static std::filesystem::path path; // memoize, this value is constant for full program lifetime
+
+		if (path.empty()) {
 			TCHAR sz_file_name[MAX_PATH];
 			GetModuleFileName(NULL, sz_file_name, MAX_PATH);
-			std::filesystem::path path = sz_file_name;
-			name = path.filename().string();
+			path = sz_file_name;
 		}
 
-		return name;
+		return path;
 	}
 
 	std::expected<ExitCode, std::string> run_command(const char* cmd_str) {
