@@ -4,6 +4,8 @@
 
 namespace platform {
 
+	// FIXME: move this to "core/string"
+
 	static bool string_equals(const char* str, const char* str2) {
 		return std::string(str) == std::string(str2);
 	}
@@ -13,19 +15,18 @@ namespace platform {
 	}
 
 	std::string usage_string() {
-		return "usage: GameEngine2024.exe [-h | --help] [--run=<path>]";
+		return "usage: GameEngine2024.exe [-h | --help] [--editor]";
 	}
 
-	std::expected<CliCommands, std::string> parse_arguments(int argc, char** argv) {
-		CliCommands cmds;
+	std::expected<CommandLineArgs, std::string> parse_arguments(int argc, char** argv) {
+		CommandLineArgs cmds;
 
 		for (int i = 1; i < argc; i++) {
 			if (string_equals(argv[i], "-h") || string_equals(argv[i], "--help")) {
 				cmds.print_usage = true;
 			}
-			else if (string_starts_with(argv[i], "--run=")) {
-				cmds.run_game = true;
-				cmds.game_data_path = std::string(argv[i] + 6);
+			else if (string_equals(argv[i], "--editor")) {
+				cmds.start_in_editor_mode = true;
 			}
 			else {
 				return std::unexpected(std::string("Unexpected arg: ") + argv[i]);

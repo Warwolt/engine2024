@@ -127,7 +127,7 @@ static std::vector<uint8_t> read_file(const std::filesystem::path& path) {
 
 int main(int argc, char** argv) {
 	/* Parse args */
-	platform::CliCommands cmd_args = core::container::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
+	platform::CommandLineArgs cmd_args = core::container::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
 		fprintf(stderr, "parse error: %s\n", error.c_str());
 		printf("%s\n", platform::usage_string().c_str());
 		exit(1);
@@ -191,12 +191,15 @@ int main(int argc, char** argv) {
 	engine::State state;
 
 	bool quit = false;
-	platform::RunMode mode = cmd_args.run_game ? platform::RunMode::Game : platform::RunMode::Editor;
+	platform::RunMode mode = cmd_args.start_in_editor_mode ? platform::RunMode::Editor : platform::RunMode::Game;
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
-	// start game full screen
+	// Start in full screen if running game
 	if (mode == platform::RunMode::Game) {
+		// FIXME: Update `Window::create` to allow creating a full screen window
+		// and use that instead of setting window mode here, since we get a
+		// little flicker now when the game starts.
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
 

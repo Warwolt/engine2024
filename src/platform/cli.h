@@ -5,13 +5,13 @@
 
 namespace platform {
 
-	struct CliCommands {
+	struct CommandLineArgs {
 		bool print_usage = false;
-		bool run_game = false;
-		std::string game_data_path;
+		bool start_in_editor_mode = false;
+		bool run_game_DEPRECATED = false;
 	};
 
 	std::string usage_string();
-	std::expected<CliCommands, std::string> parse_arguments(int argc, char** argv);
+	std::expected<CommandLineArgs, std::string> parse_arguments(int argc, char** argv);
 
 } // namespace platform

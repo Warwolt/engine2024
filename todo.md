@@ -8,6 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Update `Window::create` to create a full screened window
 - Setup ImGui docking branch
 - Maybe:
   - Move all state headers into "engine/state" directory
