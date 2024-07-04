@@ -216,9 +216,6 @@ int main(int argc, char** argv) {
 
 	// Start in full screen if running game
 	if (mode == platform::RunMode::Game) {
-		// FIXME: Update `Window::create` to allow creating a full screen window
-		// and use that instead of setting window mode here, since we get a
-		// little flicker now when the game starts.
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
 
