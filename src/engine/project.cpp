@@ -12,19 +12,18 @@ namespace engine {
 		return json_object.dump();
 	}
 
-	std::optional<ProjectState> ProjectState::from_json_string(const std::vector<uint8_t>& json_bytes, const std::filesystem::path& path) {
-		constexpr bool allow_exceptions = false;
-		nlohmann::json json_object = nlohmann::json::parse(json_bytes, nullptr, allow_exceptions);
-
-		if (json_object.empty()) {
-			return {};
+	std::expected<ProjectState, std::string> ProjectState::from_json_string(const std::vector<uint8_t>& json_bytes, const std::filesystem::path& path) {
+		try {
+			nlohmann::json json_object = nlohmann::json::parse(json_bytes);
+			return ProjectState {
+				.name = json_object["project_name"],
+				.path = path,
+				.counter = json_object["counter"],
+			};
 		}
-
-		return ProjectState {
-			.name = json_object["project_name"],
-			.path = path,
-			.counter = json_object["counter"],
-		};
+		catch (const nlohmann::json::exception& e) {
+			return std::unexpected(e.what());
+		}
 	}
 
 } // namespace engine

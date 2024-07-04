@@ -1,8 +1,8 @@
 #pragma once
 
+#include <expected>
 #include <filesystem>
 #include <functional>
-#include <optional>
 #include <string>
 
 // TODO move to core
@@ -16,7 +16,9 @@ inline void add_to_hash(std::size_t* hash, const T& v) {
 namespace engine {
 
 	/**
-	 * The meta data for the game project.
+	 * Project data that defines the game.
+	 *
+	 * Run-time information is stored in GameState
 	 */
 	struct ProjectState {
 		std::string name = "Untitled Project";
@@ -24,7 +26,7 @@ namespace engine {
 		int counter = 0;
 
 		static std::string to_json_string(const ProjectState& project);
-		static std::optional<ProjectState> from_json_string(const std::vector<uint8_t>& json_bytes, const std::filesystem::path& path);
+		static std::expected<ProjectState, std::string> from_json_string(const std::vector<uint8_t>& json_bytes, const std::filesystem::path& path);
 	};
 
 } // namespace engine

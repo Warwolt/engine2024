@@ -145,8 +145,8 @@ namespace engine {
 		platform::PlatformAPI* platform
 	) {
 		platform->load_file_with_dialog(g_load_project_dialog, [=](std::vector<uint8_t> data, std::filesystem::path path) {
-			*project = core::container::unwrap(ProjectState::from_json_string(data, path), [&]() {
-				ABORT("Could not parse json file \"%s\", aborting.", path.string().c_str());
+			*project = core::container::unwrap(ProjectState::from_json_string(data, path), [&](const std::string& error) {
+				ABORT("Could not parse json file \"%s\": %s", path.string().c_str(), error.c_str());
 			});
 			editor->ui.project_name_buf = project->name;
 			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);

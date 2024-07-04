@@ -18,6 +18,9 @@ add_subdirectory(libs/json)
 add_subdirectory(libs/miniz)
 add_subdirectory(libs/stb_image)
 
+# Enable better error messages from nlomann json
+add_compile_definitions(JSON_DIAGNOSTICS=1)
+
 set(INC
     src
     libs/glm
@@ -154,12 +157,10 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
 endif()
 
-# Set main binary to be default target for Visual Studio
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${MAIN_BINARY})
-set_target_properties(${MAIN_BINARY} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:${MAIN_BINARY}>)
-
-# Set Visual Studio command line to binary
-set_target_properties(${MAIN_BINARY} PROPERTIES VS_DEBUGGER_COMMAND_ARGUMENTS  "--editor")
+# Configure Visual Studio solution
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${MAIN_BINARY}) # Set main binary to be default target for Visual Studio
+set_target_properties(${MAIN_BINARY} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:${MAIN_BINARY}>) # Set working directory to be same as binary
+set_target_properties(${MAIN_BINARY} PROPERTIES VS_DEBUGGER_COMMAND_ARGUMENTS  "--editor") # Set default command line
 
 # Copy resource files
 add_custom_target(CopyResourceFiles ALL
