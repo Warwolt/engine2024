@@ -55,7 +55,7 @@ set(ENGINE_SRC
     src/engine/engine_api.cpp
     src/engine/game_state.cpp
     src/engine/hot_reloading.cpp
-    src/engine/project.cpp
+    src/engine/state/project_state.cpp
 )
 
 set(PLATFORM_SRC

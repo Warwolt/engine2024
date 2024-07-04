@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/project.h>
+#include <engine/state/project_state.h>
 
 #include <stdint.h>
 

@@ -9,7 +9,6 @@ Goals:
 
 ## TODO
 - Replace all `const T*` with `const T&` so that we can easily tell when using an out-parameter by `f(&val)`
-- Rename "project.h" to "project_state.h"
 - Change window title to be `<Project name> - Engine 2024` with a `*` after `<Project name>` if unsaved changes
 - Add --windowed command line argument to start game windowed
 - Setup ImGui docking branch
@@ -22,11 +21,10 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Add infrastructure for running engine as standalone game
-  - Add counter start value to project data
-  - Separate editing counter start value (project data) from editing current counter value (game data)
+- Rename "project.h" to "project_state.h"
 
 ## Done
+- Add infrastructure for running engine as standalone game
 - Add "Run", "Restart" and "Continue" buttons to editor for jumping in/out of game
 - Add keyboard ctrl+s and ctrl+o shortcuts for save and load
 - Save as option
