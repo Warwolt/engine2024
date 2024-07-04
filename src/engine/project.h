@@ -21,8 +21,8 @@ namespace engine {
 	 * Run-time information is stored in GameState
 	 */
 	struct ProjectState {
-		std::string name = "Untitled Project";
 		std::filesystem::path path;
+		std::string name = "Untitled Project";
 		int counter = 0;
 
 		static std::string to_json_string(const ProjectState& project);

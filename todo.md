@@ -8,6 +8,9 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Replace all `const T*` with `const T&` so that we can easily tell when using an out-parameter by `f(&val)`
+- Rename "project.h" to "project_state.h"
+- Change window title to be `<Project name> - Engine 2024` with a `*` after `<Project name>` if unsaved changes
 - Update `Window::create` to create a full screened window
 - Add --windowed command line argument to start game windowed
 - Setup ImGui docking branch

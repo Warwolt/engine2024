@@ -7,6 +7,8 @@
 #include <future>
 #include <optional>
 
+#include <nlohmann/json.hpp>
+
 namespace core::container {
 
 	template <typename T, typename E, typename F>
@@ -43,6 +45,14 @@ namespace core::container {
 	std::optional<V> map_get(const std::unordered_map<K, V>& map, const K& key) {
 		auto it = map.find(key);
 		return it == map.cend() ? std::nullopt : std::make_optional(it->second);
+	}
+
+	template <typename T>
+	std::optional<T> json_get(const nlohmann::json& json_object, const std::string& key) {
+		if (json_object.contains(key)) {
+			return json_object[key];
+		}
+		return {};
 	}
 
 } // namespace core::container

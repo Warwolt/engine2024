@@ -317,8 +317,7 @@ namespace engine {
 
 				case EditorCommand::ResetGameState:
 					editor->game_is_running = false;
-					game->counter = project->counter;
-					game->time_ms = 0;
+					init_game_state(game, *project);
 					break;
 
 				case EditorCommand::RunGame:

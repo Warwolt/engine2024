@@ -211,6 +211,8 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	engine.initialize(&state);
+
 	// Start in full screen if running game
 	if (mode == platform::RunMode::Game) {
 		// FIXME: Update `Window::create` to allow creating a full screen window
@@ -218,8 +220,6 @@ int main(int argc, char** argv) {
 		// little flicker now when the game starts.
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
-
-	engine.initialize(&state);
 
 	/* Main loop */
 	while (!quit) {

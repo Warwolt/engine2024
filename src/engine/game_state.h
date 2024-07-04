@@ -1,5 +1,7 @@
 #pragma once
 
+#include <engine/project.h>
+
 #include <stdint.h>
 
 namespace engine {
@@ -11,5 +13,7 @@ namespace engine {
 		int counter = 0;
 		uint64_t time_ms = 0;
 	};
+
+	void init_game_state(GameState* game, const ProjectState& project);
 
 } // namespace engine
