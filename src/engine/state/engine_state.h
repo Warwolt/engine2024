@@ -2,9 +2,9 @@
 
 #include <engine/animation.h>
 #include <engine/editor.h>
-#include <engine/game_state.h>
 #include <engine/hot_reloading.h>
-#include <engine/project.h>
+#include <engine/state/game_state.h>
+#include <engine/state/project_state.h>
 #include <platform/font.h>
 #include <platform/input/input.h>
 #include <platform/platform_api.h>
