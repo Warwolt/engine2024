@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Add "Run", "Restart" and "Continue" buttons to editor for jumping in/out of game
 - Setup ImGui docking branch
 - Maybe:
   - Move all state headers into "engine/state" directory
@@ -24,6 +23,7 @@ Goals:
   - Separate editing counter start value (project data) from editing current counter value (game data)
 
 ## Done
+- Add "Run", "Restart" and "Continue" buttons to editor for jumping in/out of game
 - Add keyboard ctrl+s and ctrl+o shortcuts for save and load
 - Save as option
 - Warn before discarding unsaved changes

@@ -15,12 +15,15 @@
 namespace engine {
 
 	enum class EditorCommand {
+		// file
 		NewProject,
 		OpenProject,
 		SaveProject,
 		SaveProjectAs,
-		ResetGameState,
+		// game
 		RunGame,
+		ResetGameState,
+		// app
 		Quit,
 	};
 
@@ -41,7 +44,8 @@ namespace engine {
 		GameState* game,
 		ProjectState* project,
 		const platform::Input* input,
-		bool unsaved_changes
+		bool unsaved_changes,
+		bool game_is_running
 	) {
 		std::vector<EditorCommand> commands;
 
@@ -99,15 +103,25 @@ namespace engine {
 			const int step = 1;
 			ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
 
-			// TODO:
-			if (ImGui::Button("Run game")) {
-				commands.push_back(EditorCommand::ResetGameState);
-				commands.push_back(EditorCommand::RunGame);
+			if (game_is_running) {
+				if (ImGui::Button("Resume game")) {
+					commands.push_back(EditorCommand::RunGame);
+				}
+				if (ImGui::Button("Stop game")) {
+					commands.push_back(EditorCommand::ResetGameState);
+				}
+				if (ImGui::Button("Restart game")) {
+					commands.push_back(EditorCommand::ResetGameState);
+					commands.push_back(EditorCommand::RunGame);
+				}
+			}
+			else {
+				if (ImGui::Button("Run game")) {
+					commands.push_back(EditorCommand::ResetGameState);
+					commands.push_back(EditorCommand::RunGame);
+				}
 			}
 
-			if (ImGui::Button("Resume game")) {
-				commands.push_back(EditorCommand::RunGame);
-			}
 			ImGui::End();
 		}
 
@@ -232,7 +246,7 @@ namespace engine {
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 		const bool is_new_file = project->path.empty();
-		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
+		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes, editor->game_is_running);
 
 		/* Input */
 		if (input->keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
@@ -287,11 +301,13 @@ namespace engine {
 					break;
 
 				case EditorCommand::ResetGameState:
-					game->counter = 0;
+					editor->game_is_running = false;
+					game->counter = project->counter;
 					game->time_ms = 0;
 					break;
 
 				case EditorCommand::RunGame:
+					editor->game_is_running = true;
 					platform->set_run_mode(platform::RunMode::Game);
 					break;
 

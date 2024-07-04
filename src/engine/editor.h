@@ -29,6 +29,7 @@ namespace engine {
 	struct EditorState {
 		EditorInput input;
 		EditorUiState ui;
+		bool game_is_running = false;
 	};
 
 	void init_editor(EditorState* editor, const ProjectState* project);
