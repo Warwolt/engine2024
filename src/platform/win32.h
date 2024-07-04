@@ -24,6 +24,7 @@ namespace platform {
 	};
 
 	std::string get_win32_error();
+	std::string application_name();
 	std::expected<ExitCode, std::string> run_command(const char* cmd_str);
 	UnsavedChangesDialogChoice show_unsaved_changes_dialog(const std::string& document_name);
 	std::optional<std::filesystem::path> show_load_dialog(HWND hwnd, const FileExplorerDialog* dialog);

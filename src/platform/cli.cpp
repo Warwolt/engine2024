@@ -1,5 +1,7 @@
 #include <platform/cli.h>
 
+#include <platform/win32.h>
+
 #include <string.h>
 
 namespace platform {
@@ -15,7 +17,7 @@ namespace platform {
 	}
 
 	std::string usage_string() {
-		return "usage: GameEngine2024.exe [-h | --help] [--editor]";
+		return std::string("usage: ") + application_name() + "[-h | --help] [--editor]";
 	}
 
 	std::expected<CommandLineArgs, std::string> parse_arguments(int argc, char** argv) {
