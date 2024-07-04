@@ -9,6 +9,7 @@ Goals:
 
 ## TODO
 - Update `Window::create` to create a full screened window
+- Add --windowed command line argument to start game windowed
 - Setup ImGui docking branch
 - Maybe:
   - Move all state headers into "engine/state" directory

@@ -27,6 +27,7 @@ namespace platform {
 
 	struct Input {
 		bool quit_signal_received = false;
+		bool is_editor_mode = false;
 
 		uint64_t delta_ms = 0;
 		uint64_t global_time_ms = 0;

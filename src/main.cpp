@@ -208,6 +208,7 @@ int main(int argc, char** argv) {
 	while (!quit) {
 		/* Input */
 		{
+			/* Reset input states */
 			using ButtonEvent = platform::ButtonEvent;
 			constexpr size_t NUM_MOUSE_BUTTONS = 5;
 			std::array<ButtonEvent, NUM_MOUSE_BUTTONS> mouse_button_events = { ButtonEvent::None };
@@ -215,6 +216,7 @@ int main(int argc, char** argv) {
 			input.mouse.pos_delta = glm::vec2 { 0, 0 };
 			input.quit_signal_received = false;
 
+			/* Poll all SDL events */
 			ImGuiIO& imgui_io = ImGui::GetIO();
 			SDL_Event event;
 			while (SDL_PollEvent(&event)) {
@@ -280,6 +282,7 @@ int main(int argc, char** argv) {
 				}
 			}
 
+			/* Update input states */
 			input.keyboard.update();
 			input.delta_ms = frame_timer.elapsed_ms();
 			input.global_time_ms += input.delta_ms;
@@ -293,6 +296,7 @@ int main(int argc, char** argv) {
 			input.mouse.right_button.update(mouse_button_events[SDL_BUTTON_RIGHT - 1]);
 			input.mouse.x1_button.update(mouse_button_events[SDL_BUTTON_X1 - 1]);
 			input.mouse.x2_button.update(mouse_button_events[SDL_BUTTON_X2 - 1]);
+			input.is_editor_mode = cmd_args.start_in_editor_mode;
 		}
 
 		/* Update */

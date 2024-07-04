@@ -96,8 +96,13 @@ namespace engine {
 				}
 
 				if (input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
-					platform->set_run_mode(platform::RunMode::Editor);
-					platform->set_window_mode(platform::WindowMode::Windowed);
+					if (input->is_editor_mode) {
+						platform->set_run_mode(platform::RunMode::Editor);
+						platform->set_window_mode(platform::WindowMode::Windowed);
+					}
+					else {
+						platform->quit();
+					}
 				}
 			}
 		}
@@ -111,7 +116,7 @@ namespace engine {
 			}
 		}
 
-		/* Window*/
+		/* Window */
 		{
 			if (input->keyboard.key_pressed_now(SDLK_F11)) {
 				platform->toggle_fullscreen();
