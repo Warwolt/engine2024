@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <string>
 
 // TODO move to core
@@ -21,6 +22,9 @@ namespace engine {
 		std::string name = "Untitled Project";
 		std::filesystem::path path;
 		int counter = 0;
+
+		static std::string to_json_string(const ProjectState& project);
+		static std::optional<ProjectState> from_json_string(const std::vector<uint8_t>& json_bytes, const std::filesystem::path& path);
 	};
 
 } // namespace engine

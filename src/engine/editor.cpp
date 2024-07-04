@@ -128,13 +128,6 @@ namespace engine {
 		return commands;
 	}
 
-	static std::string serialize_project_to_json_string(const ProjectState* project) {
-		nlohmann::json json_object = {
-			{ "project_name", project->name }
-		};
-		return json_object.dump();
-	}
-
 	static void new_project(
 		EditorState* editor,
 		GameState* game,
@@ -152,9 +145,9 @@ namespace engine {
 		platform::PlatformAPI* platform
 	) {
 		platform->load_file_with_dialog(g_load_project_dialog, [=](std::vector<uint8_t> data, std::filesystem::path path) {
-			nlohmann::json json_object = nlohmann::json::parse(data);
-			project->name = json_object["project_name"];
-			project->path = path;
+			*project = core::container::unwrap(ProjectState::from_json_string(data, path), [&]() {
+				ABORT("Could not parse json file \"%s\", aborting.", path.string().c_str());
+			});
 			editor->ui.project_name_buf = project->name;
 			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
 			LOG_INFO("Opened project \"%s\"", project->name.c_str());
@@ -168,7 +161,7 @@ namespace engine {
 		size_t current_project_hash,
 		std::function<void()> on_file_saved = []() {}
 	) {
-		const std::string json = serialize_project_to_json_string(project);
+		const std::string json = ProjectState::to_json_string(*project);
 		const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 		platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
 			LOG_INFO("Saved project \"%s\"", project->name.c_str());
@@ -188,7 +181,7 @@ namespace engine {
 		const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
 		/* Save existing file */
 		if (project_file_exists) {
-			const std::string json = serialize_project_to_json_string(project);
+			const std::string json = ProjectState::to_json_string(*project);
 			const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 			platform->save_file(bytes, project->path, [=]() {
 				LOG_INFO("Saved project \"%s\"", project->name.c_str());

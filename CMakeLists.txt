@@ -46,6 +46,7 @@ set(ENGINE_SRC
     src/engine/editor.cpp
     src/engine/engine_api.cpp
     src/engine/hot_reloading.cpp
+    src/engine/project.cpp
 )
 
 set(PLATFORM_SRC
