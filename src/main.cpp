@@ -113,7 +113,7 @@ static HWND get_window_handle(const platform::Window* window) {
 	return wmInfo.info.win.window;
 }
 
-static std::vector<uint8_t> read_file(const std::filesystem::path& path) {
+static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& path) {
 	auto length = std::filesystem::file_size(path);
 	if (length == 0) {
 		return {}; // empty vector
@@ -162,10 +162,10 @@ int main(int argc, char** argv) {
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
 	const char* fragment_shader_path = "resources/shaders/shader.frag";
-	std::string vertex_shader_src = core::container::unwrap(platform::read_file(vertex_shader_path), [&] {
+	std::string vertex_shader_src = core::container::unwrap(platform::read_file_to_string(vertex_shader_path), [&] {
 		ABORT("Failed to open vertex shader \"%s\"", vertex_shader_path);
 	});
-	std::string fragment_shader_src = core::container::unwrap(platform::read_file(fragment_shader_path), [&] {
+	std::string fragment_shader_src = core::container::unwrap(platform::read_file_to_string(fragment_shader_path), [&] {
 		ABORT("Failed to open fragment shader \"%s\"", fragment_shader_path);
 	});
 
@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
 			LOG_DEBUG("Loading %s", path.filename().string().c_str());
 			std::ifstream pak_file(path);
 			if (pak_file.is_open()) {
-				// std::vector<uint8_t> data = platform::read_file_as_bytes(path).value();
+				// std::vector<uint8_t> data = platform::read_file_to_string_as_bytes(path).value();
 				// state.project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
 				// 	ABORT("Could not parse json file \"%s\": %s", path.string().c_str(), error.c_str());
 				// });
@@ -382,7 +382,7 @@ int main(int argc, char** argv) {
 						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
 						if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
-							std::vector<uint8_t> data = read_file(path.value());
+							std::vector<uint8_t> data = read_file_to_string(path.value());
 							load_file_with_dialog.on_file_loaded(data, path.value());
 						}
 					} break;

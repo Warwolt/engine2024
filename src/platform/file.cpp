@@ -4,7 +4,7 @@
 
 namespace platform {
 
-	std::optional<std::string> read_file(const char* path) {
+	std::optional<std::string> read_file_to_string(const std::filesystem::path& path) {
 		std::string line, text;
 		std::ifstream in(path);
 		if (!in.is_open()) {
