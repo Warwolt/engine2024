@@ -21,15 +21,15 @@ namespace engine {
 	void update_hot_reloading(
 		HotReloadingState* hot_reloading,
 		AnimationSystem* animation_system,
-		const platform::Input* input,
+		const platform::Input& input,
 		platform::PlatformAPI* platform,
 		const std::string& window_title
 	) {
 		/* Input */
-		const bool hot_reload_key_pressed = input->keyboard.key_pressed_now_with_modifier(SDLK_F10, platform::KEY_MOD_ALT);
-		const bool library_rebuild_just_started = input->engine_is_rebuilding.just_became(true);
-		const bool library_rebuild_just_stopped = input->engine_is_rebuilding.just_became(false);
-		const uint64_t global_time_ms = input->global_time_ms;
+		const bool hot_reload_key_pressed = input.keyboard.key_pressed_now_with_modifier(SDLK_F10, platform::KEY_MOD_ALT);
+		const bool library_rebuild_just_started = input.engine_is_rebuilding.just_became(true);
+		const bool library_rebuild_just_stopped = input.engine_is_rebuilding.just_became(false);
+		const uint64_t global_time_ms = input.global_time_ms;
 
 		/* Update */
 		if (library_rebuild_just_started) {
@@ -54,7 +54,7 @@ namespace engine {
 		}
 
 		/* Display error message if rebuild failed */
-		if (!input->engine_is_rebuilding && input->engine_rebuild_exit_code != 0) {
+		if (!input.engine_is_rebuilding && input.engine_rebuild_exit_code != 0) {
 			new_window_title += " (Hot reloading failed!)";
 		}
 

@@ -397,31 +397,31 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture, .canvas = m_draw_canvas });
 	}
 
-	void Renderer::draw_character(const Font* font, char character, glm::vec2 pos, glm::vec4 color) {
-		const platform::Glyph& glyph = font->glyphs[character];
+	void Renderer::draw_character(const Font& font, char character, glm::vec2 pos, glm::vec4 color) {
+		const platform::Glyph& glyph = font.glyphs[character];
 
 		platform::Rect quad = {
 			.top_left = { pos.x, pos.y },
 			.bottom_right = { pos.x + glyph.size.x, pos.y + glyph.size.y }
 		};
 
-		float u0 = glyph.atlas_pos.x / (float)font->atlas.size.x;
-		float v0 = 1 - (glyph.atlas_pos.y + glyph.size.y) / (float)font->atlas.size.y;
-		float u1 = u0 + glyph.size.x / (float)font->atlas.size.x;
-		float v1 = v0 + glyph.size.y / (float)font->atlas.size.y;
+		float u0 = glyph.atlas_pos.x / (float)font.atlas.size.x;
+		float v0 = 1 - (glyph.atlas_pos.y + glyph.size.y) / (float)font.atlas.size.y;
+		float u1 = u0 + glyph.size.x / (float)font.atlas.size.x;
+		float v1 = v0 + glyph.size.y / (float)font.atlas.size.y;
 
 		platform::FlipRect uv = {
 			.bottom_left = { u0, v0 },
 			.top_right = { u1, v1 }
 		};
 
-		draw_texture_clipped_with_color(font->atlas, quad, uv, color);
+		draw_texture_clipped_with_color(font.atlas, quad, uv, color);
 	}
 
-	void Renderer::draw_text(const Font* font, const char* text, glm::vec2 pos, glm::vec4 color) {
+	void Renderer::draw_text(const Font& font, const char* text, glm::vec2 pos, glm::vec4 color) {
 		glm::vec2 pen = pos;
 		for (char character = *text; character != '\0'; character = *(++text)) {
-			const platform::Glyph& glyph = font->glyphs[character];
+			const platform::Glyph& glyph = font.glyphs[character];
 
 			if (character != ' ') {
 				glm::vec2 glyph_pos = glm::vec2 {
@@ -435,13 +435,13 @@ namespace platform {
 		}
 	}
 
-	void Renderer::draw_text_centered(const Font* font, const char* text, glm::vec2 pos, glm::vec4 color) {
+	void Renderer::draw_text_centered(const Font& font, const char* text, glm::vec2 pos, glm::vec4 color) {
 		glm::vec2 box_size = { 0.0f, 0.0f };
-		box_size.y = (float)font->height;
+		box_size.y = (float)font.height;
 
 		const char* it = text;
 		for (char character = *it; character != '\0'; character = *(++it)) {
-			const platform::Glyph& glyph = font->glyphs[character];
+			const platform::Glyph& glyph = font.glyphs[character];
 			box_size.x += glyph.advance;
 		}
 

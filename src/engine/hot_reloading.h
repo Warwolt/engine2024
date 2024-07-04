@@ -21,7 +21,7 @@ namespace engine {
 	void update_hot_reloading(
 		HotReloadingState* hot_reloading,
 		AnimationSystem* animation_system,
-		const platform::Input* input,
+		const platform::Input& input,
 		platform::PlatformAPI* platform,
 		const std::string& window_title
 	);

@@ -57,7 +57,7 @@ namespace engine {
 
 	void initialize(State* state) {
 		/* Initialize */
-		init_editor(&state->editor, &state->project);
+		init_editor(&state->editor, state->project);
 
 		/* Add fonts */
 		{
@@ -74,29 +74,29 @@ namespace engine {
 			platform::free_texture(texture);
 		}
 		for (const auto& [_, font] : state->resources.fonts) {
-			platform::free_font(&font);
+			platform::free_font(font);
 		}
 		for (const auto& [_, canvas] : state->resources.canvases) {
 			platform::free_canvas(canvas);
 		}
 	}
 
-	void update(State* state, const platform::Input* input, platform::PlatformAPI* platform) {
-		state->window_resolution = input->window_resolution;
-		state->editor_is_running = input->mode == platform::RunMode::Editor;
-		const bool game_just_started = input->mode.just_became(platform::RunMode::Game);
-		const bool game_is_running = input->mode == platform::RunMode::Game;
+	void update(State* state, const platform::Input& input, platform::PlatformAPI* platform) {
+		state->window_resolution = input.window_resolution;
+		state->editor_is_running = input.mode == platform::RunMode::Editor;
+		const bool game_just_started = input.mode.just_became(platform::RunMode::Game);
+		const bool game_is_running = input.mode == platform::RunMode::Game;
 
 		/* Quit */
 		{
 			// editor handles quit in editor mode
 			if (game_is_running) {
-				if (input->quit_signal_received) {
+				if (input.quit_signal_received) {
 					platform->quit();
 				}
 
-				if (input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
-					if (input->is_editor_mode) {
+				if (input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
+					if (input.is_editor_mode) {
 						platform->set_run_mode(platform::RunMode::Editor);
 						platform->set_window_mode(platform::WindowMode::Windowed);
 					}
@@ -109,7 +109,7 @@ namespace engine {
 
 		/* Update game */
 		if (game_is_running) {
-			state->game.time_ms += input->delta_ms;
+			state->game.time_ms += input.delta_ms;
 			if (state->game.time_ms >= 1000) {
 				state->game.time_ms -= 1000;
 				state->game.counter += 1;
@@ -118,7 +118,7 @@ namespace engine {
 
 		/* Window */
 		{
-			if (input->keyboard.key_pressed_now(SDLK_F11)) {
+			if (input.keyboard.key_pressed_now(SDLK_F11)) {
 				platform->toggle_fullscreen();
 			}
 
@@ -129,7 +129,7 @@ namespace engine {
 
 		/* Debug UI */
 		{
-			if (input->keyboard.key_pressed_now(SDLK_F3)) {
+			if (input.keyboard.key_pressed_now(SDLK_F3)) {
 				state->debug_ui.show_debug_ui = !state->debug_ui.show_debug_ui;
 			}
 
@@ -141,7 +141,7 @@ namespace engine {
 		/* Modules */
 		{
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, state->project.name);
-			if (input->mode == platform::RunMode::Editor) {
+			if (input.mode == platform::RunMode::Editor) {
 				update_editor(&state->editor, &state->game, &state->project, input, platform);
 			}
 		}
@@ -153,14 +153,14 @@ namespace engine {
 		platform::Font font = state->resources.fonts.at("arial-16");
 		glm::vec4 text_color = glm::vec4 { 0.92f, 0.92f, 0.92f, 1.0f };
 		if (state->editor_is_running) {
-			renderer->draw_text_centered(&font, "Editor", state->window_resolution / 2.0f, text_color);
+			renderer->draw_text_centered(font, "Editor", state->window_resolution / 2.0f, text_color);
 		}
 		else {
 			std::string text = std::to_string(state->game.counter);
 			glm::vec2 line1_pos = state->window_resolution / 2.0f;
 			glm::vec2 line2_pos = state->window_resolution / 2.0f + glm::vec2 { 0.0f, font.height };
-			renderer->draw_text_centered(&font, "Game", line1_pos, text_color);
-			renderer->draw_text_centered(&font, text.c_str(), line2_pos, text_color);
+			renderer->draw_text_centered(font, "Game", line1_pos, text_color);
+			renderer->draw_text_centered(font, text.c_str(), line2_pos, text_color);
 		}
 	}
 

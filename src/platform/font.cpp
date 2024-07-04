@@ -112,8 +112,8 @@ namespace platform {
 		return font;
 	}
 
-	void free_font(const Font* font) {
-		free_texture(font->atlas);
+	void free_font(const Font& font) {
+		free_texture(font.atlas);
 	}
 
 } // namespace platform

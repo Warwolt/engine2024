@@ -43,14 +43,14 @@ namespace engine {
 		EditorUiState* ui,
 		GameState* game,
 		ProjectState* project,
-		const platform::Input* input,
+		const platform::Input& input,
 		bool unsaved_changes,
 		bool game_is_running
 	) {
 		std::vector<EditorCommand> commands;
 
 		/* Quit */
-		if (input->quit_signal_received || input->keyboard.key_pressed_now(SDLK_ESCAPE)) {
+		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
 			commands.push_back(EditorCommand::Quit);
 		}
 
@@ -136,7 +136,7 @@ namespace engine {
 		LOG_INFO("Opened new project");
 		*project = {};
 		*game = {};
-		init_editor(editor, project);
+		init_editor(editor, *project);
 	}
 
 	static void open_project(
@@ -225,16 +225,16 @@ namespace engine {
 		LOG_INFO("Editor quit");
 	}
 
-	void init_editor(EditorState* editor, const ProjectState* project) {
-		editor->ui.project_name_buf = project->name;
-		editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+	void init_editor(EditorState* editor, const ProjectState& project) {
+		editor->ui.project_name_buf = project.name;
+		editor->ui.cached_project_hash = std::hash<ProjectState>()(project);
 	}
 
 	void update_editor(
 		EditorState* editor,
 		GameState* game,
 		ProjectState* project,
-		const platform::Input* input,
+		const platform::Input& input,
 		platform::PlatformAPI* platform
 	) {
 		/* Run UI */
@@ -245,19 +245,19 @@ namespace engine {
 
 		/* Project keyboard shortcuts */
 		{
-			if (input->keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
+			if (input.keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
 				commands.push_back(EditorCommand::NewProject);
 			}
 
-			if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTRL)) {
+			if (input.keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTRL)) {
 				commands.push_back(EditorCommand::OpenProject);
 			}
 
-			if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL)) {
+			if (input.keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL)) {
 				commands.push_back(EditorCommand::SaveProject);
 			}
 
-			if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
+			if (input.keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
 				commands.push_back(EditorCommand::SaveProjectAs);
 			}
 		}
@@ -265,7 +265,7 @@ namespace engine {
 		/* Run game keyboard shortcuts*/
 		{
 			/* Run */
-			if (input->keyboard.key_pressed_now(SDLK_F5)) {
+			if (input.keyboard.key_pressed_now(SDLK_F5)) {
 				if (editor->game_is_running) {
 					commands.push_back(EditorCommand::RunGame);
 				}
@@ -276,7 +276,7 @@ namespace engine {
 			}
 
 			/* Restart */
-			if (input->keyboard.key_pressed_now_with_modifier(SDLK_F5, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
+			if (input.keyboard.key_pressed_now_with_modifier(SDLK_F5, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
 				commands.push_back(EditorCommand::ResetGameState);
 				commands.push_back(EditorCommand::RunGame);
 			}
