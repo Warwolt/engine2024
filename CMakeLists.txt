@@ -5,6 +5,7 @@ option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
 
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
 set(UNIT_TESTS unit_tests)
+set(CORE_LIB ${CMAKE_PROJECT_NAME}Core)
 set(ENGINE_LIB ${CMAKE_PROJECT_NAME}Engine)
 set(PLATFORM_LIB ${CMAKE_PROJECT_NAME}Platform)
 set(SDL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2)
@@ -42,6 +43,10 @@ set(IMGUI_SRC
     ${IMGUI_DIR}/imgui/imgui_widgets.cpp
     ${IMGUI_DIR}/imgui/imgui.cpp
     ${IMGUI_DIR}/imgui/misc/cpp/imgui_stdlib.cpp
+)
+
+set(CORE_SRC
+    src/core/string.cpp
 )
 
 set(ENGINE_SRC
@@ -110,6 +115,11 @@ add_library(imgui STATIC ${IMGUI_SRC})
 target_include_directories(imgui PUBLIC ${IMGUI_DIR}/imgui ${SDL_DIR}/include/SDL2)
 target_link_libraries(imgui PUBLIC ${SDL_DIR}/lib/SDL2.lib)
 
+# Core
+add_library(${CORE_LIB} STATIC ${CORE_SRC})
+target_include_directories(${CORE_LIB} PUBLIC ${INC})
+target_link_libraries(${CORE_LIB} PUBLIC ${EXTERNAL_LIBS})
+
 # Platform
 add_library(${PLATFORM_LIB} STATIC ${PLATFORM_SRC})
 target_include_directories(${PLATFORM_LIB} PUBLIC ${INC})
@@ -124,7 +134,7 @@ set_target_properties(${ENGINE_LIB} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS YES)
 # Main
 add_executable(${MAIN_BINARY} src/main.cpp)
 target_include_directories(${MAIN_BINARY} PUBLIC ${INC})
-target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${ENGINE_LIB} ${EXTERNAL_LIBS})
+target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${CORE_LIB} ${ENGINE_LIB} ${EXTERNAL_LIBS})
 
 # Tests
 add_executable(${UNIT_TESTS} test/main.cpp ${TEST_SRC})
@@ -132,7 +142,7 @@ target_include_directories(${UNIT_TESTS} PUBLIC test)
 target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB} ${ENGINE_LIB})
 
 # Set compile options for targets
-foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
+foreach(TARGET IN ITEMS ${MAIN_BINARY} ${CORE_LIB} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
     set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PUBLIC
         $<$<CXX_COMPILER_ID:MSVC>: /W4>
