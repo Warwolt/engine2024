@@ -141,6 +141,7 @@ namespace engine {
 
 	static void open_project(
 		EditorState* editor,
+		GameState* game,
 		ProjectState* project,
 		platform::PlatformAPI* platform
 	) {
@@ -150,6 +151,7 @@ namespace engine {
 			});
 			editor->ui.project_name_buf = project->name;
 			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+			init_game_state(game, *project);
 			LOG_INFO("Opened project \"%s\"", project->name.c_str());
 		});
 	}
@@ -297,11 +299,11 @@ namespace engine {
 				case EditorCommand::OpenProject:
 					if (project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
-							open_project(editor, project, platform);
+							open_project(editor, game, project, platform);
 						});
 					}
 					else {
-						open_project(editor, project, platform);
+						open_project(editor, game, project, platform);
 					}
 					break;
 
