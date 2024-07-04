@@ -78,10 +78,10 @@ namespace engine {
 			ImGui::EndMainMenuBar();
 		}
 
-		/* Editor Window */
-		if (ImGui::Begin("Editor Window")) {
+		/* Project Window */
+		if (ImGui::Begin("Project Window")) {
 			const int step = 1;
-			ImGui::InputScalar("Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
+			ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
 
 			ImGui::Text("Unsaved changes: %s", unsaved_changes ? "yes" : "no");
 
@@ -91,6 +91,15 @@ namespace engine {
 
 			ImGui::Text("Project path: %s", project->path.string().c_str());
 
+			ImGui::End();
+		}
+
+		/* Game Edit Window */
+		if (ImGui::Begin("Game Window")) {
+			const int step = 1;
+			ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
+
+			// TODO:
 			if (ImGui::Button("Run game")) {
 				commands.push_back(EditorCommand::ResetGameState);
 				commands.push_back(EditorCommand::RunGame);
@@ -99,7 +108,6 @@ namespace engine {
 			if (ImGui::Button("Resume game")) {
 				commands.push_back(EditorCommand::RunGame);
 			}
-
 			ImGui::End();
 		}
 
