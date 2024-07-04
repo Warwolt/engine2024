@@ -248,21 +248,36 @@ namespace engine {
 		const bool is_new_file = project->path.empty();
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes, editor->game_is_running);
 
-		/* Input */
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
-			commands.push_back(EditorCommand::NewProject);
+		/* Project keyboard shortcuts */
+		{
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
+				commands.push_back(EditorCommand::NewProject);
+			}
+
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTRL)) {
+				commands.push_back(EditorCommand::OpenProject);
+			}
+
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL)) {
+				commands.push_back(EditorCommand::SaveProject);
+			}
+
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
+				commands.push_back(EditorCommand::SaveProjectAs);
+			}
 		}
 
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTRL)) {
-			commands.push_back(EditorCommand::OpenProject);
-		}
-
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL)) {
-			commands.push_back(EditorCommand::SaveProject);
-		}
-
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
-			commands.push_back(EditorCommand::SaveProjectAs);
+		/* Run game keyboard shortcuts*/
+		{
+			if (input->keyboard.key_pressed_now(SDLK_F5)) {
+				if (editor->game_is_running) {
+					commands.push_back(EditorCommand::RunGame);
+				}
+				else {
+					commands.push_back(EditorCommand::ResetGameState);
+					commands.push_back(EditorCommand::RunGame);
+				}
+			}
 		}
 
 		/* Process commands */
