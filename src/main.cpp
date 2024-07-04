@@ -195,10 +195,19 @@ int main(int argc, char** argv) {
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
+	/* Initialize engine */
+	// load game pak
 	if (mode == platform::RunMode::Game) {
-		std::filesystem::path pak_path = std::filesystem::path(platform::application_path()).replace_extension("pak");
-		if (std::filesystem::is_regular_file(pak_path)) {
-			LOG_DEBUG("Loading %s", pak_path.filename().string().c_str());
+		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
+		if (std::filesystem::is_regular_file(path)) {
+			LOG_DEBUG("Loading %s", path.filename().string().c_str());
+			std::ifstream pak_file(path);
+			if (pak_file.is_open()) {
+				// std::vector<uint8_t> data = platform::read_file_as_bytes(path).value();
+				// state.project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
+				// 	ABORT("Could not parse json file \"%s\": %s", path.string().c_str(), error.c_str());
+				// });
+			}
 		}
 	}
 
@@ -210,8 +219,9 @@ int main(int argc, char** argv) {
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
 
-	/* Main loop */
 	engine.initialize(&state);
+
+	/* Main loop */
 	while (!quit) {
 		/* Input */
 		{
