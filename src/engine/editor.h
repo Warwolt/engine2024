@@ -27,13 +27,13 @@ namespace engine {
 		bool game_is_running = false;
 	};
 
-	void init_editor(EditorState* editor, const ProjectState* project);
+	void init_editor(EditorState* editor, const ProjectState& project);
 
 	void update_editor(
 		EditorState* editor,
 		GameState* game,
 		ProjectState* project,
-		const platform::Input* input,
+		const platform::Input& input,
 		platform::PlatformAPI* platform
 	);
 

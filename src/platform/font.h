@@ -33,6 +33,6 @@ namespace platform {
 	void shutdown_fonts();
 
 	std::optional<Font> add_ttf_font(const char* font_path, uint8_t font_size);
-	void free_font(const Font* font);
+	void free_font(const Font& font);
 
 }

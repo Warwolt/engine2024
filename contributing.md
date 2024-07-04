@@ -12,3 +12,18 @@ following rules apply:
 | by value             | T        | print_number(int x);                  | print_number(123);             |
 | by mutable reference | T*       | initialize_system(System* system);    | initialize_system(&my_system); |
 | by const reference   | const T& | print_string(const std::string& str); | print_string("Hello world!");  |
+
+Using `const T&` allows for both passing an existing variable by const
+reference, as well as passing a literal value. With `const T*` parameters,
+literals cannot be used as arguments as easily.
+
+```C++
+void greet_person(const Person& person);
+
+// pass variable
+Person alice = Person { .name = "Alice", .age = 23 };
+greet_person(alice);
+
+// pass literal
+greet_person(Person { .name = "Bob", .age = 34 });
+```

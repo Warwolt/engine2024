@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Replace all `const T*` with `const T&` so that we can easily tell when using an out-parameter by `f(&val)`
 - Change window title to be `<Project name> - Engine 2024` with a `*` after `<Project name>` if unsaved changes
 - Add --windowed command line argument to start game windowed
 - Setup ImGui docking branch
@@ -22,6 +21,7 @@ Goals:
 ## Doing
 
 ## Done
+- Replace all `const T*` with `const T&` so that we can easily tell when using an out-parameter by `f(&val)`
 - Move all state headers into "engine/state" directory
 - Rename "project.h" to "project_state.h"
 - Add infrastructure for running engine as standalone game

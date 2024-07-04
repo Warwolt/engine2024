@@ -321,7 +321,7 @@ int main(int argc, char** argv) {
 
 			/* Engine update */
 			start_imgui_frame();
-			engine.update(&state, &input, &platform);
+			engine.update(&state, input, &platform);
 
 			/* Platform update */
 			for (platform::PlatformCommand& cmd : platform.drain_commands()) {
