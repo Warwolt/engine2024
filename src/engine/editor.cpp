@@ -15,12 +15,15 @@
 namespace engine {
 
 	enum class EditorCommand {
+		// file
 		NewProject,
 		OpenProject,
 		SaveProject,
 		SaveProjectAs,
-		ResetGameState,
+		// game
 		RunGame,
+		ResetGameState,
+		// app
 		Quit,
 	};
 
@@ -41,7 +44,8 @@ namespace engine {
 		GameState* game,
 		ProjectState* project,
 		const platform::Input* input,
-		bool unsaved_changes
+		bool unsaved_changes,
+		bool game_is_running
 	) {
 		std::vector<EditorCommand> commands;
 
@@ -78,10 +82,10 @@ namespace engine {
 			ImGui::EndMainMenuBar();
 		}
 
-		/* Editor Window */
-		if (ImGui::Begin("Editor Window")) {
+		/* Project Window */
+		if (ImGui::Begin("Project Window")) {
 			const int step = 1;
-			ImGui::InputScalar("Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
+			ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
 
 			ImGui::Text("Unsaved changes: %s", unsaved_changes ? "yes" : "no");
 
@@ -91,26 +95,37 @@ namespace engine {
 
 			ImGui::Text("Project path: %s", project->path.string().c_str());
 
-			if (ImGui::Button("Run game")) {
-				commands.push_back(EditorCommand::ResetGameState);
-				commands.push_back(EditorCommand::RunGame);
-			}
+			ImGui::End();
+		}
 
-			if (ImGui::Button("Resume game")) {
-				commands.push_back(EditorCommand::RunGame);
+		/* Game Edit Window */
+		if (ImGui::Begin("Game Window")) {
+			const int step = 1;
+			ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
+
+			if (game_is_running) {
+				if (ImGui::Button("Resume game")) {
+					commands.push_back(EditorCommand::RunGame);
+				}
+				if (ImGui::Button("Stop game")) {
+					commands.push_back(EditorCommand::ResetGameState);
+				}
+				if (ImGui::Button("Restart game")) {
+					commands.push_back(EditorCommand::ResetGameState);
+					commands.push_back(EditorCommand::RunGame);
+				}
+			}
+			else {
+				if (ImGui::Button("Run game")) {
+					commands.push_back(EditorCommand::ResetGameState);
+					commands.push_back(EditorCommand::RunGame);
+				}
 			}
 
 			ImGui::End();
 		}
 
 		return commands;
-	}
-
-	static std::string serialize_project_to_json_string(const ProjectState* project) {
-		nlohmann::json json_object = {
-			{ "project_name", project->name }
-		};
-		return json_object.dump();
 	}
 
 	static void new_project(
@@ -126,15 +141,17 @@ namespace engine {
 
 	static void open_project(
 		EditorState* editor,
+		GameState* game,
 		ProjectState* project,
 		platform::PlatformAPI* platform
 	) {
 		platform->load_file_with_dialog(g_load_project_dialog, [=](std::vector<uint8_t> data, std::filesystem::path path) {
-			nlohmann::json json_object = nlohmann::json::parse(data);
-			project->name = json_object["project_name"];
-			project->path = path;
+			*project = core::container::unwrap(ProjectState::from_json_string(data, path), [&](const std::string& error) {
+				ABORT("Could not parse json file \"%s\": %s", path.string().c_str(), error.c_str());
+			});
 			editor->ui.project_name_buf = project->name;
 			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+			init_game_state(game, *project);
 			LOG_INFO("Opened project \"%s\"", project->name.c_str());
 		});
 	}
@@ -146,7 +163,7 @@ namespace engine {
 		size_t current_project_hash,
 		std::function<void()> on_file_saved = []() {}
 	) {
-		const std::string json = serialize_project_to_json_string(project);
+		const std::string json = ProjectState::to_json_string(*project);
 		const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 		platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
 			LOG_INFO("Saved project \"%s\"", project->name.c_str());
@@ -166,7 +183,7 @@ namespace engine {
 		const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
 		/* Save existing file */
 		if (project_file_exists) {
-			const std::string json = serialize_project_to_json_string(project);
+			const std::string json = ProjectState::to_json_string(*project);
 			const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 			platform->save_file(bytes, project->path, [=]() {
 				LOG_INFO("Saved project \"%s\"", project->name.c_str());
@@ -224,23 +241,45 @@ namespace engine {
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 		const bool is_new_file = project->path.empty();
-		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes);
+		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes, editor->game_is_running);
 
-		/* Input */
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
-			commands.push_back(EditorCommand::NewProject);
+		/* Project keyboard shortcuts */
+		{
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
+				commands.push_back(EditorCommand::NewProject);
+			}
+
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTRL)) {
+				commands.push_back(EditorCommand::OpenProject);
+			}
+
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL)) {
+				commands.push_back(EditorCommand::SaveProject);
+			}
+
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
+				commands.push_back(EditorCommand::SaveProjectAs);
+			}
 		}
 
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTRL)) {
-			commands.push_back(EditorCommand::OpenProject);
-		}
+		/* Run game keyboard shortcuts*/
+		{
+			/* Run */
+			if (input->keyboard.key_pressed_now(SDLK_F5)) {
+				if (editor->game_is_running) {
+					commands.push_back(EditorCommand::RunGame);
+				}
+				else {
+					commands.push_back(EditorCommand::ResetGameState);
+					commands.push_back(EditorCommand::RunGame);
+				}
+			}
 
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL)) {
-			commands.push_back(EditorCommand::SaveProject);
-		}
-
-		if (input->keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
-			commands.push_back(EditorCommand::SaveProjectAs);
+			/* Restart */
+			if (input->keyboard.key_pressed_now_with_modifier(SDLK_F5, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
+				commands.push_back(EditorCommand::ResetGameState);
+				commands.push_back(EditorCommand::RunGame);
+			}
 		}
 
 		/* Process commands */
@@ -260,11 +299,11 @@ namespace engine {
 				case EditorCommand::OpenProject:
 					if (project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
-							open_project(editor, project, platform);
+							open_project(editor, game, project, platform);
 						});
 					}
 					else {
-						open_project(editor, project, platform);
+						open_project(editor, game, project, platform);
 					}
 					break;
 
@@ -279,11 +318,12 @@ namespace engine {
 					break;
 
 				case EditorCommand::ResetGameState:
-					game->counter = 0;
-					game->time_ms = 0;
+					editor->game_is_running = false;
+					init_game_state(game, *project);
 					break;
 
 				case EditorCommand::RunGame:
+					editor->game_is_running = true;
 					platform->set_run_mode(platform::RunMode::Game);
 					break;
 

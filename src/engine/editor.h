@@ -17,18 +17,14 @@ namespace engine {
 	struct GameState;
 	struct ProjectState;
 
-	struct EditorInput {
-		std::future<platform::UnsavedChangesDialogChoice> save_before_quit_choice;
-	};
-
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
 	};
 
 	struct EditorState {
-		EditorInput input;
 		EditorUiState ui;
+		bool game_is_running = false;
 	};
 
 	void init_editor(EditorState* editor, const ProjectState* project);

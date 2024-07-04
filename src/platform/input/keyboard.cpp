@@ -61,11 +61,11 @@ namespace platform {
 	}
 
 	bool Keyboard::key_pressed(int keycode) const {
-		return _key(keycode).is_pressed();
+		return key_pressed_with_modifier(keycode, 0);
 	}
 
 	bool Keyboard::key_pressed_now(int keycode) const {
-		return _key(keycode).pressed_now();
+		return key_pressed_now_with_modifier(keycode, 0);
 	}
 
 	bool Keyboard::key_released(int keycode) const {
@@ -77,11 +77,11 @@ namespace platform {
 	}
 
 	bool Keyboard::key_pressed_with_modifier(int keycode, int modifier) const {
-		return key_pressed(keycode) && _modifier(keycode) == modifier;
+		return _key(keycode).is_pressed() && _modifier(keycode) == modifier;
 	}
 
 	bool Keyboard::key_pressed_now_with_modifier(int keycode, int modifier) const {
-		return key_pressed_now(keycode) && _modifier(keycode) == modifier;
+		return _key(keycode).pressed_now() && _modifier(keycode) == modifier;
 	}
 
 	Button Keyboard::_key(int keycode) const {

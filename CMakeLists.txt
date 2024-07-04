@@ -5,6 +5,7 @@ option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
 
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
 set(UNIT_TESTS unit_tests)
+set(CORE_LIB ${CMAKE_PROJECT_NAME}Core)
 set(ENGINE_LIB ${CMAKE_PROJECT_NAME}Engine)
 set(PLATFORM_LIB ${CMAKE_PROJECT_NAME}Platform)
 set(SDL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2)
@@ -17,6 +18,9 @@ add_subdirectory(libs/google-test)
 add_subdirectory(libs/json)
 add_subdirectory(libs/miniz)
 add_subdirectory(libs/stb_image)
+
+# Enable better error messages from nlomann json
+add_compile_definitions(JSON_DIAGNOSTICS=1)
 
 set(INC
     src
@@ -41,11 +45,17 @@ set(IMGUI_SRC
     ${IMGUI_DIR}/imgui/misc/cpp/imgui_stdlib.cpp
 )
 
+set(CORE_SRC
+    src/core/string.cpp
+)
+
 set(ENGINE_SRC
     src/engine/animation.cpp
     src/engine/editor.cpp
     src/engine/engine_api.cpp
+    src/engine/game_state.cpp
     src/engine/hot_reloading.cpp
+    src/engine/project.cpp
 )
 
 set(PLATFORM_SRC
@@ -105,6 +115,11 @@ add_library(imgui STATIC ${IMGUI_SRC})
 target_include_directories(imgui PUBLIC ${IMGUI_DIR}/imgui ${SDL_DIR}/include/SDL2)
 target_link_libraries(imgui PUBLIC ${SDL_DIR}/lib/SDL2.lib)
 
+# Core
+add_library(${CORE_LIB} STATIC ${CORE_SRC})
+target_include_directories(${CORE_LIB} PUBLIC ${INC})
+target_link_libraries(${CORE_LIB} PUBLIC ${EXTERNAL_LIBS})
+
 # Platform
 add_library(${PLATFORM_LIB} STATIC ${PLATFORM_SRC})
 target_include_directories(${PLATFORM_LIB} PUBLIC ${INC})
@@ -119,7 +134,7 @@ set_target_properties(${ENGINE_LIB} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS YES)
 # Main
 add_executable(${MAIN_BINARY} src/main.cpp)
 target_include_directories(${MAIN_BINARY} PUBLIC ${INC})
-target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${EXTERNAL_LIBS})
+target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${CORE_LIB} ${ENGINE_LIB} ${EXTERNAL_LIBS})
 
 # Tests
 add_executable(${UNIT_TESTS} test/main.cpp ${TEST_SRC})
@@ -127,7 +142,7 @@ target_include_directories(${UNIT_TESTS} PUBLIC test)
 target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB} ${ENGINE_LIB})
 
 # Set compile options for targets
-foreach(TARGET IN ITEMS ${MAIN_BINARY} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
+foreach(TARGET IN ITEMS ${MAIN_BINARY} ${CORE_LIB} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
     set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PUBLIC
         $<$<CXX_COMPILER_ID:MSVC>: /W4>
@@ -153,9 +168,10 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
 endif()
 
-# Set main binary to be default target for Visual Studio
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${MAIN_BINARY})
-set_target_properties(${MAIN_BINARY} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:${MAIN_BINARY}>)
+# Configure Visual Studio solution
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${MAIN_BINARY}) # Set main binary to be default target for Visual Studio
+set_target_properties(${MAIN_BINARY} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:${MAIN_BINARY}>) # Set working directory to be same as binary
+set_target_properties(${MAIN_BINARY} PROPERTIES VS_DEBUGGER_COMMAND_ARGUMENTS  "--editor") # Set default command line
 
 # Copy resource files
 add_custom_target(CopyResourceFiles ALL

@@ -5,6 +5,8 @@
 #include <commctrl.h>
 #include <commdlg.h>
 
+#include <filesystem>
+
 // Spooky linker magic courtesy of https://stackoverflow.com/a/43215416/3157744
 // This makes sure that we load some control related stuff for Comctl32.lib
 #if defined _M_IX86
@@ -39,6 +41,22 @@ namespace platform {
 		LocalFree(err_msg);
 
 		return std::string(buffer);
+	}
+
+	std::string application_name() {
+		return application_path().string();
+	}
+
+	const std::filesystem::path& application_path() {
+		static std::filesystem::path path; // memoize, this value is constant for full program lifetime
+
+		if (path.empty()) {
+			TCHAR sz_file_name[MAX_PATH];
+			GetModuleFileName(NULL, sz_file_name, MAX_PATH);
+			path = sz_file_name;
+		}
+
+		return path;
 	}
 
 	std::expected<ExitCode, std::string> run_command(const char* cmd_str) {

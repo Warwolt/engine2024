@@ -113,7 +113,7 @@ static HWND get_window_handle(const platform::Window* window) {
 	return wmInfo.info.win.window;
 }
 
-static std::vector<uint8_t> read_file(const std::filesystem::path& path) {
+static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& path) {
 	auto length = std::filesystem::file_size(path);
 	if (length == 0) {
 		return {}; // empty vector
@@ -127,7 +127,7 @@ static std::vector<uint8_t> read_file(const std::filesystem::path& path) {
 
 int main(int argc, char** argv) {
 	/* Parse args */
-	platform::CliCommands cmd_args = core::container::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
+	platform::CommandLineArgs cmd_args = core::container::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
 		fprintf(stderr, "parse error: %s\n", error.c_str());
 		printf("%s\n", platform::usage_string().c_str());
 		exit(1);
@@ -162,10 +162,10 @@ int main(int argc, char** argv) {
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
 	const char* fragment_shader_path = "resources/shaders/shader.frag";
-	std::string vertex_shader_src = core::container::unwrap(platform::read_file(vertex_shader_path), [&] {
+	std::string vertex_shader_src = core::container::unwrap(platform::read_file_to_string(vertex_shader_path), [&] {
 		ABORT("Failed to open vertex shader \"%s\"", vertex_shader_path);
 	});
-	std::string fragment_shader_src = core::container::unwrap(platform::read_file(fragment_shader_path), [&] {
+	std::string fragment_shader_src = core::container::unwrap(platform::read_file_to_string(fragment_shader_path), [&] {
 		ABORT("Failed to open fragment shader \"%s\"", fragment_shader_path);
 	});
 
@@ -191,20 +191,42 @@ int main(int argc, char** argv) {
 	engine::State state;
 
 	bool quit = false;
-	platform::RunMode mode = cmd_args.run_game ? platform::RunMode::Game : platform::RunMode::Editor;
+	platform::RunMode mode = cmd_args.start_in_editor_mode ? platform::RunMode::Editor : platform::RunMode::Game;
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
-	// start game full screen
+	/* Initialize engine */
+	engine.initialize(&state);
+
+	// load game pak
 	if (mode == platform::RunMode::Game) {
+		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
+		if (std::filesystem::is_regular_file(path)) {
+			std::ifstream pak_file(path);
+			if (pak_file.is_open()) {
+				std::vector<uint8_t> data = platform::read_file_bytes(path).value();
+				state.project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
+					ABORT("Could not parse json file \"%s\": %s", path.string().c_str(), error.c_str());
+				});
+				init_game_state(&state.game, state.project);
+				LOG_INFO("Game data loaded from \"%s\"", path.string().c_str());
+			}
+		}
+	}
+
+	// Start in full screen if running game
+	if (mode == platform::RunMode::Game) {
+		// FIXME: Update `Window::create` to allow creating a full screen window
+		// and use that instead of setting window mode here, since we get a
+		// little flicker now when the game starts.
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
 
 	/* Main loop */
-	engine.initialize(&state);
 	while (!quit) {
 		/* Input */
 		{
+			/* Reset input states */
 			using ButtonEvent = platform::ButtonEvent;
 			constexpr size_t NUM_MOUSE_BUTTONS = 5;
 			std::array<ButtonEvent, NUM_MOUSE_BUTTONS> mouse_button_events = { ButtonEvent::None };
@@ -212,6 +234,7 @@ int main(int argc, char** argv) {
 			input.mouse.pos_delta = glm::vec2 { 0, 0 };
 			input.quit_signal_received = false;
 
+			/* Poll all SDL events */
 			ImGuiIO& imgui_io = ImGui::GetIO();
 			SDL_Event event;
 			while (SDL_PollEvent(&event)) {
@@ -277,6 +300,7 @@ int main(int argc, char** argv) {
 				}
 			}
 
+			/* Update input states */
 			input.keyboard.update();
 			input.delta_ms = frame_timer.elapsed_ms();
 			input.global_time_ms += input.delta_ms;
@@ -290,6 +314,7 @@ int main(int argc, char** argv) {
 			input.mouse.right_button.update(mouse_button_events[SDL_BUTTON_RIGHT - 1]);
 			input.mouse.x1_button.update(mouse_button_events[SDL_BUTTON_X1 - 1]);
 			input.mouse.x2_button.update(mouse_button_events[SDL_BUTTON_X2 - 1]);
+			input.is_editor_mode = cmd_args.start_in_editor_mode;
 		}
 
 		/* Update */
@@ -358,7 +383,7 @@ int main(int argc, char** argv) {
 						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
 						HWND hwnd = get_window_handle(&window);
 						if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
-							std::vector<uint8_t> data = read_file(path.value());
+							std::vector<uint8_t> data = read_file_to_string(path.value());
 							load_file_with_dialog.on_file_loaded(data, path.value());
 						}
 					} break;
