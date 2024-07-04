@@ -203,7 +203,8 @@ int main(int argc, char** argv) {
 			LOG_DEBUG("Loading %s", path.filename().string().c_str());
 			std::ifstream pak_file(path);
 			if (pak_file.is_open()) {
-				// std::vector<uint8_t> data = platform::read_file_to_string_as_bytes(path).value();
+				std::vector<uint8_t> data = platform::read_file_bytes(path).value();
+				state.project = engine::ProjectState::from_json_string(data, path).value();
 				// state.project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
 				// 	ABORT("Could not parse json file \"%s\": %s", path.string().c_str(), error.c_str());
 				// });

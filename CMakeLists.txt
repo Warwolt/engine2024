@@ -120,7 +120,7 @@ set_target_properties(${ENGINE_LIB} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS YES)
 # Main
 add_executable(${MAIN_BINARY} src/main.cpp)
 target_include_directories(${MAIN_BINARY} PUBLIC ${INC})
-target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${EXTERNAL_LIBS})
+target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${ENGINE_LIB} ${EXTERNAL_LIBS})
 
 # Tests
 add_executable(${UNIT_TESTS} test/main.cpp ${TEST_SRC})
