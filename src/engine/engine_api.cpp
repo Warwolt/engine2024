@@ -140,7 +140,8 @@ namespace engine {
 
 		/* Modules */
 		{
-			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, state->project.name);
+			std::string window_title = state->project.name + (state->editor.project_has_unsaved_changes ? "*" : "") + " - Engine2024";
+			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, window_title);
 			if (input.mode == platform::RunMode::Editor) {
 				update_editor(&state->editor, &state->game, &state->project, input, platform);
 			}

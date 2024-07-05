@@ -14,6 +14,7 @@ namespace engine {
 
 	struct EditorState {
 		EditorUiState ui;
+		bool project_has_unsaved_changes = false;
 		bool game_is_running = false;
 	};
 
