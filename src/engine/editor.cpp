@@ -133,11 +133,11 @@ namespace engine {
 		platform::PlatformAPI* platform
 	) {
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
-		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 		const bool is_new_file = project->path.empty();
+		editor->project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 
 		/* Run UI */
-		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes, editor->game_is_running);
+		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, editor->project_has_unsaved_changes, editor->game_is_running);
 
 		/* Project keyboard shortcuts */
 		{
@@ -182,7 +182,7 @@ namespace engine {
 		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
 				case EditorCommand::NewProject:
-					if (project_has_unsaved_changes) {
+					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
 							new_project(editor, game, project);
 						});
@@ -193,7 +193,7 @@ namespace engine {
 					break;
 
 				case EditorCommand::OpenProject:
-					if (project_has_unsaved_changes) {
+					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
 							open_project(editor, game, project, platform);
 						});
@@ -204,7 +204,7 @@ namespace engine {
 					break;
 
 				case EditorCommand::SaveProject:
-					if (project_has_unsaved_changes || is_new_file) {
+					if (editor->project_has_unsaved_changes || is_new_file) {
 						save_project(editor, project, platform, current_project_hash);
 					}
 					break;
@@ -224,7 +224,7 @@ namespace engine {
 					break;
 
 				case EditorCommand::Quit:
-					if (project_has_unsaved_changes) {
+					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
 							quit_editor(platform);
 						});
