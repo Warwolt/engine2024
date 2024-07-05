@@ -21,6 +21,9 @@ namespace platform {
 			else if (core::string::equals(argv[i], "--editor")) {
 				cmds.start_in_editor_mode = true;
 			}
+			else if (core::string::equals(argv[i], "--windowed")) {
+				cmds.start_game_windowed = true;
+			}
 			else {
 				return std::unexpected(std::string("Unexpected arg: ") + argv[i]);
 			}

@@ -202,7 +202,14 @@ int main(int argc, char** argv) {
 		engine.load_project(&state, path.string().c_str());
 
 		// Start in full screen if running game
-		window.set_window_mode(platform::WindowMode::FullScreen);
+		if (!cmd_args.start_game_windowed) {
+			window.set_window_mode(platform::WindowMode::FullScreen);
+		}
+	}
+	if (mode == platform::RunMode::Editor) {
+		if (cmd_args.start_game_windowed) {
+			LOG_WARNING("Command line argument `--windowed` was ignored because of editor mode");
+		}
 	}
 	engine.initialize(&state);
 
