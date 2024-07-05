@@ -46,6 +46,7 @@ namespace engine {
 			});
 			editor->ui.project_name_buf = project->name;
 			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+			editor->game_is_running = false;
 			init_game_state(game, *project);
 			LOG_INFO("Opened project \"%s\"", project->name.c_str());
 		});

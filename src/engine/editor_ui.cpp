@@ -69,10 +69,10 @@ namespace engine {
 
 		/* Game Edit Window */
 		if (ImGui::Begin("Game Window")) {
-			const int step = 1;
-			ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
-
 			if (game_is_running) {
+				const int step = 1;
+				ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
+
 				if (ImGui::Button("Resume game")) {
 					commands.push_back(EditorCommand::RunGame);
 				}
