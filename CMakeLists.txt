@@ -62,6 +62,7 @@ set(ENGINE_SRC
 
 set(PLATFORM_SRC
     src/platform/cli.cpp
+    src/platform/config.cpp
     src/platform/file.cpp
     src/platform/font.cpp
     src/platform/image.cpp

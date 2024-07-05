@@ -8,6 +8,9 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Replace ImGui main menu bar with a native Win32 one
+  - https://stackoverflow.com/questions/30135494/win32-api-c-menu-bar
+- Organize platform files into directories
 - Setup ImGui docking branch
 - Enable caching for GitHub Actions
 - Maybe:
@@ -18,9 +21,10 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Add --windowed command line argument to start game windowed
+- Add config file support, use to store window mode, size and position
 
 ## Done
+- Add --windowed command line argument to start game windowed
 - Change window title to be `<Project name> - Engine 2024` with a `*` after `<Project name>` if unsaved changes
 - Replace all `const T*` with `const T&` so that we can easily tell when using an out-parameter by `f(&val)`
 - Move all state headers into "engine/state" directory

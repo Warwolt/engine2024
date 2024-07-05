@@ -2,11 +2,11 @@
 #include <ft2build.h>
 
 #include <core/container.h>
-#include <core/parse.h>
 #include <core/util.h>
 #include <engine/engine_api.h>
 #include <platform/assert.h>
 #include <platform/cli.h>
+#include <platform/config.h>
 #include <platform/file.h>
 #include <platform/font.h>
 #include <platform/image.h>
@@ -32,7 +32,8 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/imgui.h>
-#include <mini/ini.h>
+
+#include <fstream>
 
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
@@ -215,35 +216,17 @@ int main(int argc, char** argv) {
 
 	// TEST OUT mINI
 	{
-		struct {
-			int counter = 0;
-		} config;
-
 		std::filesystem::path config_path = platform::application_path().parent_path() / "config.ini";
-
-		// load config
-		{
-			mINI::INIStructure ini;
-			mINI::INIFile file = mINI::INIFile(config_path.string());
-			if (std::filesystem::is_regular_file(config_path)) {
-				file.read(ini);
-			}
-			if (ini.has("test") && ini["test"].has("counter")) {
-				config.counter = core::string_to_number(ini["test"]["counter"].c_str()).value_or(0);
-			}
+		platform::Configuration config;
+		if (std::optional<platform::Configuration> loaded_config = platform::load_configuration(config_path)) {
+			config = loaded_config.value();
+			LOG_INFO("Loaded configuration from \"%s\"", config_path.string().c_str());
 		}
 
 		// update config
 		config.counter += 1;
 
-		// save config
-		{
-			mINI::INIStructure ini;
-			ini["test"]["counter"] = std::to_string(config.counter);
-
-			mINI::INIFile file = mINI::INIFile(config_path.string());
-			file.write(ini);
-		}
+		save_configuration(config, config_path);
 	}
 
 	/* Main loop */
