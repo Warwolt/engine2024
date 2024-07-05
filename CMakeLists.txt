@@ -28,6 +28,7 @@ set(INC
     libs/plog/include
     libs/magic_enum/include
     libs/json/include
+    libs/mini
     ${GLEW_DIR}/include
     ${SDL_DIR}/include
     ${IMGUI_DIR}
