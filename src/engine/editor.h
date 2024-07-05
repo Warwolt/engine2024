@@ -1,12 +1,7 @@
 #pragma once
 
+#include <engine/editor_ui.h>
 #include <platform/platform_api.h>
-
-#include <expected>
-#include <filesystem>
-#include <future>
-#include <stdint.h>
-#include <vector>
 
 namespace platform {
 	struct Input;
@@ -16,11 +11,6 @@ namespace engine {
 
 	struct GameState;
 	struct ProjectState;
-
-	struct EditorUiState {
-		size_t cached_project_hash; // for "unsaved changes" prompts
-		std::string project_name_buf;
-	};
 
 	struct EditorState {
 		EditorUiState ui;
