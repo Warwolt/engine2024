@@ -11,8 +11,9 @@ Goals:
 - Change window title to be `<Project name> - Engine 2024` with a `*` after `<Project name>` if unsaved changes
 - Add --windowed command line argument to start game windowed
 - Setup ImGui docking branch
+- Enable caching for GitHub Actions
 - Maybe:
-  - Disable RTTI and exceptions in both project and standard library
+  - ~~Disable RTTI and exceptions in both project and standard library~~
   - set VS_DEBUGGER_WORKING_DIRECTORY to project root
   - Add tooling to measure memory usage
   - Add TypeScript for game scripting

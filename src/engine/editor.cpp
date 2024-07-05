@@ -2,30 +2,14 @@
 
 #include <core/container.h>
 #include <core/future.h>
+#include <engine/editor_command.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <platform/input/input.h>
 #include <platform/logging.h>
 #include <platform/platform_api.h>
 
-#include <imgui/imgui.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-#include <nlohmann/json.hpp>
-
 namespace engine {
-
-	enum class EditorCommand {
-		// file
-		NewProject,
-		OpenProject,
-		SaveProject,
-		SaveProjectAs,
-		// game
-		RunGame,
-		ResetGameState,
-		// app
-		Quit,
-	};
 
 	static const platform::FileExplorerDialog g_load_project_dialog = {
 		.title = "Load project",
@@ -38,95 +22,6 @@ namespace engine {
 		.description = "PAK (*.pak)",
 		.extension = "pak",
 	};
-
-	static std::vector<EditorCommand> update_editor_ui(
-		EditorUiState* ui,
-		GameState* game,
-		ProjectState* project,
-		const platform::Input& input,
-		bool unsaved_changes,
-		bool game_is_running
-	) {
-		std::vector<EditorCommand> commands;
-
-		/* Quit */
-		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
-			commands.push_back(EditorCommand::Quit);
-		}
-
-		/* Editor Menu Bar*/
-		if (ImGui::BeginMainMenuBar()) {
-			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem(" New Project")) {
-					commands.push_back(EditorCommand::NewProject);
-				}
-
-				ImGui::Separator();
-
-				if (ImGui::MenuItem(" Open Project")) {
-					commands.push_back(EditorCommand::OpenProject);
-				}
-
-				ImGui::Separator();
-
-				if (ImGui::MenuItem(" Save Project", NULL, false, unsaved_changes)) {
-					commands.push_back(EditorCommand::SaveProject);
-				}
-
-				if (ImGui::MenuItem(" Save Project As")) {
-					commands.push_back(EditorCommand::SaveProjectAs);
-				}
-
-				ImGui::EndMenu();
-			}
-			ImGui::EndMainMenuBar();
-		}
-
-		/* Project Window */
-		if (ImGui::Begin("Project Window")) {
-			const int step = 1;
-			ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
-
-			ImGui::Text("Unsaved changes: %s", unsaved_changes ? "yes" : "no");
-
-			if (ImGui::InputText("Project name", &ui->project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
-				project->name = ui->project_name_buf;
-			}
-
-			ImGui::Text("Project path: %s", project->path.string().c_str());
-
-			ImGui::End();
-		}
-
-		/* Game Edit Window */
-		if (ImGui::Begin("Game Window")) {
-			const int step = 1;
-			ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
-
-			if (game_is_running) {
-				if (ImGui::Button("Resume game")) {
-					commands.push_back(EditorCommand::RunGame);
-				}
-				if (ImGui::Button("Stop game")) {
-					commands.push_back(EditorCommand::ResetGameState);
-				}
-				if (ImGui::Button("Restart game")) {
-					commands.push_back(EditorCommand::ResetGameState);
-					commands.push_back(EditorCommand::RunGame);
-				}
-			}
-			else {
-				if (ImGui::Button("Run game")) {
-					commands.push_back(EditorCommand::ResetGameState);
-					commands.push_back(EditorCommand::RunGame);
-				}
-			}
-
-			ImGui::End();
-		}
-
-		return commands;
-	}
 
 	static void new_project(
 		EditorState* editor,
@@ -237,10 +132,11 @@ namespace engine {
 		const platform::Input& input,
 		platform::PlatformAPI* platform
 	) {
-		/* Run UI */
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 		const bool is_new_file = project->path.empty();
+
+		/* Run UI */
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes, editor->game_is_running);
 
 		/* Project keyboard shortcuts */
