@@ -2,6 +2,7 @@
 #include <ft2build.h>
 
 #include <core/container.h>
+#include <core/parse.h>
 #include <core/util.h>
 #include <engine/engine_api.h>
 #include <platform/assert.h>
@@ -31,7 +32,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/imgui.h>
-#include <ini/ini.h>
+#include <mini/ini.h>
 
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
@@ -212,6 +213,39 @@ int main(int argc, char** argv) {
 	}
 	engine.initialize(&state);
 
+	// TEST OUT mINI
+	{
+		struct {
+			int counter = 0;
+		} config;
+
+		std::filesystem::path config_path = platform::application_path().parent_path() / "config.ini";
+
+		// load config
+		{
+			mINI::INIStructure ini;
+			mINI::INIFile file = mINI::INIFile(config_path.string());
+			if (std::filesystem::is_regular_file(config_path)) {
+				file.read(ini);
+			}
+			if (ini.has("test") && ini["test"].has("counter")) {
+				config.counter = core::string_to_number(ini["test"]["counter"].c_str()).value_or(0);
+			}
+		}
+
+		// update config
+		config.counter += 1;
+
+		// save config
+		{
+			mINI::INIStructure ini;
+			ini["test"]["counter"] = std::to_string(config.counter);
+
+			mINI::INIFile file = mINI::INIFile(config_path.string());
+			file.write(ini);
+		}
+	}
+
 	/* Main loop */
 	while (!quit) {
 		/* Input */
@@ -265,8 +299,8 @@ int main(int argc, char** argv) {
 							if (event.button.button - 1 < NUM_MOUSE_BUTTONS) {
 								mouse_button_events[event.button.button - 1] = ButtonEvent::Down;
 							}
-							break;
 						}
+						break;
 
 					case SDL_MOUSEBUTTONUP:
 						if (!imgui_io.WantCaptureMouse) {
