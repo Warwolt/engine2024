@@ -196,28 +196,15 @@ int main(int argc, char** argv) {
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
 	/* Initialize engine */
-	engine.initialize(&state);
-
-	// load game pak
 	if (mode == platform::RunMode::Game) {
+		// load game pak
 		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
-		if (std::filesystem::is_regular_file(path)) {
-			std::ifstream pak_file(path);
-			if (pak_file.is_open()) {
-				std::vector<uint8_t> data = platform::read_file_bytes(path).value();
-				state.project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
-					ABORT("Could not parse json file \"%s\": %s", path.string().c_str(), error.c_str());
-				});
-				init_game_state(&state.game, state.project);
-				LOG_INFO("Game data loaded from \"%s\"", path.string().c_str());
-			}
-		}
-	}
+		engine.load_project(&state, path.string().c_str());
 
-	// Start in full screen if running game
-	if (mode == platform::RunMode::Game) {
+		// Start in full screen if running game
 		window.set_window_mode(platform::WindowMode::FullScreen);
 	}
+	engine.initialize(&state);
 
 	/* Main loop */
 	while (!quit) {
