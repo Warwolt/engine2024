@@ -222,6 +222,7 @@ namespace engine {
 				case EditorCommand::RunGame:
 					editor->game_is_running = true;
 					platform->set_run_mode(platform::RunMode::Game);
+					platform->set_window_mode(editor->ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
 					break;
 
 				case EditorCommand::Quit:

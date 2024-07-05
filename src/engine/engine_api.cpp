@@ -137,10 +137,6 @@ namespace engine {
 			if (input.keyboard.key_pressed_now(SDLK_F11)) {
 				platform->toggle_fullscreen();
 			}
-
-			if (game_just_started) {
-				platform->set_window_mode(platform::WindowMode::FullScreen);
-			}
 		}
 
 		/* Debug UI */

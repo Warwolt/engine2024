@@ -8,7 +8,7 @@ namespace platform {
 	struct CommandLineArgs {
 		bool print_usage = false;
 		bool start_in_editor_mode = false;
-		bool run_game_DEPRECATED = false;
+		bool start_game_windowed = false;
 	};
 
 	std::string usage_string();

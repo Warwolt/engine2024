@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Add --windowed command line argument to start game windowed
 - Setup ImGui docking branch
 - Enable caching for GitHub Actions
 - Maybe:
@@ -19,6 +18,7 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
+- Add --windowed command line argument to start game windowed
 
 ## Done
 - Change window title to be `<Project name> - Engine 2024` with a `*` after `<Project name>` if unsaved changes

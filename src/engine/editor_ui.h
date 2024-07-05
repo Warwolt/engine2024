@@ -18,6 +18,7 @@ namespace engine {
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
+		bool run_game_windowed = false;
 	};
 
 	std::vector<EditorCommand> update_editor_ui(

@@ -91,6 +91,8 @@ namespace engine {
 				}
 			}
 
+			ImGui::Checkbox("Windowed mode", &ui->run_game_windowed);
+
 			ImGui::End();
 		}
 
