@@ -100,7 +100,6 @@ namespace engine {
 	void update(State* state, const platform::Input& input, platform::PlatformAPI* platform) {
 		state->window_resolution = input.window_resolution;
 		state->editor_is_running = input.mode == platform::RunMode::Editor;
-		const bool game_just_started = input.mode.just_became(platform::RunMode::Game);
 		const bool game_is_running = input.mode == platform::RunMode::Game;
 
 		/* Quit */
