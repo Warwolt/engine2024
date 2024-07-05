@@ -132,10 +132,11 @@ namespace engine {
 		const platform::Input& input,
 		platform::PlatformAPI* platform
 	) {
-		/* Run UI */
 		const size_t current_project_hash = std::hash<ProjectState>()(*project);
 		const bool project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 		const bool is_new_file = project->path.empty();
+
+		/* Run UI */
 		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, project_has_unsaved_changes, editor->game_is_running);
 
 		/* Project keyboard shortcuts */
