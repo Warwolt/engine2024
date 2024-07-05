@@ -56,7 +56,6 @@ namespace engine {
 		EditorState* editor,
 		ProjectState* project,
 		platform::PlatformAPI* platform,
-		size_t current_project_hash,
 		std::function<void()> on_file_saved = []() {}
 	) {
 		const std::string json = ProjectState::to_json_string(*project);
@@ -64,7 +63,7 @@ namespace engine {
 		platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
 			LOG_INFO("Saved project \"%s\"", project->name.c_str());
 			project->path = path;
-			editor->ui.cached_project_hash = current_project_hash;
+			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
 			on_file_saved();
 		});
 	}
@@ -73,23 +72,22 @@ namespace engine {
 		EditorState* editor,
 		ProjectState* project,
 		platform::PlatformAPI* platform,
-		size_t current_project_hash,
 		std::function<void()> on_file_saved = []() {}
 	) {
 		const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
-		/* Save existing file */
 		if (project_file_exists) {
+			/* Save existing file */
 			const std::string json = ProjectState::to_json_string(*project);
 			const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 			platform->save_file(bytes, project->path, [=]() {
 				LOG_INFO("Saved project \"%s\"", project->name.c_str());
-				editor->ui.cached_project_hash = current_project_hash;
+				editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
 				on_file_saved();
 			});
 		}
-		/* Save new file */
 		else {
-			save_project_as(editor, project, platform, current_project_hash, on_file_saved);
+			/* Save new file */
+			save_project_as(editor, project, platform, on_file_saved);
 		}
 	}
 
@@ -97,13 +95,12 @@ namespace engine {
 		EditorState* editor,
 		ProjectState* project,
 		platform::PlatformAPI* platform,
-		size_t current_project_hash,
 		std::function<void()> on_dialog_not_cancelled = []() {}
 	) {
 		platform->show_unsaved_changes_dialog(project->name, [=](platform::UnsavedChangesDialogChoice choice) {
 			switch (choice) {
 				case platform::UnsavedChangesDialogChoice::Save:
-					save_project(editor, project, platform, current_project_hash, on_dialog_not_cancelled);
+					save_project(editor, project, platform, on_dialog_not_cancelled);
 					break;
 
 				case platform::UnsavedChangesDialogChoice::DontSave:
@@ -184,7 +181,7 @@ namespace engine {
 			switch (cmd) {
 				case EditorCommand::NewProject:
 					if (editor->project_has_unsaved_changes) {
-						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
+						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
 							new_project(editor, game, project);
 						});
 					}
@@ -195,7 +192,7 @@ namespace engine {
 
 				case EditorCommand::OpenProject:
 					if (editor->project_has_unsaved_changes) {
-						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
+						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
 							open_project(editor, game, project, platform);
 						});
 					}
@@ -206,12 +203,12 @@ namespace engine {
 
 				case EditorCommand::SaveProject:
 					if (editor->project_has_unsaved_changes || is_new_file) {
-						save_project(editor, project, platform, current_project_hash);
+						save_project(editor, project, platform);
 					}
 					break;
 
 				case EditorCommand::SaveProjectAs:
-					save_project_as(editor, project, platform, current_project_hash);
+					save_project_as(editor, project, platform);
 					break;
 
 				case EditorCommand::ResetGameState:
@@ -227,7 +224,7 @@ namespace engine {
 
 				case EditorCommand::Quit:
 					if (editor->project_has_unsaved_changes) {
-						show_unsaved_project_changes_dialog(editor, project, platform, current_project_hash, [=]() {
+						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
 							quit_editor(platform);
 						});
 					}
