@@ -459,8 +459,8 @@ int main(int argc, char** argv) {
 
 	/* Save configuration */
 	config.window.full_screen = window.is_fullscreen();
-	config.window.position = glm::ivec2 { 12, 34 };
-	config.window.size = glm::ivec2 { 56, 78 };
+	config.window.position = window.position();
+	config.window.size = window.size();
 	platform::save_configuration(config, config_path);
 
 	/* Deinitialize */

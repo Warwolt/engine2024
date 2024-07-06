@@ -19,6 +19,7 @@ namespace platform {
 		void destroy();
 
 		glm::ivec2 size() const;
+		glm::ivec2 position() const;
 		SDL_Window* sdl_window() const;
 		bool is_maximized() const;
 		bool is_fullscreen() const;
@@ -31,7 +32,7 @@ namespace platform {
 		void _set_fullscreen_mode();
 		void _set_windowed_mode();
 
-		SDL_Window* m_sdl_window;
+		mutable SDL_Window* m_sdl_window;
 		glm::ivec2 m_size;
 		glm::ivec2 m_windowed_pos;
 		glm::ivec2 m_windowed_size;

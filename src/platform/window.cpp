@@ -52,6 +52,12 @@ namespace platform {
 		return m_size;
 	}
 
+	glm::ivec2 Window::position() const {
+		glm::ivec2 position;
+		SDL_GetWindowPosition(m_sdl_window, &position.x, &position.y);
+		return position;
+	}
+
 	void Window::on_resize(int width, int height) {
 		m_is_maximized = SDL_GetWindowFlags(m_sdl_window) & SDL_WINDOW_MAXIMIZED;
 		m_size = glm::ivec2 { width, height };
