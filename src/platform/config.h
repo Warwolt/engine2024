@@ -10,6 +10,7 @@ namespace platform {
 	struct Configuration {
 		struct {
 			bool full_screen = false;
+			bool maximized = false;
 			glm::ivec2 position = { 0, 0 };
 			glm::ivec2 size = { 0, 0 };
 		} window;

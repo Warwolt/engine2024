@@ -78,9 +78,17 @@ namespace platform {
 		}
 	}
 
+	void Window::maximize() {
+		SDL_MaximizeWindow(m_sdl_window);
+	}
+
 	void Window::on_resize(int width, int height) {
 		m_is_maximized = SDL_GetWindowFlags(m_sdl_window) & SDL_WINDOW_MAXIMIZED;
 		m_size = glm::ivec2 { width, height };
+	}
+
+	void Window::on_maximized() {
+		m_is_maximized = true;
 	}
 
 	void Window::set_window_mode(WindowMode mode) {

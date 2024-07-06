@@ -35,8 +35,9 @@ namespace platform {
 	static Configuration parse_config(const mINI::INIStructure& ini) {
 		Configuration config;
 		config.window.full_screen = get_ini_value(ini, "window", "full_screen").and_then(core::parse::string_to_bool).value_or(false);
+		config.window.maximized = get_ini_value(ini, "window", "maximized").and_then(core::parse::string_to_bool).value_or(false);
 		config.window.position = get_ini_value(ini, "window", "position").and_then(string_to_ivec2).value_or(glm::ivec2 { 0, 0 });
-		config.window.size= get_ini_value(ini, "window", "size").and_then(string_to_ivec2).value_or(glm::ivec2 { 0, 0 });
+		config.window.size = get_ini_value(ini, "window", "size").and_then(string_to_ivec2).value_or(glm::ivec2 { 0, 0 });
 		return config;
 	}
 
@@ -54,6 +55,7 @@ namespace platform {
 	void save_configuration(const Configuration& config, const std::filesystem::path& path) {
 		mINI::INIStructure ini;
 		ini["window"]["full_screen"] = std::to_string(config.window.full_screen);
+		ini["window"]["maximized"] = std::to_string(config.window.maximized);
 		ini["window"]["position"] = std::string("(") + std::to_string(config.window.position.x) + "," + std::to_string(config.window.position.y) + ")";
 		ini["window"]["size"] = std::string("(") + std::to_string(config.window.size.x) + "," + std::to_string(config.window.size.y) + ")";
 

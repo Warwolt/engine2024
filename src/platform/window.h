@@ -26,9 +26,12 @@ namespace platform {
 
 		void set_size(glm::ivec2 size);
 		void set_position(glm::ivec2 position);
-		void on_resize(int width, int height);
+		void maximize();
 		void set_window_mode(WindowMode mode);
 		void toggle_fullscreen();
+
+		void on_resize(int width, int height);
+		void on_maximized();
 
 	private:
 		void _set_fullscreen_mode();

@@ -165,9 +165,14 @@ int main(int argc, char** argv) {
 		if (config.window.full_screen) {
 			window.toggle_fullscreen();
 		}
-		const int win32_menu_bar_height = 32;
-		window.set_position(config.window.position + glm::ivec2 { 0, win32_menu_bar_height });
-		window.set_size(config.window.size);
+		else if (config.window.maximized) {
+			window.maximize();
+		}
+		else {
+			const int win32_menu_bar_height = 32;
+			window.set_position(config.window.position + glm::ivec2 { 0, win32_menu_bar_height });
+			window.set_size(config.window.size);
+		}
 	}
 
 	/* Create OpenGL context */
@@ -303,6 +308,9 @@ int main(int argc, char** argv) {
 					case SDL_WINDOWEVENT:
 						if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 							window.on_resize(event.window.data1, event.window.data2);
+						}
+						if (event.window.event == SDL_WINDOWEVENT_MAXIMIZED) {
+							window.on_maximized();
 						}
 						break;
 				}
@@ -467,6 +475,7 @@ int main(int argc, char** argv) {
 
 	/* Save configuration */
 	config.window.full_screen = window.is_fullscreen();
+	config.window.maximized = window.is_maximized();
 	config.window.position = window.position();
 	config.window.size = window.size();
 	platform::save_configuration(config, config_path);
