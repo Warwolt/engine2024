@@ -148,19 +148,27 @@ int main(int argc, char** argv) {
 		ABORT("platform::initialize() failed");
 	}
 
+	/* Create window */
+	const glm::ivec2 initial_window_size = { 960, 600 };
+	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, SDL_WINDOW_RESIZABLE, "Untitled Project"), [] {
+		ABORT("platform::create_window failed");
+	});
+
 	/* Load configuration */
 	const std::filesystem::path config_path = platform::application_path().parent_path() / "config.ini";
 	platform::Configuration config;
 	if (std::optional<platform::Configuration> loaded_config = platform::load_configuration(config_path)) {
 		config = loaded_config.value();
 		LOG_INFO("Loaded configuration from \"%s\"", config_path.string().c_str());
-	}
 
-	/* Create window */
-	const glm::ivec2 initial_window_size = { 960, 600 };
-	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, SDL_WINDOW_RESIZABLE, "Untitled Project"), [] {
-		ABORT("platform::create_window failed");
-	});
+		/* Apply configuration */
+		if (config.window.full_screen) {
+			window.toggle_fullscreen();
+		}
+		const int win32_menu_bar_height = 32;
+		window.set_position(config.window.position + glm::ivec2 { 0, win32_menu_bar_height });
+		window.set_size(config.window.size);
+	}
 
 	/* Create OpenGL context */
 	SDL_GLContext gl_context = core::container::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {

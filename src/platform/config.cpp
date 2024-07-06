@@ -21,8 +21,8 @@ namespace platform {
 		if (!str.empty() && str.front() == '(' && str.back() == ')') {
 			std::vector<std::string> parts = core::string::split(str, ',');
 			if (parts.size() == 2) {
-				std::optional<int> first = core::parse::string_to_number(parts[0].substr(1));
-				std::optional<int> second = core::parse::string_to_number(parts[1].substr(0, 1));
+				std::optional<int> first = core::parse::string_to_number(parts[0].substr(1)); // skip '('
+				std::optional<int> second = core::parse::string_to_number(parts[1].substr(0, parts[1].size() - 1)); // skip ')'
 				if (first.has_value() && second.has_value()) {
 					int_pair = glm::ivec2 { first.value(), second.value() };
 				}
@@ -36,7 +36,7 @@ namespace platform {
 		Configuration config;
 		config.window.full_screen = get_ini_value(ini, "window", "full_screen").and_then(core::parse::string_to_bool).value_or(false);
 		config.window.position = get_ini_value(ini, "window", "position").and_then(string_to_ivec2).value_or(glm::ivec2 { 0, 0 });
-		config.window.size = get_ini_value(ini, "window", "size").and_then(string_to_ivec2).value_or(glm::ivec2 { 0, 0 });
+		config.window.size= get_ini_value(ini, "window", "size").and_then(string_to_ivec2).value_or(glm::ivec2 { 0, 0 });
 		return config;
 	}
 

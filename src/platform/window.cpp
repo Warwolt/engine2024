@@ -1,6 +1,7 @@
 #include <platform/window.h>
 
 #include <platform/assert.h>
+#include <platform/logging.h>
 #include <platform/renderer.h>
 
 namespace platform {
@@ -56,6 +57,25 @@ namespace platform {
 		glm::ivec2 position;
 		SDL_GetWindowPosition(m_sdl_window, &position.x, &position.y);
 		return position;
+	}
+
+	void Window::set_size(glm::ivec2 size) {
+		if (!m_is_fullscreen) {
+			SDL_SetWindowSize(m_sdl_window, size.x, size.y);
+			on_resize(size.x, size.y);
+		}
+		else {
+			LOG_WARNING("Trying to set size on a full screen window");
+		}
+	}
+
+	void Window::set_position(glm::ivec2 position) {
+		if (!m_is_fullscreen) {
+			SDL_SetWindowPosition(m_sdl_window, position.x, position.y);
+		}
+		else {
+			LOG_WARNING("Trying to set position of a full screen window");
+		}
 	}
 
 	void Window::on_resize(int width, int height) {
