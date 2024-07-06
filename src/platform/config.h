@@ -8,9 +8,11 @@
 namespace platform {
 
 	struct Configuration {
-		bool full_screen = false;
-		glm::ivec2 window_pos = { 0, 0 };
-		glm::ivec2 window_size = { 0, 0 };
+		struct {
+			bool full_screen = false;
+			glm::ivec2 position = { 0, 0 };
+			glm::ivec2 size = { 0, 0 };
+		} window;
 	};
 
 	std::optional<Configuration> load_configuration(const std::filesystem::path& path);
