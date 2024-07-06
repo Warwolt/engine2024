@@ -162,7 +162,7 @@ int main(int argc, char** argv) {
 		LOG_INFO("Loaded configuration from \"%s\"", config_path.string().c_str());
 
 		/* Apply configuration */
-		if (config.window.full_screen) {
+		if (config.window.full_screen && !cmd_args.start_game_windowed) {
 			window.toggle_fullscreen();
 		}
 		else if (config.window.maximized) {
@@ -171,7 +171,8 @@ int main(int argc, char** argv) {
 		else {
 			const int win32_menu_bar_height = 32;
 			window.set_position(config.window.position + glm::ivec2 { 0, win32_menu_bar_height });
-			window.set_size(config.window.size);
+			// FIXME: not changing size until we've moved to docker branch for editor UI
+			// window.set_size(config.window.size);
 		}
 	}
 
@@ -226,11 +227,6 @@ int main(int argc, char** argv) {
 		// Start in full screen if running game
 		if (!cmd_args.start_game_windowed) {
 			window.set_window_mode(platform::WindowMode::FullScreen);
-		}
-	}
-	if (mode == platform::RunMode::Editor) {
-		if (cmd_args.start_game_windowed) {
-			LOG_WARNING("Command line argument `--windowed` was ignored because of editor mode");
 		}
 	}
 	engine.initialize(&state);
