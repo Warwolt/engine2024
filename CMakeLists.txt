@@ -48,6 +48,7 @@ set(IMGUI_SRC
 
 set(CORE_SRC
     src/core/string.cpp
+    src/core/parse.cpp
 )
 
 set(ENGINE_SRC

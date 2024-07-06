@@ -1,12 +1,16 @@
 #pragma once
 
+#include <glm/vec2.hpp>
+
 #include <filesystem>
 #include <optional>
 
 namespace platform {
 
 	struct Configuration {
-		int counter = 0;
+		bool full_screen = false;
+		glm::ivec2 window_pos = { 0, 0 };
+		glm::ivec2 window_size = { 0, 0 };
 	};
 
 	std::optional<Configuration> load_configuration(const std::filesystem::path& path);

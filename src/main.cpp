@@ -148,6 +148,14 @@ int main(int argc, char** argv) {
 		ABORT("platform::initialize() failed");
 	}
 
+	/* Load configuration */
+	const std::filesystem::path config_path = platform::application_path().parent_path() / "config.ini";
+	platform::Configuration config;
+	if (std::optional<platform::Configuration> loaded_config = platform::load_configuration(config_path)) {
+		config = loaded_config.value();
+		LOG_INFO("Loaded configuration from \"%s\"", config_path.string().c_str());
+	}
+
 	/* Create window */
 	const glm::ivec2 initial_window_size = { 960, 600 };
 	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, SDL_WINDOW_RESIZABLE, "Untitled Project"), [] {
@@ -213,21 +221,6 @@ int main(int argc, char** argv) {
 		}
 	}
 	engine.initialize(&state);
-
-	// TEST OUT mINI
-	{
-		std::filesystem::path config_path = platform::application_path().parent_path() / "config.ini";
-		platform::Configuration config;
-		if (std::optional<platform::Configuration> loaded_config = platform::load_configuration(config_path)) {
-			config = loaded_config.value();
-			LOG_INFO("Loaded configuration from \"%s\"", config_path.string().c_str());
-		}
-
-		// update config
-		config.counter += 1;
-
-		save_configuration(config, config_path);
-	}
 
 	/* Main loop */
 	while (!quit) {
@@ -464,10 +457,18 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	/* Save configuration */
+	config.full_screen = !config.full_screen;
+	config.window_pos = glm::ivec2 { 12, 34 };
+	config.window_size = glm::ivec2 { 56, 78 };
+	platform::save_configuration(config, config_path);
+
+	/* Deinitialize */
 	deinit_imgui();
 	engine.shutdown(&state);
 	platform::free_shader_program(shader_program);
 	platform::shutdown(gl_context);
 	window.destroy();
+
 	return 0;
 }
