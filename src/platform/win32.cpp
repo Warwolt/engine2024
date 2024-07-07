@@ -44,7 +44,7 @@ namespace platform {
 	}
 
 	std::string application_name() {
-		return application_path().string();
+		return application_path().stem().string();
 	}
 
 	const std::filesystem::path& application_path() {

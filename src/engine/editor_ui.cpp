@@ -52,7 +52,7 @@ namespace engine {
 		}
 
 		/* Project Window */
-		if (ImGui::Begin("Project Window")) {
+		if (ImGui::Begin("Project Window", nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
 			const int step = 1;
 			ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
 
@@ -68,7 +68,7 @@ namespace engine {
 		}
 
 		/* Game Edit Window */
-		if (ImGui::Begin("Game Window")) {
+		if (ImGui::Begin("Game Window", nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
 			if (game_is_running) {
 				const int step = 1;
 				ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");

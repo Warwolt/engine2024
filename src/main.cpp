@@ -6,6 +6,7 @@
 #include <engine/engine_api.h>
 #include <platform/assert.h>
 #include <platform/cli.h>
+#include <platform/config.h>
 #include <platform/file.h>
 #include <platform/font.h>
 #include <platform/image.h>
@@ -132,6 +133,7 @@ int main(int argc, char** argv) {
 		printf("%s\n", platform::usage_string().c_str());
 		exit(1);
 	});
+	const bool is_editor_mode = cmd_args.start_in_editor_mode;
 
 	if (cmd_args.print_usage) {
 		printf("%s\n", platform::usage_string().c_str());
@@ -149,9 +151,34 @@ int main(int argc, char** argv) {
 
 	/* Create window */
 	const glm::ivec2 initial_window_size = { 960, 600 };
-	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, SDL_WINDOW_RESIZABLE, "Untitled Project"), [] {
+	int window_flags = 0;
+	if (is_editor_mode) {
+		window_flags |= SDL_WINDOW_RESIZABLE;
+	}
+	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, window_flags, "Untitled Project"), [] {
 		ABORT("platform::create_window failed");
 	});
+
+	/* Load configuration */
+	const std::string config_name = is_editor_mode ? "Editor.ini" : (platform::application_name() + ".ini");
+	const std::filesystem::path config_path = platform::application_path().parent_path() / config_name;
+	platform::Configuration config;
+	if (std::optional<platform::Configuration> loaded_config = platform::load_configuration(config_path)) {
+		config = loaded_config.value();
+		LOG_INFO("Loaded configuration from \"%s\"", config_path.string().c_str());
+
+		/* Apply configuration */
+		if (config.window.full_screen && !cmd_args.start_game_windowed) {
+			window.toggle_fullscreen();
+		}
+		else if (config.window.maximized) {
+			window.maximize();
+		}
+		else {
+			const int win32_menu_bar_height = 32;
+			window.set_position(config.window.position + glm::ivec2 { 0, win32_menu_bar_height });
+		}
+	}
 
 	/* Create OpenGL context */
 	SDL_GLContext gl_context = core::container::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
@@ -191,7 +218,7 @@ int main(int argc, char** argv) {
 	engine::State state;
 
 	bool quit = false;
-	platform::RunMode mode = cmd_args.start_in_editor_mode ? platform::RunMode::Editor : platform::RunMode::Game;
+	platform::RunMode mode = is_editor_mode ? platform::RunMode::Editor : platform::RunMode::Game;
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
@@ -204,11 +231,6 @@ int main(int argc, char** argv) {
 		// Start in full screen if running game
 		if (!cmd_args.start_game_windowed) {
 			window.set_window_mode(platform::WindowMode::FullScreen);
-		}
-	}
-	if (mode == platform::RunMode::Editor) {
-		if (cmd_args.start_game_windowed) {
-			LOG_WARNING("Command line argument `--windowed` was ignored because of editor mode");
 		}
 	}
 	engine.initialize(&state);
@@ -266,8 +288,8 @@ int main(int argc, char** argv) {
 							if (event.button.button - 1 < NUM_MOUSE_BUTTONS) {
 								mouse_button_events[event.button.button - 1] = ButtonEvent::Down;
 							}
-							break;
 						}
+						break;
 
 					case SDL_MOUSEBUTTONUP:
 						if (!imgui_io.WantCaptureMouse) {
@@ -287,6 +309,12 @@ int main(int argc, char** argv) {
 						if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 							window.on_resize(event.window.data1, event.window.data2);
 						}
+						if (event.window.event == SDL_WINDOWEVENT_MAXIMIZED) {
+							window.on_maximized();
+						}
+						if (event.window.event == SDL_WINDOWEVENT_MOVED) {
+							window.on_moved(event.window.data1, event.window.data2);
+						}
 						break;
 				}
 			}
@@ -305,7 +333,7 @@ int main(int argc, char** argv) {
 			input.mouse.right_button.update(mouse_button_events[SDL_BUTTON_RIGHT - 1]);
 			input.mouse.x1_button.update(mouse_button_events[SDL_BUTTON_X1 - 1]);
 			input.mouse.x2_button.update(mouse_button_events[SDL_BUTTON_X2 - 1]);
-			input.is_editor_mode = cmd_args.start_in_editor_mode;
+			input.is_editor_mode = is_editor_mode;
 		}
 
 		/* Update */
@@ -448,10 +476,19 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	/* Save configuration */
+	config.window.full_screen = window.is_fullscreen();
+	config.window.maximized = window.is_maximized();
+	config.window.position = window.last_windowed_position();
+	config.window.size = window.size();
+	platform::save_configuration(config, config_path);
+
+	/* Deinitialize */
 	deinit_imgui();
 	engine.shutdown(&state);
 	platform::free_shader_program(shader_program);
 	platform::shutdown(gl_context);
 	window.destroy();
+
 	return 0;
 }

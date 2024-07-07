@@ -28,6 +28,7 @@ set(INC
     libs/plog/include
     libs/magic_enum/include
     libs/json/include
+    libs/mini
     ${GLEW_DIR}/include
     ${SDL_DIR}/include
     ${IMGUI_DIR}
@@ -47,6 +48,7 @@ set(IMGUI_SRC
 
 set(CORE_SRC
     src/core/string.cpp
+    src/core/parse.cpp
 )
 
 set(ENGINE_SRC
@@ -61,6 +63,7 @@ set(ENGINE_SRC
 
 set(PLATFORM_SRC
     src/platform/cli.cpp
+    src/platform/config.cpp
     src/platform/file.cpp
     src/platform/font.cpp
     src/platform/image.cpp

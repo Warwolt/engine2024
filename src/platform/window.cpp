@@ -1,6 +1,7 @@
 #include <platform/window.h>
 
 #include <platform/assert.h>
+#include <platform/logging.h>
 #include <platform/renderer.h>
 
 namespace platform {
@@ -52,9 +53,53 @@ namespace platform {
 		return m_size;
 	}
 
+	glm::ivec2 Window::position() const {
+		glm::ivec2 position;
+		SDL_GetWindowPosition(m_sdl_window, &position.x, &position.y);
+		return position;
+	}
+
+	glm::ivec2 Window::last_windowed_position() const {
+		return m_windowed_pos;
+	}
+
+	void Window::set_size(glm::ivec2 size) {
+		if (!m_is_fullscreen) {
+			SDL_SetWindowSize(m_sdl_window, size.x, size.y);
+			on_resize(size.x, size.y);
+		}
+		else {
+			LOG_WARNING("Trying to set size on a full screen window");
+		}
+	}
+
+	void Window::set_position(glm::ivec2 position) {
+		if (!m_is_fullscreen) {
+			SDL_SetWindowPosition(m_sdl_window, position.x, position.y);
+			m_windowed_pos = position;
+		}
+		else {
+			LOG_WARNING("Trying to set position of a full screen window");
+		}
+	}
+
+	void Window::maximize() {
+		SDL_MaximizeWindow(m_sdl_window);
+	}
+
 	void Window::on_resize(int width, int height) {
 		m_is_maximized = SDL_GetWindowFlags(m_sdl_window) & SDL_WINDOW_MAXIMIZED;
 		m_size = glm::ivec2 { width, height };
+	}
+
+	void Window::on_moved(int x, int y) {
+		if (!m_is_fullscreen) {
+			m_windowed_pos = glm::ivec2 { x, y };
+		}
+	}
+
+	void Window::on_maximized() {
+		m_is_maximized = true;
 	}
 
 	void Window::set_window_mode(WindowMode mode) {
