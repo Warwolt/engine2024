@@ -240,37 +240,33 @@ int main(int argc, char** argv) {
 	engine.initialize(&state);
 
 	// SHOW A WIN32 MENU BAR
+	constexpr UINT_PTR IDM_FILE_NEW = 1;
+	constexpr UINT_PTR IDM_FILE_OPEN = 2;
+	constexpr UINT_PTR IDM_FILE_SAVE = 3;
+	constexpr UINT_PTR IDM_FILE_SAVE_AS = 4;
+	constexpr UINT_PTR IDM_FILE_QUIT = 5;
+	std::vector<UINT_PTR> wm_commands;
 	{
-		constexpr UINT_PTR IDM_FILE_NEW = 1;
-		constexpr UINT_PTR IDM_FILE_OPEN = 2;
-		constexpr UINT_PTR IDM_FILE_QUIT = 3;
-
 		// Setup callback
-		auto on_windows_message = [](void* userdata, void* vptr_hwnd, unsigned int message, Uint64 wParam, Sint64 /*lParam*/) {
-			HWND hwnd = (HWND)vptr_hwnd;
+		auto on_windows_message = [](void* userdata, void* /*hwnd*/, unsigned int message, Uint64 w_param, Sint64 /*l_param*/) {
+			std::vector<UINT_PTR>* wm_commands = (std::vector<UINT_PTR>*)userdata;
 			switch (message) {
 				case WM_COMMAND:
-					switch (LOWORD(wParam)) {
-						case IDM_FILE_NEW:
-							MessageBox(hwnd, "New File selected", "Menu", MB_OK);
-							break;
-						case IDM_FILE_OPEN:
-							MessageBox(hwnd, "Open File selected", "Menu", MB_OK);
-							break;
-						case IDM_FILE_QUIT:
-							PostMessage(hwnd, WM_CLOSE, 0, 0);
-							break;
-					}
+					wm_commands->push_back(w_param);
 					break;
 			}
 		};
-		SDL_SetWindowsMessageHook(on_windows_message, nullptr);
+		SDL_SetWindowsMessageHook(on_windows_message, &wm_commands);
 
 		// Create menu bar
 		HMENU file_menu = CreateMenu();
 		HMENU main_menu_bar = CreateMenu();
-		AppendMenuW(file_menu, MF_STRING, IDM_FILE_NEW, L"&New\tCtrl+N");
-		AppendMenuW(file_menu, MF_STRING, IDM_FILE_OPEN, L"&Open");
+		AppendMenuW(file_menu, MF_STRING, IDM_FILE_NEW, L"&New Project\tCtrl+N");
+		AppendMenuW(file_menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(file_menu, MF_STRING, IDM_FILE_OPEN, L"&Open Project\tCtrl+O");
+		AppendMenuW(file_menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(file_menu, MF_STRING, IDM_FILE_SAVE, L"&Save Project\tCtrl+S");
+		AppendMenuW(file_menu, MF_STRING, IDM_FILE_SAVE_AS, L"&Save Project As\tCtrl+Shift+S");
 		AppendMenuW(file_menu, MF_SEPARATOR, 0, NULL);
 		AppendMenuW(file_menu, MF_STRING, IDM_FILE_QUIT, L"&Quit");
 		AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)file_menu, L"&File");
@@ -281,6 +277,30 @@ int main(int argc, char** argv) {
 
 	/* Main loop */
 	while (!quit) {
+		// REACT TO WIN32 MENU BAR
+		{
+			std::vector<UINT_PTR> cmds = std::move(wm_commands);
+			for (UINT_PTR cmd : cmds) {
+				switch (cmd) {
+					case IDM_FILE_NEW:
+						LOG_DEBUG("New Project selected");
+						break;
+					case IDM_FILE_OPEN:
+						LOG_DEBUG("Open Project selected");
+						break;
+					case IDM_FILE_SAVE:
+						LOG_DEBUG("Save Project selected");
+						break;
+					case IDM_FILE_SAVE_AS:
+						LOG_DEBUG("Save Project As selected");
+						break;
+					case IDM_FILE_QUIT:
+						quit = true;
+						break;
+				}
+			}
+		}
+
 		/* Input */
 		{
 			/* Reset input states */
