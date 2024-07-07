@@ -151,7 +151,11 @@ int main(int argc, char** argv) {
 
 	/* Create window */
 	const glm::ivec2 initial_window_size = { 960, 600 };
-	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, SDL_WINDOW_RESIZABLE, "Untitled Project"), [] {
+	int window_flags = 0;
+	if (is_editor_mode) {
+		window_flags |= SDL_WINDOW_RESIZABLE;
+	}
+	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, window_flags, "Untitled Project"), [] {
 		ABORT("platform::create_window failed");
 	});
 
@@ -307,6 +311,9 @@ int main(int argc, char** argv) {
 						}
 						if (event.window.event == SDL_WINDOWEVENT_MAXIMIZED) {
 							window.on_maximized();
+						}
+						if (event.window.event == SDL_WINDOWEVENT_MOVED) {
+							window.on_moved(event.window.data1, event.window.data2);
 						}
 						break;
 				}
@@ -472,7 +479,7 @@ int main(int argc, char** argv) {
 	/* Save configuration */
 	config.window.full_screen = window.is_fullscreen();
 	config.window.maximized = window.is_maximized();
-	config.window.position = window.position();
+	config.window.position = window.last_windowed_position();
 	config.window.size = window.size();
 	platform::save_configuration(config, config_path);
 

@@ -59,6 +59,10 @@ namespace platform {
 		return position;
 	}
 
+	glm::ivec2 Window::last_windowed_position() const {
+		return m_windowed_pos;
+	}
+
 	void Window::set_size(glm::ivec2 size) {
 		if (!m_is_fullscreen) {
 			SDL_SetWindowSize(m_sdl_window, size.x, size.y);
@@ -86,6 +90,12 @@ namespace platform {
 	void Window::on_resize(int width, int height) {
 		m_is_maximized = SDL_GetWindowFlags(m_sdl_window) & SDL_WINDOW_MAXIMIZED;
 		m_size = glm::ivec2 { width, height };
+	}
+
+	void Window::on_moved(int x, int y) {
+		if (!m_is_fullscreen) {
+			m_windowed_pos = glm::ivec2 { x, y };
+		}
 	}
 
 	void Window::on_maximized() {

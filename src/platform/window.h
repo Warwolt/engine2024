@@ -20,6 +20,7 @@ namespace platform {
 
 		glm::ivec2 size() const;
 		glm::ivec2 position() const;
+		glm::ivec2 last_windowed_position() const;
 		SDL_Window* sdl_window() const;
 		bool is_maximized() const;
 		bool is_fullscreen() const;
@@ -31,6 +32,7 @@ namespace platform {
 		void toggle_fullscreen();
 
 		void on_resize(int width, int height);
+		void on_moved(int x, int y);
 		void on_maximized();
 
 	private:
