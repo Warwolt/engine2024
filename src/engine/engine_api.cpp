@@ -155,7 +155,8 @@ namespace engine {
 			if (input.is_editor_mode) {
 				window_title += std::string(state->editor.project_has_unsaved_changes ? "*" : "") + " - Engine2024";
 			}
-			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, window_title);
+			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, &window_title);
+			platform->set_window_title(window_title.c_str());
 			if (input.mode == platform::RunMode::Editor) {
 				update_editor(&state->editor, &state->game, &state->project, input, platform);
 			}

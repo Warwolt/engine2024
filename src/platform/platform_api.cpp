@@ -70,7 +70,7 @@ namespace platform {
 		m_commands.push_back(cmd::window::ToggleFullscreen {});
 	}
 
-	void PlatformAPI::set_window_title(const char* title) {
+	void PlatformAPI::set_window_title(const std::string& title) {
 		m_commands.push_back(cmd::window::SetWindowTitle { title });
 	}
 

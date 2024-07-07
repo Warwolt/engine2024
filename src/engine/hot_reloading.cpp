@@ -6,15 +6,15 @@
 
 namespace engine {
 
-	static std::string loading_window_title_animation(float t, const std::string& window_title) {
+	static void loading_window_title_animation(float t, std::string* window_title) {
 		if (t < 1.0 / 3.0) {
-			return window_title + " (rebuilding)";
+			*window_title += " (rebuilding)";
 		}
 		if (t < 2.0 / 3.0) {
-			return window_title + " (rebuilding.)";
+			*window_title += " (rebuilding.)";
 		}
 		else /* t < 3.0 / 3.0 */ {
-			return window_title + " (rebuilding..)";
+			*window_title += " (rebuilding..)";
 		}
 	}
 
@@ -23,7 +23,7 @@ namespace engine {
 		AnimationSystem* animation_system,
 		const platform::Input& input,
 		platform::PlatformAPI* platform,
-		const std::string& window_title
+		std::string* window_title
 	) {
 		/* Input */
 		const bool hot_reload_key_pressed = input.keyboard.key_pressed_now_with_modifier(SDLK_F10, platform::KEY_MOD_ALT);
@@ -46,20 +46,16 @@ namespace engine {
 		}
 
 		/* Animate title while loading */
-		std::string new_window_title = window_title;
 		if (std::optional<Animation> animation = animation_system->most_recent_animation("loading_window_title")) {
 			if (animation->is_playing(global_time_ms)) {
-				new_window_title = loading_window_title_animation(animation->local_time(global_time_ms), window_title);
+				loading_window_title_animation(animation->local_time(global_time_ms), window_title);
 			}
 		}
 
 		/* Display error message if rebuild failed */
 		if (!input.engine_is_rebuilding && input.engine_rebuild_exit_code != 0) {
-			new_window_title += " (Hot reloading failed!)";
+			*window_title += " (Hot reloading failed!)";
 		}
-
-		/* Render */
-		platform->set_window_title(new_window_title.c_str());
 	}
 
 } // namespace engine

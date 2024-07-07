@@ -23,7 +23,7 @@ namespace engine {
 		AnimationSystem* animation_system,
 		const platform::Input& input,
 		platform::PlatformAPI* platform,
-		const std::string& window_title
+		std::string* window_title
 	);
 
 } // namespace engine

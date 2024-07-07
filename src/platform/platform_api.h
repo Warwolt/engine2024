@@ -159,7 +159,7 @@ namespace platform {
 		// window
 		void change_resolution(int width, int height);
 		void set_window_mode(WindowMode mode);
-		void set_window_title(const char* title);
+		void set_window_title(const std::string& title);
 		void toggle_fullscreen();
 
 	private:
