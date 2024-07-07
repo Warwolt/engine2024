@@ -1,10 +1,10 @@
 #include <engine/engine_api.h>
 
 #include <core/container.h>
-#include <engine/hot_reloading.h>
-#include <platform/assert.h>
-#include <platform/file.h>
-#include <platform/logging.h>
+#include <engine/system/hot_reloading.h>
+#include <platform/debug/assert.h>
+#include <platform/debug/logging.h>
+#include <platform/file/file.h>
 
 #include <imgui/imgui.h>
 #include <plog/Init.h>

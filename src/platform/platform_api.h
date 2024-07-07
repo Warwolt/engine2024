@@ -1,15 +1,25 @@
 #pragma once
 
 #include <core/tagged_variant.h>
-#include <platform/win32.h>
-#include <platform/window.h>
+#include <platform/graphics/window.h>
+#include <platform/os/win32.h>
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
+
+#include <expected>
 #include <filesystem>
 #include <functional>
 #include <string>
 #include <vector>
 
 namespace platform {
+
+	enum class CreateGLContextError {
+		FailedToCreateContext,
+		FailedToInitializeGlew,
+		FailedToSetVSync,
+	};
 
 	enum class PlatformCommandType {
 		// app
@@ -165,5 +175,9 @@ namespace platform {
 	private:
 		std::vector<PlatformCommand> m_commands;
 	};
+
+	bool initialize();
+	void shutdown(SDL_GLContext gl_context);
+	std::expected<SDL_GLContext, CreateGLContextError> create_gl_context(SDL_Window* window);
 
 } // namespace platform

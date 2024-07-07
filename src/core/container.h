@@ -1,6 +1,6 @@
 #pragma once
 
-#include <platform/assert.h>
+#include <platform/debug/assert.h>
 
 #include <algorithm>
 #include <expected>

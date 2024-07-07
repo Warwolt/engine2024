@@ -52,42 +52,41 @@ set(CORE_SRC
 )
 
 set(ENGINE_SRC
-    src/engine/animation.cpp
-    src/engine/editor_ui.cpp
-    src/engine/editor.cpp
+    src/engine/editor/editor_ui.cpp
+    src/engine/editor/editor.cpp
     src/engine/engine_api.cpp
-    src/engine/hot_reloading.cpp
     src/engine/state/game_state.cpp
     src/engine/state/project_state.cpp
+    src/engine/system/animation.cpp
+    src/engine/system/hot_reloading.cpp
 )
 
 set(PLATFORM_SRC
-    src/platform/cli.cpp
-    src/platform/config.cpp
-    src/platform/file.cpp
-    src/platform/font.cpp
-    src/platform/image.cpp
+    src/platform/debug/library_loader.cpp
+    src/platform/debug/logging.cpp
+    src/platform/file/config.cpp
+    src/platform/file/file.cpp
+    src/platform/file/zip.cpp
+    src/platform/graphics/font.cpp
+    src/platform/graphics/image.cpp
+    src/platform/graphics/rect.cpp
+    src/platform/graphics/renderer.cpp
+    src/platform/graphics/texture.cpp
+    src/platform/graphics/window.cpp
+    src/platform/input/cli.cpp
     src/platform/input/keyboard.cpp
     src/platform/input/timing.cpp
-    src/platform/library_loader.cpp
-    src/platform/logging.cpp
+    src/platform/os/win32.cpp
     src/platform/platform_api.cpp
-    src/platform/platform.cpp
-    src/platform/rect.cpp
-    src/platform/renderer.cpp
-    src/platform/texture.cpp
-    src/platform/win32.cpp
-    src/platform/window.cpp
-    src/platform/zip.cpp
 )
 
 set(TEST_SRC
+    test/core/resource_handler_tests.cpp
     test/core/signal_tests.cpp
     test/core/tagged_variant_tests.cpp
     test/engine/animation_tests.cpp
-    test/keyboard_tests.cpp
+    test/platform/keyboard_tests.cpp
     test/platform/zip_tests.cpp
-    test/resource_handler_tests.cpp
 )
 
 set(EXTERNAL_LIBS

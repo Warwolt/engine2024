@@ -3,8 +3,8 @@
 #include <core/signal.h>
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
+#include <platform/os/win32.h>
 #include <platform/platform_api.h>
-#include <platform/win32.h>
 
 #include <SDL2/SDL_events.h>
 #include <glm/glm.hpp>
