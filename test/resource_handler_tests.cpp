@@ -1,13 +1,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <platform/resource_handle.h>
+#include <core/resource_handle.h>
 
 #include <functional>
 #include <type_traits>
 #include <utility>
 
-using namespace platform;
+using namespace core;
 
 static bool g_was_called;
 

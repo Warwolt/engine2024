@@ -1,6 +1,6 @@
-#include <platform/logging.h>
+#include <platform/debug/logging.h>
 
-#include <lean_mean_windows.h>
+#include <platform/os/lean_mean_windows.h>
 
 #include <algorithm>
 #include <cstring>

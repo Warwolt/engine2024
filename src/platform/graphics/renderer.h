@@ -1,9 +1,9 @@
 #pragma once
 
-#include <platform/font.h>
-#include <platform/image.h>
-#include <platform/rect.h>
-#include <platform/texture.h>
+#include <platform/graphics/font.h>
+#include <platform/graphics/image.h>
+#include <platform/graphics/rect.h>
+#include <platform/graphics/texture.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>

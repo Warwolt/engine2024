@@ -6,20 +6,20 @@
 #include <engine/engine_api.h>
 #include <platform/debug/assert.h>
 #include <platform/debug/library_loader.h>
+#include <platform/debug/logging.h>
 #include <platform/file/config.h>
 #include <platform/file/file.h>
-#include <platform/font.h>
-#include <platform/image.h>
+#include <platform/file/zip.h>
+#include <platform/graphics/font.h>
+#include <platform/graphics/image.h>
+#include <platform/graphics/renderer.h>
+#include <platform/graphics/window.h>
 #include <platform/input/cli.h>
 #include <platform/input/input.h>
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
-#include <platform/logging.h>
+#include <platform/os/win32.h>
 #include <platform/platform_api.h>
-#include <platform/renderer.h>
-#include <platform/win32.h>
-#include <platform/window.h>
-#include <platform/zip.h>
 
 #include <GL/glu.h>
 #include <SDL2/SDL.h>

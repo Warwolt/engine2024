@@ -4,7 +4,7 @@
 
 #include <freetype/freetype.h>
 #include <glm/glm.hpp>
-#include <platform/texture.h>
+#include <platform/graphics/texture.h>
 
 #include <optional>
 #include <stddef.h>

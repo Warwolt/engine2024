@@ -1,8 +1,8 @@
-#include <platform/window.h>
+#include <platform/graphics/window.h>
 
 #include <platform/debug/assert.h>
-#include <platform/logging.h>
-#include <platform/renderer.h>
+#include <platform/debug/logging.h>
+#include <platform/graphics/renderer.h>
 
 namespace platform {
 

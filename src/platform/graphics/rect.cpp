@@ -1,4 +1,4 @@
-#include <platform/rect.h>
+#include <platform/graphics/rect.h>
 
 namespace platform {
 

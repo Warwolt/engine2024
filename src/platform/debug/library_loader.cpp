@@ -4,8 +4,8 @@
 #include <core/future.h>
 #include <core/util.h>
 #include <platform/debug/assert.h>
-#include <platform/logging.h>
-#include <platform/win32.h>
+#include <platform/debug/logging.h>
+#include <platform/os/win32.h>
 
 #include <imgui/imgui.h>
 

@@ -1,4 +1,4 @@
-#include <platform/image.h>
+#include <platform/graphics/image.h>
 
 #include <platform/debug/assert.h>
 

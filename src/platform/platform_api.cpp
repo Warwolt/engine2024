@@ -2,8 +2,8 @@
 
 #include <platform/platform_api.h>
 
-#include <platform/font.h>
-#include <platform/logging.h>
+#include <platform/debug/logging.h>
+#include <platform/graphics/font.h>
 
 #include <memory.h>
 #include <string.h>

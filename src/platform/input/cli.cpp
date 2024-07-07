@@ -1,7 +1,7 @@
 #include <platform/input/cli.h>
 
 #include <core/string.h>
-#include <platform/win32.h>
+#include <platform/os/win32.h>
 
 #include <string.h>
 

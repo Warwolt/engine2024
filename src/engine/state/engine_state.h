@@ -5,10 +5,10 @@
 #include <engine/hot_reloading.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
-#include <platform/font.h>
+#include <platform/graphics/font.h>
+#include <platform/graphics/renderer.h>
 #include <platform/input/input.h>
 #include <platform/platform_api.h>
-#include <platform/renderer.h>
 
 #include <stdint.h>
 #include <string>

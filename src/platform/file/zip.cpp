@@ -1,7 +1,7 @@
-#include <platform/zip.h>
+#include <platform/file/zip.h>
 
 #include <core/container.h>
-#include <platform/logging.h>
+#include <platform/debug/logging.h>
 
 #include <algorithm>
 #include <cstring>

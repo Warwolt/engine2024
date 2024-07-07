@@ -1,9 +1,9 @@
 #include <GL/glew.h> // must be included before <SDL2/SDL_opengl.h>
 
-#include <platform/renderer.h>
+#include <platform/graphics/renderer.h>
 
 #include <imgui/backends/imgui_impl_opengl3.h>
-#include <platform/logging.h>
+#include <platform/debug/logging.h>
 #include <stb_image/stb_image.h>
 
 #include <algorithm>

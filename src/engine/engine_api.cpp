@@ -3,8 +3,8 @@
 #include <core/container.h>
 #include <engine/hot_reloading.h>
 #include <platform/debug/assert.h>
+#include <platform/debug/logging.h>
 #include <platform/file/file.h>
-#include <platform/logging.h>
 
 #include <imgui/imgui.h>
 #include <plog/Init.h>

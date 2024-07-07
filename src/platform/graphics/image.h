@@ -1,6 +1,6 @@
 #pragma once
 
-#include <platform/resource_handle.h>
+#include <core/resource_handle.h>
 
 #include <stb_image/stb_image.h>
 
@@ -8,7 +8,7 @@
 
 namespace platform {
 
-	class ImageData : public platform::ResourceHandle<unsigned char*, void(unsigned char*)> {
+	class ImageData : public core::ResourceHandle<unsigned char*, void(unsigned char*)> {
 	public:
 		ImageData() = default;
 		explicit ImageData(unsigned char* texture)

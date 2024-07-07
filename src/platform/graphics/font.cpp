@@ -1,7 +1,7 @@
-#include <platform/font.h>
+#include <platform/graphics/font.h>
 
 #include <platform/debug/assert.h>
-#include <platform/logging.h>
+#include <platform/debug/logging.h>
 
 namespace platform {
 

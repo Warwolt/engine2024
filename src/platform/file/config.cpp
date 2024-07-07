@@ -4,7 +4,7 @@
 #include <core/string.h>
 #include <mini/ini.h>
 
-#include <platform/logging.h>
+#include <platform/debug/logging.h>
 
 namespace platform {
 

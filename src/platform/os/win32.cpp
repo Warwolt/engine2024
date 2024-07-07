@@ -1,6 +1,6 @@
-#include <platform/win32.h>
+#include <platform/os/win32.h>
 
-#include <platform/logging.h>
+#include <platform/debug/logging.h>
 
 #include <commctrl.h>
 #include <commdlg.h>

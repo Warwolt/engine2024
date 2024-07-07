@@ -1,8 +1,8 @@
 #pragma once
 
 #include <core/tagged_variant.h>
-#include <platform/win32.h>
-#include <platform/window.h>
+#include <platform/graphics/window.h>
+#include <platform/os/win32.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>

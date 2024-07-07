@@ -1,4 +1,4 @@
-#include <platform/texture.h>
+#include <platform/graphics/texture.h>
 
 namespace platform {
 

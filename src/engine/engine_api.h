@@ -1,9 +1,9 @@
 #pragma once
 
 #include <engine/state/engine_state.h>
-#include <platform/logging.h>
+#include <platform/debug/logging.h>
+#include <platform/graphics/renderer.h>
 #include <platform/platform_api.h>
-#include <platform/renderer.h>
 
 struct ImGuiContext;
 typedef struct FT_LibraryRec_* FT_Library;

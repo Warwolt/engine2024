@@ -63,21 +63,21 @@ set(ENGINE_SRC
 
 set(PLATFORM_SRC
     src/platform/debug/library_loader.cpp
+    src/platform/debug/logging.cpp
     src/platform/file/config.cpp
     src/platform/file/file.cpp
-    src/platform/font.cpp
-    src/platform/image.cpp
+    src/platform/file/zip.cpp
+    src/platform/graphics/font.cpp
+    src/platform/graphics/image.cpp
+    src/platform/graphics/rect.cpp
+    src/platform/graphics/renderer.cpp
+    src/platform/graphics/texture.cpp
+    src/platform/graphics/window.cpp
     src/platform/input/cli.cpp
     src/platform/input/keyboard.cpp
     src/platform/input/timing.cpp
-    src/platform/logging.cpp
+    src/platform/os/win32.cpp
     src/platform/platform_api.cpp
-    src/platform/rect.cpp
-    src/platform/renderer.cpp
-    src/platform/texture.cpp
-    src/platform/win32.cpp
-    src/platform/window.cpp
-    src/platform/zip.cpp
 )
 
 set(TEST_SRC

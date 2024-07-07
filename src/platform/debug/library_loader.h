@@ -2,9 +2,9 @@
 
 #include <engine/engine_api.h>
 #include <platform/input/timing.h>
-#include <platform/win32.h>
+#include <platform/os/win32.h>
 
-#include <lean_mean_windows.h>
+#include <platform/os/lean_mean_windows.h>
 
 #include <expected>
 #include <functional>

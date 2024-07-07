@@ -4,7 +4,7 @@
 #include <optional>
 #include <utility>
 
-namespace platform {
+namespace core {
 
 	template <typename Resource, typename Deleter>
 	class ResourceHandle;
@@ -34,6 +34,7 @@ namespace platform {
 			: m_resource(std::exchange(other.m_resource, std::nullopt))
 			, m_deleter(std::exchange(other.m_deleter, nullptr)) {
 		}
+
 		ResourceHandle& operator=(ResourceHandle&& other) noexcept {
 			std::swap(m_resource, other.m_resource);
 			std::swap(m_deleter, other.m_deleter);
@@ -73,4 +74,4 @@ namespace platform {
 		std::function<Result(Args...)> m_deleter;
 	};
 
-} // namespace platform
+} // namespace core

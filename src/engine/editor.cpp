@@ -5,8 +5,8 @@
 #include <engine/editor_command.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
+#include <platform/debug/logging.h>
 #include <platform/input/input.h>
-#include <platform/logging.h>
 #include <platform/platform_api.h>
 
 namespace engine {
