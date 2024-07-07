@@ -179,6 +179,12 @@ int main(int argc, char** argv) {
 			window.set_position(config.window.position + glm::ivec2 { 0, win32_menu_bar_height });
 		}
 	}
+	else {
+		// Start in full screen if running game
+		if (!cmd_args.start_game_windowed) {
+			window.set_window_mode(platform::WindowMode::FullScreen);
+		}
+	}
 
 	/* Create OpenGL context */
 	SDL_GLContext gl_context = core::container::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
@@ -227,11 +233,6 @@ int main(int argc, char** argv) {
 		// load game pak
 		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
 		engine.load_project(&state, path.string().c_str());
-
-		// Start in full screen if running game
-		if (!cmd_args.start_game_windowed) {
-			window.set_window_mode(platform::WindowMode::FullScreen);
-		}
 	}
 	engine.initialize(&state);
 
