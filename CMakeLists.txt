@@ -72,7 +72,6 @@ set(PLATFORM_SRC
     src/platform/library_loader.cpp
     src/platform/logging.cpp
     src/platform/platform_api.cpp
-    src/platform/platform.cpp
     src/platform/rect.cpp
     src/platform/renderer.cpp
     src/platform/texture.cpp

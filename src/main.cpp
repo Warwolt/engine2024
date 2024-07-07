@@ -15,7 +15,6 @@
 #include <platform/input/timing.h>
 #include <platform/library_loader.h>
 #include <platform/logging.h>
-#include <platform/platform.h>
 #include <platform/platform_api.h>
 #include <platform/renderer.h>
 #include <platform/win32.h>
