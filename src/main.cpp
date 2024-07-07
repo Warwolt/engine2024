@@ -133,6 +133,7 @@ int main(int argc, char** argv) {
 		printf("%s\n", platform::usage_string().c_str());
 		exit(1);
 	});
+	const bool is_editor_mode = cmd_args.start_in_editor_mode;
 
 	if (cmd_args.print_usage) {
 		printf("%s\n", platform::usage_string().c_str());
@@ -155,7 +156,8 @@ int main(int argc, char** argv) {
 	});
 
 	/* Load configuration */
-	const std::filesystem::path config_path = platform::application_path().parent_path() / "config.ini";
+	const std::string config_name = is_editor_mode ? "Editor.ini" : (platform::application_name() + ".ini");
+	const std::filesystem::path config_path = platform::application_path().parent_path() / config_name;
 	platform::Configuration config;
 	if (std::optional<platform::Configuration> loaded_config = platform::load_configuration(config_path)) {
 		config = loaded_config.value();
@@ -171,8 +173,6 @@ int main(int argc, char** argv) {
 		else {
 			const int win32_menu_bar_height = 32;
 			window.set_position(config.window.position + glm::ivec2 { 0, win32_menu_bar_height });
-			// FIXME: not changing size until we've moved to docker branch for editor UI
-			// window.set_size(config.window.size);
 		}
 	}
 
@@ -214,7 +214,7 @@ int main(int argc, char** argv) {
 	engine::State state;
 
 	bool quit = false;
-	platform::RunMode mode = cmd_args.start_in_editor_mode ? platform::RunMode::Editor : platform::RunMode::Game;
+	platform::RunMode mode = is_editor_mode ? platform::RunMode::Editor : platform::RunMode::Game;
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
@@ -326,7 +326,7 @@ int main(int argc, char** argv) {
 			input.mouse.right_button.update(mouse_button_events[SDL_BUTTON_RIGHT - 1]);
 			input.mouse.x1_button.update(mouse_button_events[SDL_BUTTON_X1 - 1]);
 			input.mouse.x2_button.update(mouse_button_events[SDL_BUTTON_X2 - 1]);
-			input.is_editor_mode = cmd_args.start_in_editor_mode;
+			input.is_editor_mode = is_editor_mode;
 		}
 
 		/* Update */

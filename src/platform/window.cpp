@@ -72,6 +72,7 @@ namespace platform {
 	void Window::set_position(glm::ivec2 position) {
 		if (!m_is_fullscreen) {
 			SDL_SetWindowPosition(m_sdl_window, position.x, position.y);
+			m_windowed_pos = position;
 		}
 		else {
 			LOG_WARNING("Trying to set position of a full screen window");
