@@ -81,12 +81,12 @@ set(PLATFORM_SRC
 )
 
 set(TEST_SRC
+    test/core/resource_handler_tests.cpp
     test/core/signal_tests.cpp
     test/core/tagged_variant_tests.cpp
     test/engine/animation_tests.cpp
-    test/keyboard_tests.cpp
+    test/platform/keyboard_tests.cpp
     test/platform/zip_tests.cpp
-    test/resource_handler_tests.cpp
 )
 
 set(EXTERNAL_LIBS
