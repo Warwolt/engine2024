@@ -240,6 +240,47 @@ int main(int argc, char** argv) {
 	engine.initialize(&state);
 
 	// SHOW A WIN32 MENU BAR
+	//
+	// TODO: Create a nice immedaite mode API for this; "ImWin32"
+	//
+	// The plan here is to wrap up these Win32 calls into an api that has the
+	// same look and feel as ImGui, which means we'll have to do some diffing
+	// between the immediate mode calls that specify the menu, and the
+	// underlying persistent Win32 state (React style "shadow dom").
+	//
+	// We also need to pipe the WM_COMMAND:s we receive into the ImWin32
+	// context, so that we can return true from ImWin32::MenuItem when that item
+	// has been pressed.
+	//
+	// The goal would be that have the following inside `editor_ui.cpp`:
+	//
+	//    if (ImWin32::BeginMainMenuBar()) {
+	//        if (ImWin32::BeginMenu("File")) {
+	//            if (ImWin32::MenuItem("New Project")) {
+	//                commands.push_back(EditorCommand::NewProject);
+	//            }
+	//
+	//            ImWin32::Separator();
+	//
+	//            if (ImWin32::MenuItem("Open Project")) {
+	//                commands.push_back(EditorCommand::OpenProject);
+	//            }
+	//
+	//            ImWin32::Separator();
+	//
+	//            if (ImWin32::MenuItem("Save Project", NULL, false, unsaved_changes)) {
+	//                commands.push_back(EditorCommand::SaveProject);
+	//            }
+	//
+	//            if (ImWin32::MenuItem("Save Project As")) {
+	//                commands.push_back(EditorCommand::SaveProjectAs);
+	//            }
+	//
+	//            ImWin32::EndMenu();
+	//        }
+	//        ImWin32::EndMainMenuBar();
+	//    }
+	//
 	constexpr UINT_PTR IDM_FILE_NEW = 1;
 	constexpr UINT_PTR IDM_FILE_OPEN = 2;
 	constexpr UINT_PTR IDM_FILE_SAVE = 3;
@@ -250,10 +291,8 @@ int main(int argc, char** argv) {
 		// Setup callback
 		auto on_windows_message = [](void* userdata, void* /*hwnd*/, unsigned int message, Uint64 w_param, Sint64 /*l_param*/) {
 			std::vector<UINT_PTR>* wm_commands = (std::vector<UINT_PTR>*)userdata;
-			switch (message) {
-				case WM_COMMAND:
-					wm_commands->push_back(w_param);
-					break;
+			if (message == WM_COMMAND) {
+				wm_commands->push_back(w_param);
 			}
 		};
 		SDL_SetWindowsMessageHook(on_windows_message, &wm_commands);
