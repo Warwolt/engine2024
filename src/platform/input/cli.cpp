@@ -1,4 +1,4 @@
-#include <platform/cli.h>
+#include <platform/input/cli.h>
 
 #include <core/string.h>
 #include <platform/win32.h>

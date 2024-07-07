@@ -62,14 +62,14 @@ set(ENGINE_SRC
 )
 
 set(PLATFORM_SRC
-    src/platform/cli.cpp
+    src/platform/input/cli.cpp
     src/platform/config.cpp
     src/platform/file.cpp
     src/platform/font.cpp
     src/platform/image.cpp
     src/platform/input/keyboard.cpp
     src/platform/input/timing.cpp
-    src/platform/library_loader.cpp
+    src/platform/debug/library_loader.cpp
     src/platform/logging.cpp
     src/platform/platform_api.cpp
     src/platform/rect.cpp

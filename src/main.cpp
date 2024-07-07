@@ -5,15 +5,15 @@
 #include <core/util.h>
 #include <engine/engine_api.h>
 #include <platform/assert.h>
-#include <platform/cli.h>
 #include <platform/config.h>
+#include <platform/debug/library_loader.h>
 #include <platform/file.h>
 #include <platform/font.h>
 #include <platform/image.h>
+#include <platform/input/cli.h>
 #include <platform/input/input.h>
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
-#include <platform/library_loader.h>
 #include <platform/logging.h>
 #include <platform/platform_api.h>
 #include <platform/renderer.h>

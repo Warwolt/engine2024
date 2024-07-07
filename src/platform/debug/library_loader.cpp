@@ -1,4 +1,4 @@
-#include <platform/library_loader.h>
+#include <platform/debug/library_loader.h>
 
 #include <core/container.h>
 #include <core/future.h>
