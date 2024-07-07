@@ -1,6 +1,6 @@
 #include <platform/font.h>
 
-#include <platform/assert.h>
+#include <platform/debug/assert.h>
 #include <platform/logging.h>
 
 namespace platform {

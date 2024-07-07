@@ -1,6 +1,6 @@
 #include <platform/window.h>
 
-#include <platform/assert.h>
+#include <platform/debug/assert.h>
 #include <platform/logging.h>
 #include <platform/renderer.h>
 

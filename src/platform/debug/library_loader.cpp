@@ -3,7 +3,7 @@
 #include <core/container.h>
 #include <core/future.h>
 #include <core/util.h>
-#include <platform/assert.h>
+#include <platform/debug/assert.h>
 #include <platform/logging.h>
 #include <platform/win32.h>
 

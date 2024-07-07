@@ -1,6 +1,6 @@
 #include <platform/image.h>
 
-#include <platform/assert.h>
+#include <platform/debug/assert.h>
 
 namespace platform {
 

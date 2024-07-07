@@ -4,10 +4,10 @@
 #include <core/container.h>
 #include <core/util.h>
 #include <engine/engine_api.h>
-#include <platform/assert.h>
-#include <platform/config.h>
+#include <platform/debug/assert.h>
 #include <platform/debug/library_loader.h>
-#include <platform/file.h>
+#include <platform/file/config.h>
+#include <platform/file/file.h>
 #include <platform/font.h>
 #include <platform/image.h>
 #include <platform/input/cli.h>

@@ -2,8 +2,8 @@
 
 #include <core/container.h>
 #include <engine/hot_reloading.h>
-#include <platform/assert.h>
-#include <platform/file.h>
+#include <platform/debug/assert.h>
+#include <platform/file/file.h>
 #include <platform/logging.h>
 
 #include <imgui/imgui.h>

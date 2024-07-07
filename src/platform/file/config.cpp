@@ -1,4 +1,4 @@
-#include <platform/config.h>
+#include <platform/file/config.h>
 
 #include <core/parse.h>
 #include <core/string.h>
