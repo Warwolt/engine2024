@@ -20,9 +20,9 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Organize platform files into directories
 
 ## Done
+- Organize platform files into directories
 - Add config file support, use to store window mode, size and position
 - Add --windowed command line argument to start game windowed
 - Change window title to be `<Project name> - Engine 2024` with a `*` after `<Project name>` if unsaved changes
