@@ -24,32 +24,32 @@ namespace engine {
 		}
 
 		/* Editor Menu Bar*/
-		if (ImGui::BeginMainMenuBar()) {
-			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem(" New Project")) {
-					commands.push_back(EditorCommand::NewProject);
-				}
+		// if (ImGui::BeginMainMenuBar()) {
+		// 	if (ImGui::BeginMenu("File")) {
+		// 		if (ImGui::MenuItem(" New Project")) {
+		// 			commands.push_back(EditorCommand::NewProject);
+		// 		}
 
-				ImGui::Separator();
+		// 		ImGui::Separator();
 
-				if (ImGui::MenuItem(" Open Project")) {
-					commands.push_back(EditorCommand::OpenProject);
-				}
+		// 		if (ImGui::MenuItem(" Open Project")) {
+		// 			commands.push_back(EditorCommand::OpenProject);
+		// 		}
 
-				ImGui::Separator();
+		// 		ImGui::Separator();
 
-				if (ImGui::MenuItem(" Save Project", NULL, false, unsaved_changes)) {
-					commands.push_back(EditorCommand::SaveProject);
-				}
+		// 		if (ImGui::MenuItem(" Save Project", NULL, false, unsaved_changes)) {
+		// 			commands.push_back(EditorCommand::SaveProject);
+		// 		}
 
-				if (ImGui::MenuItem(" Save Project As")) {
-					commands.push_back(EditorCommand::SaveProjectAs);
-				}
+		// 		if (ImGui::MenuItem(" Save Project As")) {
+		// 			commands.push_back(EditorCommand::SaveProjectAs);
+		// 		}
 
-				ImGui::EndMenu();
-			}
-			ImGui::EndMainMenuBar();
-		}
+		// 		ImGui::EndMenu();
+		// 	}
+		// 	ImGui::EndMainMenuBar();
+		// }
 
 		/* Project Window */
 		if (ImGui::Begin("Project Window", nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {

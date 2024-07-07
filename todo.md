@@ -8,8 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Replace ImGui main menu bar with a native Win32 one
-  - https://stackoverflow.com/questions/30135494/win32-api-c-menu-bar
 - Setup ImGui docking branch
 - Enable caching for GitHub Actions
 - Maybe:
@@ -20,6 +18,8 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
+- Replace ImGui main menu bar with a native Win32 one
+  - https://stackoverflow.com/questions/30135494/win32-api-c-menu-bar
 
 ## Done
 - Organize platform files into directories

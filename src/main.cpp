@@ -34,6 +34,10 @@
 
 #include <fstream>
 
+// Menu Bar
+#include <SDL2/SDL_system.h>
+#include <WinUser.h>
+
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
 static void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
@@ -106,10 +110,10 @@ static void start_imgui_frame() {
 	ImGui::NewFrame();
 }
 
-static HWND get_window_handle(const platform::Window* window) {
+static HWND get_window_handle(const platform::Window& window) {
 	SDL_SysWMinfo wmInfo;
 	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window->sdl_window(), &wmInfo);
+	SDL_GetWindowWMInfo(window.sdl_window(), &wmInfo);
 	return wmInfo.info.win.window;
 }
 
@@ -234,6 +238,46 @@ int main(int argc, char** argv) {
 		engine.load_project(&state, path.string().c_str());
 	}
 	engine.initialize(&state);
+
+	// SHOW A WIN32 MENU BAR
+	{
+		constexpr UINT_PTR IDM_FILE_NEW = 1;
+		constexpr UINT_PTR IDM_FILE_OPEN = 2;
+		constexpr UINT_PTR IDM_FILE_QUIT = 3;
+
+		// Setup callback
+		auto on_windows_message = [](void* userdata, void* vptr_hwnd, unsigned int message, Uint64 wParam, Sint64 /*lParam*/) {
+			HWND hwnd = (HWND)vptr_hwnd;
+			switch (message) {
+				case WM_COMMAND:
+					switch (LOWORD(wParam)) {
+						case IDM_FILE_NEW:
+							MessageBox(hwnd, "New File selected", "Menu", MB_OK);
+							break;
+						case IDM_FILE_OPEN:
+							MessageBox(hwnd, "Open File selected", "Menu", MB_OK);
+							break;
+						case IDM_FILE_QUIT:
+							PostMessage(hwnd, WM_CLOSE, 0, 0);
+							break;
+					}
+					break;
+			}
+		};
+		SDL_SetWindowsMessageHook(on_windows_message, nullptr);
+
+		// Create menu bar
+		HMENU file_menu = CreateMenu();
+		HMENU main_menu_bar = CreateMenu();
+		AppendMenuW(file_menu, MF_STRING, IDM_FILE_NEW, L"&New\tCtrl+N");
+		AppendMenuW(file_menu, MF_STRING, IDM_FILE_OPEN, L"&Open");
+		AppendMenuW(file_menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(file_menu, MF_STRING, IDM_FILE_QUIT, L"&Quit");
+		AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)file_menu, L"&File");
+
+		HWND hwnd = get_window_handle(window);
+		SetMenu(hwnd, main_menu_bar);
+	}
 
 	/* Main loop */
 	while (!quit) {
@@ -400,7 +444,7 @@ int main(int argc, char** argv) {
 
 					case PlatformCommandType::LoadFileWithDialog: {
 						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
-						HWND hwnd = get_window_handle(&window);
+						HWND hwnd = get_window_handle(window);
 						if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
 							std::vector<uint8_t> data = read_file_to_string(path.value());
 							load_file_with_dialog.on_file_loaded(data, path.value());
@@ -419,7 +463,7 @@ int main(int argc, char** argv) {
 
 					case PlatformCommandType::SaveFileWithDialog: {
 						auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
-						HWND hwnd = get_window_handle(&window);
+						HWND hwnd = get_window_handle(window);
 						if (std::optional<std::filesystem::path> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
 							std::ofstream file;
 							file.open(path.value().string().c_str());
