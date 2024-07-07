@@ -1,6 +1,6 @@
-#include <engine/hot_reloading.h>
+#include <engine/system/hot_reloading.h>
 
-#include <engine/animation.h>
+#include <engine/system/animation.h>
 #include <platform/input/input.h>
 #include <platform/platform_api.h>
 

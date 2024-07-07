@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/editor_ui.h>
+#include <engine/editor/editor_ui.h>
 #include <platform/platform_api.h>
 
 namespace platform {

@@ -1,8 +1,8 @@
-#include <engine/editor.h>
+#include <engine/editor/editor.h>
 
 #include <core/container.h>
 #include <core/future.h>
-#include <engine/editor_command.h>
+#include <engine/editor/editor_command.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <platform/debug/logging.h>

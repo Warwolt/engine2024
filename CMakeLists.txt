@@ -52,13 +52,13 @@ set(CORE_SRC
 )
 
 set(ENGINE_SRC
-    src/engine/animation.cpp
-    src/engine/editor_ui.cpp
-    src/engine/editor.cpp
+    src/engine/editor/editor_ui.cpp
+    src/engine/editor/editor.cpp
     src/engine/engine_api.cpp
-    src/engine/hot_reloading.cpp
     src/engine/state/game_state.cpp
     src/engine/state/project_state.cpp
+    src/engine/system/animation.cpp
+    src/engine/system/hot_reloading.cpp
 )
 
 set(PLATFORM_SRC

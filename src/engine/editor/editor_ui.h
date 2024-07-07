@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/editor_command.h>
+#include <engine/editor/editor_command.h>
 
 #include <stdint.h>
 #include <string>

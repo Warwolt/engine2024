@@ -1,4 +1,4 @@
-#include <engine/editor_ui.h>
+#include <engine/editor/editor_ui.h>
 
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
