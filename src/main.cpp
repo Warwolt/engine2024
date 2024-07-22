@@ -110,10 +110,10 @@ static void start_imgui_frame() {
 	ImGui::NewFrame();
 }
 
-static HWND get_window_handle(const platform::Window& window) {
+static HWND get_window_handle(SDL_Window* window) {
 	SDL_SysWMinfo wmInfo;
 	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window.sdl_window(), &wmInfo);
+	SDL_GetWindowWMInfo(window, &wmInfo);
 	return wmInfo.info.win.window;
 }
 
@@ -128,6 +128,76 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	file.close();
 	return buffer;
 }
+
+namespace ImWin32 {
+
+	struct MenuItem {
+		UINT flags;
+		UINT_PTR id;
+		LPCWSTR item;
+	};
+
+	struct ImWin32Context {
+		SDL_Window* window = nullptr;
+		std::wstring active_menu;
+		std::unordered_map<std::wstring, std::vector<MenuItem>> menus;
+	};
+
+	ImWin32Context* g_im_win32 = nullptr;
+
+	void CreateContext(SDL_Window* window) {
+		g_im_win32 = new ImWin32Context();
+		g_im_win32->window = window;
+	}
+
+	void DestroyContext() {
+		delete g_im_win32;
+	}
+
+	bool BeginMainMenuBar() {
+		return true;
+	}
+
+	void EndMainMenuBar() {
+	}
+
+	bool BeginMenu(const std::wstring& label) {
+		ImWin32Context& g = *g_im_win32;
+		g.active_menu = label;
+		g.menus[label]; // create new entry if does not exist
+		return true;
+	}
+
+	void EndMenu() {
+		ImWin32Context& g = *g_im_win32;
+		ASSERT(!g.active_menu.empty(), "ImWin32::EndMenu() called without a previous ImWin32::BeginMenu() call");
+		g.active_menu.clear();
+	}
+
+	void NewFrame() {
+		ImWin32Context& g = *g_im_win32;
+		g.active_menu.clear();
+	}
+
+	void Render() {
+		ImWin32Context& g = *g_im_win32;
+		HWND hwnd = get_window_handle(g.window);
+
+		/* Render main menu bar */
+		{
+			HMENU main_menu_bar = CreateMenu();
+			for (const auto& [menu_label, menu_items] : g.menus) {
+				HMENU menu = CreateMenu();
+				for (const MenuItem& item : menu_items) {
+					AppendMenuW(menu, item.flags, item.id, item.item);
+				}
+				AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)menu, menu_label.c_str());
+			}
+			SetMenu(hwnd, main_menu_bar);
+		}
+	}
+
+} // namespace ImWin32
 
 int main(int argc, char** argv) {
 	/* Parse args */
@@ -194,6 +264,7 @@ int main(int argc, char** argv) {
 		ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
 	});
 	init_imgui(window.sdl_window(), gl_context);
+	ImWin32::CreateContext(window.sdl_window());
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
@@ -299,32 +370,45 @@ int main(int argc, char** argv) {
 			LPCWSTR item;
 		};
 		std::vector<MenuItem> menu_items = {
-			{ MF_STRING, 1, L"&New Project\tCtrl+N" },
-			{ MF_SEPARATOR, 0, NULL },
-			{ MF_STRING, 2, L"&Open Project\tCtrl+O" },
-			{ MF_SEPARATOR, 0, NULL },
-			{ MF_STRING, 3, L"&Save Project\tCtrl+S" },
-			{ MF_STRING, 4, L"&Save Project As\tCtrl+Shift+S" },
-			{ MF_SEPARATOR, 0, NULL },
-			{ MF_STRING, 5, L"&Quit" },
+			// { MF_STRING, 1, L"&New Project\tCtrl+N" },
+			// { MF_SEPARATOR, 0, NULL },
+			// { MF_STRING, 2, L"&Open Project\tCtrl+O" },
+			// { MF_SEPARATOR, 0, NULL },
+			// { MF_STRING, 3, L"&Save Project\tCtrl+S" },
+			// { MF_STRING, 4, L"&Save Project As\tCtrl+Shift+S" },
+			// { MF_SEPARATOR, 0, NULL },
+			// { MF_STRING, 5, L"&Quit" },
 		};
 
 		// Create menu bar
-		HMENU file_menu = CreateMenu();
-		HMENU main_menu_bar = CreateMenu();
-		HWND hwnd = get_window_handle(window);
-		for (const MenuItem& menu_item : menu_items) {
-			AppendMenuW(file_menu, menu_item.flags, menu_item.id, menu_item.item);
-		}
-		AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)file_menu, L"&File");
-		SetMenu(hwnd, main_menu_bar);
+		//HMENU main_menu_bar = CreateMenu();
+		//HMENU menu = CreateMenu();
+		//HWND hwnd = get_window_handle(window.sdl_window());
+		//for (const MenuItem& menu_item : menu_items) {
+		//	AppendMenuW(menu, menu_item.flags, menu_item.id, menu_item.item);
+		//}
+		//AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)menu, L"&File");
+		//SetMenu(hwnd, main_menu_bar);
 	}
 
 	/* Main loop */
 	while (!quit) {
-		// DECLARE WIN32 MENU BAR
+		ImWin32::NewFrame();
 
-		// UPDATE UNDERLYING WIN32 STATE
+		// DECLARE WIN32 MENU BAR
+		if (ImWin32::BeginMainMenuBar()) {
+			if (ImWin32::BeginMenu(L"&File")) {
+				ImWin32::EndMenu();
+			}
+
+			if (ImWin32::BeginMenu(L"&Run")) {
+				ImWin32::EndMenu();
+			}
+
+			ImWin32::EndMainMenuBar();
+		}
+
+		ImWin32::Render();
 
 		// REACT TO WIN32 MENU BAR EVENTS
 		{
@@ -513,7 +597,7 @@ int main(int argc, char** argv) {
 
 					case PlatformCommandType::LoadFileWithDialog: {
 						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
-						HWND hwnd = get_window_handle(window);
+						HWND hwnd = get_window_handle(window.sdl_window());
 						if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
 							std::vector<uint8_t> data = read_file_to_string(path.value());
 							load_file_with_dialog.on_file_loaded(data, path.value());
@@ -532,7 +616,7 @@ int main(int argc, char** argv) {
 
 					case PlatformCommandType::SaveFileWithDialog: {
 						auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
-						HWND hwnd = get_window_handle(window);
+						HWND hwnd = get_window_handle(window.sdl_window());
 						if (std::optional<std::filesystem::path> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
 							std::ofstream file;
 							file.open(path.value().string().c_str());
@@ -597,6 +681,7 @@ int main(int argc, char** argv) {
 	platform::save_configuration(config, config_path);
 
 	/* Deinitialize */
+	ImWin32::DestroyContext();
 	deinit_imgui();
 	engine.shutdown(&state);
 	platform::free_shader_program(shader_program);
