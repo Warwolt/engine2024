@@ -9,6 +9,8 @@ struct SDL_Window;
 
 namespace ImWin32 {
 
+	struct ImWin32Context;
+
 	struct WindowMessage {
 		void* hwnd;
 		unsigned int message;
@@ -26,18 +28,6 @@ namespace ImWin32 {
 				id == other.id &&
 				item == other.item;
 		}
-	};
-
-	struct ImWin32Context {
-		// platform
-		SDL_Window* window = nullptr;
-		std::vector<uint64_t> interacted_ids;
-
-		// render state
-		uint64_t next_item_id = 1;
-		std::wstring active_main_menu;
-		std::unordered_map<std::wstring, std::vector<MenuItemSpec>> main_menus;
-		std::unordered_map<std::wstring, std::vector<MenuItemSpec>> shadow_main_menus;
 	};
 
 	void CreateContext(SDL_Window* window);

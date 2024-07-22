@@ -86,6 +86,7 @@ set(TEST_SRC
     test/core/signal_tests.cpp
     test/core/tagged_variant_tests.cpp
     test/engine/animation_tests.cpp
+    test/platform/imwin32_tests.cpp
     test/platform/keyboard_tests.cpp
     test/platform/zip_tests.cpp
 )

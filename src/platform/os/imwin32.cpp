@@ -10,6 +10,18 @@
 
 namespace ImWin32 {
 
+	struct ImWin32Context {
+		// platform
+		SDL_Window* window = nullptr;
+		std::vector<uint64_t> interacted_ids;
+
+		// render state
+		uint64_t next_item_id = 1;
+		std::wstring active_main_menu;
+		std::unordered_map<std::wstring, std::vector<MenuItemSpec>> main_menus;
+		std::unordered_map<std::wstring, std::vector<MenuItemSpec>> shadow_main_menus;
+	};
+
 	static HWND get_window_handle(SDL_Window* window) {
 		SDL_SysWMinfo wmInfo;
 		SDL_VERSION(&wmInfo.version);
@@ -23,8 +35,6 @@ namespace ImWin32 {
 		g_im_win32 = new ImWin32Context();
 		g_im_win32->window = window;
 	}
-
-
 
 	void DestroyContext() {
 		delete g_im_win32;
@@ -65,7 +75,7 @@ namespace ImWin32 {
 	bool BeginMenu(const std::wstring& label) {
 		ImWin32Context& g = *g_im_win32;
 		g.active_main_menu = label;
-		g.main_menus[label]; // create new entry if does not exist
+		g.main_menus[label]; // creates new entry if none exist yet
 		return true;
 	}
 
