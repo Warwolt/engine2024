@@ -18,6 +18,7 @@
 #include <platform/input/input.h>
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
+#include <platform/os/imwin32.h>
 #include <platform/os/win32.h>
 #include <platform/platform_api.h>
 
@@ -130,120 +131,6 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	return buffer;
 }
 
-namespace ImWin32 {
-
-	struct WindowMessage {
-		unsigned int type;
-		Uint64 w_param;
-		Sint64 l_param;
-	};
-
-	struct MenuItemSpec {
-		UINT flags;
-		UINT_PTR id;
-		std::wstring item;
-
-		inline bool operator==(const MenuItemSpec& other) const {
-			return flags == other.flags &&
-				id == other.id &&
-				item == other.item;
-		}
-	};
-
-	struct ImWin32Context {
-		// platform
-		SDL_Window* window = nullptr;
-		std::vector<Uint64> interacted_ids;
-
-		// render state
-		UINT_PTR next_item_id = 1;
-		std::wstring active_main_menu;
-		std::unordered_map<std::wstring, std::vector<MenuItemSpec>> main_menus;
-		std::unordered_map<std::wstring, std::vector<MenuItemSpec>> shadow_main_menus;
-	};
-
-	ImWin32Context* g_im_win32 = nullptr;
-
-	void CreateContext(SDL_Window* window) {
-		g_im_win32 = new ImWin32Context();
-		g_im_win32->window = window;
-	}
-
-	void DestroyContext() {
-		delete g_im_win32;
-	}
-
-	void ProcessWindowMessage(WindowMessage msg) {
-		ImWin32Context& g = *g_im_win32;
-		if (msg.type == WM_COMMAND) {
-			g.interacted_ids.push_back(msg.w_param);
-		}
-	}
-
-	bool BeginMainMenuBar() {
-		return true;
-	}
-
-	void EndMainMenuBar() {
-	}
-
-	bool BeginMenu(const std::wstring& label) {
-		ImWin32Context& g = *g_im_win32;
-		g.active_main_menu = label;
-		g.main_menus[label]; // create new entry if does not exist
-		return true;
-	}
-
-	void EndMenu() {
-		ImWin32Context& g = *g_im_win32;
-		ASSERT(!g.active_main_menu.empty(), "ImWin32::EndMenu() called without a previous ImWin32::BeginMenu() call");
-		g.active_main_menu.clear();
-	}
-
-	bool MenuItem(const std::wstring& label) {
-		ImWin32Context& g = *g_im_win32;
-		ASSERT(!g.active_main_menu.empty(), "ImWin32::MenuItem() called without a previous ImWin32::BeginMenu() call");
-		const UINT_PTR id = g.next_item_id;
-		g.next_item_id += 1;
-		g.main_menus[g.active_main_menu].push_back(MenuItemSpec {
-			.flags = MF_STRING,
-			.id = id,
-			.item = label,
-		});
-
-		bool is_pressed = core::container::contains(g.interacted_ids, id);
-		return is_pressed;
-	}
-
-	void NewFrame() {
-		ImWin32Context& g = *g_im_win32;
-		g.active_main_menu.clear();
-		g.main_menus.clear();
-		g.next_item_id = 1;
-		g.interacted_ids.clear();
-	}
-
-	void Render() {
-		ImWin32Context& g = *g_im_win32;
-		HWND hwnd = get_window_handle(g.window);
-
-		/* Render main menu bar */
-		if (g.main_menus != g.shadow_main_menus) {
-			HMENU main_menu_bar = CreateMenu();
-			for (const auto& [menu_label, menu_items] : g.main_menus) {
-				HMENU menu = CreateMenu();
-				for (const MenuItemSpec& item : menu_items) {
-					AppendMenuW(menu, item.flags, item.id, item.item.c_str());
-				}
-				AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)menu, menu_label.c_str());
-			}
-			SetMenu(hwnd, main_menu_bar);
-			g.shadow_main_menus = g.main_menus;
-		}
-	}
-
-} // namespace ImWin32
-
 int main(int argc, char** argv) {
 	/* Parse args */
 	platform::CommandLineArgs cmd_args = core::container::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
@@ -308,8 +195,20 @@ int main(int argc, char** argv) {
 	SDL_GLContext gl_context = core::container::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
 		ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
 	});
+
+	/* Initialize ImGui and ImWin32 */
 	init_imgui(window.sdl_window(), gl_context);
 	ImWin32::CreateContext(window.sdl_window());
+	std::vector<ImWin32::WindowMessage> win32_window_messages;
+	auto on_window_message = [](void* userdata, void* /*hwnd*/, unsigned int type, Uint64 w_param, Sint64 l_param) {
+		std::vector<ImWin32::WindowMessage>* win32_window_messages = (std::vector<ImWin32::WindowMessage>*)userdata;
+		win32_window_messages->push_back(ImWin32::WindowMessage {
+			.type = type,
+			.w_param = w_param,
+			.l_param = l_param,
+		});
+	};
+	SDL_SetWindowsMessageHook(on_window_message, &win32_window_messages);
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
@@ -397,16 +296,6 @@ int main(int argc, char** argv) {
 	//        ImWin32::EndMainMenuBar();
 	//    }
 	//
-	std::vector<ImWin32::WindowMessage> win32_window_messages;
-	auto on_windows_message = [](void* userdata, void* /*hwnd*/, unsigned int type, Uint64 w_param, Sint64 l_param) {
-		std::vector<ImWin32::WindowMessage>* win32_window_messages = (std::vector<ImWin32::WindowMessage>*)userdata;
-		win32_window_messages->push_back(ImWin32::WindowMessage {
-			.type = type,
-			.w_param = w_param,
-			.l_param = l_param,
-		});
-	};
-	SDL_SetWindowsMessageHook(on_windows_message, &win32_window_messages);
 
 	/* Main loop */
 	while (!quit) {
@@ -437,30 +326,6 @@ int main(int argc, char** argv) {
 		}
 
 		ImWin32::Render();
-
-		// // REACT TO WIN32 MENU BAR EVENTS
-		// {
-		// 	std::vector<UINT_PTR> cmds = std::swap(wm_commands, std::vector());
-		// 	for (UINT_PTR cmd : cmds) {
-		// 		switch (cmd) {
-		// 			case 1:
-		// 				LOG_DEBUG("New Project selected");
-		// 				break;
-		// 			case 2:
-		// 				LOG_DEBUG("Open Project selected");
-		// 				break;
-		// 			case 3:
-		// 				LOG_DEBUG("Save Project selected");
-		// 				break;
-		// 			case 4:
-		// 				LOG_DEBUG("Save Project As selected");
-		// 				break;
-		// 			case 5:
-		// 				quit = true;
-		// 				break;
-		// 		}
-		// 	}
-		// }
 
 		/* Input */
 		{

@@ -77,6 +77,7 @@ set(PLATFORM_SRC
     src/platform/input/keyboard.cpp
     src/platform/input/timing.cpp
     src/platform/os/win32.cpp
+    src/platform/os/imwin32.cpp
     src/platform/platform_api.cpp
 )
 
