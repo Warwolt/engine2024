@@ -35,11 +35,6 @@
 
 #include <fstream>
 
-// Menu Bar
-#include <SDL2/SDL_system.h>
-#include <WinUser.h>
-#include <core/container.h>
-
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
 static void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
