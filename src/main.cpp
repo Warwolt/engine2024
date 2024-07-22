@@ -257,14 +257,15 @@ int main(int argc, char** argv) {
 
 	/* Main loop */
 	while (!quit) {
-		ImWin32::NewFrame();
-		for (const ImWin32::WindowMessage& msg : win32_window_messages) {
-			ImWin32::ProcessWindowMessage(msg);
-		}
-		win32_window_messages.clear();
-
 		/* Input */
 		{
+			/* ImWin32 */
+			ImWin32::NewFrame();
+			for (const ImWin32::WindowMessage& msg : win32_window_messages) {
+				ImWin32::ProcessWindowMessage(msg);
+			}
+			win32_window_messages.clear();
+
 			/* Reset input states */
 			using ButtonEvent = platform::ButtonEvent;
 			constexpr size_t NUM_MOUSE_BUTTONS = 5;
@@ -505,7 +506,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	LOG_DEBUG("Quit");
+	LOG_INFO("Shutting down");
 
 	/* Save configuration */
 	config.window.full_screen = window.is_fullscreen();
