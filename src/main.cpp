@@ -297,20 +297,31 @@ int main(int argc, char** argv) {
 		};
 		SDL_SetWindowsMessageHook(on_windows_message, &wm_commands);
 
+		// Specify menu bar
+		struct MenuItem {
+			UINT flags;
+			UINT_PTR id;
+			LPCWSTR item;
+		};
+		std::vector<MenuItem> menu_items = {
+			{ MF_STRING, IDM_FILE_NEW, L"&New Project\tCtrl+N" },
+			{ MF_SEPARATOR, 0, NULL },
+			{ MF_STRING, IDM_FILE_OPEN, L"&Open Project\tCtrl+O" },
+			{ MF_SEPARATOR, 0, NULL },
+			{ MF_STRING, IDM_FILE_SAVE, L"&Save Project\tCtrl+S" },
+			{ MF_STRING, IDM_FILE_SAVE_AS, L"&Save Project As\tCtrl+Shift+S" },
+			{ MF_SEPARATOR, 0, NULL },
+			{ MF_STRING, IDM_FILE_QUIT, L"&Quit" },
+		};
+
 		// Create menu bar
 		HMENU file_menu = CreateMenu();
 		HMENU main_menu_bar = CreateMenu();
-		AppendMenuW(file_menu, MF_STRING, IDM_FILE_NEW, L"&New Project\tCtrl+N");
-		AppendMenuW(file_menu, MF_SEPARATOR, 0, NULL);
-		AppendMenuW(file_menu, MF_STRING, IDM_FILE_OPEN, L"&Open Project\tCtrl+O");
-		AppendMenuW(file_menu, MF_SEPARATOR, 0, NULL);
-		AppendMenuW(file_menu, MF_STRING, IDM_FILE_SAVE, L"&Save Project\tCtrl+S");
-		AppendMenuW(file_menu, MF_STRING, IDM_FILE_SAVE_AS, L"&Save Project As\tCtrl+Shift+S");
-		AppendMenuW(file_menu, MF_SEPARATOR, 0, NULL);
-		AppendMenuW(file_menu, MF_STRING, IDM_FILE_QUIT, L"&Quit");
-		AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)file_menu, L"&File");
-
 		HWND hwnd = get_window_handle(window);
+		for (const MenuItem& menu_item : menu_items) {
+			AppendMenuW(file_menu, menu_item.flags, menu_item.id, menu_item.item);
+		}
+		AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)file_menu, L"&File");
 		SetMenu(hwnd, main_menu_bar);
 	}
 
@@ -372,7 +383,7 @@ int main(int argc, char** argv) {
 						break;
 
 					case SDL_KEYUP:
-						// Note: We never let ImGui to hog up events to avoid
+						// Note: We never let ImGui hog up events to avoid
 						// "stuck" keys when switching to an ImGui window
 						input.keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
 						break;
