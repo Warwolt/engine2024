@@ -10,7 +10,8 @@ struct SDL_Window;
 namespace ImWin32 {
 
 	struct WindowMessage {
-		unsigned int type;
+		void* hwnd;
+		unsigned int message;
 		uint64_t w_param;
 		int64_t l_param;
 	};

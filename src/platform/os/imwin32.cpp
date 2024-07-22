@@ -30,8 +30,12 @@ namespace ImWin32 {
 
 	void ProcessWindowMessage(WindowMessage msg) {
 		ImWin32Context& g = *g_im_win32;
-		if (msg.type == WM_COMMAND) {
-			g.interacted_ids.push_back(msg.w_param);
+		switch (msg.message) {
+			case WM_COMMAND:
+				g.interacted_ids.push_back(msg.w_param);
+
+			default:
+				DefWindowProc((HWND)msg.hwnd, msg.message, msg.w_param, msg.l_param);
 		}
 	}
 

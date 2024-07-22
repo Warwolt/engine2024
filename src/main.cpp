@@ -200,10 +200,11 @@ int main(int argc, char** argv) {
 	init_imgui(window.sdl_window(), gl_context);
 	ImWin32::CreateContext(window.sdl_window());
 	std::vector<ImWin32::WindowMessage> win32_window_messages;
-	auto on_window_message = [](void* userdata, void* /*hwnd*/, unsigned int type, Uint64 w_param, Sint64 l_param) {
+	auto on_window_message = [](void* userdata, void* hwnd, unsigned int message, Uint64 w_param, Sint64 l_param) {
 		std::vector<ImWin32::WindowMessage>* win32_window_messages = (std::vector<ImWin32::WindowMessage>*)userdata;
 		win32_window_messages->push_back(ImWin32::WindowMessage {
-			.type = type,
+			.hwnd = hwnd,
+			.message = message,
 			.w_param = w_param,
 			.l_param = l_param,
 		});

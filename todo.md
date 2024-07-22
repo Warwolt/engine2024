@@ -10,6 +10,7 @@ Goals:
 ## TODO
 - Setup ImGui docking branch
 - Enable caching for GitHub Actions
+- Figure out how the fuck to make alt-key focus the main menu
 - Maybe:
   - ~~Disable RTTI and exceptions in both project and standard library~~
   - set VS_DEBUGGER_WORKING_DIRECTORY to project root
