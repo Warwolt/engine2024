@@ -8,9 +8,8 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Setup ImGui docking branch
 - Enable caching for GitHub Actions
-- Figure out how the fuck to make alt-key focus the main menu
+- Figure out how to make alt-key focus the main menu
 - Maybe:
   - ~~Disable RTTI and exceptions in both project and standard library~~
   - set VS_DEBUGGER_WORKING_DIRECTORY to project root
@@ -19,10 +18,10 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Replace ImGui main menu bar with a native Win32 one
-  - https://stackoverflow.com/questions/30135494/win32-api-c-menu-bar
+- Setup ImGui docking branch
 
 ## Done
+- Replace ImGui main menu bar with a native Win32 one
 - Organize platform files into directories
 - Add config file support, use to store window mode, size and position
 - Add --windowed command line argument to start game windowed
