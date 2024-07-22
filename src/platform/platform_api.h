@@ -150,6 +150,7 @@ namespace platform {
 
 	class PlatformAPI {
 	public:
+		bool has_commands();
 		std::vector<PlatformCommand> drain_commands();
 
 		// application

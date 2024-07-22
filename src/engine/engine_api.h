@@ -6,6 +6,9 @@
 #include <platform/platform_api.h>
 
 struct ImGuiContext;
+namespace ImWin32 {
+	struct ImWin32Context;
+} // namespace ImWin32
 typedef struct FT_LibraryRec_* FT_Library;
 
 namespace engine {
@@ -13,6 +16,7 @@ namespace engine {
 	// global state wiring
 	extern "C" __declspec(dllexport) void set_logger(plog::Severity severity, plog::IAppender* appender);
 	extern "C" __declspec(dllexport) void set_imgui_context(ImGuiContext* imgui_context);
+	extern "C" __declspec(dllexport) void set_imwin32_context(ImWin32::ImWin32Context* imwin32_context);
 	extern "C" __declspec(dllexport) void set_freetype_library(FT_Library ft);
 
 	// engine interface

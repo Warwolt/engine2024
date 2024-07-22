@@ -77,6 +77,7 @@ set(PLATFORM_SRC
     src/platform/input/keyboard.cpp
     src/platform/input/timing.cpp
     src/platform/os/win32.cpp
+    src/platform/os/imwin32.cpp
     src/platform/platform_api.cpp
 )
 
@@ -85,6 +86,7 @@ set(TEST_SRC
     test/core/signal_tests.cpp
     test/core/tagged_variant_tests.cpp
     test/engine/animation_tests.cpp
+    test/platform/imwin32_tests.cpp
     test/platform/keyboard_tests.cpp
     test/platform/zip_tests.cpp
 )

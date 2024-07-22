@@ -18,6 +18,7 @@
 #include <platform/input/input.h>
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
+#include <platform/os/imwin32.h>
 #include <platform/os/win32.h>
 #include <platform/platform_api.h>
 
@@ -106,10 +107,10 @@ static void start_imgui_frame() {
 	ImGui::NewFrame();
 }
 
-static HWND get_window_handle(const platform::Window* window) {
+static HWND get_window_handle(SDL_Window* window) {
 	SDL_SysWMinfo wmInfo;
 	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window->sdl_window(), &wmInfo);
+	SDL_GetWindowWMInfo(window, &wmInfo);
 	return wmInfo.info.win.window;
 }
 
@@ -189,7 +190,21 @@ int main(int argc, char** argv) {
 	SDL_GLContext gl_context = core::container::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
 		ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
 	});
+
+	/* Initialize ImGui and ImWin32 */
 	init_imgui(window.sdl_window(), gl_context);
+	ImWin32::CreateContext(window.sdl_window());
+	std::vector<ImWin32::WindowMessage> win32_window_messages;
+	auto on_window_message = [](void* userdata, void* hwnd, unsigned int message, Uint64 w_param, Sint64 l_param) {
+		std::vector<ImWin32::WindowMessage>* win32_window_messages = (std::vector<ImWin32::WindowMessage>*)userdata;
+		win32_window_messages->push_back(ImWin32::WindowMessage {
+			.hwnd = hwnd,
+			.message = message,
+			.w_param = w_param,
+			.l_param = l_param,
+		});
+	};
+	SDL_SetWindowsMessageHook(on_window_message, &win32_window_messages);
 
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
@@ -239,6 +254,13 @@ int main(int argc, char** argv) {
 	while (!quit) {
 		/* Input */
 		{
+			/* ImWin32 */
+			ImWin32::NewFrame();
+			for (const ImWin32::WindowMessage& msg : win32_window_messages) {
+				ImWin32::ProcessWindowMessage(msg);
+			}
+			win32_window_messages.clear();
+
 			/* Reset input states */
 			using ButtonEvent = platform::ButtonEvent;
 			constexpr size_t NUM_MOUSE_BUTTONS = 5;
@@ -269,7 +291,7 @@ int main(int argc, char** argv) {
 						break;
 
 					case SDL_KEYUP:
-						// Note: We never let ImGui to hog up events to avoid
+						// Note: We never let ImGui hog up events to avoid
 						// "stuck" keys when switching to an ImGui window
 						input.keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
 						break;
@@ -346,95 +368,97 @@ int main(int argc, char** argv) {
 			engine.update(&state, input, &platform);
 
 			/* Platform update */
-			for (platform::PlatformCommand& cmd : platform.drain_commands()) {
-				using PlatformCommandType = platform::PlatformCommandType;
-				switch (cmd.tag()) {
-					case PlatformCommandType::ChangeResolution: {
-						auto& change_resolution = std::get<platform::cmd::window::ChangeResolution>(cmd);
-						const int width = change_resolution.width;
-						const int height = change_resolution.height;
-						platform::free_canvas(window_canvas);
-						window_canvas = platform::add_canvas(width, height);
-					} break;
+			while (platform.has_commands()) {
+				for (platform::PlatformCommand& cmd : platform.drain_commands()) {
+					using PlatformCommandType = platform::PlatformCommandType;
+					switch (cmd.tag()) {
+						case PlatformCommandType::ChangeResolution: {
+							auto& change_resolution = std::get<platform::cmd::window::ChangeResolution>(cmd);
+							const int width = change_resolution.width;
+							const int height = change_resolution.height;
+							platform::free_canvas(window_canvas);
+							window_canvas = platform::add_canvas(width, height);
+						} break;
 
-					case PlatformCommandType::Quit:
-						quit = true;
-						break;
+						case PlatformCommandType::Quit:
+							quit = true;
+							break;
 
-					case PlatformCommandType::RebuildEngineLibrary:
-						hot_reloader.trigger_rebuild_command();
-						break;
+						case PlatformCommandType::RebuildEngineLibrary:
+							hot_reloader.trigger_rebuild_command();
+							break;
 
-					case PlatformCommandType::SetCursor: {
-						auto& set_cursor = std::get<platform::cmd::cursor::SetCursor>(cmd);
-						SDL_FreeCursor(cursor);
-						switch (set_cursor.cursor) {
-							case platform::Cursor::Arrow:
-								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-								break;
+						case PlatformCommandType::SetCursor: {
+							auto& set_cursor = std::get<platform::cmd::cursor::SetCursor>(cmd);
+							SDL_FreeCursor(cursor);
+							switch (set_cursor.cursor) {
+								case platform::Cursor::Arrow:
+									cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+									break;
 
-							case platform::Cursor::SizeAll:
-								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
-								break;
-						}
-					} break;
-
-					case PlatformCommandType::SetRunMode: {
-						auto& set_run_mode = std::get<platform::cmd::app::SetRunMode>(cmd);
-						mode = set_run_mode.mode;
-					} break;
-
-					case PlatformCommandType::SetWindowMode: {
-						auto& set_window_mode = std::get<platform::cmd::window::SetWindowMode>(cmd);
-						window.set_window_mode(set_window_mode.mode);
-					} break;
-
-					case PlatformCommandType::SetWindowTitle: {
-						auto& set_window_title = std::get<platform::cmd::window::SetWindowTitle>(cmd);
-						SDL_SetWindowTitle(window.sdl_window(), set_window_title.title.c_str());
-					} break;
-
-					case PlatformCommandType::ToggleFullscreen:
-						window.toggle_fullscreen();
-						break;
-
-					case PlatformCommandType::LoadFileWithDialog: {
-						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
-						HWND hwnd = get_window_handle(&window);
-						if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
-							std::vector<uint8_t> data = read_file_to_string(path.value());
-							load_file_with_dialog.on_file_loaded(data, path.value());
-						}
-					} break;
-
-					case PlatformCommandType::SaveFile: {
-						auto& save_file = std::get<platform::cmd::file::SaveFile>(cmd);
-						std::ofstream file;
-						file.open(save_file.path);
-						if (file.is_open()) {
-							file.write((char*)save_file.data.data(), save_file.data.size());
-							save_file.on_file_saved();
-						}
-					} break;
-
-					case PlatformCommandType::SaveFileWithDialog: {
-						auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
-						HWND hwnd = get_window_handle(&window);
-						if (std::optional<std::filesystem::path> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
-							std::ofstream file;
-							file.open(path.value().string().c_str());
-							if (file.is_open()) {
-								file.write((char*)save_file_with_dialog.data.data(), save_file_with_dialog.data.size());
-								save_file_with_dialog.on_file_saved(path.value());
+								case platform::Cursor::SizeAll:
+									cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
+									break;
 							}
-						}
-					} break;
+						} break;
 
-					case PlatformCommandType::ShowUnsavedChangesDialog: {
-						auto& show_unsaved_changes_dialog = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
-						platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(show_unsaved_changes_dialog.document_name);
-						show_unsaved_changes_dialog.on_dialog_choice(choice);
-					} break;
+						case PlatformCommandType::SetRunMode: {
+							auto& set_run_mode = std::get<platform::cmd::app::SetRunMode>(cmd);
+							mode = set_run_mode.mode;
+						} break;
+
+						case PlatformCommandType::SetWindowMode: {
+							auto& set_window_mode = std::get<platform::cmd::window::SetWindowMode>(cmd);
+							window.set_window_mode(set_window_mode.mode);
+						} break;
+
+						case PlatformCommandType::SetWindowTitle: {
+							auto& set_window_title = std::get<platform::cmd::window::SetWindowTitle>(cmd);
+							SDL_SetWindowTitle(window.sdl_window(), set_window_title.title.c_str());
+						} break;
+
+						case PlatformCommandType::ToggleFullscreen:
+							window.toggle_fullscreen();
+							break;
+
+						case PlatformCommandType::LoadFileWithDialog: {
+							auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
+							HWND hwnd = get_window_handle(window.sdl_window());
+							if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
+								std::vector<uint8_t> data = read_file_to_string(path.value());
+								load_file_with_dialog.on_file_loaded(data, path.value());
+							}
+						} break;
+
+						case PlatformCommandType::SaveFile: {
+							auto& save_file = std::get<platform::cmd::file::SaveFile>(cmd);
+							std::ofstream file;
+							file.open(save_file.path);
+							if (file.is_open()) {
+								file.write((char*)save_file.data.data(), save_file.data.size());
+								save_file.on_file_saved();
+							}
+						} break;
+
+						case PlatformCommandType::SaveFileWithDialog: {
+							auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
+							HWND hwnd = get_window_handle(window.sdl_window());
+							if (std::optional<std::filesystem::path> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
+								std::ofstream file;
+								file.open(path.value().string().c_str());
+								if (file.is_open()) {
+									file.write((char*)save_file_with_dialog.data.data(), save_file_with_dialog.data.size());
+									save_file_with_dialog.on_file_saved(path.value());
+								}
+							}
+						} break;
+
+						case PlatformCommandType::ShowUnsavedChangesDialog: {
+							auto& show_unsaved_changes_dialog = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
+							platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(show_unsaved_changes_dialog.document_name);
+							show_unsaved_changes_dialog.on_dialog_choice(choice);
+						} break;
+					}
 				}
 			}
 
@@ -471,10 +495,13 @@ int main(int argc, char** argv) {
 				renderer.render(shader_program);
 			}
 
+			ImWin32::Render();
 			render_imgui();
 			swap_buffer(window.sdl_window());
 		}
 	}
+
+	LOG_INFO("Shutting down");
 
 	/* Save configuration */
 	config.window.full_screen = window.is_fullscreen();
@@ -484,6 +511,7 @@ int main(int argc, char** argv) {
 	platform::save_configuration(config, config_path);
 
 	/* Deinitialize */
+	ImWin32::DestroyContext();
 	deinit_imgui();
 	engine.shutdown(&state);
 	platform::free_shader_program(shader_program);

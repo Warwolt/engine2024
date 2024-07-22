@@ -5,6 +5,7 @@
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
 #include <platform/file/file.h>
+#include <platform/os/imwin32.h>
 
 #include <imgui/imgui.h>
 #include <plog/Init.h>
@@ -50,6 +51,10 @@ namespace engine {
 
 	void set_imgui_context(ImGuiContext* imgui_context) {
 		ImGui::SetCurrentContext(imgui_context);
+	}
+
+	void set_imwin32_context(ImWin32::ImWin32Context* imwin32_context) {
+		ImWin32::SetCurrentContext(imwin32_context);
 	}
 
 	void set_freetype_library(FT_Library ft) {
