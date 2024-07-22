@@ -134,13 +134,20 @@ namespace ImWin32 {
 	struct MenuItem {
 		UINT flags;
 		UINT_PTR id;
-		LPCWSTR item;
+		std::wstring item;
+
+		inline bool operator==(const MenuItem& other) const {
+			return flags == other.flags &&
+				id == other.id &&
+				item == other.item;
+		}
 	};
 
 	struct ImWin32Context {
 		SDL_Window* window = nullptr;
-		std::wstring active_menu;
-		std::unordered_map<std::wstring, std::vector<MenuItem>> menus;
+		std::wstring active_main_menu;
+		std::unordered_map<std::wstring, std::vector<MenuItem>> main_menus;
+		std::unordered_map<std::wstring, std::vector<MenuItem>> shadow_main_menus;
 	};
 
 	ImWin32Context* g_im_win32 = nullptr;
@@ -163,20 +170,20 @@ namespace ImWin32 {
 
 	bool BeginMenu(const std::wstring& label) {
 		ImWin32Context& g = *g_im_win32;
-		g.active_menu = label;
-		g.menus[label]; // create new entry if does not exist
+		g.active_main_menu = label;
+		g.main_menus[label]; // create new entry if does not exist
 		return true;
 	}
 
 	void EndMenu() {
 		ImWin32Context& g = *g_im_win32;
-		ASSERT(!g.active_menu.empty(), "ImWin32::EndMenu() called without a previous ImWin32::BeginMenu() call");
-		g.active_menu.clear();
+		ASSERT(!g.active_main_menu.empty(), "ImWin32::EndMenu() called without a previous ImWin32::BeginMenu() call");
+		g.active_main_menu.clear();
 	}
 
 	void NewFrame() {
 		ImWin32Context& g = *g_im_win32;
-		g.active_menu.clear();
+		g.active_main_menu.clear();
 	}
 
 	void Render() {
@@ -184,17 +191,18 @@ namespace ImWin32 {
 		HWND hwnd = get_window_handle(g.window);
 
 		/* Render main menu bar */
-		{
+		if (g.main_menus != g.shadow_main_menus) {
 			HMENU main_menu_bar = CreateMenu();
-			for (const auto& [menu_label, menu_items] : g.menus) {
+			for (const auto& [menu_label, menu_items] : g.main_menus) {
 				HMENU menu = CreateMenu();
 				for (const MenuItem& item : menu_items) {
-					AppendMenuW(menu, item.flags, item.id, item.item);
+					AppendMenuW(menu, item.flags, item.id, item.item.c_str());
 				}
 				AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)menu, menu_label.c_str());
 			}
 			SetMenu(hwnd, main_menu_bar);
 		}
+		g.shadow_main_menus = g.main_menus;
 	}
 
 } // namespace ImWin32
