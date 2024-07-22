@@ -255,49 +255,6 @@ int main(int argc, char** argv) {
 	}
 	engine.initialize(&state);
 
-	// SHOW A WIN32 MENU BAR
-	//
-	// TODO: Create a nice immedaite mode API for this; "ImWin32"
-	//
-	// The plan here is to wrap up these Win32 calls into an api that has the
-	// same look and feel as ImGui, which means we'll have to do some diffing
-	// between the immediate mode calls that specify the menu, and the
-	// underlying persistent Win32 state (React style "shadow dom").
-	//
-	// We also need to pipe the WM_COMMAND:s we receive into the ImWin32
-	// context, so that we can return true from ImWin32::MenuItem when that item
-	// has been pressed.
-	//
-	// The goal would be that have the following inside `editor_ui.cpp`:
-	//
-	//    if (ImWin32::BeginMainMenuBar()) {
-	//        if (ImWin32::BeginMenu("File")) {
-	//            if (ImWin32::MenuItem("New Project")) {
-	//                commands.push_back(EditorCommand::NewProject);
-	//            }
-	//
-	//            ImWin32::Separator();
-	//
-	//            if (ImWin32::MenuItem("Open Project")) {
-	//                commands.push_back(EditorCommand::OpenProject);
-	//            }
-	//
-	//            ImWin32::Separator();
-	//
-	//            if (ImWin32::MenuItem("Save Project", NULL, false, unsaved_changes)) {
-	//                commands.push_back(EditorCommand::SaveProject);
-	//            }
-	//
-	//            if (ImWin32::MenuItem("Save Project As")) {
-	//                commands.push_back(EditorCommand::SaveProjectAs);
-	//            }
-	//
-	//            ImWin32::EndMenu();
-	//        }
-	//        ImWin32::EndMainMenuBar();
-	//    }
-	//
-
 	/* Main loop */
 	while (!quit) {
 		ImWin32::NewFrame();
@@ -313,6 +270,12 @@ int main(int argc, char** argv) {
 					LOG_DEBUG("New Project selected from ImWin32::MenuItem");
 				}
 
+				ImWin32::Separator();
+
+				if (ImWin32::MenuItem(L"Open Project\tCtrl+O")) {
+					LOG_DEBUG("Open Project selected from ImWin32::MenuItem");
+				}
+
 				ImWin32::EndMenu();
 			}
 
@@ -325,8 +288,6 @@ int main(int argc, char** argv) {
 
 			ImWin32::EndMainMenuBar();
 		}
-
-		ImWin32::Render();
 
 		/* Input */
 		{
@@ -437,95 +398,97 @@ int main(int argc, char** argv) {
 			engine.update(&state, input, &platform);
 
 			/* Platform update */
-			for (platform::PlatformCommand& cmd : platform.drain_commands()) {
-				using PlatformCommandType = platform::PlatformCommandType;
-				switch (cmd.tag()) {
-					case PlatformCommandType::ChangeResolution: {
-						auto& change_resolution = std::get<platform::cmd::window::ChangeResolution>(cmd);
-						const int width = change_resolution.width;
-						const int height = change_resolution.height;
-						platform::free_canvas(window_canvas);
-						window_canvas = platform::add_canvas(width, height);
-					} break;
+			while (platform.has_commands()) {
+				for (platform::PlatformCommand& cmd : platform.drain_commands()) {
+					using PlatformCommandType = platform::PlatformCommandType;
+					switch (cmd.tag()) {
+						case PlatformCommandType::ChangeResolution: {
+							auto& change_resolution = std::get<platform::cmd::window::ChangeResolution>(cmd);
+							const int width = change_resolution.width;
+							const int height = change_resolution.height;
+							platform::free_canvas(window_canvas);
+							window_canvas = platform::add_canvas(width, height);
+						} break;
 
-					case PlatformCommandType::Quit:
-						quit = true;
-						break;
+						case PlatformCommandType::Quit:
+							quit = true;
+							break;
 
-					case PlatformCommandType::RebuildEngineLibrary:
-						hot_reloader.trigger_rebuild_command();
-						break;
+						case PlatformCommandType::RebuildEngineLibrary:
+							hot_reloader.trigger_rebuild_command();
+							break;
 
-					case PlatformCommandType::SetCursor: {
-						auto& set_cursor = std::get<platform::cmd::cursor::SetCursor>(cmd);
-						SDL_FreeCursor(cursor);
-						switch (set_cursor.cursor) {
-							case platform::Cursor::Arrow:
-								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-								break;
+						case PlatformCommandType::SetCursor: {
+							auto& set_cursor = std::get<platform::cmd::cursor::SetCursor>(cmd);
+							SDL_FreeCursor(cursor);
+							switch (set_cursor.cursor) {
+								case platform::Cursor::Arrow:
+									cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+									break;
 
-							case platform::Cursor::SizeAll:
-								cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
-								break;
-						}
-					} break;
-
-					case PlatformCommandType::SetRunMode: {
-						auto& set_run_mode = std::get<platform::cmd::app::SetRunMode>(cmd);
-						mode = set_run_mode.mode;
-					} break;
-
-					case PlatformCommandType::SetWindowMode: {
-						auto& set_window_mode = std::get<platform::cmd::window::SetWindowMode>(cmd);
-						window.set_window_mode(set_window_mode.mode);
-					} break;
-
-					case PlatformCommandType::SetWindowTitle: {
-						auto& set_window_title = std::get<platform::cmd::window::SetWindowTitle>(cmd);
-						SDL_SetWindowTitle(window.sdl_window(), set_window_title.title.c_str());
-					} break;
-
-					case PlatformCommandType::ToggleFullscreen:
-						window.toggle_fullscreen();
-						break;
-
-					case PlatformCommandType::LoadFileWithDialog: {
-						auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
-						HWND hwnd = get_window_handle(window.sdl_window());
-						if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
-							std::vector<uint8_t> data = read_file_to_string(path.value());
-							load_file_with_dialog.on_file_loaded(data, path.value());
-						}
-					} break;
-
-					case PlatformCommandType::SaveFile: {
-						auto& save_file = std::get<platform::cmd::file::SaveFile>(cmd);
-						std::ofstream file;
-						file.open(save_file.path);
-						if (file.is_open()) {
-							file.write((char*)save_file.data.data(), save_file.data.size());
-							save_file.on_file_saved();
-						}
-					} break;
-
-					case PlatformCommandType::SaveFileWithDialog: {
-						auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
-						HWND hwnd = get_window_handle(window.sdl_window());
-						if (std::optional<std::filesystem::path> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
-							std::ofstream file;
-							file.open(path.value().string().c_str());
-							if (file.is_open()) {
-								file.write((char*)save_file_with_dialog.data.data(), save_file_with_dialog.data.size());
-								save_file_with_dialog.on_file_saved(path.value());
+								case platform::Cursor::SizeAll:
+									cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
+									break;
 							}
-						}
-					} break;
+						} break;
 
-					case PlatformCommandType::ShowUnsavedChangesDialog: {
-						auto& show_unsaved_changes_dialog = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
-						platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(show_unsaved_changes_dialog.document_name);
-						show_unsaved_changes_dialog.on_dialog_choice(choice);
-					} break;
+						case PlatformCommandType::SetRunMode: {
+							auto& set_run_mode = std::get<platform::cmd::app::SetRunMode>(cmd);
+							mode = set_run_mode.mode;
+						} break;
+
+						case PlatformCommandType::SetWindowMode: {
+							auto& set_window_mode = std::get<platform::cmd::window::SetWindowMode>(cmd);
+							window.set_window_mode(set_window_mode.mode);
+						} break;
+
+						case PlatformCommandType::SetWindowTitle: {
+							auto& set_window_title = std::get<platform::cmd::window::SetWindowTitle>(cmd);
+							SDL_SetWindowTitle(window.sdl_window(), set_window_title.title.c_str());
+						} break;
+
+						case PlatformCommandType::ToggleFullscreen:
+							window.toggle_fullscreen();
+							break;
+
+						case PlatformCommandType::LoadFileWithDialog: {
+							auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
+							HWND hwnd = get_window_handle(window.sdl_window());
+							if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
+								std::vector<uint8_t> data = read_file_to_string(path.value());
+								load_file_with_dialog.on_file_loaded(data, path.value());
+							}
+						} break;
+
+						case PlatformCommandType::SaveFile: {
+							auto& save_file = std::get<platform::cmd::file::SaveFile>(cmd);
+							std::ofstream file;
+							file.open(save_file.path);
+							if (file.is_open()) {
+								file.write((char*)save_file.data.data(), save_file.data.size());
+								save_file.on_file_saved();
+							}
+						} break;
+
+						case PlatformCommandType::SaveFileWithDialog: {
+							auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
+							HWND hwnd = get_window_handle(window.sdl_window());
+							if (std::optional<std::filesystem::path> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
+								std::ofstream file;
+								file.open(path.value().string().c_str());
+								if (file.is_open()) {
+									file.write((char*)save_file_with_dialog.data.data(), save_file_with_dialog.data.size());
+									save_file_with_dialog.on_file_saved(path.value());
+								}
+							}
+						} break;
+
+						case PlatformCommandType::ShowUnsavedChangesDialog: {
+							auto& show_unsaved_changes_dialog = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
+							platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(show_unsaved_changes_dialog.document_name);
+							show_unsaved_changes_dialog.on_dialog_choice(choice);
+						} break;
+					}
 				}
 			}
 
@@ -562,10 +525,13 @@ int main(int argc, char** argv) {
 				renderer.render(shader_program);
 			}
 
+			ImWin32::Render();
 			render_imgui();
 			swap_buffer(window.sdl_window());
 		}
 	}
+
+	LOG_DEBUG("Quit");
 
 	/* Save configuration */
 	config.window.full_screen = window.is_fullscreen();

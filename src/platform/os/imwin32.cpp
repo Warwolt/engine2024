@@ -34,6 +34,9 @@ namespace ImWin32 {
 			case WM_COMMAND:
 				g.interacted_ids.push_back(msg.w_param);
 
+			case WM_QUIT:
+				// swallow, we handle quit ourselves
+
 			default:
 				DefWindowProc((HWND)msg.hwnd, msg.message, msg.w_param, msg.l_param);
 		}
@@ -78,6 +81,17 @@ namespace ImWin32 {
 
 		bool is_pressed = core::container::contains(g.interacted_ids, id);
 		return is_pressed;
+	}
+
+	void Separator() {
+		// FIXME: handle cases where we're not in a menu bar
+		ImWin32Context& g = *g_im_win32;
+		ASSERT(!g.active_main_menu.empty(), "ImWin32::Separator() called without a previous ImWin32::BeginMenu() call");
+		g.main_menus[g.active_main_menu].push_back(MenuItemSpec {
+			.flags = MF_SEPARATOR,
+			.id = 0,
+			.item = NULL,
+		});
 	}
 
 	void NewFrame() {

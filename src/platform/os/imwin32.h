@@ -48,7 +48,9 @@ namespace ImWin32 {
 	void EndMainMenuBar();
 	bool BeginMenu(const std::wstring& label);
 	void EndMenu();
+
 	bool MenuItem(const std::wstring& label, bool enabled = true);
+	void Separator();
 
 	void NewFrame();
 	void Render();

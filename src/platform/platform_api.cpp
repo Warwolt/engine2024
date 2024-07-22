@@ -7,6 +7,7 @@
 
 #include <memory.h>
 #include <string.h>
+#include <utility>
 
 namespace {
 	plog::Severity opengl_severity_to_plog_severity(GLenum severity) {
@@ -98,8 +99,12 @@ namespace platform {
 		return gl_context;
 	}
 
+	bool PlatformAPI::has_commands() {
+		return !m_commands.empty();
+	}
+
 	std::vector<PlatformCommand> PlatformAPI::drain_commands() {
-		return std::move(m_commands);
+		return std::exchange(m_commands, {});
 	}
 
 	void PlatformAPI::quit() {
