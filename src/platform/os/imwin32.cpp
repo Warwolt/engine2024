@@ -55,13 +55,19 @@ namespace ImWin32 {
 		g.active_main_menu.clear();
 	}
 
-	bool MenuItem(const std::wstring& label) {
+	bool MenuItem(const std::wstring& label, bool enabled) {
 		ImWin32Context& g = *g_im_win32;
 		ASSERT(!g.active_main_menu.empty(), "ImWin32::MenuItem() called without a previous ImWin32::BeginMenu() call");
-		const UINT_PTR id = g.next_item_id;
+
+		const uint64_t id = g.next_item_id;
+		unsigned int flags = MF_STRING;
+		if (!enabled) {
+			flags |= MF_GRAYED;
+		}
+
 		g.next_item_id += 1;
 		g.main_menus[g.active_main_menu].push_back(MenuItemSpec {
-			.flags = MF_STRING,
+			.flags = flags,
 			.id = id,
 			.item = label,
 		});
@@ -89,7 +95,7 @@ namespace ImWin32 {
 				for (const MenuItemSpec& item : menu_items) {
 					AppendMenuW(menu, item.flags, item.id, item.item.c_str());
 				}
-				AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)menu, menu_label.c_str());
+				AppendMenuW(main_menu_bar, MF_POPUP, (uint64_t)menu, menu_label.c_str());
 			}
 			SetMenu(hwnd, main_menu_bar);
 			g.shadow_main_menus = g.main_menus;

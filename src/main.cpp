@@ -316,7 +316,7 @@ int main(int argc, char** argv) {
 			}
 
 			if (ImWin32::BeginMenu(L"&Run")) {
-				if (ImWin32::MenuItem(L"Run Game\tCtrl+F5")) {
+				if (ImWin32::MenuItem(L"Run Game\tCtrl+F5", false)) {
 					LOG_DEBUG("Run Game selected from ImWin32::MenuItem");
 				}
 				ImWin32::EndMenu();
