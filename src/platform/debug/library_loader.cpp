@@ -5,6 +5,7 @@
 #include <core/util.h>
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
+#include <platform/os/imwin32.h>
 #include <platform/os/win32.h>
 
 #include <imgui/imgui.h>
@@ -119,6 +120,7 @@ namespace platform {
 		EngineLibrary engine_library;
 		LOAD_FUNCTION(m_copied_library, engine_library, set_logger);
 		LOAD_FUNCTION(m_copied_library, engine_library, set_imgui_context);
+		LOAD_FUNCTION(m_copied_library, engine_library, set_imwin32_context);
 		LOAD_FUNCTION(m_copied_library, engine_library, set_freetype_library);
 
 		LOAD_FUNCTION(m_copied_library, engine_library, initialize);
@@ -205,6 +207,7 @@ namespace platform {
 	void on_engine_library_loaded(EngineLibrary* engine_library) {
 		engine_library->set_logger(plog::verbose, plog::get());
 		engine_library->set_imgui_context(ImGui::GetCurrentContext());
+		engine_library->set_imwin32_context(ImWin32::GetCurrentContext());
 		engine_library->set_freetype_library(platform::get_ft());
 	}
 

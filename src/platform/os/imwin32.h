@@ -42,14 +42,16 @@ namespace ImWin32 {
 
 	void CreateContext(SDL_Window* window);
 	void DestroyContext();
+	void SetCurrentContext(ImWin32Context* context);
+	ImWin32Context* GetCurrentContext();
 	void ProcessWindowMessage(WindowMessage msg);
 
 	bool BeginMainMenuBar();
 	void EndMainMenuBar();
 	bool BeginMenu(const std::wstring& label);
 	void EndMenu();
-
 	bool MenuItem(const std::wstring& label, bool enabled = true);
+
 	void Separator();
 
 	void NewFrame();

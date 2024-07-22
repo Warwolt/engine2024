@@ -24,8 +24,21 @@ namespace ImWin32 {
 		g_im_win32->window = window;
 	}
 
+
+
 	void DestroyContext() {
 		delete g_im_win32;
+	}
+
+	void SetCurrentContext(ImWin32Context* context) {
+		if (context != g_im_win32) {
+			DestroyContext();
+			g_im_win32 = context;
+		}
+	}
+
+	ImWin32Context* GetCurrentContext() {
+		return g_im_win32;
 	}
 
 	void ProcessWindowMessage(WindowMessage msg) {

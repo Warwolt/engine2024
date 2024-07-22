@@ -25,32 +25,61 @@ namespace engine {
 		}
 
 		/* Editor Menu Bar*/
-		// if (ImGui::BeginMainMenuBar()) {
-		// 	if (ImGui::BeginMenu("File")) {
-		// 		if (ImGui::MenuItem(" New Project")) {
-		// 			commands.push_back(EditorCommand::NewProject);
-		// 		}
+		if (ImWin32::BeginMainMenuBar()) {
+			if (ImWin32::BeginMenu(L"&File")) {
+				if (ImWin32::MenuItem(L"&New Project\tCtrl+N")) {
+					commands.push_back(EditorCommand::NewProject);
+				}
 
-		// 		ImGui::Separator();
+				ImWin32::Separator();
 
-		// 		if (ImGui::MenuItem(" Open Project")) {
-		// 			commands.push_back(EditorCommand::OpenProject);
-		// 		}
+				if (ImWin32::MenuItem(L"&Open Project\tCtrl+O")) {
+					commands.push_back(EditorCommand::OpenProject);
+				}
 
-		// 		ImGui::Separator();
+				ImWin32::Separator();
 
-		// 		if (ImGui::MenuItem(" Save Project", NULL, false, unsaved_changes)) {
-		// 			commands.push_back(EditorCommand::SaveProject);
-		// 		}
+				if (ImWin32::MenuItem(L"&Save Project\tCtrl+S", unsaved_changes)) {
+					commands.push_back(EditorCommand::SaveProject);
+				}
 
-		// 		if (ImGui::MenuItem(" Save Project As")) {
-		// 			commands.push_back(EditorCommand::SaveProjectAs);
-		// 		}
+				if (ImWin32::MenuItem(L"Save Project &As\tCtrl+Shift+S")) {
+					commands.push_back(EditorCommand::SaveProjectAs);
+				}
 
-		// 		ImGui::EndMenu();
-		// 	}
-		// 	ImGui::EndMainMenuBar();
-		// }
+				ImWin32::Separator();
+
+				if (ImWin32::MenuItem(L"&Quit\tCtrl+Q")) {
+					commands.push_back(EditorCommand::Quit);
+				}
+
+				ImWin32::EndMenu();
+			}
+
+			if (ImWin32::BeginMenu(L"&Run")) {
+				if (game_is_running) {
+					if (ImWin32::MenuItem(L"Resume game")) {
+						commands.push_back(EditorCommand::RunGame);
+					}
+					if (ImWin32::MenuItem(L"Stop game")) {
+						commands.push_back(EditorCommand::ResetGameState);
+					}
+					if (ImWin32::MenuItem(L"Restart game")) {
+						commands.push_back(EditorCommand::ResetGameState);
+						commands.push_back(EditorCommand::RunGame);
+					}
+				}
+				else {
+					if (ImWin32::MenuItem(L"Run game")) {
+						commands.push_back(EditorCommand::ResetGameState);
+						commands.push_back(EditorCommand::RunGame);
+					}
+				}
+
+				ImWin32::EndMenu();
+			}
+			ImWin32::EndMainMenuBar();
+		}
 
 		/* Project Window */
 		if (ImGui::Begin("Project Window", nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {

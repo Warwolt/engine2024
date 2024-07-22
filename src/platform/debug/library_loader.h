@@ -18,6 +18,7 @@ namespace platform {
 		// global state wiring
 		void (*set_logger)(plog::Severity, plog::IAppender*);
 		void (*set_imgui_context)(ImGuiContext* imgui_context);
+		void (*set_imwin32_context)(ImWin32::ImWin32Context* imwin32_context);
 		void (*set_freetype_library)(FT_Library ft);
 
 		// engine interface

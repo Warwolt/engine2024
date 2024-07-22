@@ -263,32 +263,6 @@ int main(int argc, char** argv) {
 		}
 		win32_window_messages.clear();
 
-		// DECLARE WIN32 MENU BAR
-		if (ImWin32::BeginMainMenuBar()) {
-			if (ImWin32::BeginMenu(L"&File")) {
-				if (ImWin32::MenuItem(L"New Project\tCtrl+N")) {
-					LOG_DEBUG("New Project selected from ImWin32::MenuItem");
-				}
-
-				ImWin32::Separator();
-
-				if (ImWin32::MenuItem(L"Open Project\tCtrl+O")) {
-					LOG_DEBUG("Open Project selected from ImWin32::MenuItem");
-				}
-
-				ImWin32::EndMenu();
-			}
-
-			if (ImWin32::BeginMenu(L"&Run")) {
-				if (ImWin32::MenuItem(L"Run Game\tCtrl+F5", false)) {
-					LOG_DEBUG("Run Game selected from ImWin32::MenuItem");
-				}
-				ImWin32::EndMenu();
-			}
-
-			ImWin32::EndMainMenuBar();
-		}
-
 		/* Input */
 		{
 			/* Reset input states */
