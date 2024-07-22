@@ -131,12 +131,12 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 
 namespace ImWin32 {
 
-	struct MenuItem {
+	struct MenuItemSpec {
 		UINT flags;
 		UINT_PTR id;
 		std::wstring item;
 
-		inline bool operator==(const MenuItem& other) const {
+		inline bool operator==(const MenuItemSpec& other) const {
 			return flags == other.flags &&
 				id == other.id &&
 				item == other.item;
@@ -145,9 +145,10 @@ namespace ImWin32 {
 
 	struct ImWin32Context {
 		SDL_Window* window = nullptr;
+		UINT_PTR next_item_id = 1;
 		std::wstring active_main_menu;
-		std::unordered_map<std::wstring, std::vector<MenuItem>> main_menus;
-		std::unordered_map<std::wstring, std::vector<MenuItem>> shadow_main_menus;
+		std::unordered_map<std::wstring, std::vector<MenuItemSpec>> main_menus;
+		std::unordered_map<std::wstring, std::vector<MenuItemSpec>> shadow_main_menus;
 	};
 
 	ImWin32Context* g_im_win32 = nullptr;
@@ -181,9 +182,25 @@ namespace ImWin32 {
 		g.active_main_menu.clear();
 	}
 
+	bool MenuItem(const std::wstring& label) {
+		ImWin32Context& g = *g_im_win32;
+		ASSERT(!g.active_main_menu.empty(), "ImWin32::MenuItem() called without a previous ImWin32::BeginMenu() call");
+		g.main_menus[g.active_main_menu].push_back(MenuItemSpec {
+			.flags = MF_STRING,
+			.id = g.next_item_id,
+			.item = label,
+		});
+		g.next_item_id += 1;
+
+		// TODO: return true if item pressed
+		return false;
+	}
+
 	void NewFrame() {
 		ImWin32Context& g = *g_im_win32;
 		g.active_main_menu.clear();
+		g.main_menus.clear();
+		g.next_item_id = 1;
 	}
 
 	void Render() {
@@ -195,14 +212,14 @@ namespace ImWin32 {
 			HMENU main_menu_bar = CreateMenu();
 			for (const auto& [menu_label, menu_items] : g.main_menus) {
 				HMENU menu = CreateMenu();
-				for (const MenuItem& item : menu_items) {
+				for (const MenuItemSpec& item : menu_items) {
 					AppendMenuW(menu, item.flags, item.id, item.item.c_str());
 				}
 				AppendMenuW(main_menu_bar, MF_POPUP, (UINT_PTR)menu, menu_label.c_str());
 			}
 			SetMenu(hwnd, main_menu_bar);
+			g.shadow_main_menus = g.main_menus;
 		}
-		g.shadow_main_menus = g.main_menus;
 	}
 
 } // namespace ImWin32
@@ -406,10 +423,17 @@ int main(int argc, char** argv) {
 		// DECLARE WIN32 MENU BAR
 		if (ImWin32::BeginMainMenuBar()) {
 			if (ImWin32::BeginMenu(L"&File")) {
+				if (ImWin32::MenuItem(L"New Project\tCtrl+N")) {
+					LOG_DEBUG("New Project selected from ImWin32::MenuItem");
+				}
+
 				ImWin32::EndMenu();
 			}
 
 			if (ImWin32::BeginMenu(L"&Run")) {
+				if (ImWin32::MenuItem(L"Run Game\tCtrl+F5")) {
+					LOG_DEBUG("Run Game selected from ImWin32::MenuItem");
+				}
 				ImWin32::EndMenu();
 			}
 
