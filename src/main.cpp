@@ -281,11 +281,6 @@ int main(int argc, char** argv) {
 	//        ImWin32::EndMainMenuBar();
 	//    }
 	//
-	constexpr UINT_PTR IDM_FILE_NEW = 1;
-	constexpr UINT_PTR IDM_FILE_OPEN = 2;
-	constexpr UINT_PTR IDM_FILE_SAVE = 3;
-	constexpr UINT_PTR IDM_FILE_SAVE_AS = 4;
-	constexpr UINT_PTR IDM_FILE_QUIT = 5;
 	std::vector<UINT_PTR> wm_commands;
 	{
 		// Setup callback
@@ -304,14 +299,14 @@ int main(int argc, char** argv) {
 			LPCWSTR item;
 		};
 		std::vector<MenuItem> menu_items = {
-			{ MF_STRING, IDM_FILE_NEW, L"&New Project\tCtrl+N" },
+			{ MF_STRING, 1, L"&New Project\tCtrl+N" },
 			{ MF_SEPARATOR, 0, NULL },
-			{ MF_STRING, IDM_FILE_OPEN, L"&Open Project\tCtrl+O" },
+			{ MF_STRING, 2, L"&Open Project\tCtrl+O" },
 			{ MF_SEPARATOR, 0, NULL },
-			{ MF_STRING, IDM_FILE_SAVE, L"&Save Project\tCtrl+S" },
-			{ MF_STRING, IDM_FILE_SAVE_AS, L"&Save Project As\tCtrl+Shift+S" },
+			{ MF_STRING, 3, L"&Save Project\tCtrl+S" },
+			{ MF_STRING, 4, L"&Save Project As\tCtrl+Shift+S" },
 			{ MF_SEPARATOR, 0, NULL },
-			{ MF_STRING, IDM_FILE_QUIT, L"&Quit" },
+			{ MF_STRING, 5, L"&Quit" },
 		};
 
 		// Create menu bar
@@ -327,24 +322,28 @@ int main(int argc, char** argv) {
 
 	/* Main loop */
 	while (!quit) {
-		// REACT TO WIN32 MENU BAR
+		// DECLARE WIN32 MENU BAR
+
+		// UPDATE UNDERLYING WIN32 STATE
+
+		// REACT TO WIN32 MENU BAR EVENTS
 		{
 			std::vector<UINT_PTR> cmds = std::move(wm_commands);
 			for (UINT_PTR cmd : cmds) {
 				switch (cmd) {
-					case IDM_FILE_NEW:
+					case 1:
 						LOG_DEBUG("New Project selected");
 						break;
-					case IDM_FILE_OPEN:
+					case 2:
 						LOG_DEBUG("Open Project selected");
 						break;
-					case IDM_FILE_SAVE:
+					case 3:
 						LOG_DEBUG("Save Project selected");
 						break;
-					case IDM_FILE_SAVE_AS:
+					case 4:
 						LOG_DEBUG("Save Project As selected");
 						break;
-					case IDM_FILE_QUIT:
+					case 5:
 						quit = true;
 						break;
 				}
