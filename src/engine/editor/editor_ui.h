@@ -21,6 +21,8 @@ namespace engine {
 		bool run_game_windowed = false;
 	};
 
+	void initialize_editor_ui(EditorUiState* ui, const ProjectState& project);
+
 	std::vector<EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		GameState* game,

@@ -9,6 +9,11 @@
 
 namespace engine {
 
+	void initialize_editor_ui(EditorUiState* ui, const ProjectState& project) {
+		ui->project_name_buf = project.name;
+		ui->cached_project_hash = std::hash<ProjectState>()(project);
+	}
+
 	std::vector<EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		GameState* game,
@@ -22,6 +27,11 @@ namespace engine {
 		/* Quit */
 		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
 			commands.push_back(EditorCommand::Quit);
+		}
+
+		/* Dockspace */
+		{
+			ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 		}
 
 		/* Editor Menu Bar*/
@@ -80,6 +90,8 @@ namespace engine {
 			}
 			ImWin32::EndMainMenuBar();
 		}
+
+		ImGui::ShowDemoWindow();
 
 		/* Project Window */
 		if (ImGui::Begin("Project Window", nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {

@@ -72,6 +72,7 @@ static void init_imgui(SDL_Window* window, SDL_GLContext gl_context) {
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable window docking
 
 	ImGui::StyleColorsDark();
 

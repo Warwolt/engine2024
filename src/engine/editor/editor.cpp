@@ -119,8 +119,7 @@ namespace engine {
 	}
 
 	void init_editor(EditorState* editor, const ProjectState& project) {
-		editor->ui.project_name_buf = project.name;
-		editor->ui.cached_project_hash = std::hash<ProjectState>()(project);
+		initialize_editor_ui(&editor->ui, project);
 	}
 
 	void update_editor(
@@ -135,7 +134,14 @@ namespace engine {
 		editor->project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 
 		/* Run UI */
-		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, editor->project_has_unsaved_changes, editor->game_is_running);
+		std::vector<EditorCommand> commands = update_editor_ui(
+			&editor->ui,
+			game,
+			project,
+			input,
+			editor->project_has_unsaved_changes,
+			editor->game_is_running
+		);
 
 		/* Project keyboard shortcuts */
 		{
