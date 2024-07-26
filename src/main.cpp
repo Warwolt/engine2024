@@ -249,7 +249,11 @@ int main(int argc, char** argv) {
 		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
 		engine.load_project(&state, path.string().c_str());
 	}
-	engine.initialize(&state);
+	{
+		start_imgui_frame(); // this allows engine to initialize imgui state
+		engine.initialize(&state);
+		ImGui::EndFrame();
+	}
 
 	/* Main loop */
 	while (!quit) {
@@ -282,7 +286,12 @@ int main(int argc, char** argv) {
 						break;
 
 					case SDL_KEYDOWN:
-						if (!imgui_io.WantCaptureKeyboard) {
+						// FIXME: After introducing docking, we end up with ImGui
+						// _always_ wanting to capture keyboard, so we end up not
+						// capturing any of our own input.
+						//
+						// if (!imgui_io.WantCaptureKeyboard) {
+						{
 							int modifiers = 0;
 							modifiers |= (event.key.keysym.mod & KMOD_CTRL) ? platform::KEY_MOD_CTRL : 0;
 							modifiers |= (event.key.keysym.mod & KMOD_SHIFT) ? platform::KEY_MOD_SHIFT : 0;

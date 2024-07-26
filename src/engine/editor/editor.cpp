@@ -119,7 +119,7 @@ namespace engine {
 	}
 
 	void init_editor(EditorState* editor, const ProjectState& project) {
-		initialize_editor_ui(&editor->ui, project);
+		init_editor_ui(&editor->ui, project);
 	}
 
 	void update_editor(
