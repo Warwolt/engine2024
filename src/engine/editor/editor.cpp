@@ -31,7 +31,7 @@ namespace engine {
 		LOG_INFO("Opened new project");
 		*project = {};
 		*game = {};
-		init_editor(editor, *project);
+		init_editor(editor, *project, false);
 	}
 
 	static void open_project(
@@ -118,9 +118,8 @@ namespace engine {
 		LOG_INFO("Editor quit");
 	}
 
-	void init_editor(EditorState* editor, const ProjectState& project) {
-		editor->ui.project_name_buf = project.name;
-		editor->ui.cached_project_hash = std::hash<ProjectState>()(project);
+	void init_editor(EditorState* editor, const ProjectState& project, bool reset_docking) {
+		init_editor_ui(&editor->ui, project, reset_docking);
 	}
 
 	void update_editor(
@@ -135,7 +134,14 @@ namespace engine {
 		editor->project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 
 		/* Run UI */
-		std::vector<EditorCommand> commands = update_editor_ui(&editor->ui, game, project, input, editor->project_has_unsaved_changes, editor->game_is_running);
+		std::vector<EditorCommand> commands = update_editor_ui(
+			&editor->ui,
+			game,
+			project,
+			input,
+			editor->project_has_unsaved_changes,
+			editor->game_is_running
+		);
 
 		/* Project keyboard shortcuts */
 		{

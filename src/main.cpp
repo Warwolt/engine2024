@@ -72,6 +72,7 @@ static void init_imgui(SDL_Window* window, SDL_GLContext gl_context) {
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable window docking
 
 	ImGui::StyleColorsDark();
 
@@ -248,7 +249,13 @@ int main(int argc, char** argv) {
 		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
 		engine.load_project(&state, path.string().c_str());
 	}
-	engine.initialize(&state);
+	{
+		platform::Timer init_timer;
+		start_imgui_frame(); // this allows engine to initialize imgui state
+		engine.initialize(&state, &config);
+		ImGui::EndFrame();
+		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
+	}
 
 	/* Main loop */
 	while (!quit) {
@@ -281,7 +288,12 @@ int main(int argc, char** argv) {
 						break;
 
 					case SDL_KEYDOWN:
-						if (!imgui_io.WantCaptureKeyboard) {
+						// FIXME: After introducing docking, we end up with ImGui
+						// _always_ wanting to capture keyboard, so we end up not
+						// capturing any of our own input.
+						//
+						// if (!imgui_io.WantCaptureKeyboard) {
+						{
 							int modifiers = 0;
 							modifiers |= (event.key.keysym.mod & KMOD_CTRL) ? platform::KEY_MOD_CTRL : 0;
 							modifiers |= (event.key.keysym.mod & KMOD_SHIFT) ? platform::KEY_MOD_SHIFT : 0;
@@ -504,6 +516,7 @@ int main(int argc, char** argv) {
 	LOG_INFO("Shutting down");
 
 	/* Save configuration */
+	config.window.docking_initialized = true;
 	config.window.full_screen = window.is_fullscreen();
 	config.window.maximized = window.is_maximized();
 	config.window.position = window.last_windowed_position();
