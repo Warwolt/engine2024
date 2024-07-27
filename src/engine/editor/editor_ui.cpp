@@ -149,6 +149,8 @@ namespace engine {
 
 			ImGui::Text("Project path: %s", project->path.string().c_str());
 
+			ImGui::Text("Window is maximized: %s", input.window->is_maximized() ? "true" : "false");
+
 			ImGui::End();
 		}
 

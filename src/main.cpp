@@ -150,41 +150,39 @@ int main(int argc, char** argv) {
 		ABORT("platform::initialize() failed");
 	}
 
+	/* Load configuration */
+	platform::Configuration config;
+	const std::string config_name = is_editor_mode ? "Editor.ini" : (platform::application_name() + ".ini");
+	const std::filesystem::path config_path = platform::application_path().parent_path() / config_name;
+	std::optional<platform::Configuration> loaded_config = platform::load_configuration(config_path);
+	if (loaded_config.has_value()) {
+		LOG_INFO("Loaded configuration from \"%s\"", config_path.string().c_str());
+		config = loaded_config.value();
+	}
+
+	// use `loaded_config` so that we only act when a config file has been loaded
+	const bool window_should_be_fullscreen = loaded_config.has_value() && loaded_config->window.fullscreen && !cmd_args.start_game_windowed;
+	const bool window_should_be_maximized = loaded_config.has_value() && !window_should_be_fullscreen && loaded_config->window.maximized;
+	const bool window_should_be_positioned = loaded_config.has_value() && !window_should_be_maximized;
+
 	/* Create window */
 	const glm::ivec2 initial_window_size = { 960, 600 };
 	int window_flags = 0;
 	if (is_editor_mode) {
 		window_flags |= SDL_WINDOW_RESIZABLE;
 	}
+	if (window_should_be_maximized) {
+		window_flags |= SDL_WINDOW_MAXIMIZED;
+	}
 	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, window_flags, "Untitled Project"), [] {
 		ABORT("platform::create_window failed");
 	});
-
-	/* Load configuration */
-	const std::string config_name = is_editor_mode ? "Editor.ini" : (platform::application_name() + ".ini");
-	const std::filesystem::path config_path = platform::application_path().parent_path() / config_name;
-	platform::Configuration config;
-	if (std::optional<platform::Configuration> loaded_config = platform::load_configuration(config_path)) {
-		config = loaded_config.value();
-		LOG_INFO("Loaded configuration from \"%s\"", config_path.string().c_str());
-
-		/* Apply configuration */
-		if (config.window.full_screen && !cmd_args.start_game_windowed) {
-			window.toggle_fullscreen();
-		}
-		else if (config.window.maximized) {
-			window.maximize();
-		}
-		else {
-			const int win32_menu_bar_height = 32;
-			window.set_position(config.window.position + glm::ivec2 { 0, win32_menu_bar_height });
-		}
+	if (window_should_be_fullscreen) {
+		window.toggle_fullscreen();
 	}
-	else {
-		// Start in full screen if running game
-		if (!cmd_args.start_game_windowed) {
-			window.set_window_mode(platform::WindowMode::FullScreen);
-		}
+	if (window_should_be_positioned) {
+		const int win32_menu_bar_height = 32;
+		window.set_position(config.window.position + glm::ivec2 { 0, win32_menu_bar_height });
 	}
 
 	/* Create OpenGL context */
@@ -275,6 +273,7 @@ int main(int argc, char** argv) {
 			input.mouse.scroll_delta = 0;
 			input.mouse.pos_delta = glm::vec2 { 0, 0 };
 			input.quit_signal_received = false;
+			input.window = &window;
 
 			/* Poll all SDL events */
 			ImGuiIO& imgui_io = ImGui::GetIO();
@@ -517,7 +516,7 @@ int main(int argc, char** argv) {
 
 	/* Save configuration */
 	config.window.docking_initialized = true;
-	config.window.full_screen = window.is_fullscreen();
+	config.window.fullscreen = window.is_fullscreen();
 	config.window.maximized = window.is_maximized();
 	config.window.position = window.last_windowed_position();
 	config.window.size = window.size();
@@ -532,4 +531,4 @@ int main(int argc, char** argv) {
 	window.destroy();
 
 	return 0;
-}
+ }
