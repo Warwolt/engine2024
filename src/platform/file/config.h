@@ -9,6 +9,7 @@ namespace platform {
 
 	struct Configuration {
 		struct {
+			bool docking_initialized = false;
 			bool full_screen = false;
 			bool maximized = false;
 			glm::ivec2 position = { 0, 0 };

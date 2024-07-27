@@ -61,9 +61,9 @@ namespace engine {
 		platform::set_ft(ft);
 	}
 
-	void initialize(State* state) {
+	void initialize(State* state, const platform::Configuration* config) {
 		/* Initialize */
-		const bool reset_docking = true; // FIXME: check if config exists
+		const bool reset_docking = !config->window.docking_initialized;
 		init_editor(&state->editor, state->project, reset_docking);
 
 		/* Add fonts */

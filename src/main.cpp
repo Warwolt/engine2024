@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
 	}
 	{
 		start_imgui_frame(); // this allows engine to initialize imgui state
-		engine.initialize(&state);
+		engine.initialize(&state, &config);
 		ImGui::EndFrame();
 	}
 
@@ -514,6 +514,7 @@ int main(int argc, char** argv) {
 	LOG_INFO("Shutting down");
 
 	/* Save configuration */
+	config.window.docking_initialized = true;
 	config.window.full_screen = window.is_fullscreen();
 	config.window.maximized = window.is_maximized();
 	config.window.position = window.last_windowed_position();
