@@ -18,7 +18,7 @@ namespace engine {
 		bool game_is_running = false;
 	};
 
-	void init_editor(EditorState* editor, const ProjectState& project);
+	void init_editor(EditorState* editor, const ProjectState& project, bool reset_docking);
 
 	void update_editor(
 		EditorState* editor,

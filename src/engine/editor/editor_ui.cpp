@@ -10,74 +10,51 @@
 
 namespace engine {
 
-	void init_editor_ui(EditorUiState* ui, const ProjectState& project) {
+	constexpr char PROJECT_WINDOW[] = "Project Window";
+	constexpr char GAME_WINDOW[] = "Game Window";
+	constexpr char SCENE_WINDOW[] = "Scene Window";
+
+	void init_editor_ui(
+		EditorUiState* ui,
+		const ProjectState& project,
+		bool reset_docking
+	) {
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<ProjectState>()(project);
 
 		/* Setup docking */
-		{
-			ImVec2 work_center = ImGui::GetMainViewport()->GetWorkCenter();
-
-			// 3. Now we'll need to create our dock node:
+		if (reset_docking) {
+			/* Create docks */
 			ImGuiID id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-			ImGui::DockBuilderRemoveNode(id); // Clear any preexisting layouts associated with the ID we just chose
 			ImGui::DockBuilderAddNode(id); // Create a new dock node to use
+			ImGui::DockBuilderSetNodeSize(id, ImVec2 { 1, 1 });
 
-			// 4. Set the dock node's size and position:
-			ImVec2 size { 600, 300 }; // A decently large dock node size (600x300px) so everything displays clearly
-
-			// Calculate the position of the dock node
-			//
-			// `DockBuilderSetNodePos()` will position the top-left corner of the node to the coordinate given.
-			// This means that the node itself won't actually be in the center of the window; its top-left corner will.
-			//
-			// To fix this, we'll need to subtract half the node size from both the X and Y dimensions to move it left and up.
-			// This new coordinate will be the position of the node's top-left corner that will center the node in the window.
-			ImVec2 node_pos { work_center.x - size.x * 0.5f, work_center.y - size.y * 0.5f };
-
-			// Set the size and position:
-			ImGui::DockBuilderSetNodeSize(id, size);
-			ImGui::DockBuilderSetNodePos(id, node_pos);
-
-			// 5. Split the dock node to create spaces to put our windows in:
-
-			// Split the dock node in the left direction to create our first docking space. This will be on the left side of the node.
-			// (The 0.5f means that the new space will take up 50% of its parent - the dock node.)
-			ImGuiID dock1 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Left, 0.5f, nullptr, &id);
+			ImGuiID dock1 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Right, 0.75f, nullptr, &id);
 			// +-----------+
 			// |           |
 			// |     1     |
 			// |           |
 			// +-----------+
 
-			// Split the same dock node in the right direction to create our second docking space.
-			// At this point, the dock node has two spaces, one on the left and one on the right.
-			ImGuiID dock2 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Right, 0.5f, nullptr, &id);
+			ImGuiID dock2 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Left, 0.5f, nullptr, &id);
 			// +-----+-----+
-			// |     |     |
-			// |  1  |  2  |
-			// |     |     |
+			// |   |       |
+			// | 2 |   1   |
+			// |   |       |
 			// +-----+-----+
-			//    split ->
+			//    <- split
 
-			// For our last docking space, we want it to be under the second one but not under the first.
-			// Split the second space in the down direction so that we now have an additional space under it.
-			//
-			// Notice how "dock2" is now passed rather than "id".
-			// The new space takes up 50% of the second space rather than 50% of the original dock node.
 			ImGuiID dock3 = ImGui::DockBuilderSplitNode(dock2, ImGuiDir_Down, 0.5f, nullptr, &dock2);
 			// +-----+-----+
-			// |     |  2  |  split
-			// |  1  +-----+    |
-			// |     |  3  |    V
+			// | 2 |       |  split
+			// +---+   1   |    |
+			// | 3 |       |    V
 			// +-----+-----+
 
-			// 6. Add windows to each docking space:
-			ImGui::DockBuilderDockWindow("One", dock1);
-			ImGui::DockBuilderDockWindow("Two", dock2);
-			ImGui::DockBuilderDockWindow("Three", dock3);
-
-			// 7. We're done setting up our docking configuration:
+			/* Add windows to docks */
+			ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock1);
+			ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock2);
+			ImGui::DockBuilderDockWindow(GAME_WINDOW, dock3);
 			ImGui::DockBuilderFinish(id);
 		}
 	}
@@ -100,15 +77,6 @@ namespace engine {
 		/* Dockspace */
 		{
 			ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-
-			ImGui::Begin("One");
-			ImGui::End();
-
-			ImGui::Begin("Two");
-			ImGui::End();
-
-			ImGui::Begin("Three");
-			ImGui::End();
 		}
 
 		/* Editor Menu Bar*/
@@ -169,7 +137,7 @@ namespace engine {
 		}
 
 		/* Project Window */
-		if (0 && ImGui::Begin("Project Window", nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
+		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
 			const int step = 1;
 			ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
 
@@ -185,7 +153,7 @@ namespace engine {
 		}
 
 		/* Game Edit Window */
-		if (0 && ImGui::Begin("Game Window", nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
+		if (ImGui::Begin(GAME_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
 			if (game_is_running) {
 				const int step = 1;
 				ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
@@ -210,6 +178,11 @@ namespace engine {
 
 			ImGui::Checkbox("Windowed mode", &ui->run_game_windowed);
 
+			ImGui::End();
+		}
+
+		/* Scene Window */
+		if (ImGui::Begin(SCENE_WINDOW)) {
 			ImGui::End();
 		}
 

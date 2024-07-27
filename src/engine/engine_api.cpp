@@ -63,7 +63,8 @@ namespace engine {
 
 	void initialize(State* state) {
 		/* Initialize */
-		init_editor(&state->editor, state->project);
+		const bool reset_docking = true; // FIXME: check if config exists
+		init_editor(&state->editor, state->project, reset_docking);
 
 		/* Add fonts */
 		{

@@ -31,7 +31,7 @@ namespace engine {
 		LOG_INFO("Opened new project");
 		*project = {};
 		*game = {};
-		init_editor(editor, *project);
+		init_editor(editor, *project, false);
 	}
 
 	static void open_project(
@@ -118,8 +118,8 @@ namespace engine {
 		LOG_INFO("Editor quit");
 	}
 
-	void init_editor(EditorState* editor, const ProjectState& project) {
-		init_editor_ui(&editor->ui, project);
+	void init_editor(EditorState* editor, const ProjectState& project, bool reset_docking) {
+		init_editor_ui(&editor->ui, project, reset_docking);
 	}
 
 	void update_editor(

@@ -21,7 +21,10 @@ namespace engine {
 		bool run_game_windowed = false;
 	};
 
-	void init_editor_ui(EditorUiState* ui, const ProjectState& project);
+	void init_editor_ui(
+		EditorUiState* ui,
+		const ProjectState& project,
+		bool reset_docking);
 
 	std::vector<EditorCommand> update_editor_ui(
 		EditorUiState* ui,
