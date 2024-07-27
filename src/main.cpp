@@ -135,6 +135,7 @@ int main(int argc, char** argv) {
 		exit(1);
 	});
 	const bool is_editor_mode = cmd_args.start_in_editor_mode;
+	platform::RunMode run_mode = is_editor_mode ? platform::RunMode::Editor : platform::RunMode::Game;
 
 	if (cmd_args.print_usage) {
 		printf("%s\n", platform::usage_string().c_str());
@@ -161,9 +162,9 @@ int main(int argc, char** argv) {
 	}
 
 	// use `loaded_config` so that we only act when a config file has been loaded
-	const bool window_should_be_fullscreen = loaded_config.has_value() && loaded_config->window.fullscreen && !cmd_args.start_game_windowed;
-	const bool window_should_be_maximized = loaded_config.has_value() && !window_should_be_fullscreen && loaded_config->window.maximized;
-	const bool window_should_be_positioned = loaded_config.has_value() && !window_should_be_maximized;
+	const bool window_should_be_fullscreen = !cmd_args.start_game_windowed && (run_mode == platform::RunMode::Game || config.window.fullscreen);
+	const bool window_should_be_maximized = !window_should_be_fullscreen && config.window.maximized;
+	const bool window_should_be_positioned = !window_should_be_maximized && !window_should_be_fullscreen;
 
 	/* Create window */
 	const glm::ivec2 initial_window_size = { 960, 600 };
@@ -237,12 +238,11 @@ int main(int argc, char** argv) {
 	engine::State state;
 
 	bool quit = false;
-	platform::RunMode mode = is_editor_mode ? platform::RunMode::Editor : platform::RunMode::Game;
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
 	/* Initialize engine */
-	if (mode == platform::RunMode::Game) {
+	if (run_mode == platform::RunMode::Game) {
 		// load game pak
 		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
 		engine.load_project(&state, path.string().c_str());
@@ -360,7 +360,7 @@ int main(int argc, char** argv) {
 			input.engine_is_rebuilding = hot_reloader.rebuild_command_is_running();
 			input.engine_rebuild_exit_code = hot_reloader.last_exit_code();
 			input.window_resolution = window_canvas.texture.size;
-			input.mode = mode;
+			input.mode = run_mode;
 			input.mouse.left_button.update(mouse_button_events[SDL_BUTTON_LEFT - 1]);
 			input.mouse.middle_button.update(mouse_button_events[SDL_BUTTON_MIDDLE - 1]);
 			input.mouse.right_button.update(mouse_button_events[SDL_BUTTON_RIGHT - 1]);
@@ -415,7 +415,7 @@ int main(int argc, char** argv) {
 
 						case PlatformCommandType::SetRunMode: {
 							auto& set_run_mode = std::get<platform::cmd::app::SetRunMode>(cmd);
-							mode = set_run_mode.mode;
+							run_mode = set_run_mode.mode;
 						} break;
 
 						case PlatformCommandType::SetWindowMode: {
@@ -531,4 +531,4 @@ int main(int argc, char** argv) {
 	window.destroy();
 
 	return 0;
- }
+}
