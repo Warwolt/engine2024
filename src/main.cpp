@@ -250,9 +250,11 @@ int main(int argc, char** argv) {
 		engine.load_project(&state, path.string().c_str());
 	}
 	{
+		platform::Timer init_timer;
 		start_imgui_frame(); // this allows engine to initialize imgui state
 		engine.initialize(&state, &config);
 		ImGui::EndFrame();
+		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
 	}
 
 	/* Main loop */
