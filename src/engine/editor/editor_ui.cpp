@@ -131,9 +131,18 @@ namespace engine {
 					}
 				}
 
+				if (ImWin32::MenuItem(L"Show ImGui Demo")) {
+					ui->show_imgui_demo = true;
+				}
+
 				ImWin32::EndMenu();
 			}
 			ImWin32::EndMainMenuBar();
+		}
+
+		/* ImGui Demo */
+		if (ui->show_imgui_demo) {
+			ImGui::ShowDemoWindow(&ui->show_imgui_demo);
 		}
 
 		/* Project Window */
