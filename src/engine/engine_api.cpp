@@ -164,7 +164,7 @@ namespace engine {
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, &window_title);
 			platform->set_window_title(window_title.c_str());
 			if (input.mode == platform::RunMode::Editor) {
-				update_editor(&state->editor, &state->game, &state->project, input, platform);
+				update_editor(&state->editor, &state->game, &state->project, input, state->resources, platform);
 			}
 		}
 	}

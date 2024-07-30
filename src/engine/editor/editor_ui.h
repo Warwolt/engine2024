@@ -7,13 +7,16 @@
 #include <vector>
 
 namespace platform {
+
 	struct Input;
+
 } // namespace platform
 
 namespace engine {
 
 	struct GameState;
 	struct ProjectState;
+	struct Resources;
 
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
@@ -33,6 +36,7 @@ namespace engine {
 		GameState* game,
 		ProjectState* project,
 		const platform::Input& input,
+		const engine::Resources& resources,
 		bool unsaved_changes,
 		bool game_is_running
 	);

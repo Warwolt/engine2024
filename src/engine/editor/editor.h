@@ -11,6 +11,7 @@ namespace engine {
 
 	struct GameState;
 	struct ProjectState;
+	struct Resources;
 
 	struct EditorState {
 		EditorUiState ui;
@@ -25,6 +26,7 @@ namespace engine {
 		GameState* game,
 		ProjectState* project,
 		const platform::Input& input,
+		const engine::Resources& resources,
 		platform::PlatformAPI* platform
 	);
 
