@@ -46,6 +46,8 @@ set(IMGUI_SRC
     ${IMGUI_DIR}/imgui/misc/cpp/imgui_stdlib.cpp
 )
 
+add_compile_definitions(IMGUI_USER_CONFIG=<platform/debug/imconfig.h>)
+
 set(CORE_SRC
     src/core/string.cpp
     src/core/parse.cpp
@@ -117,7 +119,7 @@ set(DLLS
 
 # Imgui
 add_library(imgui STATIC ${IMGUI_SRC})
-target_include_directories(imgui PUBLIC ${IMGUI_DIR}/imgui ${SDL_DIR}/include/SDL2)
+target_include_directories(imgui PUBLIC ${IMGUI_DIR}/imgui ${SDL_DIR}/include/SDL2 src ${SDL_DIR}/include)
 target_link_libraries(imgui PUBLIC ${SDL_DIR}/lib/SDL2.lib)
 
 # Core

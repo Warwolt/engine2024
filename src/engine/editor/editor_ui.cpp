@@ -199,7 +199,7 @@ namespace engine {
 		if (ImGui::Begin(SCENE_WINDOW)) {
 			// render font antlas
 			const platform::Font& arial_16 = resources.fonts.at("arial-16");
-			ImGui::Image((ImTextureID)arial_16.atlas.id, { arial_16.atlas.size.x, arial_16.atlas.size.y }, { 0, 1 }, { 1, 0 });
+			ImGui::Image(arial_16.atlas.id, { arial_16.atlas.size.x, arial_16.atlas.size.y }, { 0, 1 }, { 1, 0 });
 			ImGui::End();
 		}
 
