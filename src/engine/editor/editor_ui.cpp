@@ -217,6 +217,8 @@ namespace engine {
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
+			// FIXME: we should calculate UV coordinates so that we clip the
+			// canvas to fit the scene window (just render top left corner)
 			ImGui::Image(ui->scene_canvas.texture.id, ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 });
 		}
 		ImGui::End();
@@ -226,11 +228,14 @@ namespace engine {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
+		const engine::Resources& resources,
 		platform::Renderer* renderer
 	) {
 		renderer->set_draw_canvas(ui.scene_canvas);
 
 		renderer->draw_rect_fill({ { 0, 0 }, ui.scene_canvas.texture.size }, { 0.75, 0.75, 0.75, 1.0 });
+
+		renderer->draw_text(resources.fonts.at("arial-16"), "Editor", { 100.0, 100.0 }, { 0.0, 0.0, 0.0, 1.0 });
 
 		renderer->reset_draw_canvas();
 	}

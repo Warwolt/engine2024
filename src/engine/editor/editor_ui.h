@@ -47,6 +47,7 @@ namespace engine {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
+		const engine::Resources& resources,
 		platform::Renderer* renderer
 	);
 

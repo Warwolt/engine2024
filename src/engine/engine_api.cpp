@@ -184,7 +184,7 @@ namespace engine {
 
 	void render(platform::Renderer* renderer, const State* state) {
 		if (state->editor_is_running) {
-			render_editor(state->editor, renderer);
+			render_editor(state->editor, state->resources, renderer);
 		}
 		else {
 			render_game(*state, renderer);

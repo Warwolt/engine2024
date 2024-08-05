@@ -31,6 +31,10 @@ namespace engine {
 		platform::PlatformAPI* platform
 	);
 
-	void render_editor(const EditorState& editor, platform::Renderer* renderer);
+	void render_editor(
+		const EditorState& editor,
+		const engine::Resources& resources,
+		platform::Renderer* renderer
+	);
 
 } // namespace engine
