@@ -217,7 +217,7 @@ namespace engine {
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
-			ImGui::Image(ui->scene_canvas.texture.id, ImGui::GetContentRegionAvail());
+			ImGui::Image(ui->scene_canvas.texture.id, ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 });
 		}
 		ImGui::End();
 
