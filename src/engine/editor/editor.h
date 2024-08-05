@@ -5,6 +5,7 @@
 
 namespace platform {
 	struct Input;
+	class Renderer;
 }
 
 namespace engine {
@@ -29,5 +30,7 @@ namespace engine {
 		const engine::Resources& resources,
 		platform::PlatformAPI* platform
 	);
+
+	void render_editor(const EditorState& editor, platform::Renderer* renderer);
 
 } // namespace engine

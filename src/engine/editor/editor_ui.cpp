@@ -21,6 +21,11 @@ namespace engine {
 		const ProjectState& project,
 		bool reset_docking
 	) {
+		// FIXME: we should probably create the canvas to be equal to monitor
+		// size, so that we can freely resize the scene window without having to
+		// re-allocate the canvas. We will be clipping the canvas when rendering
+		// in ImGui using UV-coordinates anyway.
+		ui->scene_canvas = platform::add_canvas(512, 512);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<ProjectState>()(project);
 
@@ -61,12 +66,16 @@ namespace engine {
 		}
 	}
 
+	void shutdown_editor_ui(const EditorUiState& ui) {
+		platform::free_canvas(ui.scene_canvas);
+	}
+
 	std::vector<EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		GameState* game,
 		ProjectState* project,
 		const platform::Input& input,
-		const engine::Resources& resources,
+		const engine::Resources& /* resources */,
 		bool unsaved_changes,
 		bool game_is_running
 	) {
@@ -197,13 +206,23 @@ namespace engine {
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
-			// render font antlas
-			const platform::Font& arial_16 = resources.fonts.at("arial-16");
-			ImGui::Image(arial_16.atlas.id, { arial_16.atlas.size.x, arial_16.atlas.size.y }, { 0, 1 }, { 1, 0 });
+			ImGui::Text("%f %f", ui->scene_canvas.texture.size.x, ui->scene_canvas.texture.size.y);
+			ImGui::Image(ui->scene_canvas.texture.id, { ui->scene_canvas.texture.size.x, ui->scene_canvas.texture.size.y });
 			ImGui::End();
 		}
 
 		return commands;
+	}
+
+	void render_editor_ui(
+		const EditorUiState& ui,
+		platform::Renderer* renderer
+	) {
+		renderer->set_draw_canvas(ui.scene_canvas);
+
+		renderer->draw_rect_fill({ { 0, 0 }, ui.scene_canvas.texture.size }, { 0.75, 0.75, 0.75, 1.0 });
+
+		renderer->reset_draw_canvas();
 	}
 
 } // namespace engine

@@ -169,20 +169,25 @@ namespace engine {
 		}
 	}
 
-	void render(platform::Renderer* renderer, const State* state) {
-		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state->window_resolution }, glm::vec4 { 0.33f, 0.37f, 0.4f, 1.0f });
+	static void render_game(const State& state, platform::Renderer* renderer) {
+		// clear
+		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state.window_resolution }, glm::vec4 { 0.33f, 0.37f, 0.4f, 1.0f });
 
-		platform::Font font = state->resources.fonts.at("arial-16");
+		platform::Font font = state.resources.fonts.at("arial-16");
 		glm::vec4 text_color = glm::vec4 { 0.92f, 0.92f, 0.92f, 1.0f };
+		std::string text = std::to_string(state.game.counter);
+		glm::vec2 line1_pos = state.window_resolution / 2.0f;
+		glm::vec2 line2_pos = state.window_resolution / 2.0f + glm::vec2 { 0.0f, font.height };
+		renderer->draw_text_centered(font, "Game", line1_pos, text_color);
+		renderer->draw_text_centered(font, text.c_str(), line2_pos, text_color);
+	}
+
+	void render(platform::Renderer* renderer, const State* state) {
 		if (state->editor_is_running) {
-			renderer->draw_text_centered(font, "Editor", state->window_resolution / 2.0f, text_color);
+			render_editor(state->editor, renderer);
 		}
 		else {
-			std::string text = std::to_string(state->game.counter);
-			glm::vec2 line1_pos = state->window_resolution / 2.0f;
-			glm::vec2 line2_pos = state->window_resolution / 2.0f + glm::vec2 { 0.0f, font.height };
-			renderer->draw_text_centered(font, "Game", line1_pos, text_color);
-			renderer->draw_text_centered(font, text.c_str(), line2_pos, text_color);
+			render_game(*state, renderer);
 		}
 	}
 

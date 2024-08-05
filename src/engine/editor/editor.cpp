@@ -244,4 +244,8 @@ namespace engine {
 		}
 	}
 
+	void render_editor(const EditorState& editor, platform::Renderer* renderer) {
+		render_editor_ui(editor.ui, renderer);
+	}
+
 } // namespace engine

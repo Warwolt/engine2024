@@ -483,11 +483,7 @@ int main(int argc, char** argv) {
 
 			/* Render to canvas */
 			{
-				set_viewport(0, 0, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
-				set_pixel_coordinate_projection(&renderer, shader_program, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
-
 				engine.render(&renderer, &state);
-
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
 				renderer.reset_render_canvas();
