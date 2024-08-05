@@ -144,12 +144,12 @@ namespace platform {
 	}
 
 	Canvas add_canvas(int width, int height) {
-		GLuint frame_buffer;
+		GLuint framebuffer;
 		GLuint texture;
 
 		// create buffer
-		glGenFramebuffers(1, &frame_buffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 		// create texture
 		glGenTextures(1, &texture);
@@ -177,11 +177,11 @@ namespace platform {
 		glBindTexture(GL_TEXTURE_2D, NULL);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
-		return Canvas { frame_buffer, Texture { texture, glm::vec2 { width, height } } };
+		return Canvas { framebuffer, Texture { texture, glm::vec2 { width, height } } };
 	}
 
 	void free_canvas(Canvas canvas) {
-		glDeleteFramebuffers(1, &canvas.frame_buffer);
+		glDeleteFramebuffers(1, &canvas.framebuffer);
 		glDeleteTextures(1, &canvas.texture.id);
 	}
 
@@ -231,7 +231,7 @@ namespace platform {
 				canvas = m_render_canvas;
 
 			if (canvas) {
-				glBindFramebuffer(GL_FRAMEBUFFER, canvas->frame_buffer);
+				glBindFramebuffer(GL_FRAMEBUFFER, canvas->framebuffer);
 			}
 
 			glDrawArrays(section.mode, offset, section.length);
