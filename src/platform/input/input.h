@@ -35,6 +35,7 @@ namespace platform {
 		uint64_t global_time_ms = 0;
 
 		const platform::Window* window = nullptr;
+		glm::vec2 monitor_size;
 		glm::vec2 window_resolution;
 		core::Signal<bool> engine_is_rebuilding = false;
 		ExitCode engine_rebuild_exit_code = 0;

@@ -6,6 +6,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
+#include <platform/debug/logging.h>
 #include <platform/graphics/font.h>
 #include <platform/input/input.h>
 #include <platform/os/imwin32.h>
@@ -55,11 +56,7 @@ namespace engine {
 		const ProjectState& project,
 		bool reset_docking
 	) {
-		// FIXME: we should probably create the canvas to be equal to monitor
-		// size, so that we can freely resize the scene window without having to
-		// re-allocate the canvas. We will be clipping the canvas when rendering
-		// in ImGui using UV-coordinates anyway.
-		ui->scene_canvas = platform::add_canvas(512, 512);
+		ui->scene_canvas = platform::add_canvas(1, 1);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<ProjectState>()(project);
 
@@ -88,6 +85,13 @@ namespace engine {
 		/* Quit */
 		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
 			commands.push_back(EditorCommand::Quit);
+		}
+
+		/* Scene Canvas */
+		if (ui->scene_canvas.texture.size != input.monitor_size) {
+			platform::free_canvas(ui->scene_canvas);
+			ui->scene_canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
+			LOG_INFO("Resized scene canvas");
 		}
 
 		/* Dockspace */
@@ -213,8 +217,7 @@ namespace engine {
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
-			ImGui::Text("%f %f", ui->scene_canvas.texture.size.x, ui->scene_canvas.texture.size.y);
-			ImGui::Image(ui->scene_canvas.texture.id, { ui->scene_canvas.texture.size.x, ui->scene_canvas.texture.size.y });
+			ImGui::Image(ui->scene_canvas.texture.id, ImGui::GetContentRegionAvail());
 		}
 		ImGui::End();
 

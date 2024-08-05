@@ -357,6 +357,11 @@ int main(int argc, char** argv) {
 			input.mouse.x1_button.update(mouse_button_events[SDL_BUTTON_X1 - 1]);
 			input.mouse.x2_button.update(mouse_button_events[SDL_BUTTON_X2 - 1]);
 			input.is_editor_mode = is_editor_mode;
+
+			SDL_DisplayMode display_mode;
+			SDL_GetCurrentDisplayMode(0, &display_mode);
+			input.monitor_size.x = (float)display_mode.w;
+			input.monitor_size.y = (float)display_mode.h;
 		}
 
 		/* Update */
