@@ -12,9 +12,43 @@
 
 namespace engine {
 
-	constexpr char PROJECT_WINDOW[] = "Project Window";
-	constexpr char GAME_WINDOW[] = "Game Window";
-	constexpr char SCENE_WINDOW[] = "Scene Window";
+	constexpr char PROJECT_WINDOW[] = "Project";
+	constexpr char GAME_WINDOW[] = "Game";
+	constexpr char SCENE_WINDOW[] = "Scene";
+
+	static void setup_docking_space(ImGuiID dockspace) {
+		/* Create docks */
+		ImGui::DockBuilderAddNode(dockspace); // Create a new dock node to use
+		ImGui::DockBuilderSetNodeSize(dockspace, ImVec2 { 1, 1 });
+
+		ImGuiID dock1 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Right, 0.75f, nullptr, &dockspace);
+		// +-----------+
+		// |           |
+		// |     1     |
+		// |           |
+		// +-----------+
+
+		ImGuiID dock2 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Left, 0.5f, nullptr, &dockspace);
+		// +-----+-----+
+		// |   |       |
+		// | 2 |   1   |
+		// |   |       |
+		// +-----+-----+
+		//    <- split
+
+		ImGuiID dock3 = ImGui::DockBuilderSplitNode(dock2, ImGuiDir_Down, 0.5f, nullptr, &dock2);
+		// +-----+-----+
+		// | 2 |       |  split
+		// +---+   1   |    |
+		// | 3 |       |    V
+		// +-----+-----+
+
+		/* Add windows to docks */
+		ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock1);
+		ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock2);
+		ImGui::DockBuilderDockWindow(GAME_WINDOW, dock3);
+		ImGui::DockBuilderFinish(dockspace);
+	}
 
 	void init_editor_ui(
 		EditorUiState* ui,
@@ -31,38 +65,8 @@ namespace engine {
 
 		/* Setup docking */
 		if (reset_docking) {
-			/* Create docks */
-			ImGuiID id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-			ImGui::DockBuilderAddNode(id); // Create a new dock node to use
-			ImGui::DockBuilderSetNodeSize(id, ImVec2 { 1, 1 });
-
-			ImGuiID dock1 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Right, 0.75f, nullptr, &id);
-			// +-----------+
-			// |           |
-			// |     1     |
-			// |           |
-			// +-----------+
-
-			ImGuiID dock2 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Left, 0.5f, nullptr, &id);
-			// +-----+-----+
-			// |   |       |
-			// | 2 |   1   |
-			// |   |       |
-			// +-----+-----+
-			//    <- split
-
-			ImGuiID dock3 = ImGui::DockBuilderSplitNode(dock2, ImGuiDir_Down, 0.5f, nullptr, &dock2);
-			// +-----+-----+
-			// | 2 |       |  split
-			// +---+   1   |    |
-			// | 3 |       |    V
-			// +-----+-----+
-
-			/* Add windows to docks */
-			ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock1);
-			ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock2);
-			ImGui::DockBuilderDockWindow(GAME_WINDOW, dock3);
-			ImGui::DockBuilderFinish(id);
+			ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+			setup_docking_space(dockspace);
 		}
 	}
 
@@ -87,9 +91,7 @@ namespace engine {
 		}
 
 		/* Dockspace */
-		{
-			ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-		}
+		ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 		/* Editor Menu Bar*/
 		if (ImWin32::BeginMainMenuBar()) {
@@ -149,6 +151,13 @@ namespace engine {
 
 				ImWin32::EndMenu();
 			}
+
+			if (ImWin32::BeginMenu(L"&Window")) {
+				if (ImWin32::MenuItem(L"Reset Window Layout")) {
+					setup_docking_space(dockspace);
+				}
+			}
+
 			ImWin32::EndMainMenuBar();
 		}
 
@@ -171,9 +180,8 @@ namespace engine {
 			ImGui::Text("Project path: %s", project->path.string().c_str());
 
 			ImGui::Text("Window is maximized: %s", input.window->is_maximized() ? "true" : "false");
-
-			ImGui::End();
 		}
+		ImGui::End();
 
 		/* Game Edit Window */
 		if (ImGui::Begin(GAME_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
@@ -200,16 +208,15 @@ namespace engine {
 			}
 
 			ImGui::Checkbox("Windowed mode", &ui->run_game_windowed);
-
-			ImGui::End();
 		}
+		ImGui::End();
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
 			ImGui::Text("%f %f", ui->scene_canvas.texture.size.x, ui->scene_canvas.texture.size.y);
 			ImGui::Image(ui->scene_canvas.texture.id, { ui->scene_canvas.texture.size.x, ui->scene_canvas.texture.size.y });
-			ImGui::End();
 		}
+		ImGui::End();
 
 		return commands;
 	}

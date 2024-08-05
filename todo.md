@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Debug why ImGui asserts when minimizing application
 - Enable caching for GitHub Actions
 - Figure out how to make alt-key focus the main menu
 - Maybe:
