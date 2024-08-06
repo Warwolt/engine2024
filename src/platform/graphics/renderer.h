@@ -22,7 +22,7 @@ namespace platform {
 	};
 
 	struct Canvas {
-		GLuint frame_buffer;
+		GLuint framebuffer;
 		Texture texture;
 	};
 

@@ -2,6 +2,7 @@
 
 #include <platform/graphics/renderer.h>
 
+#include <glm/gtc/matrix_transform.hpp> // glm::ortho
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <platform/debug/logging.h>
 #include <stb_image/stb_image.h>
@@ -144,12 +145,12 @@ namespace platform {
 	}
 
 	Canvas add_canvas(int width, int height) {
-		GLuint frame_buffer;
+		GLuint framebuffer;
 		GLuint texture;
 
 		// create buffer
-		glGenFramebuffers(1, &frame_buffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 		// create texture
 		glGenTextures(1, &texture);
@@ -177,11 +178,11 @@ namespace platform {
 		glBindTexture(GL_TEXTURE_2D, NULL);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
-		return Canvas { frame_buffer, Texture { texture, glm::vec2 { width, height } } };
+		return Canvas { framebuffer, Texture { texture, glm::vec2 { width, height } } };
 	}
 
 	void free_canvas(Canvas canvas) {
-		glDeleteFramebuffers(1, &canvas.frame_buffer);
+		glDeleteFramebuffers(1, &canvas.framebuffer);
 		glDeleteTextures(1, &canvas.texture.id);
 	}
 
@@ -210,6 +211,12 @@ namespace platform {
 		m_render_canvas = {};
 	}
 
+	static void set_pixel_coordinate_projection(Renderer* renderer, platform::ShaderProgram shader_program, int width, int height) {
+		float grid_offset = 0.375f; // used to avoid missing pixels
+		glm::mat4 projection = glm::ortho(grid_offset, grid_offset + width, grid_offset + height, grid_offset, -1.0f, 1.0f);
+		renderer->set_projection(shader_program, projection);
+	}
+
 	void Renderer::render(ShaderProgram shader_program) {
 		glUseProgram(shader_program.id);
 		glBindVertexArray(shader_program.vao);
@@ -225,13 +232,17 @@ namespace platform {
 			glBindTexture(GL_TEXTURE_2D, section.texture.id);
 
 			std::optional<Canvas> canvas;
-			if (section.canvas)
+			if (section.canvas) {
 				canvas = section.canvas;
-			else if (m_render_canvas)
+			}
+			else if (m_render_canvas) {
 				canvas = m_render_canvas;
+			}
 
 			if (canvas) {
-				glBindFramebuffer(GL_FRAMEBUFFER, canvas->frame_buffer);
+				glBindFramebuffer(GL_FRAMEBUFFER, canvas->framebuffer);
+				glViewport(0, 0, (int)canvas->texture.size.x, (int)canvas->texture.size.y);
+				set_pixel_coordinate_projection(this, shader_program, (int)canvas->texture.size.x, (int)canvas->texture.size.y);
 			}
 
 			glDrawArrays(section.mode, offset, section.length);

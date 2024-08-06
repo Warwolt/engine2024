@@ -1,62 +1,76 @@
 #include <engine/editor/editor_ui.h>
 
+#include <engine/state/engine_state.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
+#include <platform/debug/logging.h>
+#include <platform/graphics/font.h>
 #include <platform/input/input.h>
 #include <platform/os/imwin32.h>
 
+#include <algorithm>
+
 namespace engine {
 
-	constexpr char PROJECT_WINDOW[] = "Project Window";
-	constexpr char GAME_WINDOW[] = "Game Window";
-	constexpr char SCENE_WINDOW[] = "Scene Window";
+	constexpr char PROJECT_WINDOW[] = "Project";
+	constexpr char GAME_WINDOW[] = "Game";
+	constexpr char SCENE_WINDOW[] = "Scene";
+
+	static void setup_docking_space(ImGuiID dockspace) {
+		/* Create docks */
+		ImGui::DockBuilderAddNode(dockspace); // Create a new dock node to use
+		ImGui::DockBuilderSetNodeSize(dockspace, ImVec2 { 1, 1 });
+
+		ImGuiID dock1 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Right, 0.75f, nullptr, &dockspace);
+		// +-----------+
+		// |           |
+		// |     1     |
+		// |           |
+		// +-----------+
+
+		ImGuiID dock2 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Left, 0.5f, nullptr, &dockspace);
+		// +-----+-----+
+		// |   |       |
+		// | 2 |   1   |
+		// |   |       |
+		// +-----+-----+
+		//    <- split
+
+		ImGuiID dock3 = ImGui::DockBuilderSplitNode(dock2, ImGuiDir_Down, 0.5f, nullptr, &dock2);
+		// +-----+-----+
+		// | 2 |       |  split
+		// +---+   1   |    |
+		// | 3 |       |    V
+		// +-----+-----+
+
+		/* Add windows to docks */
+		ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock1);
+		ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock2);
+		ImGui::DockBuilderDockWindow(GAME_WINDOW, dock3);
+		ImGui::DockBuilderFinish(dockspace);
+	}
 
 	void init_editor_ui(
 		EditorUiState* ui,
 		const ProjectState& project,
 		bool reset_docking
 	) {
+		ui->scene_canvas = platform::add_canvas(1, 1);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<ProjectState>()(project);
 
 		/* Setup docking */
 		if (reset_docking) {
-			/* Create docks */
-			ImGuiID id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-			ImGui::DockBuilderAddNode(id); // Create a new dock node to use
-			ImGui::DockBuilderSetNodeSize(id, ImVec2 { 1, 1 });
-
-			ImGuiID dock1 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Right, 0.75f, nullptr, &id);
-			// +-----------+
-			// |           |
-			// |     1     |
-			// |           |
-			// +-----------+
-
-			ImGuiID dock2 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Left, 0.5f, nullptr, &id);
-			// +-----+-----+
-			// |   |       |
-			// | 2 |   1   |
-			// |   |       |
-			// +-----+-----+
-			//    <- split
-
-			ImGuiID dock3 = ImGui::DockBuilderSplitNode(dock2, ImGuiDir_Down, 0.5f, nullptr, &dock2);
-			// +-----+-----+
-			// | 2 |       |  split
-			// +---+   1   |    |
-			// | 3 |       |    V
-			// +-----+-----+
-
-			/* Add windows to docks */
-			ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock1);
-			ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock2);
-			ImGui::DockBuilderDockWindow(GAME_WINDOW, dock3);
-			ImGui::DockBuilderFinish(id);
+			ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+			setup_docking_space(dockspace);
 		}
+	}
+
+	void shutdown_editor_ui(const EditorUiState& ui) {
+		platform::free_canvas(ui.scene_canvas);
 	}
 
 	std::vector<EditorCommand> update_editor_ui(
@@ -64,6 +78,7 @@ namespace engine {
 		GameState* game,
 		ProjectState* project,
 		const platform::Input& input,
+		const engine::Resources& /* resources */,
 		bool unsaved_changes,
 		bool game_is_running
 	) {
@@ -74,10 +89,15 @@ namespace engine {
 			commands.push_back(EditorCommand::Quit);
 		}
 
-		/* Dockspace */
-		{
-			ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+		/* Scene Canvas */
+		if (ui->scene_canvas.texture.size != input.monitor_size) {
+			platform::free_canvas(ui->scene_canvas);
+			ui->scene_canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
+			LOG_INFO("Resized scene canvas");
 		}
+
+		/* Dockspace */
+		ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 		/* Editor Menu Bar*/
 		if (ImWin32::BeginMainMenuBar()) {
@@ -131,9 +151,25 @@ namespace engine {
 					}
 				}
 
+				if (ImWin32::MenuItem(L"Show ImGui Demo")) {
+					ui->show_imgui_demo = true;
+				}
+
 				ImWin32::EndMenu();
 			}
+
+			if (ImWin32::BeginMenu(L"&Window")) {
+				if (ImWin32::MenuItem(L"Reset Window Layout")) {
+					setup_docking_space(dockspace);
+				}
+			}
+
 			ImWin32::EndMainMenuBar();
+		}
+
+		/* ImGui Demo */
+		if (ui->show_imgui_demo) {
+			ImGui::ShowDemoWindow(&ui->show_imgui_demo);
 		}
 
 		/* Project Window */
@@ -150,9 +186,8 @@ namespace engine {
 			ImGui::Text("Project path: %s", project->path.string().c_str());
 
 			ImGui::Text("Window is maximized: %s", input.window->is_maximized() ? "true" : "false");
-
-			ImGui::End();
 		}
+		ImGui::End();
 
 		/* Game Edit Window */
 		if (ImGui::Begin(GAME_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
@@ -179,16 +214,44 @@ namespace engine {
 			}
 
 			ImGui::Checkbox("Windowed mode", &ui->run_game_windowed);
-
-			ImGui::End();
 		}
+		ImGui::End();
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
-			ImGui::End();
+			const platform::Texture& scene_texture = ui->scene_canvas.texture;
+			ui->scene_window_size = ImGui::GetContentRegionAvail();
+			ImVec2 top_left = { 0.0f, 1.0f };
+			ImVec2 bottom_right = {
+				std::clamp(ui->scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
+				std::clamp(1.0f - ui->scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
+			};
+			ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
 		}
+		else {
+			ui->scene_window_size = { 0, 0 }; // inactive
+		}
+		ImGui::End();
 
 		return commands;
+	}
+
+	void render_editor_ui(
+		const EditorUiState& ui,
+		const engine::Resources& resources,
+		platform::Renderer* renderer
+	) {
+		// skip render if scene window closed
+		if (ui.scene_window_size == glm::vec2 { 0, 0 }) {
+			return;
+		}
+
+		renderer->set_draw_canvas(ui.scene_canvas);
+
+		renderer->draw_rect_fill({ { 0, 0 }, ui.scene_canvas.texture.size }, { 0.75, 0.75, 0.75, 1.0 });
+		renderer->draw_text_centered(resources.fonts.at("arial-16"), "Editor", ui.scene_window_size / 2.0f, { 0.0, 0.0, 0.0, 1.0 });
+
+		renderer->reset_draw_canvas();
 	}
 
 } // namespace engine

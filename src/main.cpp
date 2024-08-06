@@ -37,10 +37,6 @@
 
 const char* LIBRARY_NAME = "GameEngine2024Engine";
 
-static void set_viewport(GLuint x, GLuint y, GLsizei width, GLsizei height) {
-	glViewport(x, y, width, height);
-}
-
 static void set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
 	int scale = (int)std::min(std::floor((float)window_width / (float)canvas_width), std::floor((float)window_height / (float)canvas_height));
 	glm::ivec2 window_size = { window_width, window_height };
@@ -52,13 +48,7 @@ static void set_viewport_to_stretch_canvas(int window_width, int window_height, 
 }
 
 static void set_viewport_to_center_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
-	set_viewport((window_width - canvas_width) / 2, (window_height - canvas_height) / 2, canvas_width, canvas_height);
-}
-
-static void set_pixel_coordinate_projection(platform::Renderer* renderer, platform::ShaderProgram shader_program, int width, int height) {
-	float grid_offset = 0.375f; // used to avoid missing pixels
-	glm::mat4 projection = glm::ortho(grid_offset, grid_offset + width, grid_offset + height, grid_offset, -1.0f, 1.0f);
-	renderer->set_projection(shader_program, projection);
+	glViewport((window_width - canvas_width) / 2, (window_height - canvas_height) / 2, canvas_width, canvas_height);
 }
 
 static void set_normalized_device_coordinate_projection(platform::Renderer* renderer, platform::ShaderProgram shader_program) {
@@ -367,6 +357,11 @@ int main(int argc, char** argv) {
 			input.mouse.x1_button.update(mouse_button_events[SDL_BUTTON_X1 - 1]);
 			input.mouse.x2_button.update(mouse_button_events[SDL_BUTTON_X2 - 1]);
 			input.is_editor_mode = is_editor_mode;
+
+			SDL_DisplayMode display_mode;
+			SDL_GetCurrentDisplayMode(0, &display_mode);
+			input.monitor_size.x = (float)display_mode.w;
+			input.monitor_size.y = (float)display_mode.h;
 		}
 
 		/* Update */
@@ -483,11 +478,7 @@ int main(int argc, char** argv) {
 
 			/* Render to canvas */
 			{
-				set_viewport(0, 0, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
-				set_pixel_coordinate_projection(&renderer, shader_program, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
-
 				engine.render(&renderer, &state);
-
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
 				renderer.reset_render_canvas();

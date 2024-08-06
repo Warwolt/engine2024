@@ -5,12 +5,14 @@
 
 namespace platform {
 	struct Input;
+	class Renderer;
 }
 
 namespace engine {
 
 	struct GameState;
 	struct ProjectState;
+	struct Resources;
 
 	struct EditorState {
 		EditorUiState ui;
@@ -25,7 +27,14 @@ namespace engine {
 		GameState* game,
 		ProjectState* project,
 		const platform::Input& input,
+		const engine::Resources& resources,
 		platform::PlatformAPI* platform
+	);
+
+	void render_editor(
+		const EditorState& editor,
+		const engine::Resources& resources,
+		platform::Renderer* renderer
 	);
 
 } // namespace engine
