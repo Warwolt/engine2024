@@ -297,15 +297,6 @@ int main(int argc, char** argv) {
 						input.keyboard.register_event(event.key.keysym.sym, ButtonEvent::Up);
 						break;
 
-					case SDL_MOUSEMOTION: {
-						if (!imgui_io.WantCaptureMouse) {
-							glm::vec2 new_mouse_pos = glm::vec2 { event.motion.x, event.motion.y };
-							input.mouse.pos_delta = new_mouse_pos - input.mouse.pos;
-							input.mouse.pos = new_mouse_pos;
-						}
-						break;
-					}
-
 					case SDL_MOUSEBUTTONDOWN:
 						if (!imgui_io.WantCaptureMouse) {
 							if (event.button.button - 1 < NUM_MOUSE_BUTTONS) {
@@ -340,6 +331,19 @@ int main(int argc, char** argv) {
 						}
 						break;
 				}
+			}
+
+			// mouse position
+			{
+				int window_x, window_y = 0;
+				SDL_GetWindowPosition(window.sdl_window(), &window_x, &window_y);
+
+				int mouse_x, mouse_y = 0;
+				SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
+
+				glm::vec2 new_mouse_pos = glm::vec2 { mouse_x - window_x, mouse_y - window_y };
+				input.mouse.pos_delta = new_mouse_pos - input.mouse.pos;
+				input.mouse.pos = new_mouse_pos;
 			}
 
 			/* Update input states */

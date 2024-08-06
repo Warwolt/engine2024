@@ -219,6 +219,17 @@ namespace engine {
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
+			// hovering
+			ImVec2 window_pos = ImGui::GetWindowPos();
+			ImVec2 window_size = ImGui::GetWindowSize();
+			bool mouse_overlaps_horizontally = window_pos.x <= input.mouse.pos.x && input.mouse.pos.x <= window_pos.x + window_size.x;
+			bool mouse_overlaps_vertically = window_pos.y <= input.mouse.pos.y && input.mouse.pos.y <= window_pos.y + window_size.y;
+			ui->scene_window_hovered = mouse_overlaps_horizontally && mouse_overlaps_vertically;
+
+			ImGui::Text("window_pos = %f %f", window_pos.x, window_pos.y);
+			ImGui::Text("window_size = %f %f", window_size.x, window_size.y);
+			ImGui::Text("input.mouse.pos = %f %f", input.mouse.pos.x, input.mouse.pos.y);
+
 			const platform::Texture& scene_texture = ui->scene_canvas.texture;
 			ui->scene_window_size = ImGui::GetContentRegionAvail();
 			ImVec2 top_left = { 0.0f, 1.0f };
@@ -249,7 +260,9 @@ namespace engine {
 		renderer->set_draw_canvas(ui.scene_canvas);
 
 		renderer->draw_rect_fill({ { 0, 0 }, ui.scene_canvas.texture.size }, { 0.75, 0.75, 0.75, 1.0 });
-		renderer->draw_text_centered(resources.fonts.at("arial-16"), "Editor", ui.scene_window_size / 2.0f, { 0.0, 0.0, 0.0, 1.0 });
+		if (ui.scene_window_hovered) {
+			renderer->draw_text_centered(resources.fonts.at("arial-16"), "Hovered", ui.scene_window_size / 2.0f, { 0.0, 0.0, 0.0, 1.0 });
+		}
 
 		renderer->reset_draw_canvas();
 	}

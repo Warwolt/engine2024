@@ -27,7 +27,9 @@ namespace engine {
 		std::string project_name_buf;
 		bool run_game_windowed = false;
 		bool show_imgui_demo = false;
+
 		glm::vec2 scene_window_size;
+		bool scene_window_hovered = false;
 	};
 
 	void init_editor_ui(
