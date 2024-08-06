@@ -14,8 +14,16 @@
 
 #pragma once
 
+#include <glm/vec2.hpp>
+
 // unsigned int = GLuint;
 #define ImTextureID unsigned int
+
+#define IM_VEC2_CLASS_EXTRA                                     \
+	operator glm::vec2() const { return { this->x, this->y }; } \
+	constexpr ImVec2(const glm::vec2 v)                         \
+		: x(v.x)                                                \
+		, y(v.y) {}
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.

@@ -119,7 +119,7 @@ set(DLLS
 
 # Imgui
 add_library(imgui STATIC ${IMGUI_SRC})
-target_include_directories(imgui PUBLIC ${IMGUI_DIR}/imgui ${SDL_DIR}/include/SDL2 src ${SDL_DIR}/include)
+target_include_directories(imgui PUBLIC ${IMGUI_DIR}/imgui ${SDL_DIR}/include/SDL2 libs/glm src)
 target_link_libraries(imgui PUBLIC ${SDL_DIR}/lib/SDL2.lib)
 
 # Core
