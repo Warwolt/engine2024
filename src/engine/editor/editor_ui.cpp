@@ -241,6 +241,11 @@ namespace engine {
 		const engine::Resources& resources,
 		platform::Renderer* renderer
 	) {
+		// skip render if scene window closed
+		if (ui.scene_window_size == glm::vec2 { 0, 0 }) {
+			return;
+		}
+
 		renderer->set_draw_canvas(ui.scene_canvas);
 
 		renderer->draw_rect_fill({ { 0, 0 }, ui.scene_canvas.texture.size }, { 0.75, 0.75, 0.75, 1.0 });
