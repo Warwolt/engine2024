@@ -3,6 +3,8 @@
 #include <engine/editor/editor_command.h>
 #include <platform/graphics/renderer.h>
 
+#include <glm/vec2.hpp>
+
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -25,6 +27,7 @@ namespace engine {
 		std::string project_name_buf;
 		bool run_game_windowed = false;
 		bool show_imgui_demo = false;
+		glm::vec2 scene_window_size;
 	};
 
 	void init_editor_ui(

@@ -220,13 +220,16 @@ namespace engine {
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
 			const platform::Texture& scene_texture = ui->scene_canvas.texture;
-			ImVec2 scene_window_size = ImGui::GetContentRegionAvail();
+			ui->scene_window_size = ImGui::GetContentRegionAvail();
 			ImVec2 top_left = { 0.0f, 1.0f };
 			ImVec2 bottom_right = {
-				std::clamp(scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
-				std::clamp(1.0f - scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
+				std::clamp(ui->scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
+				std::clamp(1.0f - ui->scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
 			};
-			ImGui::Image(scene_texture.id, scene_window_size, top_left, bottom_right);
+			ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
+		}
+		else {
+			ui->scene_window_size = { 0, 0 }; // inactive
 		}
 		ImGui::End();
 
@@ -241,7 +244,7 @@ namespace engine {
 		renderer->set_draw_canvas(ui.scene_canvas);
 
 		renderer->draw_rect_fill({ { 0, 0 }, ui.scene_canvas.texture.size }, { 0.75, 0.75, 0.75, 1.0 });
-		renderer->draw_text(resources.fonts.at("arial-16"), "Editor", { 100.0, 100.0 }, { 0.0, 0.0, 0.0, 1.0 });
+		renderer->draw_text_centered(resources.fonts.at("arial-16"), "Editor", ui.scene_window_size / 2.0f, { 0.0, 0.0, 0.0, 1.0 });
 
 		renderer->reset_draw_canvas();
 	}
