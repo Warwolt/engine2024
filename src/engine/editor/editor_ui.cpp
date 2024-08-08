@@ -12,6 +12,7 @@
 #include <platform/os/imwin32.h>
 
 #include <algorithm>
+#include <format>
 
 namespace engine {
 
@@ -219,25 +220,64 @@ namespace engine {
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
-			// hovering
-			ImVec2 window_pos = ImGui::GetWindowPos();
-			ImVec2 window_size = ImGui::GetWindowSize();
-			bool mouse_overlaps_horizontally = window_pos.x <= input.mouse.pos.x && input.mouse.pos.x <= window_pos.x + window_size.x;
-			bool mouse_overlaps_vertically = window_pos.y <= input.mouse.pos.y && input.mouse.pos.y <= window_pos.y + window_size.y;
-			ui->scene_window_hovered = mouse_overlaps_horizontally && mouse_overlaps_vertically;
+			const glm::vec2 scene_canvas_pos = ImGui::GetCursorScreenPos();
 
-			ImGui::Text("window_pos = %f %f", window_pos.x, window_pos.y);
-			ImGui::Text("window_size = %f %f", window_size.x, window_size.y);
-			ImGui::Text("input.mouse.pos = %f %f", input.mouse.pos.x, input.mouse.pos.y);
+			// Render scene texture
+			{
+				const platform::Texture& scene_texture = ui->scene_canvas.texture;
+				ui->scene_window_size = ImGui::GetContentRegionAvail();
+				glm::vec2 top_left = { 0.0f, 1.0f };
+				glm::vec2 bottom_right = {
+					std::clamp(ui->scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
+					std::clamp(1.0f - ui->scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
+				};
 
-			const platform::Texture& scene_texture = ui->scene_canvas.texture;
-			ui->scene_window_size = ImGui::GetContentRegionAvail();
-			ImVec2 top_left = { 0.0f, 1.0f };
-			ImVec2 bottom_right = {
-				std::clamp(ui->scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
-				std::clamp(1.0f - ui->scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
-			};
-			ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
+				// TODO: Figure out how to handle zooming. Probably it's enough to
+				// just do some clever computation on the UV-coordinates for the
+				// ImGui::Image.
+				// I.e. if we have zoom x2, just divide the UV-rect by 2.
+				ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
+			}
+
+			const float win32_menu_bar_height = 32.0f;
+			const glm::vec2 scene_relative_mouse_pos = input.mouse.pos - scene_canvas_pos;
+			if (ImGui::Begin("Debug")) {
+				ImGui::Text("scene_canvas_pos = %f %f", scene_canvas_pos.x, scene_canvas_pos.y);
+				ImGui::Text("input.mouse.pos = %f %f", input.mouse.pos.x, input.mouse.pos.y);
+				ImGui::Text("scene_relative_mouse_pos = %f %f", scene_relative_mouse_pos.x, scene_relative_mouse_pos.y);
+			}
+			ImGui::End();
+
+			// Scene view hover
+			{
+				ImVec2 window_pos = ImGui::GetWindowPos();
+				ImVec2 window_size = ImGui::GetWindowSize();
+				bool mouse_overlaps_horizontally = window_pos.x <= input.mouse.pos.x && input.mouse.pos.x <= window_pos.x + window_size.x;
+				bool mouse_overlaps_vertically = window_pos.y <= input.mouse.pos.y && input.mouse.pos.y <= window_pos.y + window_size.y;
+				ui->scene_window_hovered = mouse_overlaps_horizontally && mouse_overlaps_vertically;
+			}
+
+			// Zoom
+			{
+				constexpr int min_zoom = 0;
+				constexpr int max_zoom = 3;
+				if (ui->scene_window_hovered) {
+					ui->scene_zoom_index = std::clamp(ui->scene_zoom_index + input.mouse.scroll_delta, min_zoom, max_zoom);
+					if (input.mouse.scroll_delta != 0) {
+						ui->scene_canvas_pos = scene_relative_mouse_pos;
+					}
+				}
+				const float zoom_values[max_zoom] = {
+					1.0f,
+					0.5f,
+					0.25f,
+				};
+				const float zoom = zoom_values[ui->scene_zoom_index];
+				// ui->scene_canvas_rect = platform::Rect { { 0.0f, 0.0f }, ui->scene_window_size / zoom };
+				ui->scene_canvas_rect.set_position(ui->scene_canvas_pos);
+				// ui->scene_canvas_rect.set_size(ui->scene_window_size * zoom);
+				ui->scene_canvas_rect.set_size({ 64.0f, 64.0f });
+			}
 		}
 		else {
 			ui->scene_window_size = { 0, 0 }; // inactive
@@ -247,24 +287,39 @@ namespace engine {
 		return commands;
 	}
 
+	static void render_scene(
+		const EditorUiState& ui,
+		const engine::Resources& resources,
+		platform::Renderer* renderer
+	) {
+		// Clear scene
+		renderer->draw_rect_fill({ { 0, 0 }, ui.scene_canvas.texture.size }, { 0.75f, 0.75f, 0.75f, 1.0f });
+
+		// Hover text
+		if (ui.scene_window_hovered) {
+			renderer->draw_text_centered(resources.fonts.at("arial-16"), "Hovered", ui.scene_window_size / 2.0f, { 0.0f, 0.0f, 0.0f, 1.0f });
+		}
+
+		// Render clip rect
+		renderer->draw_rect(ui.scene_canvas_rect, { 0.0f, 1.0f, 0.0f, 1.0f });
+		renderer->draw_rect({ ui.scene_canvas_rect.top_left - glm::vec2 { 1, 1 }, ui.scene_canvas_rect.bottom_right + glm::vec2 { 1, 1 } }, { 0.0f, 1.0f, 0.0f, 1.0f });
+
+		// Zoom text
+		std::string text = std::format("Zoom: {}", ui.scene_zoom_index);
+		renderer->draw_text(resources.fonts.at("arial-16"), text.c_str(), { 64.0f, 64.0f }, { 0.0f, 0.0f, 0.0f, 1.0f });
+	}
+
 	void render_editor_ui(
 		const EditorUiState& ui,
 		const engine::Resources& resources,
 		platform::Renderer* renderer
 	) {
-		// skip render if scene window closed
-		if (ui.scene_window_size == glm::vec2 { 0, 0 }) {
-			return;
+		// Only render scene if ImGui scene window open
+		if (ui.scene_window_size != glm::vec2 { 0, 0 }) {
+			renderer->set_draw_canvas(ui.scene_canvas);
+			render_scene(ui, resources, renderer);
+			renderer->reset_draw_canvas();
 		}
-
-		renderer->set_draw_canvas(ui.scene_canvas);
-
-		renderer->draw_rect_fill({ { 0, 0 }, ui.scene_canvas.texture.size }, { 0.75, 0.75, 0.75, 1.0 });
-		if (ui.scene_window_hovered) {
-			renderer->draw_text_centered(resources.fonts.at("arial-16"), "Hovered", ui.scene_window_size / 2.0f, { 0.0, 0.0, 0.0, 1.0 });
-		}
-
-		renderer->reset_draw_canvas();
 	}
 
 } // namespace engine

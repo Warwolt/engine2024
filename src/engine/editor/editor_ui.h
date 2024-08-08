@@ -22,13 +22,17 @@ namespace engine {
 	struct Resources;
 
 	struct EditorUiState {
-		platform::Canvas scene_canvas;
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
 		bool run_game_windowed = false;
 		bool show_imgui_demo = false;
 
-		glm::vec2 scene_window_size;
+		int scene_zoom_index = 0;
+		platform::Canvas scene_canvas;
+		glm::vec2 scene_canvas_pos = { 0.0f, 0.0f };
+		platform::Rect scene_canvas_rect; // which part of scene canvas to render
+		glm::vec2 scene_window_size; // size of imgui window that renders the scene
+
 		bool scene_window_hovered = false;
 	};
 
