@@ -220,28 +220,22 @@ namespace engine {
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
-			const glm::vec2 scene_canvas_pos = ImGui::GetCursorScreenPos();
+			const glm::vec2 scene_window_pos = ImGui::GetCursorScreenPos();
+			ui->scene_window_size = ImGui::GetContentRegionAvail();
 
 			// Render scene texture
 			{
 				const platform::Texture& scene_texture = ui->scene_canvas.texture;
-				ui->scene_window_size = ImGui::GetContentRegionAvail();
+				glm::vec2 canvas_rect_size = ui->scene_canvas_rect.size();
 				glm::vec2 top_left = { 0.0f, 1.0f };
 				glm::vec2 bottom_right = {
-					std::clamp(ui->scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
-					std::clamp(1.0f - ui->scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
+					std::clamp(canvas_rect_size.x / scene_texture.size.x, 0.0f, 1.0f),
+					std::clamp(1.0f - canvas_rect_size.y / scene_texture.size.y, 0.0f, 1.0f),
 				};
 				ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
 			}
 
-			const float win32_menu_bar_height = 32.0f;
-			const glm::vec2 scene_relative_mouse_pos = input.mouse.pos - scene_canvas_pos;
-			if (ImGui::Begin("Debug")) {
-				ImGui::Text("scene_canvas_pos = %f %f", scene_canvas_pos.x, scene_canvas_pos.y);
-				ImGui::Text("input.mouse.pos = %f %f", input.mouse.pos.x, input.mouse.pos.y);
-				ImGui::Text("scene_relative_mouse_pos = %f %f", scene_relative_mouse_pos.x, scene_relative_mouse_pos.y);
-			}
-			ImGui::End();
+			const glm::vec2 scene_relative_mouse_pos = input.mouse.pos - scene_window_pos;
 
 			// Scene view hover
 			{
@@ -255,23 +249,35 @@ namespace engine {
 			// Zoom
 			{
 				constexpr int min_zoom = 0;
-				constexpr int max_zoom = 3;
+				constexpr int max_zoom = 5;
 				if (ui->scene_window_hovered) {
 					ui->scene_zoom_index = std::clamp(ui->scene_zoom_index + input.mouse.scroll_delta, min_zoom, max_zoom);
 					if (input.mouse.scroll_delta != 0) {
 						ui->scene_canvas_pos = scene_relative_mouse_pos;
 					}
 				}
-				const float zoom_values[max_zoom + 1] = {
+				const float scale_up_factor[max_zoom + 1] = {
 					1.0f,
-					0.5f,
-					0.25f,
-					0.125f
+					2.0f,
+					4.0f,
+					8.0f,
+					16.0f,
+					32.0f,
 				};
-				const float zoom_factor = zoom_values[ui->scene_zoom_index];
-				// ui->scene_canvas_rect = platform::Rect { { 0.0f, 0.0f }, ui->scene_window_size / zoom_factor };
-				ui->scene_canvas_rect.set_size(ui->scene_window_size * zoom_factor);
-				ui->scene_canvas_rect.set_position(ui->scene_canvas_pos - ui->scene_canvas_rect.size() / 2.0f);
+				const float scale_factor = 1.0f / scale_up_factor[ui->scene_zoom_index];
+				ui->scene_canvas_rect.set_size(ui->scene_window_size * scale_factor);
+				// ui->scene_canvas_rect.set_position(ui->scene_canvas_pos - ui->scene_canvas_rect.size() / 2.0f);
+
+				// DEBUGGING
+				{
+					if (ImGui::Begin("Scene Window Debug")) {
+						ImGui::Text("Scale = %f", scale_factor);
+						ImGui::Text("scene_window_pos = %f %f", scene_window_pos.x, scene_window_pos.y);
+						ImGui::Text("input.mouse.pos = %f %f", input.mouse.pos.x, input.mouse.pos.y);
+						ImGui::Text("scene_relative_mouse_pos = %f %f", scene_relative_mouse_pos.x, scene_relative_mouse_pos.y);
+					}
+					ImGui::End();
+				}
 			}
 		}
 		else {
@@ -296,8 +302,10 @@ namespace engine {
 		}
 
 		// Render clip rect
-		renderer->draw_rect(ui.scene_canvas_rect, { 0.0f, 1.0f, 0.0f, 1.0f });
-		renderer->draw_rect({ ui.scene_canvas_rect.top_left - glm::vec2 { 1, 1 }, ui.scene_canvas_rect.bottom_right + glm::vec2 { 1, 1 } }, { 0.0f, 1.0f, 0.0f, 1.0f });
+		if (0) {
+			renderer->draw_rect(ui.scene_canvas_rect, { 0.0f, 1.0f, 0.0f, 1.0f });
+			renderer->draw_rect({ ui.scene_canvas_rect.top_left - glm::vec2 { 1, 1 }, ui.scene_canvas_rect.bottom_right + glm::vec2 { 1, 1 } }, { 0.0f, 1.0f, 0.0f, 1.0f });
+		}
 
 		// Zoom text
 		std::string text = std::format("Zoom: {}", ui.scene_zoom_index);
