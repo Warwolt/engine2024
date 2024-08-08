@@ -231,11 +231,6 @@ namespace engine {
 					std::clamp(ui->scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
 					std::clamp(1.0f - ui->scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
 				};
-
-				// TODO: Figure out how to handle zooming. Probably it's enough to
-				// just do some clever computation on the UV-coordinates for the
-				// ImGui::Image.
-				// I.e. if we have zoom x2, just divide the UV-rect by 2.
 				ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
 			}
 
@@ -267,16 +262,16 @@ namespace engine {
 						ui->scene_canvas_pos = scene_relative_mouse_pos;
 					}
 				}
-				const float zoom_values[max_zoom] = {
+				const float zoom_values[max_zoom + 1] = {
 					1.0f,
 					0.5f,
 					0.25f,
+					0.125f
 				};
-				const float zoom = zoom_values[ui->scene_zoom_index];
-				// ui->scene_canvas_rect = platform::Rect { { 0.0f, 0.0f }, ui->scene_window_size / zoom };
-				ui->scene_canvas_rect.set_position(ui->scene_canvas_pos);
-				// ui->scene_canvas_rect.set_size(ui->scene_window_size * zoom);
-				ui->scene_canvas_rect.set_size({ 64.0f, 64.0f });
+				const float zoom_factor = zoom_values[ui->scene_zoom_index];
+				// ui->scene_canvas_rect = platform::Rect { { 0.0f, 0.0f }, ui->scene_window_size / zoom_factor };
+				ui->scene_canvas_rect.set_size(ui->scene_window_size * zoom_factor);
+				ui->scene_canvas_rect.set_position(ui->scene_canvas_pos - ui->scene_canvas_rect.size() / 2.0f);
 			}
 		}
 		else {

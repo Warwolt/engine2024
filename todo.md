@@ -8,6 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Add logging window to editor
 - Enable caching for GitHub Actions
 - Figure out how to make alt-key focus the main menu
 - Maybe:
@@ -18,9 +19,11 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Setup ImGui docking branch
+- Zoom in and out of canvas
 
 ## Done
+- Render canvas
+- Setup ImGui docking branch
 - Replace ImGui main menu bar with a native Win32 one
 - Organize platform files into directories
 - Add config file support, use to store window mode, size and position
