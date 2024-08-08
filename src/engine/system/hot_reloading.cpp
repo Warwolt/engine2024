@@ -10,7 +10,7 @@ namespace engine {
 		if (t < 1.0 / 3.0) {
 			*window_title += " (rebuilding)";
 		}
-		if (t < 2.0 / 3.0) {
+		else if (t < 2.0 / 3.0) {
 			*window_title += " (rebuilding.)";
 		}
 		else /* t < 3.0 / 3.0 */ {
