@@ -13,6 +13,8 @@ namespace platform {
 		glm::vec2 top_left;
 		glm::vec2 bottom_right;
 
+		static Rect with_pos_and_size(glm::vec2 pos, glm::vec2 size);
+
 		void set_position(glm::vec2 pos);
 		void set_size(glm::vec2 size);
 		glm::vec2 size() const;

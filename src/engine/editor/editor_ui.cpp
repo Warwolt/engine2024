@@ -59,7 +59,10 @@ namespace engine {
 		const ProjectState& project,
 		bool reset_docking
 	) {
-		ui->scene_canvas = platform::add_canvas(1, 1);
+		ui->window_canvas = platform::add_canvas(1, 1);
+
+		ui->scene_canvas = platform::add_canvas(320, 320); // arbitrary size
+
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<ProjectState>()(project);
 
@@ -71,6 +74,7 @@ namespace engine {
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
+		platform::free_canvas(ui.window_canvas);
 		platform::free_canvas(ui.scene_canvas);
 	}
 
@@ -91,9 +95,9 @@ namespace engine {
 		}
 
 		/* Scene Canvas */
-		if (ui->scene_canvas.texture.size != input.monitor_size) {
-			platform::free_canvas(ui->scene_canvas);
-			ui->scene_canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
+		if (ui->window_canvas.texture.size != input.monitor_size) {
+			platform::free_canvas(ui->window_canvas);
+			ui->window_canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
 			LOG_INFO("Resized scene canvas");
 		}
 
@@ -225,12 +229,11 @@ namespace engine {
 
 			// Render scene texture
 			{
-				const platform::Texture& scene_texture = ui->scene_canvas.texture;
-				glm::vec2 canvas_rect_size = ui->scene_canvas_rect.size();
+				const platform::Texture& scene_texture = ui->window_canvas.texture;
 				glm::vec2 top_left = { 0.0f, 1.0f };
 				glm::vec2 bottom_right = {
-					std::clamp(canvas_rect_size.x / scene_texture.size.x, 0.0f, 1.0f),
-					std::clamp(1.0f - canvas_rect_size.y / scene_texture.size.y, 0.0f, 1.0f),
+					std::clamp(ui->scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
+					std::clamp(1.0f - ui->scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
 				};
 				ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
 			}
@@ -252,9 +255,6 @@ namespace engine {
 				constexpr int max_zoom = 5;
 				if (ui->scene_window_hovered) {
 					ui->scene_zoom_index = std::clamp(ui->scene_zoom_index + input.mouse.scroll_delta, min_zoom, max_zoom);
-					if (input.mouse.scroll_delta != 0) {
-						ui->scene_canvas_pos = scene_relative_mouse_pos;
-					}
 				}
 				const float scale_up_factor[max_zoom + 1] = {
 					1.0f,
@@ -264,24 +264,11 @@ namespace engine {
 					16.0f,
 					32.0f,
 				};
-				const float scale_factor = 1.0f / scale_up_factor[ui->scene_zoom_index];
-				ui->scene_canvas_rect.set_size(ui->scene_window_size * scale_factor);
-				// ui->scene_canvas_rect.set_position(ui->scene_canvas_pos - ui->scene_canvas_rect.size() / 2.0f);
-
-				// DEBUGGING
-				{
-					if (ImGui::Begin("Scene Window Debug")) {
-						ImGui::Text("Scale = %f", scale_factor);
-						ImGui::Text("scene_window_pos = %f %f", scene_window_pos.x, scene_window_pos.y);
-						ImGui::Text("input.mouse.pos = %f %f", input.mouse.pos.x, input.mouse.pos.y);
-						ImGui::Text("scene_relative_mouse_pos = %f %f", scene_relative_mouse_pos.x, scene_relative_mouse_pos.y);
-					}
-					ImGui::End();
-				}
+				ui->scene_scale_factor = scale_up_factor[ui->scene_zoom_index];
 			}
 		}
 		else {
-			ui->scene_window_size = { 0, 0 }; // inactive
+			ui->scene_window_size = { 0.0f, 0.0f }; // inactive
 		}
 		ImGui::End();
 
@@ -293,18 +280,18 @@ namespace engine {
 		const engine::Resources& resources,
 		platform::Renderer* renderer
 	) {
+		const glm::vec2 scene_canvas_size = ui.scene_canvas.texture.size;
+
 		// Clear scene
-		renderer->draw_rect_fill({ { 0, 0 }, ui.scene_canvas.texture.size }, { 0.75f, 0.75f, 0.75f, 1.0f });
+		renderer->draw_rect_fill({ { 0.0f, 0.0f }, scene_canvas_size }, { 0.75f, 0.75f, 0.75f, 1.0f });
+
+		// Coordinate Axes
+		renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x, scene_canvas_size.y / 2.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f });
+		renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y }, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
 
 		// Hover text
 		if (ui.scene_window_hovered) {
-			renderer->draw_text_centered(resources.fonts.at("arial-16"), "Hovered", ui.scene_window_size / 2.0f, { 0.0f, 0.0f, 0.0f, 1.0f });
-		}
-
-		// Render clip rect
-		if (0) {
-			renderer->draw_rect(ui.scene_canvas_rect, { 0.0f, 1.0f, 0.0f, 1.0f });
-			renderer->draw_rect({ ui.scene_canvas_rect.top_left - glm::vec2 { 1, 1 }, ui.scene_canvas_rect.bottom_right + glm::vec2 { 1, 1 } }, { 0.0f, 1.0f, 0.0f, 1.0f });
+			renderer->draw_text_centered(resources.fonts.at("arial-16"), "Hovered", scene_canvas_size / 2.0f, { 0.0f, 0.0f, 0.0f, 1.0f });
 		}
 
 		// Zoom text
@@ -318,9 +305,21 @@ namespace engine {
 		platform::Renderer* renderer
 	) {
 		// Only render scene if ImGui scene window open
-		if (ui.scene_window_size != glm::vec2 { 0, 0 }) {
+		if (ui.scene_window_size != glm::vec2 { 0.0f, 0.0f }) {
+			/* Render scene to canvas */
 			renderer->set_draw_canvas(ui.scene_canvas);
 			render_scene(ui, resources, renderer);
+			renderer->reset_draw_canvas();
+
+			/* Render scene canvas to imgui canvas */
+			renderer->set_draw_canvas(ui.window_canvas);
+			renderer->draw_rect_fill(platform::Rect { glm::vec2 { 0.0f, 0.0f }, ui.window_canvas.texture.size }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
+			const glm::vec2 scaled_canvas_size = ui.scene_canvas.texture.size * ui.scene_scale_factor;
+			platform::Rect scene_rect = platform::Rect::with_pos_and_size(
+				(ui.scene_window_size - scaled_canvas_size) / 2.0f,
+				scaled_canvas_size
+			);
+			renderer->draw_texture(ui.scene_canvas.texture, scene_rect);
 			renderer->reset_draw_canvas();
 		}
 	}

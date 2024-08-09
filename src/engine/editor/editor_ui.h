@@ -27,13 +27,14 @@ namespace engine {
 		bool run_game_windowed = false;
 		bool show_imgui_demo = false;
 
-		int scene_zoom_index = 0;
-		platform::Canvas scene_canvas;
-		glm::vec2 scene_canvas_pos = { 0.0f, 0.0f }; // NO way this is needed ? it's just top_left of the scene canvas rect ......
-		platform::Rect scene_canvas_rect; // which part of scene canvas to render
+		platform::Canvas window_canvas; // used to render ImGui::Image
 		glm::vec2 scene_window_size; // size of imgui window that renders the scene
-
 		bool scene_window_hovered = false;
+
+		int scene_zoom_index = 0;
+		float scene_scale_factor = 1.0f;
+
+		platform::Canvas scene_canvas; // used to render the scene
 	};
 
 	void init_editor_ui(

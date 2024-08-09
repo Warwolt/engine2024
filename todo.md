@@ -9,6 +9,7 @@ Goals:
 
 ## TODO
 - Add logging window to editor
+- Set up cpu profiling
 - Enable caching for GitHub Actions
 - Figure out how to make alt-key focus the main menu
 - Maybe:

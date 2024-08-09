@@ -2,6 +2,13 @@
 
 namespace platform {
 
+	Rect Rect::with_pos_and_size(glm::vec2 pos, glm::vec2 size) {
+		return Rect {
+			.top_left = pos,
+			.bottom_right = pos + size,
+		};
+	}
+
 	void Rect::set_position(glm::vec2 pos) {
 		this->top_left = pos;
 		// const glm::vec2 size = this->size();
