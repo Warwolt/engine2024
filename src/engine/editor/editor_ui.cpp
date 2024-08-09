@@ -251,20 +251,41 @@ namespace engine {
 
 			// Zoom
 			{
-				constexpr int min_zoom = 0;
-				constexpr int max_zoom = 5;
+				constexpr int min_zoom = -12;
+				constexpr int max_zoom = 12;
 				if (ui->scene_window_hovered) {
 					ui->scene_zoom_index = std::clamp(ui->scene_zoom_index + input.mouse.scroll_delta, min_zoom, max_zoom);
 				}
 				const float scale_up_factor[max_zoom + 1] = {
 					1.0f,
 					2.0f,
+					3.0f,
 					4.0f,
+					5.0f,
+					6.0f,
 					8.0f,
+					12.0f,
 					16.0f,
+					24.0f,
 					32.0f,
+					48.0f,
+					64.0f,
 				};
-				ui->scene_scale_factor = scale_up_factor[ui->scene_zoom_index];
+				const float scale_down_factor[-min_zoom] = {
+					0.5f,
+					0.33f,
+					0.25f,
+					0.20f,
+					0.167f,
+					0.125f,
+					0.083f,
+					0.062f,
+					0.042f,
+					0.031f,
+					0.021f,
+					0.016f,
+				};
+				ui->scene_scale_factor = ui->scene_zoom_index < 0 ? scale_down_factor[-ui->scene_zoom_index - 1] : scale_up_factor[ui->scene_zoom_index];
 			}
 		}
 		else {
