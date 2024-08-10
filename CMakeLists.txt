@@ -57,11 +57,11 @@ set(CORE_SRC
 
 set(EDITOR_SRC
     src/editor/editor.cpp
+    src/editor/editor_ui.cpp
 )
 
 set(ENGINE_SRC
     src/engine/editor/editor_scene_view.cpp
-    src/engine/editor/editor_ui.cpp
     src/engine/engine_api.cpp
     src/engine/state/game_state.cpp
     src/engine/state/project_state.cpp

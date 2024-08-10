@@ -22,6 +22,10 @@ namespace engine {
 	struct ProjectState;
 	struct Resources;
 
+}
+
+namespace editor {
+
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
@@ -32,12 +36,12 @@ namespace engine {
 		bool scene_window_visible = false;
 		bool scene_view_position_initialized = false; // used to center view once we know ImGui window size
 
-		EditorSceneViewState scene_view;
+		engine::EditorSceneViewState scene_view;
 	};
 
 	void init_editor_ui(
 		EditorUiState* ui,
-		const ProjectState& project,
+		const engine::ProjectState& project,
 		bool reset_docking
 	);
 
@@ -45,8 +49,8 @@ namespace engine {
 
 	std::vector<editor::EditorCommand> update_editor_ui(
 		EditorUiState* ui,
-		GameState* game,
-		ProjectState* project,
+		engine::GameState* game,
+		engine::ProjectState* project,
 		const platform::Input& input,
 		const engine::Resources& resources,
 		bool unsaved_changes,
@@ -58,4 +62,4 @@ namespace engine {
 		platform::Renderer* renderer
 	);
 
-} // namespace engine
+} // namespace editor

@@ -1,4 +1,4 @@
-#include <engine/editor/editor_ui.h>
+#include <editor/editor_ui.h>
 
 #include <engine/state/engine_state.h>
 #include <engine/state/game_state.h>
@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <format>
 
-namespace engine {
+namespace editor {
 
 	constexpr char PROJECT_WINDOW[] = "Project";
 	constexpr char GAME_WINDOW[] = "Game";
@@ -56,14 +56,14 @@ namespace engine {
 
 	void init_editor_ui(
 		EditorUiState* ui,
-		const ProjectState& project,
+		const engine::ProjectState& project,
 		bool reset_docking
 	) {
 		init_editor_scene_view(&ui->scene_view);
 
 		ui->window_canvas = platform::add_canvas(1, 1);
 		ui->project_name_buf = project.name;
-		ui->cached_project_hash = std::hash<ProjectState>()(project);
+		ui->cached_project_hash = std::hash<engine::ProjectState>()(project);
 		ui->scene_view_position_initialized = false;
 
 		/* Setup docking */
@@ -80,8 +80,8 @@ namespace engine {
 
 	std::vector<editor::EditorCommand> update_editor_ui(
 		EditorUiState* ui,
-		GameState* game,
-		ProjectState* project,
+		engine::GameState* game,
+		engine::ProjectState* project,
 		const platform::Input& input,
 		const engine::Resources& /* resources */,
 		bool unsaved_changes,
@@ -284,4 +284,4 @@ namespace engine {
 		}
 	}
 
-} // namespace engine
+} // namespace editor

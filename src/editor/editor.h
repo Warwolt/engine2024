@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/editor/editor_ui.h>
+#include <editor/editor_ui.h>
 #include <platform/platform_api.h>
 
 namespace platform {
@@ -19,7 +19,7 @@ namespace engine {
 namespace editor {
 
 	struct EditorState {
-		engine::EditorUiState ui;
+		EditorUiState ui;
 		bool project_has_unsaved_changes = false;
 		bool game_is_running = false;
 	};
