@@ -23,9 +23,10 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Move editor to its own namespace (editor, engine, platform, core)
+- Rename top level files to match namespace
 
 ## Done
+- Move editor to its own namespace (editor, engine, platform, core)
 - Zoom in and out of canvas
 - Render canvas
 - Setup ImGui docking branch
