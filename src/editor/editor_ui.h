@@ -1,7 +1,7 @@
 #pragma once
 
 #include <editor/editor_command.h>
-#include <engine/editor/editor_scene_view.h>
+#include <editor/editor_scene_view.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -36,7 +36,7 @@ namespace editor {
 		bool scene_window_visible = false;
 		bool scene_view_position_initialized = false; // used to center view once we know ImGui window size
 
-		engine::EditorSceneViewState scene_view;
+		EditorSceneViewState scene_view;
 	};
 
 	void init_editor_ui(

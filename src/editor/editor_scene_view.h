@@ -11,7 +11,7 @@ namespace platform {
 
 }
 
-namespace engine {
+namespace editor {
 
 	struct EditorSceneViewState {
 		int zoom_index = 0;
@@ -36,4 +36,4 @@ namespace engine {
 		platform::Renderer* renderer
 	);
 
-} // namespace engine
+} // namespace editor
