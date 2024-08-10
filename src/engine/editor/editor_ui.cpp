@@ -312,11 +312,15 @@ namespace engine {
 					// 	// |              |
 					// 	// +--------------+
 					// 	//
+					const glm::vec2 clamped_mouse_position = glm::vec2 {
+						std::clamp(window_relative_mouse_pos.x, ui->scaled_scene_canvas_rect.top_left.x, ui->scaled_scene_canvas_rect.bottom_right.x),
+						std::clamp(window_relative_mouse_pos.y, ui->scaled_scene_canvas_rect.top_left.y, ui->scaled_scene_canvas_rect.bottom_right.y),
+					};
 					const glm::vec2 new_scaled_size = ui->scene_canvas_size * scale;
-					const glm::vec2 distance_to_top_left = window_relative_mouse_pos - ui->scaled_scene_canvas_rect.top_left;
+					const glm::vec2 distance_to_top_left = clamped_mouse_position - ui->scaled_scene_canvas_rect.top_left;
 					const float relative_scale = new_scaled_size.x / ui->scaled_scene_canvas_rect.size().x;
 					ui->scaled_scene_canvas_rect.set_size(new_scaled_size);
-					ui->scaled_scene_canvas_rect.set_position(window_relative_mouse_pos - relative_scale * distance_to_top_left);
+					ui->scaled_scene_canvas_rect.set_position(clamped_mouse_position - relative_scale * distance_to_top_left);
 				}
 			}
 		}
