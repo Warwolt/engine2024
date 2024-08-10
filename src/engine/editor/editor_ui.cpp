@@ -81,6 +81,95 @@ namespace engine {
 		platform::free_canvas(ui.scene_canvas);
 	}
 
+	static void update_canvas_zoom(
+		EditorUiState* ui,
+		const platform::Input& input,
+		glm::vec2 window_relative_mouse_pos
+	) {
+		constexpr int min_zoom = -12;
+		constexpr int max_zoom = 12;
+		const int new_zoom_index = std::clamp(ui->scene_zoom_index + input.mouse.scroll_delta, min_zoom, max_zoom);
+		const bool zoom_has_changed = ui->scene_zoom_index != new_zoom_index;
+		ui->scene_zoom_index = new_zoom_index;
+		const float scale_up_factors[max_zoom + 1] = {
+			1.0f,
+			2.0f,
+			3.0f,
+			4.0f,
+			5.0f,
+			6.0f,
+			8.0f,
+			12.0f,
+			16.0f,
+			24.0f,
+			32.0f,
+			48.0f,
+			64.0f,
+		};
+		const float scale_down_factors[-min_zoom] = {
+			0.5f,
+			0.33f,
+			0.25f,
+			0.20f,
+			0.167f,
+			0.125f,
+			0.083f,
+			0.062f,
+			0.042f,
+			0.031f,
+			0.021f,
+			0.016f,
+		};
+		const float scale = ui->scene_zoom_index < 0 ? scale_down_factors[-ui->scene_zoom_index - 1] : scale_up_factors[ui->scene_zoom_index];
+
+		/* Move canvas when zooming */
+		if (zoom_has_changed) {
+			// Position the canvas so that the zoom happens around the cursor,
+			// by keeping the relative distance from cursor to corner the same.
+			//
+			// +--------------+
+			// |      |       |      +-------+
+			// |      |       |      |   |   |      +---+
+			// |------o       |  =>  |---o   |  =>  | o |
+			// |              |      |       |      +---+
+			// |              |      +-------+
+			// |              |
+			// +--------------+
+			//
+			const glm::vec2 clamped_mouse_position = glm::vec2 {
+				std::clamp(window_relative_mouse_pos.x, ui->scaled_scene_canvas_rect.top_left.x, ui->scaled_scene_canvas_rect.bottom_right.x),
+				std::clamp(window_relative_mouse_pos.y, ui->scaled_scene_canvas_rect.top_left.y, ui->scaled_scene_canvas_rect.bottom_right.y),
+			};
+			const glm::vec2 new_scaled_size = ui->scene_canvas_size * scale;
+			const glm::vec2 distance_to_top_left = clamped_mouse_position - ui->scaled_scene_canvas_rect.top_left;
+			const float relative_scale = new_scaled_size.x / ui->scaled_scene_canvas_rect.size().x;
+			ui->scaled_scene_canvas_rect.set_size(new_scaled_size);
+			ui->scaled_scene_canvas_rect.set_position(clamped_mouse_position - relative_scale * distance_to_top_left);
+		}
+	}
+
+	static std::vector<EditorCommand> update_canvas_drag(
+		EditorUiState* ui,
+		const platform::Input& input
+	) {
+		std::vector<EditorCommand> commands;
+
+		/* Drag canvas with middle mouse wheel */
+		if (input.mouse.middle_button.pressed_now()) {
+			commands.push_back(EditorCommand::SetCursorToSizeAll);
+		}
+
+		if (input.mouse.middle_button.released_now()) {
+			commands.push_back(EditorCommand::SetCursorToArrow);
+		}
+
+		if (input.mouse.middle_button.is_pressed()) {
+			ui->scaled_scene_canvas_rect.set_position(ui->scaled_scene_canvas_rect.position() + input.mouse.pos_delta);
+		}
+
+		return commands;
+	}
+
 	std::vector<EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		GameState* game,
@@ -242,90 +331,17 @@ namespace engine {
 				ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
 			}
 
-			// Scene view hover
-			{
-				ImVec2 window_pos = ImGui::GetWindowPos();
-				ImVec2 window_size = ImGui::GetWindowSize();
-				bool mouse_overlaps_horizontally = window_pos.x <= input.mouse.pos.x && input.mouse.pos.x <= window_pos.x + window_size.x;
-				bool mouse_overlaps_vertically = window_pos.y <= input.mouse.pos.y && input.mouse.pos.y <= window_pos.y + window_size.y;
-				ui->scene_window_hovered = mouse_overlaps_horizontally && mouse_overlaps_vertically;
-			}
-
 			// Zoom
-			if (ui->scene_window_hovered) {
-				constexpr int min_zoom = -12;
-				constexpr int max_zoom = 12;
-				const int new_zoom_index = std::clamp(ui->scene_zoom_index + input.mouse.scroll_delta, min_zoom, max_zoom);
-				const bool zoom_has_changed = ui->scene_zoom_index != new_zoom_index;
-				ui->scene_zoom_index = new_zoom_index;
-				const float scale_up_factors[max_zoom + 1] = {
-					1.0f,
-					2.0f,
-					3.0f,
-					4.0f,
-					5.0f,
-					6.0f,
-					8.0f,
-					12.0f,
-					16.0f,
-					24.0f,
-					32.0f,
-					48.0f,
-					64.0f,
-				};
-				const float scale_down_factors[-min_zoom] = {
-					0.5f,
-					0.33f,
-					0.25f,
-					0.20f,
-					0.167f,
-					0.125f,
-					0.083f,
-					0.062f,
-					0.042f,
-					0.031f,
-					0.021f,
-					0.016f,
-				};
-				const float scale = ui->scene_zoom_index < 0 ? scale_down_factors[-ui->scene_zoom_index - 1] : scale_up_factors[ui->scene_zoom_index];
+			const ImVec2 window_pos = ImGui::GetWindowPos();
+			const ImVec2 window_size = ImGui::GetWindowSize();
+			// TODO: replace this with a platform::Rect::point_overlaps() method
+			const bool mouse_overlaps_horizontally = window_pos.x <= input.mouse.pos.x && input.mouse.pos.x <= window_pos.x + window_size.x;
+			const bool mouse_overlaps_vertically = window_pos.y <= input.mouse.pos.y && input.mouse.pos.y <= window_pos.y + window_size.y;
 
-				/* Move canvas when zooming */
-				if (zoom_has_changed) {
-					// 	// Position the canvas so that the zoom happens around the cursor,
-					// 	// by keeping the relative distance from cursor to corner the same.
-					// 	//
-					// 	// +--------------+
-					// 	// |      |       |      +-------+
-					// 	// |      |       |      |   |   |      +---+
-					// 	// |------o       |  =>  |---o   |  =>  | o |
-					// 	// |              |      |       |      +---+
-					// 	// |              |      +-------+
-					// 	// |              |
-					// 	// +--------------+
-					// 	//
-					const glm::vec2 clamped_mouse_position = glm::vec2 {
-						std::clamp(window_relative_mouse_pos.x, ui->scaled_scene_canvas_rect.top_left.x, ui->scaled_scene_canvas_rect.bottom_right.x),
-						std::clamp(window_relative_mouse_pos.y, ui->scaled_scene_canvas_rect.top_left.y, ui->scaled_scene_canvas_rect.bottom_right.y),
-					};
-					const glm::vec2 new_scaled_size = ui->scene_canvas_size * scale;
-					const glm::vec2 distance_to_top_left = clamped_mouse_position - ui->scaled_scene_canvas_rect.top_left;
-					const float relative_scale = new_scaled_size.x / ui->scaled_scene_canvas_rect.size().x;
-					ui->scaled_scene_canvas_rect.set_size(new_scaled_size);
-					ui->scaled_scene_canvas_rect.set_position(clamped_mouse_position - relative_scale * distance_to_top_left);
-				}
-
-				/* Drag canvas with middle mouse wheel */
-				if (input.mouse.middle_button.pressed_now()) {
-					commands.push_back(EditorCommand::SetCursorToSizeAll);
-				}
-
-				if (input.mouse.middle_button.released_now()) {
-					commands.push_back(EditorCommand::SetCursorToArrow);
-				}
-
-				if (input.mouse.middle_button.is_pressed()) {
-					ui->scaled_scene_canvas_rect.set_position(ui->scaled_scene_canvas_rect.position() + input.mouse.pos_delta);
-				}
+			const bool scene_window_is_hovered = mouse_overlaps_horizontally && mouse_overlaps_vertically;
+			if (scene_window_is_hovered) {
+				update_canvas_zoom(ui, input, window_relative_mouse_pos);
+				commands.append_range(update_canvas_drag(ui, input));
 			}
 		}
 		else {
@@ -349,11 +365,6 @@ namespace engine {
 		// Coordinate Axes
 		renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x + 1.0f, scene_canvas_size.y / 2.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f }); // horizontal
 		renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y + 1.0f }, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f }); // vertical
-
-		// Hover text
-		if (ui.scene_window_hovered) {
-			renderer->draw_text_centered(resources.fonts.at("arial-16"), "Hovered", scene_canvas_size / 2.0f, { 0.0f, 0.0f, 0.0f, 1.0f });
-		}
 
 		// Zoom text
 		std::string text = std::format("Zoom: {}", ui.scene_zoom_index);

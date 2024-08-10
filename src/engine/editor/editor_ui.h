@@ -29,7 +29,6 @@ namespace engine {
 
 		platform::Canvas window_canvas; // used to render ImGui::Image
 		glm::vec2 scene_window_size; // size of imgui window that renders the scene
-		bool scene_window_hovered = false;
 
 		int scene_zoom_index = 0;
 		glm::vec2 scene_canvas_size = { 0.0f, 0.0f };
