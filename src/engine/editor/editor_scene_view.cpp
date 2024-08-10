@@ -89,18 +89,23 @@ namespace engine {
 	static void update_canvas_mouse_drag(
 		EditorSceneViewState* scene_view,
 		const platform::Input& input,
+		bool scene_window_is_hovered,
 		std::vector<EditorCommand>* commands
 	) {
 		/* Drag canvas with middle mouse wheel */
-		if (input.mouse.middle_button.pressed_now()) {
-			commands->push_back(EditorCommand::SetCursorToSizeAll);
+		if (scene_window_is_hovered) {
+			if (input.mouse.middle_button.pressed_now()) {
+				commands->push_back(EditorCommand::SetCursorToSizeAll);
+				scene_view->is_being_dragging = true;
+			}
 		}
 
-		if (input.mouse.middle_button.released_now()) {
-			commands->push_back(EditorCommand::SetCursorToArrow);
-		}
+		if (scene_view->is_being_dragging) {
+			if (input.mouse.middle_button.released_now()) {
+				commands->push_back(EditorCommand::SetCursorToArrow);
+				scene_view->is_being_dragging = false;
+			}
 
-		if (input.mouse.middle_button.is_pressed()) {
 			scene_view->scaled_canvas_rect.set_position(scene_view->scaled_canvas_rect.position() + input.mouse.pos_delta);
 		}
 	}
@@ -117,7 +122,7 @@ namespace engine {
 			update_canvas_zoom(scene_view, input, window_relative_mouse_pos);
 		}
 
-		update_canvas_mouse_drag(scene_view, input, &commands);
+		update_canvas_mouse_drag(scene_view, input, scene_window_is_hovered, &commands);
 
 		return commands;
 	}

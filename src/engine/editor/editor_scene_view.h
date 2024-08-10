@@ -15,6 +15,7 @@ namespace engine {
 
 	struct EditorSceneViewState {
 		int zoom_index = 0;
+		bool is_being_dragging = false;
 		glm::vec2 canvas_size = { 0.0f, 0.0f };
 		platform::Rect scaled_canvas_rect;
 		platform::Canvas canvas; // used to render the scene
