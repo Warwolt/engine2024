@@ -2,7 +2,7 @@
 
 #include <glm/vec2.hpp>
 
-namespace platform {
+namespace core {
 
 	// Origin in upper left corner (e.g. xy-coordinates)
 	// top_left o-----------o
@@ -53,4 +53,4 @@ namespace platform {
 		glm::vec2 top_right;
 	};
 
-} // namespace platform
+} // namespace core

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <core/rect.h>
 #include <platform/graphics/font.h>
 #include <platform/graphics/image.h>
-#include <platform/graphics/rect.h>
 #include <platform/graphics/texture.h>
 
 #include <SDL2/SDL.h>
@@ -67,14 +67,14 @@ namespace platform {
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
 		void draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color);
-		void draw_rect(Rect quad, glm::vec4 color);
-		void draw_rect_fill(Rect quad, glm::vec4 color);
+		void draw_rect(core::Rect quad, glm::vec4 color);
+		void draw_rect_fill(core::Rect quad, glm::vec4 color);
 		void draw_circle(glm::vec2 center, float radius, glm::vec4 color);
 		void draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color);
 
-		void draw_texture(Texture texture, Rect quad);
-		void draw_texture_clipped(Texture texture, Rect quad, FlipRect uv);
-		void draw_texture_clipped_with_color(Texture texture, Rect quad, FlipRect uv, glm::vec4 color);
+		void draw_texture(Texture texture, core::Rect quad);
+		void draw_texture_clipped(Texture texture, core::Rect quad, core::FlipRect uv);
+		void draw_texture_clipped_with_color(Texture texture, core::Rect quad, core::FlipRect uv, glm::vec4 color);
 
 		void draw_character(const Font& font, char character, glm::vec2 pos, glm::vec4 color);
 		void draw_text(const Font& font, const char* text, glm::vec2 pos, glm::vec4 color);

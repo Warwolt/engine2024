@@ -250,7 +250,7 @@ namespace editor {
 
 			// Update scene view
 			{
-				const platform::Rect scene_window_rect = platform::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
+				const core::Rect scene_window_rect = core::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 				std::vector<editor::EditorCommand> scene_view_commands = update_editor_scene_view(
 					&ui->scene_view,
 					input,
@@ -278,7 +278,7 @@ namespace editor {
 
 			/* Render scene canvas to imgui canvas */
 			renderer->set_draw_canvas(ui.window_canvas);
-			renderer->draw_rect_fill(platform::Rect { glm::vec2 { 0.0f, 0.0f }, ui.window_canvas.texture.size }, glm::vec4 { 0.0f, 0.5f, 0.5f, 1.0f });
+			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, ui.window_canvas.texture.size }, glm::vec4 { 0.0f, 0.5f, 0.5f, 1.0f });
 			renderer->draw_texture(ui.scene_view.canvas.texture, ui.scene_view.scaled_canvas_rect);
 			renderer->reset_draw_canvas();
 		}
