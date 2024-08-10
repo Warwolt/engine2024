@@ -8,6 +8,9 @@ namespace engine {
 		OpenProject,
 		SaveProject,
 		SaveProjectAs,
+		// mouse
+		SetCursorToSizeAll,
+		SetCursorToArrow,
 		// game
 		RunGame,
 		ResetGameState,

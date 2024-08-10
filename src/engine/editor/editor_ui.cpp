@@ -322,6 +322,19 @@ namespace engine {
 					ui->scaled_scene_canvas_rect.set_size(new_scaled_size);
 					ui->scaled_scene_canvas_rect.set_position(clamped_mouse_position - relative_scale * distance_to_top_left);
 				}
+
+				/* Drag canvas with middle mouse wheel */
+				if (input.mouse.middle_button.pressed_now()) {
+					commands.push_back(EditorCommand::SetCursorToSizeAll);
+				}
+
+				if (input.mouse.middle_button.released_now()) {
+					commands.push_back(EditorCommand::SetCursorToArrow);
+				}
+
+				if (input.mouse.middle_button.is_pressed()) {
+					ui->scaled_scene_canvas_rect.set_position(ui->scaled_scene_canvas_rect.position() + input.mouse.pos_delta);
+				}
 			}
 		}
 		else {

@@ -219,6 +219,14 @@ namespace engine {
 					save_project_as(editor, project, platform);
 					break;
 
+				case EditorCommand::SetCursorToSizeAll:
+					platform->set_cursor(platform::Cursor::SizeAll);
+					break;
+
+				case EditorCommand::SetCursorToArrow:
+					platform->set_cursor(platform::Cursor::Arrow);
+					break;
+
 				case EditorCommand::ResetGameState:
 					editor->game_is_running = false;
 					init_game_state(game, *project);
