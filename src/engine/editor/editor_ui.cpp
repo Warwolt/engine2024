@@ -236,13 +236,6 @@ namespace engine {
 				ui->scene_view.scaled_canvas_rect.set_position((scene_window_size - ui->scene_view.scaled_canvas_rect.size()) / 2.0f);
 			}
 
-			if (ImGui::Begin("Debug")) {
-				auto pos = ui->scene_view.scaled_canvas_rect.position();
-				ImGui::Text("Window size: %f %f", scene_window_size.x, scene_window_size.y);
-				ImGui::Text("Position: %f %f", pos.x, pos.y);
-			}
-			ImGui::End();
-
 			// Render scene texture
 			{
 				const platform::Texture& scene_texture = ui->window_canvas.texture;
