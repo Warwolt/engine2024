@@ -32,8 +32,8 @@ namespace engine {
 		bool scene_window_hovered = false;
 
 		int scene_zoom_index = 0;
-		float scene_scale_factor = 1.0f;
-
+		glm::vec2 scene_canvas_size = { 0.0f, 0.0f };
+		platform::Rect scaled_scene_canvas_rect;
 		platform::Canvas scene_canvas; // used to render the scene
 	};
 

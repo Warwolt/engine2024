@@ -60,8 +60,11 @@ namespace engine {
 		bool reset_docking
 	) {
 		ui->window_canvas = platform::add_canvas(1, 1);
-
-		ui->scene_canvas = platform::add_canvas(320, 320); // arbitrary size
+		constexpr int scene_canvas_width = 320;
+		constexpr int scene_canvas_height = 320;
+		ui->scene_canvas_size = { scene_canvas_width, scene_canvas_height };
+		ui->scaled_scene_canvas_rect = platform::Rect { { 0, 0 }, { scene_canvas_width, scene_canvas_height } };
+		ui->scene_canvas = platform::add_canvas(scene_canvas_width, scene_canvas_height);
 
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<ProjectState>()(project);
@@ -94,11 +97,11 @@ namespace engine {
 			commands.push_back(EditorCommand::Quit);
 		}
 
-		/* Scene Canvas */
+		/* Window Canvas */
 		if (ui->window_canvas.texture.size != input.monitor_size) {
 			platform::free_canvas(ui->window_canvas);
 			ui->window_canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
-			LOG_INFO("Resized scene canvas");
+			LOG_INFO("Resized window canvas");
 		}
 
 		/* Dockspace */
@@ -238,7 +241,15 @@ namespace engine {
 				ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
 			}
 
-			const glm::vec2 scene_relative_mouse_pos = input.mouse.pos - scene_window_pos;
+			const glm::vec2 window_relative_mouse_pos = input.mouse.pos - scene_window_pos;
+
+			if (ImGui::Begin("Debug")) {
+				ImGui::Text("window_relative_mouse_pos = %f %f", window_relative_mouse_pos.x, window_relative_mouse_pos.y);
+				ImGui::Text("ui->scaled_scene_canvas_rect");
+				ImGui::Text("\ttop_left: %f %f", ui->scaled_scene_canvas_rect.top_left.x, ui->scaled_scene_canvas_rect.top_left.y);
+				ImGui::Text("\tbottom_right: %f %f", ui->scaled_scene_canvas_rect.bottom_right.x, ui->scaled_scene_canvas_rect.bottom_right.y);
+			}
+			ImGui::End();
 
 			// Scene view hover
 			{
@@ -250,13 +261,13 @@ namespace engine {
 			}
 
 			// Zoom
-			{
+			if (ui->scene_window_hovered) {
 				constexpr int min_zoom = -12;
 				constexpr int max_zoom = 12;
-				if (ui->scene_window_hovered) {
-					ui->scene_zoom_index = std::clamp(ui->scene_zoom_index + input.mouse.scroll_delta, min_zoom, max_zoom);
-				}
-				const float scale_up_factor[max_zoom + 1] = {
+				const int new_zoom_index = std::clamp(ui->scene_zoom_index + input.mouse.scroll_delta, min_zoom, max_zoom);
+				const bool zoom_has_changed = ui->scene_zoom_index != new_zoom_index;
+				ui->scene_zoom_index = new_zoom_index;
+				const float scale_up_factors[max_zoom + 1] = {
 					1.0f,
 					2.0f,
 					3.0f,
@@ -271,7 +282,7 @@ namespace engine {
 					48.0f,
 					64.0f,
 				};
-				const float scale_down_factor[-min_zoom] = {
+				const float scale_down_factors[-min_zoom] = {
 					0.5f,
 					0.33f,
 					0.25f,
@@ -285,11 +296,42 @@ namespace engine {
 					0.021f,
 					0.016f,
 				};
-				ui->scene_scale_factor = ui->scene_zoom_index < 0 ? scale_down_factor[-ui->scene_zoom_index - 1] : scale_up_factor[ui->scene_zoom_index];
+				const float scale = ui->scene_zoom_index < 0 ? scale_down_factors[-ui->scene_zoom_index - 1] : scale_up_factors[ui->scene_zoom_index];
+
+				/* Move canvas when zooming */
+				if (zoom_has_changed) {
+					// 	// Position the canvas so that the zoom happens around the cursor,
+					// 	// by keeping the relative distance from cursor to corner the same.
+					// 	//
+					// 	// +--------------+
+					// 	// |      |       |      +-------+
+					// 	// |      |       |      |   |   |      +---+
+					// 	// |------o       |  =>  |---o   |  =>  | o |
+					// 	// |              |      |       |      +---+
+					// 	// |              |      +-------+
+					// 	// |              |
+					// 	// +--------------+
+					// 	//
+					const glm::vec2 new_scaled_size = ui->scene_canvas_size * scale;
+					const glm::vec2 distance_to_top_left = window_relative_mouse_pos - ui->scaled_scene_canvas_rect.top_left;
+					const float relative_scale = new_scaled_size.x / ui->scaled_scene_canvas_rect.size().x;
+					ui->scaled_scene_canvas_rect.set_size(new_scaled_size);
+					ui->scaled_scene_canvas_rect.set_position(window_relative_mouse_pos - relative_scale * distance_to_top_left);
+				}
 			}
 		}
 		else {
 			ui->scene_window_size = { 0.0f, 0.0f }; // inactive
+		}
+		ImGui::End();
+
+		if (ImGui::Begin("Debug")) {
+			ImGui::Spacing();
+			if (ImGui::Button("Reset")) {
+				ui->scaled_scene_canvas_rect.set_position(glm::vec2 { 250, 150 });
+				ui->scene_zoom_index = 0;
+				ui->scaled_scene_canvas_rect.set_size(ui->scene_canvas_size);
+			}
 		}
 		ImGui::End();
 
@@ -335,12 +377,7 @@ namespace engine {
 			/* Render scene canvas to imgui canvas */
 			renderer->set_draw_canvas(ui.window_canvas);
 			renderer->draw_rect_fill(platform::Rect { glm::vec2 { 0.0f, 0.0f }, ui.window_canvas.texture.size }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
-			const glm::vec2 scaled_canvas_size = ui.scene_canvas.texture.size * ui.scene_scale_factor;
-			platform::Rect scene_rect = platform::Rect::with_pos_and_size(
-				(ui.scene_window_size - scaled_canvas_size) / 2.0f,
-				scaled_canvas_size
-			);
-			renderer->draw_texture(ui.scene_canvas.texture, scene_rect);
+			renderer->draw_texture(ui.scene_canvas.texture, ui.scaled_scene_canvas_rect);
 			renderer->reset_draw_canvas();
 		}
 	}

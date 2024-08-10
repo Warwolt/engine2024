@@ -8,6 +8,8 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Fix the window resize behavior (should only resize while left button held)
+- Add unit tests for Rect (since we have helper methods now)
 - Add logging window to editor
 - Set up cpu profiling
 - Enable caching for GitHub Actions
