@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine {
+namespace editor {
 
 	enum class EditorCommand {
 		// file
@@ -18,4 +18,4 @@ namespace engine {
 		Quit,
 	};
 
-} // namespace engine
+} // namespace editor

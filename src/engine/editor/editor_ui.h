@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/editor/editor_command.h>
+#include <editor/editor_command.h>
 #include <engine/editor/editor_scene_view.h>
 #include <platform/graphics/renderer.h>
 
@@ -43,7 +43,7 @@ namespace engine {
 
 	void shutdown_editor_ui(const EditorUiState& ui);
 
-	std::vector<EditorCommand> update_editor_ui(
+	std::vector<editor::EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		GameState* game,
 		ProjectState* project,

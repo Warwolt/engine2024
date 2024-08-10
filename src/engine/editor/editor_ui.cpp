@@ -78,7 +78,7 @@ namespace engine {
 		shutdown_editor_scene_view(ui.scene_view);
 	}
 
-	std::vector<EditorCommand> update_editor_ui(
+	std::vector<editor::EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		GameState* game,
 		ProjectState* project,
@@ -87,11 +87,11 @@ namespace engine {
 		bool unsaved_changes,
 		bool game_is_running
 	) {
-		std::vector<EditorCommand> commands;
+		std::vector<editor::EditorCommand> commands;
 
 		/* Quit */
 		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
-			commands.push_back(EditorCommand::Quit);
+			commands.push_back(editor::EditorCommand::Quit);
 		}
 
 		/* Window Canvas */
@@ -108,29 +108,29 @@ namespace engine {
 		if (ImWin32::BeginMainMenuBar()) {
 			if (ImWin32::BeginMenu(L"&File")) {
 				if (ImWin32::MenuItem(L"&New Project\tCtrl+N")) {
-					commands.push_back(EditorCommand::NewProject);
+					commands.push_back(editor::EditorCommand::NewProject);
 				}
 
 				ImWin32::Separator();
 
 				if (ImWin32::MenuItem(L"&Open Project\tCtrl+O")) {
-					commands.push_back(EditorCommand::OpenProject);
+					commands.push_back(editor::EditorCommand::OpenProject);
 				}
 
 				ImWin32::Separator();
 
 				if (ImWin32::MenuItem(L"&Save Project\tCtrl+S", unsaved_changes)) {
-					commands.push_back(EditorCommand::SaveProject);
+					commands.push_back(editor::EditorCommand::SaveProject);
 				}
 
 				if (ImWin32::MenuItem(L"Save Project &As\tCtrl+Shift+S")) {
-					commands.push_back(EditorCommand::SaveProjectAs);
+					commands.push_back(editor::EditorCommand::SaveProjectAs);
 				}
 
 				ImWin32::Separator();
 
 				if (ImWin32::MenuItem(L"&Quit\tCtrl+Q")) {
-					commands.push_back(EditorCommand::Quit);
+					commands.push_back(editor::EditorCommand::Quit);
 				}
 
 				ImWin32::EndMenu();
@@ -139,20 +139,20 @@ namespace engine {
 			if (ImWin32::BeginMenu(L"&Run")) {
 				if (game_is_running) {
 					if (ImWin32::MenuItem(L"Resume game")) {
-						commands.push_back(EditorCommand::RunGame);
+						commands.push_back(editor::EditorCommand::RunGame);
 					}
 					if (ImWin32::MenuItem(L"Stop game")) {
-						commands.push_back(EditorCommand::ResetGameState);
+						commands.push_back(editor::EditorCommand::ResetGameState);
 					}
 					if (ImWin32::MenuItem(L"Restart game")) {
-						commands.push_back(EditorCommand::ResetGameState);
-						commands.push_back(EditorCommand::RunGame);
+						commands.push_back(editor::EditorCommand::ResetGameState);
+						commands.push_back(editor::EditorCommand::RunGame);
 					}
 				}
 				else {
 					if (ImWin32::MenuItem(L"Run game")) {
-						commands.push_back(EditorCommand::ResetGameState);
-						commands.push_back(EditorCommand::RunGame);
+						commands.push_back(editor::EditorCommand::ResetGameState);
+						commands.push_back(editor::EditorCommand::RunGame);
 					}
 				}
 
@@ -201,20 +201,20 @@ namespace engine {
 				ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
 
 				if (ImGui::Button("Resume game")) {
-					commands.push_back(EditorCommand::RunGame);
+					commands.push_back(editor::EditorCommand::RunGame);
 				}
 				if (ImGui::Button("Stop game")) {
-					commands.push_back(EditorCommand::ResetGameState);
+					commands.push_back(editor::EditorCommand::ResetGameState);
 				}
 				if (ImGui::Button("Restart game")) {
-					commands.push_back(EditorCommand::ResetGameState);
-					commands.push_back(EditorCommand::RunGame);
+					commands.push_back(editor::EditorCommand::ResetGameState);
+					commands.push_back(editor::EditorCommand::RunGame);
 				}
 			}
 			else {
 				if (ImGui::Button("Run game")) {
-					commands.push_back(EditorCommand::ResetGameState);
-					commands.push_back(EditorCommand::RunGame);
+					commands.push_back(editor::EditorCommand::ResetGameState);
+					commands.push_back(editor::EditorCommand::RunGame);
 				}
 			}
 
@@ -251,7 +251,7 @@ namespace engine {
 			// Update scene view
 			{
 				const platform::Rect scene_window_rect = platform::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
-				std::vector<EditorCommand> scene_view_commands = update_editor_scene_view(
+				std::vector<editor::EditorCommand> scene_view_commands = update_editor_scene_view(
 					&ui->scene_view,
 					input,
 					window_relative_mouse_pos,

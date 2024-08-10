@@ -110,12 +110,12 @@ namespace engine {
 		const platform::Input& input,
 		platform::Rect scene_window_rect,
 		bool scene_window_is_hovered,
-		std::vector<EditorCommand>* commands
+		std::vector<editor::EditorCommand>* commands
 	) {
 		/* Drag canvas with middle mouse wheel */
 		if (scene_window_is_hovered) {
 			if (input.mouse.middle_button.pressed_now()) {
-				commands->push_back(EditorCommand::SetCursorToSizeAll);
+				commands->push_back(editor::EditorCommand::SetCursorToSizeAll);
 				scene_view->is_being_dragging = true;
 			}
 		}
@@ -129,19 +129,19 @@ namespace engine {
 			scene_view->scaled_canvas_rect.set_position(dragged_position);
 
 			if (input.mouse.middle_button.released_now()) {
-				commands->push_back(EditorCommand::SetCursorToArrow);
+				commands->push_back(editor::EditorCommand::SetCursorToArrow);
 				scene_view->is_being_dragging = false;
 			}
 		}
 	}
 
-	std::vector<EditorCommand> update_editor_scene_view(
+	std::vector<editor::EditorCommand> update_editor_scene_view(
 		EditorSceneViewState* scene_view,
 		const platform::Input& input,
 		glm::vec2 window_relative_mouse_pos,
 		platform::Rect scene_window_rect
 	) {
-		std::vector<EditorCommand> commands;
+		std::vector<editor::EditorCommand> commands;
 
 		const bool scene_window_is_hovered = scene_window_rect.overlaps_point(input.mouse.pos);
 		if (scene_window_is_hovered) {

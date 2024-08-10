@@ -2,7 +2,7 @@
 
 #include <core/container.h>
 #include <core/future.h>
-#include <engine/editor/editor_command.h>
+#include <editor/editor_command.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <platform/debug/logging.h>
@@ -135,7 +135,7 @@ namespace editor {
 		editor->project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 
 		/* Run UI */
-		std::vector<engine::EditorCommand> commands = update_editor_ui(
+		std::vector<EditorCommand> commands = update_editor_ui(
 			&editor->ui,
 			game,
 			project,
@@ -148,19 +148,19 @@ namespace editor {
 		/* Project keyboard shortcuts */
 		{
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
-				commands.push_back(engine::EditorCommand::NewProject);
+				commands.push_back(EditorCommand::NewProject);
 			}
 
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTRL)) {
-				commands.push_back(engine::EditorCommand::OpenProject);
+				commands.push_back(EditorCommand::OpenProject);
 			}
 
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL)) {
-				commands.push_back(engine::EditorCommand::SaveProject);
+				commands.push_back(EditorCommand::SaveProject);
 			}
 
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
-				commands.push_back(engine::EditorCommand::SaveProjectAs);
+				commands.push_back(EditorCommand::SaveProjectAs);
 			}
 		}
 
@@ -169,25 +169,25 @@ namespace editor {
 			/* Run */
 			if (input.keyboard.key_pressed_now(SDLK_F5)) {
 				if (editor->game_is_running) {
-					commands.push_back(engine::EditorCommand::RunGame);
+					commands.push_back(EditorCommand::RunGame);
 				}
 				else {
-					commands.push_back(engine::EditorCommand::ResetGameState);
-					commands.push_back(engine::EditorCommand::RunGame);
+					commands.push_back(EditorCommand::ResetGameState);
+					commands.push_back(EditorCommand::RunGame);
 				}
 			}
 
 			/* Restart */
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_F5, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
-				commands.push_back(engine::EditorCommand::ResetGameState);
-				commands.push_back(engine::EditorCommand::RunGame);
+				commands.push_back(EditorCommand::ResetGameState);
+				commands.push_back(EditorCommand::RunGame);
 			}
 		}
 
 		/* Process commands */
-		for (const engine::EditorCommand& cmd : commands) {
+		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
-				case engine::EditorCommand::NewProject:
+				case EditorCommand::NewProject:
 					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
 							new_project(editor, game, project);
@@ -198,7 +198,7 @@ namespace editor {
 					}
 					break;
 
-				case engine::EditorCommand::OpenProject:
+				case EditorCommand::OpenProject:
 					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
 							open_project(editor, game, project, platform);
@@ -209,36 +209,36 @@ namespace editor {
 					}
 					break;
 
-				case engine::EditorCommand::SaveProject:
+				case EditorCommand::SaveProject:
 					if (editor->project_has_unsaved_changes || is_new_file) {
 						save_project(editor, project, platform);
 					}
 					break;
 
-				case engine::EditorCommand::SaveProjectAs:
+				case EditorCommand::SaveProjectAs:
 					save_project_as(editor, project, platform);
 					break;
 
-				case engine::EditorCommand::SetCursorToSizeAll:
+				case EditorCommand::SetCursorToSizeAll:
 					platform->set_cursor(platform::Cursor::SizeAll);
 					break;
 
-				case engine::EditorCommand::SetCursorToArrow:
+				case EditorCommand::SetCursorToArrow:
 					platform->set_cursor(platform::Cursor::Arrow);
 					break;
 
-				case engine::EditorCommand::ResetGameState:
+				case EditorCommand::ResetGameState:
 					editor->game_is_running = false;
 					init_game_state(game, *project);
 					break;
 
-				case engine::EditorCommand::RunGame:
+				case EditorCommand::RunGame:
 					editor->game_is_running = true;
 					platform->set_run_mode(platform::RunMode::Game);
 					platform->set_window_mode(editor->ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
 					break;
 
-				case engine::EditorCommand::Quit:
+				case EditorCommand::Quit:
 					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
 							quit_editor(platform);
