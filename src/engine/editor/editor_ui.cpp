@@ -228,6 +228,7 @@ namespace engine {
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
 			const glm::vec2 scene_window_pos = ImGui::GetCursorScreenPos();
+			const glm::vec2 window_relative_mouse_pos = input.mouse.pos - scene_window_pos;
 			ui->scene_window_size = ImGui::GetContentRegionAvail();
 
 			// Render scene texture
@@ -240,16 +241,6 @@ namespace engine {
 				};
 				ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
 			}
-
-			const glm::vec2 window_relative_mouse_pos = input.mouse.pos - scene_window_pos;
-
-			if (ImGui::Begin("Debug")) {
-				ImGui::Text("window_relative_mouse_pos = %f %f", window_relative_mouse_pos.x, window_relative_mouse_pos.y);
-				ImGui::Text("ui->scaled_scene_canvas_rect");
-				ImGui::Text("\ttop_left: %f %f", ui->scaled_scene_canvas_rect.top_left.x, ui->scaled_scene_canvas_rect.top_left.y);
-				ImGui::Text("\tbottom_right: %f %f", ui->scaled_scene_canvas_rect.bottom_right.x, ui->scaled_scene_canvas_rect.bottom_right.y);
-			}
-			ImGui::End();
 
 			// Scene view hover
 			{
@@ -342,16 +333,6 @@ namespace engine {
 		}
 		ImGui::End();
 
-		if (ImGui::Begin("Debug")) {
-			ImGui::Spacing();
-			if (ImGui::Button("Reset")) {
-				ui->scaled_scene_canvas_rect.set_position(glm::vec2 { 250, 150 });
-				ui->scene_zoom_index = 0;
-				ui->scaled_scene_canvas_rect.set_size(ui->scene_canvas_size);
-			}
-		}
-		ImGui::End();
-
 		return commands;
 	}
 
@@ -366,8 +347,8 @@ namespace engine {
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, scene_canvas_size }, { 0.75f, 0.75f, 0.75f, 1.0f });
 
 		// Coordinate Axes
-		renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x, scene_canvas_size.y / 2.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f });
-		renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y }, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f });
+		renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x + 1.0f, scene_canvas_size.y / 2.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f }); // horizontal
+		renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y + 1.0f }, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f }); // vertical
 
 		// Hover text
 		if (ui.scene_window_hovered) {
