@@ -64,6 +64,7 @@ namespace engine {
 		ui->window_canvas = platform::add_canvas(1, 1);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<ProjectState>()(project);
+		ui->scene_view_position_initialized = false;
 
 		/* Setup docking */
 		if (reset_docking) {
