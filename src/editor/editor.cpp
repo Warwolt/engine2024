@@ -1,4 +1,4 @@
-#include <engine/editor/editor.h>
+#include <editor/editor.h>
 
 #include <core/container.h>
 #include <core/future.h>
@@ -9,7 +9,7 @@
 #include <platform/input/input.h>
 #include <platform/platform_api.h>
 
-namespace engine {
+namespace editor {
 
 	static const platform::FileExplorerDialog g_load_project_dialog = {
 		.title = "Load project",
@@ -25,8 +25,8 @@ namespace engine {
 
 	static void new_project(
 		EditorState* editor,
-		GameState* game,
-		ProjectState* project
+		engine::GameState* game,
+		engine::ProjectState* project
 	) {
 		LOG_INFO("Opened new project");
 		*project = {};
@@ -36,16 +36,16 @@ namespace engine {
 
 	static void open_project(
 		EditorState* editor,
-		GameState* game,
-		ProjectState* project,
+		engine::GameState* game,
+		engine::ProjectState* project,
 		platform::PlatformAPI* platform
 	) {
 		platform->load_file_with_dialog(g_load_project_dialog, [=](std::vector<uint8_t> data, std::filesystem::path path) {
-			*project = core::container::unwrap(ProjectState::from_json_string(data, path), [&](const std::string& error) {
+			*project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
 				ABORT("Could not parse json file \"%s\": %s", path.string().c_str(), error.c_str());
 			});
 			editor->ui.project_name_buf = project->name;
-			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+			editor->ui.cached_project_hash = std::hash<engine::ProjectState>()(*project);
 			editor->game_is_running = false;
 			init_game_state(game, *project);
 			LOG_INFO("Opened project \"%s\"", project->name.c_str());
@@ -54,34 +54,34 @@ namespace engine {
 
 	static void save_project_as(
 		EditorState* editor,
-		ProjectState* project,
+		engine::ProjectState* project,
 		platform::PlatformAPI* platform,
 		std::function<void()> on_file_saved = []() {}
 	) {
-		const std::string json = ProjectState::to_json_string(*project);
+		const std::string json = engine::ProjectState::to_json_string(*project);
 		const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 		platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
 			LOG_INFO("Saved project \"%s\"", project->name.c_str());
 			project->path = path;
-			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+			editor->ui.cached_project_hash = std::hash<engine::ProjectState>()(*project);
 			on_file_saved();
 		});
 	}
 
 	static void save_project(
 		EditorState* editor,
-		ProjectState* project,
+		engine::ProjectState* project,
 		platform::PlatformAPI* platform,
 		std::function<void()> on_file_saved = []() {}
 	) {
 		const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
 		if (project_file_exists) {
 			/* Save existing file */
-			const std::string json = ProjectState::to_json_string(*project);
+			const std::string json = engine::ProjectState::to_json_string(*project);
 			const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 			platform->save_file(bytes, project->path, [=]() {
 				LOG_INFO("Saved project \"%s\"", project->name.c_str());
-				editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+				editor->ui.cached_project_hash = std::hash<engine::ProjectState>()(*project);
 				on_file_saved();
 			});
 		}
@@ -93,7 +93,7 @@ namespace engine {
 
 	static void show_unsaved_project_changes_dialog(
 		EditorState* editor,
-		ProjectState* project,
+		engine::ProjectState* project,
 		platform::PlatformAPI* platform,
 		std::function<void()> on_dialog_not_cancelled = []() {}
 	) {
@@ -118,24 +118,24 @@ namespace engine {
 		LOG_INFO("Editor quit");
 	}
 
-	void init_editor(EditorState* editor, const ProjectState& project, bool reset_docking) {
+	void init_editor(EditorState* editor, const engine::ProjectState& project, bool reset_docking) {
 		init_editor_ui(&editor->ui, project, reset_docking);
 	}
 
 	void update_editor(
 		EditorState* editor,
-		GameState* game,
-		ProjectState* project,
+		engine::GameState* game,
+		engine::ProjectState* project,
 		const platform::Input& input,
 		const engine::Resources& resources,
 		platform::PlatformAPI* platform
 	) {
-		const size_t current_project_hash = std::hash<ProjectState>()(*project);
+		const size_t current_project_hash = std::hash<engine::ProjectState>()(*project);
 		const bool is_new_file = project->path.empty();
 		editor->project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 
 		/* Run UI */
-		std::vector<EditorCommand> commands = update_editor_ui(
+		std::vector<engine::EditorCommand> commands = update_editor_ui(
 			&editor->ui,
 			game,
 			project,
@@ -148,19 +148,19 @@ namespace engine {
 		/* Project keyboard shortcuts */
 		{
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_n, platform::KEY_MOD_CTRL)) {
-				commands.push_back(EditorCommand::NewProject);
+				commands.push_back(engine::EditorCommand::NewProject);
 			}
 
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_o, platform::KEY_MOD_CTRL)) {
-				commands.push_back(EditorCommand::OpenProject);
+				commands.push_back(engine::EditorCommand::OpenProject);
 			}
 
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL)) {
-				commands.push_back(EditorCommand::SaveProject);
+				commands.push_back(engine::EditorCommand::SaveProject);
 			}
 
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_s, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
-				commands.push_back(EditorCommand::SaveProjectAs);
+				commands.push_back(engine::EditorCommand::SaveProjectAs);
 			}
 		}
 
@@ -169,25 +169,25 @@ namespace engine {
 			/* Run */
 			if (input.keyboard.key_pressed_now(SDLK_F5)) {
 				if (editor->game_is_running) {
-					commands.push_back(EditorCommand::RunGame);
+					commands.push_back(engine::EditorCommand::RunGame);
 				}
 				else {
-					commands.push_back(EditorCommand::ResetGameState);
-					commands.push_back(EditorCommand::RunGame);
+					commands.push_back(engine::EditorCommand::ResetGameState);
+					commands.push_back(engine::EditorCommand::RunGame);
 				}
 			}
 
 			/* Restart */
 			if (input.keyboard.key_pressed_now_with_modifier(SDLK_F5, platform::KEY_MOD_CTRL | platform::KEY_MOD_SHIFT)) {
-				commands.push_back(EditorCommand::ResetGameState);
-				commands.push_back(EditorCommand::RunGame);
+				commands.push_back(engine::EditorCommand::ResetGameState);
+				commands.push_back(engine::EditorCommand::RunGame);
 			}
 		}
 
 		/* Process commands */
-		for (const EditorCommand& cmd : commands) {
+		for (const engine::EditorCommand& cmd : commands) {
 			switch (cmd) {
-				case EditorCommand::NewProject:
+				case engine::EditorCommand::NewProject:
 					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
 							new_project(editor, game, project);
@@ -198,7 +198,7 @@ namespace engine {
 					}
 					break;
 
-				case EditorCommand::OpenProject:
+				case engine::EditorCommand::OpenProject:
 					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
 							open_project(editor, game, project, platform);
@@ -209,36 +209,36 @@ namespace engine {
 					}
 					break;
 
-				case EditorCommand::SaveProject:
+				case engine::EditorCommand::SaveProject:
 					if (editor->project_has_unsaved_changes || is_new_file) {
 						save_project(editor, project, platform);
 					}
 					break;
 
-				case EditorCommand::SaveProjectAs:
+				case engine::EditorCommand::SaveProjectAs:
 					save_project_as(editor, project, platform);
 					break;
 
-				case EditorCommand::SetCursorToSizeAll:
+				case engine::EditorCommand::SetCursorToSizeAll:
 					platform->set_cursor(platform::Cursor::SizeAll);
 					break;
 
-				case EditorCommand::SetCursorToArrow:
+				case engine::EditorCommand::SetCursorToArrow:
 					platform->set_cursor(platform::Cursor::Arrow);
 					break;
 
-				case EditorCommand::ResetGameState:
+				case engine::EditorCommand::ResetGameState:
 					editor->game_is_running = false;
 					init_game_state(game, *project);
 					break;
 
-				case EditorCommand::RunGame:
+				case engine::EditorCommand::RunGame:
 					editor->game_is_running = true;
 					platform->set_run_mode(platform::RunMode::Game);
 					platform->set_window_mode(editor->ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
 					break;
 
-				case EditorCommand::Quit:
+				case engine::EditorCommand::Quit:
 					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
 							quit_editor(platform);
@@ -259,4 +259,4 @@ namespace engine {
 		render_editor_ui(editor.ui, renderer);
 	}
 
-} // namespace engine
+} // namespace editor

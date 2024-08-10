@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/editor/editor.h>
+#include <editor/editor.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <engine/system/animation.h>
@@ -40,7 +40,7 @@ namespace engine {
 		HotReloadingState hot_reloading;
 		ProjectState project;
 		GameState game;
-		EditorState editor;
+		editor::EditorState editor;
 	};
 
 } // namespace engine

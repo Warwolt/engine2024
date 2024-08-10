@@ -14,18 +14,22 @@ namespace engine {
 	struct ProjectState;
 	struct Resources;
 
+}
+
+namespace editor {
+
 	struct EditorState {
-		EditorUiState ui;
+		engine::EditorUiState ui;
 		bool project_has_unsaved_changes = false;
 		bool game_is_running = false;
 	};
 
-	void init_editor(EditorState* editor, const ProjectState& project, bool reset_docking);
+	void init_editor(EditorState* editor, const engine::ProjectState& project, bool reset_docking);
 
 	void update_editor(
 		EditorState* editor,
-		GameState* game,
-		ProjectState* project,
+		engine::GameState* game,
+		engine::ProjectState* project,
 		const platform::Input& input,
 		const engine::Resources& resources,
 		platform::PlatformAPI* platform
@@ -36,4 +40,4 @@ namespace engine {
 		platform::Renderer* renderer
 	);
 
-} // namespace engine
+} // namespace editor
