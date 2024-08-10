@@ -28,7 +28,7 @@ namespace engine {
 		EditorSceneViewState* scene_view,
 		const platform::Input& input,
 		glm::vec2 window_relative_mouse_pos,
-		bool scene_window_is_hovered
+		platform::Rect scene_window_rect
 	);
 
 	void render_editor_scene_view(

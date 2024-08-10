@@ -89,6 +89,7 @@ namespace engine {
 	static void update_canvas_mouse_drag(
 		EditorSceneViewState* scene_view,
 		const platform::Input& input,
+		platform::Rect scene_window_rect,
 		bool scene_window_is_hovered,
 		std::vector<EditorCommand>* commands
 	) {
@@ -101,12 +102,37 @@ namespace engine {
 		}
 
 		if (scene_view->is_being_dragging) {
+			glm::vec2 new_position = scene_view->scaled_canvas_rect.position() + input.mouse.pos_delta;
+			const glm::vec2 window_size = scene_window_rect.size();
+			const platform::Rect scaled_canvas_rect = scene_view->scaled_canvas_rect;
+			const glm::vec2 scaled_canvas_size = scene_view->scaled_canvas_rect.size();
+			const bool canvas_fully_visible = !(
+				scaled_canvas_rect.top_left.x < 0 ||
+				scaled_canvas_rect.bottom_right.x > window_size.x ||
+				scaled_canvas_rect.top_left.y < 0 ||
+				scaled_canvas_rect.bottom_right.y > window_size.y
+			);
+			// FIXME: rewrite this using glm::clamp instead of std::clamp
+			if (canvas_fully_visible) {
+				// Zoomed out , limit canvas to not clip outside of window
+				new_position = glm::vec2 {
+					std::clamp(new_position.x, 0.0f, window_size.x - scaled_canvas_size.x),
+					std::clamp(new_position.y, 0.0f, window_size.y - scaled_canvas_size.y)
+				};
+			}
+			else {
+				// Zoomed in, limit sides of canvas to not pass middle of window
+				new_position = glm::vec2 {
+					std::clamp(new_position.x, window_size.x / 2.0f - scaled_canvas_size.x, window_size.x / 2.0f),
+					std::clamp(new_position.y, window_size.y / 2.0f - scaled_canvas_size.y, window_size.y / 2.0f),
+				};
+			}
+			scene_view->scaled_canvas_rect.set_position(new_position);
+
 			if (input.mouse.middle_button.released_now()) {
 				commands->push_back(EditorCommand::SetCursorToArrow);
 				scene_view->is_being_dragging = false;
 			}
-
-			scene_view->scaled_canvas_rect.set_position(scene_view->scaled_canvas_rect.position() + input.mouse.pos_delta);
 		}
 	}
 
@@ -114,15 +140,16 @@ namespace engine {
 		EditorSceneViewState* scene_view,
 		const platform::Input& input,
 		glm::vec2 window_relative_mouse_pos,
-		bool scene_window_is_hovered
+		platform::Rect scene_window_rect
 	) {
 		std::vector<EditorCommand> commands;
 
+		const bool scene_window_is_hovered = scene_window_rect.overlaps_point(input.mouse.pos);
 		if (scene_window_is_hovered) {
 			update_canvas_zoom(scene_view, input, window_relative_mouse_pos);
 		}
 
-		update_canvas_mouse_drag(scene_view, input, scene_window_is_hovered, &commands);
+		update_canvas_mouse_drag(scene_view, input, scene_window_rect, scene_window_is_hovered, &commands);
 
 		return commands;
 	}

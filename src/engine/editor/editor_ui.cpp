@@ -257,12 +257,11 @@ namespace engine {
 			// Update scene view
 			{
 				const platform::Rect scene_window_rect = platform::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
-				const bool scene_window_is_hovered = scene_window_rect.overlaps_point(input.mouse.pos);
 				std::vector<EditorCommand> scene_view_commands = update_editor_scene_view(
 					&ui->scene_view,
 					input,
 					window_relative_mouse_pos,
-					scene_window_is_hovered
+					scene_window_rect
 				);
 				commands.append_range(scene_view_commands);
 			}
