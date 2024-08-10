@@ -29,7 +29,8 @@ namespace engine {
 		bool show_imgui_demo = false;
 
 		platform::Canvas window_canvas; // used to render ImGui::Image
-		glm::vec2 scene_window_size; // REMOVE THIS, replace with bool "scene_window_shown"
+		bool scene_window_visible = false;
+		bool scene_view_position_initialized = false; // used to center view once we know ImGui window size
 
 		EditorSceneViewState scene_view;
 	};

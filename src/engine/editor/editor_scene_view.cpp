@@ -115,8 +115,9 @@ namespace engine {
 
 		if (scene_window_is_hovered) {
 			update_canvas_zoom(scene_view, input, window_relative_mouse_pos);
-			update_canvas_mouse_drag(scene_view, input, &commands);
 		}
+
+		update_canvas_mouse_drag(scene_view, input, &commands);
 
 		return commands;
 	}

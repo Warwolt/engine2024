@@ -97,7 +97,7 @@ namespace engine {
 		if (ui->window_canvas.texture.size != input.monitor_size) {
 			platform::free_canvas(ui->window_canvas);
 			ui->window_canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
-			LOG_INFO("Resized window canvas");
+			LOG_INFO("Resized scene window canvas");
 		}
 
 		/* Dockspace */
@@ -222,20 +222,36 @@ namespace engine {
 		ImGui::End();
 
 		/* Scene Window */
-		if (ImGui::Begin(SCENE_WINDOW)) {
+		ui->scene_window_visible = ImGui::Begin(SCENE_WINDOW);
+		if (ui->scene_window_visible) {
 			const glm::vec2 scene_window_pos = ImGui::GetCursorScreenPos();
 			const glm::vec2 window_relative_mouse_pos = input.mouse.pos - scene_window_pos;
-			ui->scene_window_size = ImGui::GetContentRegionAvail();
+			glm::vec2 scene_window_size = ImGui::GetContentRegionAvail();
+
+			// Initialize scene view
+			static int counter = 0; // imgui needs 1 frame before window sizes are correct
+			if (!ui->scene_view_position_initialized && counter++ > 0) {
+				ui->scene_view_position_initialized = true;
+				// Place scene view in center of window
+				ui->scene_view.scaled_canvas_rect.set_position((scene_window_size - ui->scene_view.scaled_canvas_rect.size()) / 2.0f);
+			}
+
+			if (ImGui::Begin("Debug")) {
+				auto pos = ui->scene_view.scaled_canvas_rect.position();
+				ImGui::Text("Window size: %f %f", scene_window_size.x, scene_window_size.y);
+				ImGui::Text("Position: %f %f", pos.x, pos.y);
+			}
+			ImGui::End();
 
 			// Render scene texture
 			{
 				const platform::Texture& scene_texture = ui->window_canvas.texture;
 				glm::vec2 top_left = { 0.0f, 1.0f };
 				glm::vec2 bottom_right = {
-					std::clamp(ui->scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
-					std::clamp(1.0f - ui->scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
+					std::clamp(scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
+					std::clamp(1.0f - scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
 				};
-				ImGui::Image(scene_texture.id, ui->scene_window_size, top_left, bottom_right);
+				ImGui::Image(scene_texture.id, scene_window_size, top_left, bottom_right);
 			}
 
 			// Update scene view
@@ -251,9 +267,6 @@ namespace engine {
 				commands.append_range(scene_view_commands);
 			}
 		}
-		else {
-			ui->scene_window_size = { 0.0f, 0.0f }; // inactive
-		}
 		ImGui::End();
 
 		return commands;
@@ -264,7 +277,7 @@ namespace engine {
 		platform::Renderer* renderer
 	) {
 		// Only render scene if ImGui scene window open
-		if (ui.scene_window_size != glm::vec2 { 0.0f, 0.0f }) {
+		if (ui.scene_window_visible) {
 			/* Render scene to canvas */
 			renderer->set_draw_canvas(ui.scene_view.canvas);
 			render_editor_scene_view(ui.scene_view, renderer);
@@ -272,7 +285,7 @@ namespace engine {
 
 			/* Render scene canvas to imgui canvas */
 			renderer->set_draw_canvas(ui.window_canvas);
-			renderer->draw_rect_fill(platform::Rect { glm::vec2 { 0.0f, 0.0f }, ui.window_canvas.texture.size }, glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
+			renderer->draw_rect_fill(platform::Rect { glm::vec2 { 0.0f, 0.0f }, ui.window_canvas.texture.size }, glm::vec4 { 0.0f, 0.5f, 0.5f, 1.0f });
 			renderer->draw_texture(ui.scene_view.canvas.texture, ui.scene_view.scaled_canvas_rect);
 			renderer->reset_draw_canvas();
 		}
