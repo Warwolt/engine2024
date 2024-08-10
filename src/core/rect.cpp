@@ -1,6 +1,6 @@
-#include <platform/graphics/rect.h>
+#include <core/rect.h>
 
-namespace platform {
+namespace core {
 
 	Rect Rect::with_pos_and_size(glm::vec2 pos, glm::vec2 size) {
 		return Rect {
@@ -129,4 +129,4 @@ namespace platform {
 		return lhs;
 	}
 
-} // namespace platform
+} // namespace core

@@ -9,7 +9,6 @@ Goals:
 
 ## TODO
 - Fix the window resize behavior (should only resize while left button held)
-- Move Rect to `core` namespace (it's not platform specific, just computational)
 - Add unit tests for Rect (since we have helper methods now)
 - Add logging window to editor
 - Set up cpu profiling
@@ -23,9 +22,10 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Rename top level files to match namespace
+- Move Rect to `core` namespace
 
 ## Done
+- Rename top level files to match namespace
 - Move editor to its own namespace (editor, engine, platform, core)
 - Zoom in and out of canvas
 - Render canvas

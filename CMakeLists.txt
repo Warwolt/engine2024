@@ -53,6 +53,7 @@ add_compile_definitions(IMGUI_USER_CONFIG=<platform/debug/imconfig.h>)
 set(CORE_SRC
     src/core/parse.cpp
     src/core/string.cpp
+    src/core/rect.cpp
 )
 
 set(EDITOR_SRC
@@ -77,7 +78,6 @@ set(PLATFORM_SRC
     src/platform/file/zip.cpp
     src/platform/graphics/font.cpp
     src/platform/graphics/image.cpp
-    src/platform/graphics/rect.cpp
     src/platform/graphics/renderer.cpp
     src/platform/graphics/texture.cpp
     src/platform/graphics/window.cpp
@@ -90,6 +90,7 @@ set(PLATFORM_SRC
 )
 
 set(TEST_SRC
+    test/core/rect_tests.cpp
     test/core/resource_handler_tests.cpp
     test/core/signal_tests.cpp
     test/core/tagged_variant_tests.cpp
@@ -146,7 +147,7 @@ target_link_libraries(${EDITOR_LIB} PUBLIC ${EXTERNAL_LIBS})
 # Engine
 add_library(${ENGINE_LIB} SHARED ${ENGINE_SRC})
 target_include_directories(${ENGINE_LIB} PUBLIC ${INC})
-target_link_libraries(${ENGINE_LIB} PUBLIC ${PLATFORM_LIB} ${EDITOR_LIB} ${EXTERNAL_LIBS})
+target_link_libraries(${ENGINE_LIB} PUBLIC ${PLATFORM_LIB} ${EDITOR_LIB} ${CORE_LIB} ${EXTERNAL_LIBS})
 set_target_properties(${ENGINE_LIB} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS YES)
 
 # Main

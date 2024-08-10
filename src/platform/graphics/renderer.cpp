@@ -272,7 +272,7 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
-	void Renderer::draw_rect(Rect quad, glm::vec4 color) {
+	void Renderer::draw_rect(core::Rect quad, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
@@ -290,7 +290,7 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
-	void Renderer::draw_rect_fill(Rect quad, glm::vec4 color) {
+	void Renderer::draw_rect_fill(core::Rect quad, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
@@ -362,20 +362,20 @@ namespace platform {
 		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture, .canvas = m_draw_canvas });
 	}
 
-	void Renderer::draw_texture(Texture texture, Rect quad) {
-		FlipRect uv = {
+	void Renderer::draw_texture(Texture texture, core::Rect quad) {
+		core::FlipRect uv = {
 			.bottom_left = { 0.0f, 0.0f },
 			.top_right = { 1.0f, 1.0f }
 		};
 		draw_texture_clipped(texture, quad, uv);
 	}
 
-	void Renderer::draw_texture_clipped(Texture texture, Rect quad, FlipRect uv) {
+	void Renderer::draw_texture_clipped(Texture texture, core::Rect quad, core::FlipRect uv) {
 		glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
 		draw_texture_clipped_with_color(texture, quad, uv, white);
 	}
 
-	void Renderer::draw_texture_clipped_with_color(Texture texture, Rect quad, FlipRect uv, glm::vec4 color) {
+	void Renderer::draw_texture_clipped_with_color(Texture texture, core::Rect quad, core::FlipRect uv, glm::vec4 color) {
 		// (x0, y0) ---- (x1, y0)
 		//     |            |
 		//     |            |
@@ -411,7 +411,7 @@ namespace platform {
 	void Renderer::draw_character(const Font& font, char character, glm::vec2 pos, glm::vec4 color) {
 		const platform::Glyph& glyph = font.glyphs[character];
 
-		platform::Rect quad = {
+		core::Rect quad = {
 			.top_left = { pos.x, pos.y },
 			.bottom_right = { pos.x + glyph.size.x, pos.y + glyph.size.y }
 		};
@@ -421,7 +421,7 @@ namespace platform {
 		float u1 = u0 + glyph.size.x / (float)font.atlas.size.x;
 		float v1 = v0 + glyph.size.y / (float)font.atlas.size.y;
 
-		platform::FlipRect uv = {
+		core::FlipRect uv = {
 			.bottom_left = { u0, v0 },
 			.top_right = { u1, v1 }
 		};

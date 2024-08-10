@@ -483,7 +483,7 @@ int main(int argc, char** argv) {
 					set_viewport_to_center_canvas(window.size().x, window.size().y, (int)window_canvas.texture.size.x, (int)window_canvas.texture.size.y);
 				}
 				set_normalized_device_coordinate_projection(&renderer, shader_program);
-				renderer.draw_texture(window_canvas.texture, platform::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });
+				renderer.draw_texture(window_canvas.texture, core::Rect { { -1.0f, 1.0f }, { 1.0f, -1.0f } });
 				renderer.render(shader_program);
 			}
 

@@ -17,7 +17,7 @@ namespace editor {
 		int zoom_index = 0;
 		bool is_being_dragging = false;
 		glm::vec2 canvas_size = { 0.0f, 0.0f };
-		platform::Rect scaled_canvas_rect;
+		core::Rect scaled_canvas_rect;
 		platform::Canvas canvas; // used to render the scene
 	};
 
@@ -28,7 +28,7 @@ namespace editor {
 		EditorSceneViewState* scene_view,
 		const platform::Input& input,
 		glm::vec2 window_relative_mouse_pos,
-		platform::Rect scene_window_rect
+		core::Rect scene_window_rect
 	);
 
 	void render_editor_scene_view(

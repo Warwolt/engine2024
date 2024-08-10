@@ -10,7 +10,7 @@ namespace editor {
 		constexpr int canvas_width = 320;
 		constexpr int canvas_height = 320;
 		scene->canvas_size = { canvas_width, canvas_height };
-		scene->scaled_canvas_rect = platform::Rect { { 0, 0 }, { canvas_width, canvas_height } };
+		scene->scaled_canvas_rect = core::Rect { { 0, 0 }, { canvas_width, canvas_height } };
 		scene->canvas = platform::add_canvas(canvas_width, canvas_height);
 		scene->zoom_index = 0;
 	}
@@ -108,7 +108,7 @@ namespace editor {
 	static void update_canvas_mouse_drag(
 		EditorSceneViewState* scene_view,
 		const platform::Input& input,
-		platform::Rect scene_window_rect,
+		core::Rect scene_window_rect,
 		bool scene_window_is_hovered,
 		std::vector<editor::EditorCommand>* commands
 	) {
@@ -139,7 +139,7 @@ namespace editor {
 		EditorSceneViewState* scene_view,
 		const platform::Input& input,
 		glm::vec2 window_relative_mouse_pos,
-		platform::Rect scene_window_rect
+		core::Rect scene_window_rect
 	) {
 		std::vector<editor::EditorCommand> commands;
 
