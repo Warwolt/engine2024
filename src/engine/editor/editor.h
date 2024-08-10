@@ -33,7 +33,6 @@ namespace engine {
 
 	void render_editor(
 		const EditorState& editor,
-		const engine::Resources& resources,
 		platform::Renderer* renderer
 	);
 

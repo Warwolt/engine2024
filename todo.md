@@ -8,7 +8,9 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Move editor to its own namespace (editor, engine, platform, core)
 - Fix the window resize behavior (should only resize while left button held)
+- Move Rect to `core` namespace (it's not platform specific, just computational)
 - Add unit tests for Rect (since we have helper methods now)
 - Add logging window to editor
 - Set up cpu profiling

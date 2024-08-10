@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine/editor/editor_command.h>
+#include <engine/editor/editor_scene_view.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -28,12 +29,9 @@ namespace engine {
 		bool show_imgui_demo = false;
 
 		platform::Canvas window_canvas; // used to render ImGui::Image
-		glm::vec2 scene_window_size; // size of imgui window that renders the scene
+		glm::vec2 scene_window_size; // REMOVE THIS, replace with bool "scene_window_shown"
 
-		int scene_zoom_index = 0;
-		glm::vec2 scene_canvas_size = { 0.0f, 0.0f };
-		platform::Rect scaled_scene_canvas_rect;
-		platform::Canvas scene_canvas; // used to render the scene
+		EditorSceneViewState scene_view;
 	};
 
 	void init_editor_ui(
@@ -56,7 +54,6 @@ namespace engine {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
-		const engine::Resources& resources,
 		platform::Renderer* renderer
 	);
 

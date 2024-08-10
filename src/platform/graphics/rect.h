@@ -17,8 +17,10 @@ namespace platform {
 
 		void set_position(glm::vec2 pos);
 		void set_size(glm::vec2 size);
+
 		glm::vec2 size() const;
 		glm::vec2 position() const;
+		bool overlaps_point(glm::vec2 point) const;
 
 		Rect& operator+=(const Rect& rhs);
 		Rect& operator-=(const Rect& rhs);

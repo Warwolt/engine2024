@@ -27,6 +27,12 @@ namespace platform {
 		return this->top_left;
 	}
 
+	bool Rect::overlaps_point(glm::vec2 point) const {
+		const bool overlaps_horizontally = this->top_left.x <= point.x && point.x <= this->bottom_right.x;
+		const bool overlaps_vertically = this->top_left.y <= point.y && point.y <= this->bottom_right.y;
+		return overlaps_horizontally && overlaps_vertically;
+	}
+
 	Rect& Rect::operator+=(const Rect& rhs) {
 		this->top_left += rhs.top_left;
 		this->bottom_right += rhs.bottom_right;
