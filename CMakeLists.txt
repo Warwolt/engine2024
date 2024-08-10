@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.24.2)
 project(GameEngine2024)
 
+# This option is enabled in CI builds
 option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
 
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
 set(UNIT_TESTS unit_tests)
 set(CORE_LIB ${CMAKE_PROJECT_NAME}Core)
+set(EDITOR_LIB ${CMAKE_PROJECT_NAME}Editor)
 set(ENGINE_LIB ${CMAKE_PROJECT_NAME}Engine)
 set(PLATFORM_LIB ${CMAKE_PROJECT_NAME}Platform)
 set(SDL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2)
@@ -53,10 +55,13 @@ set(CORE_SRC
     src/core/string.cpp
 )
 
+set(EDITOR_SRC
+    src/editor/editor_scene_view.cpp
+    src/editor/editor_ui.cpp
+    src/editor/editor.cpp
+)
+
 set(ENGINE_SRC
-    src/engine/editor/editor_scene_view.cpp
-    src/engine/editor/editor_ui.cpp
-    src/engine/editor/editor.cpp
     src/engine/engine_api.cpp
     src/engine/state/game_state.cpp
     src/engine/state/project_state.cpp
@@ -133,24 +138,29 @@ add_library(${PLATFORM_LIB} STATIC ${PLATFORM_SRC})
 target_include_directories(${PLATFORM_LIB} PUBLIC ${INC})
 target_link_libraries(${PLATFORM_LIB} PUBLIC ${EXTERNAL_LIBS})
 
+# Editor
+add_library(${EDITOR_LIB} STATIC ${EDITOR_SRC})
+target_include_directories(${EDITOR_LIB} PUBLIC ${INC})
+target_link_libraries(${EDITOR_LIB} PUBLIC ${EXTERNAL_LIBS})
+
 # Engine
 add_library(${ENGINE_LIB} SHARED ${ENGINE_SRC})
 target_include_directories(${ENGINE_LIB} PUBLIC ${INC})
-target_link_libraries(${ENGINE_LIB} PUBLIC ${PLATFORM_LIB} ${EXTERNAL_LIBS})
+target_link_libraries(${ENGINE_LIB} PUBLIC ${PLATFORM_LIB} ${EDITOR_LIB} ${EXTERNAL_LIBS})
 set_target_properties(${ENGINE_LIB} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS YES)
 
 # Main
 add_executable(${MAIN_BINARY} src/main.cpp)
 target_include_directories(${MAIN_BINARY} PUBLIC ${INC})
-target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${CORE_LIB} ${EXTERNAL_LIBS})
+target_link_libraries(${MAIN_BINARY} PUBLIC ${PLATFORM_LIB} ${EDITOR_LIB} ${CORE_LIB} ${EXTERNAL_LIBS})
 
 # Tests
 add_executable(${UNIT_TESTS} test/main.cpp ${TEST_SRC})
 target_include_directories(${UNIT_TESTS} PUBLIC test)
-target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB} ${ENGINE_LIB})
+target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB} ${EDITOR_LIB} ${ENGINE_LIB})
 
 # Set compile options for targets
-foreach(TARGET IN ITEMS ${MAIN_BINARY} ${CORE_LIB} ${PLATFORM_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
+foreach(TARGET IN ITEMS ${MAIN_BINARY} ${CORE_LIB} ${PLATFORM_LIB} ${EDITOR_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
     set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PUBLIC
         $<$<CXX_COMPILER_ID:MSVC>: /W4>
@@ -189,4 +199,4 @@ add_custom_target(CopyResourceFiles ALL
     $<TARGET_FILE_DIR:${MAIN_BINARY}>/resources)
 
 # Set DLL as dependency for binary so Visual Studio knows to rebuild the DLL
-add_dependencies(${MAIN_BINARY} ${ENGINE_LIB} ${PLATFORM_LIB})
+add_dependencies(${MAIN_BINARY} ${EDITOR_LIB} ${ENGINE_LIB} ${PLATFORM_LIB})

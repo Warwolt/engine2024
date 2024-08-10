@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/editor/editor_command.h>
+#include <editor/editor_command.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -11,7 +11,7 @@ namespace platform {
 
 }
 
-namespace engine {
+namespace editor {
 
 	struct EditorSceneViewState {
 		int zoom_index = 0;
@@ -24,7 +24,7 @@ namespace engine {
 	void init_editor_scene_view(EditorSceneViewState* scene_view);
 	void shutdown_editor_scene_view(const EditorSceneViewState& scene_view);
 
-	std::vector<EditorCommand> update_editor_scene_view(
+	std::vector<editor::EditorCommand> update_editor_scene_view(
 		EditorSceneViewState* scene_view,
 		const platform::Input& input,
 		glm::vec2 window_relative_mouse_pos,
@@ -36,4 +36,4 @@ namespace engine {
 		platform::Renderer* renderer
 	);
 
-} // namespace engine
+} // namespace editor

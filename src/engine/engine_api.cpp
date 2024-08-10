@@ -164,7 +164,7 @@ namespace engine {
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, &window_title);
 			platform->set_window_title(window_title.c_str());
 			if (input.mode == platform::RunMode::Editor) {
-				update_editor(&state->editor, &state->game, &state->project, input, state->resources, platform);
+				editor::update_editor(&state->editor, &state->game, &state->project, input, state->resources, platform);
 			}
 		}
 	}
@@ -184,7 +184,7 @@ namespace engine {
 
 	void render(platform::Renderer* renderer, const State* state) {
 		if (state->editor_is_running) {
-			render_editor(state->editor, renderer);
+			editor::render_editor(state->editor, renderer);
 		}
 		else {
 			render_game(*state, renderer);

@@ -1,15 +1,15 @@
-#include <engine/editor/editor.h>
+#include <editor/editor.h>
 
 #include <core/container.h>
 #include <core/future.h>
-#include <engine/editor/editor_command.h>
+#include <editor/editor_command.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <platform/debug/logging.h>
 #include <platform/input/input.h>
 #include <platform/platform_api.h>
 
-namespace engine {
+namespace editor {
 
 	static const platform::FileExplorerDialog g_load_project_dialog = {
 		.title = "Load project",
@@ -25,8 +25,8 @@ namespace engine {
 
 	static void new_project(
 		EditorState* editor,
-		GameState* game,
-		ProjectState* project
+		engine::GameState* game,
+		engine::ProjectState* project
 	) {
 		LOG_INFO("Opened new project");
 		*project = {};
@@ -36,16 +36,16 @@ namespace engine {
 
 	static void open_project(
 		EditorState* editor,
-		GameState* game,
-		ProjectState* project,
+		engine::GameState* game,
+		engine::ProjectState* project,
 		platform::PlatformAPI* platform
 	) {
 		platform->load_file_with_dialog(g_load_project_dialog, [=](std::vector<uint8_t> data, std::filesystem::path path) {
-			*project = core::container::unwrap(ProjectState::from_json_string(data, path), [&](const std::string& error) {
+			*project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
 				ABORT("Could not parse json file \"%s\": %s", path.string().c_str(), error.c_str());
 			});
 			editor->ui.project_name_buf = project->name;
-			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+			editor->ui.cached_project_hash = std::hash<engine::ProjectState>()(*project);
 			editor->game_is_running = false;
 			init_game_state(game, *project);
 			LOG_INFO("Opened project \"%s\"", project->name.c_str());
@@ -54,34 +54,34 @@ namespace engine {
 
 	static void save_project_as(
 		EditorState* editor,
-		ProjectState* project,
+		engine::ProjectState* project,
 		platform::PlatformAPI* platform,
 		std::function<void()> on_file_saved = []() {}
 	) {
-		const std::string json = ProjectState::to_json_string(*project);
+		const std::string json = engine::ProjectState::to_json_string(*project);
 		const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 		platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
 			LOG_INFO("Saved project \"%s\"", project->name.c_str());
 			project->path = path;
-			editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+			editor->ui.cached_project_hash = std::hash<engine::ProjectState>()(*project);
 			on_file_saved();
 		});
 	}
 
 	static void save_project(
 		EditorState* editor,
-		ProjectState* project,
+		engine::ProjectState* project,
 		platform::PlatformAPI* platform,
 		std::function<void()> on_file_saved = []() {}
 	) {
 		const bool project_file_exists = !project->path.empty() && std::filesystem::is_regular_file(project->path);
 		if (project_file_exists) {
 			/* Save existing file */
-			const std::string json = ProjectState::to_json_string(*project);
+			const std::string json = engine::ProjectState::to_json_string(*project);
 			const std::vector<uint8_t> bytes = std::vector<uint8_t>(json.begin(), json.end());
 			platform->save_file(bytes, project->path, [=]() {
 				LOG_INFO("Saved project \"%s\"", project->name.c_str());
-				editor->ui.cached_project_hash = std::hash<ProjectState>()(*project);
+				editor->ui.cached_project_hash = std::hash<engine::ProjectState>()(*project);
 				on_file_saved();
 			});
 		}
@@ -93,7 +93,7 @@ namespace engine {
 
 	static void show_unsaved_project_changes_dialog(
 		EditorState* editor,
-		ProjectState* project,
+		engine::ProjectState* project,
 		platform::PlatformAPI* platform,
 		std::function<void()> on_dialog_not_cancelled = []() {}
 	) {
@@ -118,19 +118,19 @@ namespace engine {
 		LOG_INFO("Editor quit");
 	}
 
-	void init_editor(EditorState* editor, const ProjectState& project, bool reset_docking) {
+	void init_editor(EditorState* editor, const engine::ProjectState& project, bool reset_docking) {
 		init_editor_ui(&editor->ui, project, reset_docking);
 	}
 
 	void update_editor(
 		EditorState* editor,
-		GameState* game,
-		ProjectState* project,
+		engine::GameState* game,
+		engine::ProjectState* project,
 		const platform::Input& input,
 		const engine::Resources& resources,
 		platform::PlatformAPI* platform
 	) {
-		const size_t current_project_hash = std::hash<ProjectState>()(*project);
+		const size_t current_project_hash = std::hash<engine::ProjectState>()(*project);
 		const bool is_new_file = project->path.empty();
 		editor->project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 
@@ -259,4 +259,4 @@ namespace engine {
 		render_editor_ui(editor.ui, renderer);
 	}
 
-} // namespace engine
+} // namespace editor

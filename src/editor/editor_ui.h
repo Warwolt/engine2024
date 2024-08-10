@@ -1,7 +1,7 @@
 #pragma once
 
-#include <engine/editor/editor_command.h>
-#include <engine/editor/editor_scene_view.h>
+#include <editor/editor_command.h>
+#include <editor/editor_scene_view.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -22,6 +22,10 @@ namespace engine {
 	struct ProjectState;
 	struct Resources;
 
+}
+
+namespace editor {
+
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
@@ -37,16 +41,16 @@ namespace engine {
 
 	void init_editor_ui(
 		EditorUiState* ui,
-		const ProjectState& project,
+		const engine::ProjectState& project,
 		bool reset_docking
 	);
 
 	void shutdown_editor_ui(const EditorUiState& ui);
 
-	std::vector<EditorCommand> update_editor_ui(
+	std::vector<editor::EditorCommand> update_editor_ui(
 		EditorUiState* ui,
-		GameState* game,
-		ProjectState* project,
+		engine::GameState* game,
+		engine::ProjectState* project,
 		const platform::Input& input,
 		const engine::Resources& resources,
 		bool unsaved_changes,
@@ -58,4 +62,4 @@ namespace engine {
 		platform::Renderer* renderer
 	);
 
-} // namespace engine
+} // namespace editor
