@@ -8,6 +8,12 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Move editor to its own namespace (editor, engine, platform, core)
+- Fix the window resize behavior (should only resize while left button held)
+- Move Rect to `core` namespace (it's not platform specific, just computational)
+- Add unit tests for Rect (since we have helper methods now)
+- Add logging window to editor
+- Set up cpu profiling
 - Enable caching for GitHub Actions
 - Figure out how to make alt-key focus the main menu
 - Maybe:
@@ -18,9 +24,11 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Setup ImGui docking branch
+- Zoom in and out of canvas
 
 ## Done
+- Render canvas
+- Setup ImGui docking branch
 - Replace ImGui main menu bar with a native Win32 one
 - Organize platform files into directories
 - Add config file support, use to store window mode, size and position

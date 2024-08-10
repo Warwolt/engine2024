@@ -49,11 +49,12 @@ set(IMGUI_SRC
 add_compile_definitions(IMGUI_USER_CONFIG=<platform/debug/imconfig.h>)
 
 set(CORE_SRC
-    src/core/string.cpp
     src/core/parse.cpp
+    src/core/string.cpp
 )
 
 set(ENGINE_SRC
+    src/engine/editor/editor_scene_view.cpp
     src/engine/editor/editor_ui.cpp
     src/engine/editor/editor.cpp
     src/engine/engine_api.cpp
@@ -78,8 +79,8 @@ set(PLATFORM_SRC
     src/platform/input/cli.cpp
     src/platform/input/keyboard.cpp
     src/platform/input/timing.cpp
-    src/platform/os/win32.cpp
     src/platform/os/imwin32.cpp
+    src/platform/os/win32.cpp
     src/platform/platform_api.cpp
 )
 
@@ -186,3 +187,6 @@ add_custom_target(CopyResourceFiles ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/resources
     $<TARGET_FILE_DIR:${MAIN_BINARY}>/resources)
+
+# Set DLL as dependency for binary so Visual Studio knows to rebuild the DLL
+add_dependencies(${MAIN_BINARY} ${ENGINE_LIB} ${PLATFORM_LIB})

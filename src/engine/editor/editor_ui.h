@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine/editor/editor_command.h>
+#include <engine/editor/editor_scene_view.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -22,12 +23,16 @@ namespace engine {
 	struct Resources;
 
 	struct EditorUiState {
-		platform::Canvas scene_canvas;
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
 		bool run_game_windowed = false;
 		bool show_imgui_demo = false;
-		glm::vec2 scene_window_size;
+
+		platform::Canvas window_canvas; // used to render ImGui::Image
+		bool scene_window_visible = false;
+		bool scene_view_position_initialized = false; // used to center view once we know ImGui window size
+
+		EditorSceneViewState scene_view;
 	};
 
 	void init_editor_ui(
@@ -50,7 +55,6 @@ namespace engine {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
-		const engine::Resources& resources,
 		platform::Renderer* renderer
 	);
 

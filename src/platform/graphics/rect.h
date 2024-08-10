@@ -10,10 +10,17 @@ namespace platform {
 	//          |           |
 	//          o-----------o bottom_right
 	struct Rect {
-		glm::vec2 top_left;
-		glm::vec2 bottom_right;
+		glm::vec2 top_left = { 0, 0 };
+		glm::vec2 bottom_right = { 0, 0 };
 
+		static Rect with_pos_and_size(glm::vec2 pos, glm::vec2 size);
+
+		void set_position(glm::vec2 pos);
 		void set_size(glm::vec2 size);
+
+		glm::vec2 size() const;
+		glm::vec2 position() const;
+		bool overlaps_point(glm::vec2 point) const;
 
 		Rect& operator+=(const Rect& rhs);
 		Rect& operator-=(const Rect& rhs);
