@@ -186,3 +186,6 @@ add_custom_target(CopyResourceFiles ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/resources
     $<TARGET_FILE_DIR:${MAIN_BINARY}>/resources)
+
+# Set DLL as dependency for binary so Visual Studio knows to rebuild the DLL
+add_dependencies(${MAIN_BINARY} ${ENGINE_LIB} ${PLATFORM_LIB})
