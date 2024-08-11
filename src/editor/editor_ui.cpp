@@ -97,7 +97,6 @@ namespace editor {
 
 	static void update_project_window(
 		bool unsaved_changes,
-		const platform::Input& input,
 		engine::ProjectState* project,
 		std::string* project_name_buf
 	) {
@@ -191,7 +190,7 @@ namespace editor {
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_project_window(unsaved_changes, input, project, &ui->project_name_buf);
+			update_project_window(unsaved_changes, project, &ui->project_name_buf);
 		}
 		ImGui::End();
 
