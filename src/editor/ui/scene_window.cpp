@@ -206,11 +206,11 @@ namespace editor {
 			constexpr glm::vec4 light_grey = glm::vec4 { 0.75f, 0.75f, 0.75f, 1.0f };
 			constexpr glm::vec4 dark_grey = glm::vec4 { 0.50f, 0.50f, 0.50f, 1.0f };
 
-			renderer->set_draw_canvas(scene_view.grid_canvas);
+			renderer->push_draw_canvas(scene_view.grid_canvas);
 			renderer->draw_rect_fill({ { 0, 0 }, { GRID_SIZE * 2, GRID_SIZE * 2 } }, dark_grey);
 			renderer->draw_rect_fill({ { GRID_SIZE, 0 }, { 2 * GRID_SIZE, GRID_SIZE } }, light_grey);
 			renderer->draw_rect_fill({ { 0, GRID_SIZE }, { GRID_SIZE, 2 * GRID_SIZE } }, light_grey);
-			renderer->reset_draw_canvas();
+			renderer->pop_draw_canvas();
 
 			renderer->draw_texture(scene_view.grid_canvas.texture, { { 0, 0 }, scene_view.grid_canvas.texture.size });
 
@@ -244,12 +244,12 @@ namespace editor {
 		// Only render scene if ImGui scene window open
 		if (scene_window.is_visible) {
 			/* Render scene canvas */
-			renderer->set_draw_canvas(scene_window.scene_view.canvas);
+			renderer->push_draw_canvas(scene_window.scene_view.canvas);
 			render_scene_view(scene_window.scene_view, renderer);
-			renderer->reset_draw_canvas();
+			renderer->pop_draw_canvas();
 
 			/* Render scene canvas to imgui canvas */
-			renderer->set_draw_canvas(scene_window.canvas);
+			renderer->push_draw_canvas(scene_window.canvas);
 
 			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, glm::vec4 { 0.05f, 0.05f, 0.1f, 1.0f }); // clear
 			renderer->draw_texture(scene_window.scene_view.canvas.texture, scene_window.scene_view.scaled_canvas_rect); // render canvas
@@ -261,7 +261,7 @@ namespace editor {
 				renderer->draw_line({ rect.top_left.x, half_rect.bottom_right.y }, { rect.bottom_right.x, half_rect.bottom_right.y }, platform::Color::red);
 				renderer->draw_line({ half_rect.bottom_right.x, rect.top_left.y }, { half_rect.bottom_right.x, rect.bottom_right.y }, platform::Color::green);
 			}
-			renderer->reset_draw_canvas();
+			renderer->pop_draw_canvas();
 		}
 	}
 

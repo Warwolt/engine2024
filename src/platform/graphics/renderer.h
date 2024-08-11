@@ -65,8 +65,8 @@ namespace platform {
 
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
 
-		void set_draw_canvas(Canvas canvas);
-		void reset_draw_canvas();
+		void push_draw_canvas(Canvas canvas);
+		void pop_draw_canvas();
 
 		void set_render_canvas(Canvas canvas);
 		void reset_render_canvas();
@@ -90,10 +90,12 @@ namespace platform {
 
 
 	private:
+		std::optional<Canvas> _current_draw_canvas();
+
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;
-		std::optional<Canvas> m_draw_canvas;
+		std::vector<Canvas> m_draw_canvas_stack;
 		std::optional<Canvas> m_render_canvas;
 	};
 
