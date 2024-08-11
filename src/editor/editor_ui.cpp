@@ -1,5 +1,6 @@
 #include <editor/editor_ui.h>
 
+#include <editor/ui/log_window.h>
 #include <editor/ui/main_menu_bar.h>
 #include <engine/state/engine_state.h>
 #include <engine/state/game_state.h>
@@ -161,23 +162,7 @@ namespace editor {
 		/* Log Window */
 		if (ImGui::Begin(LOG_WINDOW)) {
 			if (input.log) {
-				// Print log messages
-				for (const platform::LogEntry& entry : *input.log) {
-					ImGui::PushStyleColor(ImGuiCol_Text, log_severity_to_color(entry.severity));
-					ImGui::Text("%s", entry.message.c_str());
-					ImGui::PopStyleColor();
-				}
-
-				// Auto-scroll on new messages unless scroll position is set by user
-				ui->last_num_seen_log_entries = input.log->size();
-				const float scroll_y = ImGui::GetScrollY();
-				const float scroll_max = ImGui::GetScrollMaxY();
-				const float text_height = ImGui::GetTextLineHeightWithSpacing();
-				const int lines_to_count = 5;
-				const bool scrolled_up = scroll_y <= scroll_max - lines_to_count * text_height;
-				if (ui->last_num_seen_log_entries.just_changed() && !scrolled_up) {
-					ImGui::SetScrollHereY();
-				}
+				update_log_window(*input.log, &ui->last_num_seen_log_entries);
 			}
 		}
 		ImGui::End();

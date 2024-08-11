@@ -64,6 +64,7 @@ set(EDITOR_SRC
     src/editor/editor_ui.cpp
     src/editor/editor.cpp
     src/editor/ui/main_menu_bar.cpp
+    src/editor/ui/log_window.cpp
 )
 
 set(ENGINE_SRC
