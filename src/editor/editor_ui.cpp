@@ -9,7 +9,6 @@
 #include <imgui/imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <platform/debug/logging.h>
-#include <platform/graphics/font.h>
 #include <platform/input/input.h>
 #include <platform/os/imwin32.h>
 
@@ -148,6 +147,47 @@ namespace editor {
 		ImGui::Checkbox("Windowed mode", run_game_windowed);
 	}
 
+	static void update_scene_window(
+		const platform::Input& input,
+		EditorUiState* ui,
+		std::vector<EditorCommand>* commands
+	) {
+		const glm::vec2 scene_window_pos = ImGui::GetCursorScreenPos();
+		const glm::vec2 window_relative_mouse_pos = input.mouse.pos - scene_window_pos;
+		glm::vec2 scene_window_size = ImGui::GetContentRegionAvail();
+
+		// Initialize scene view
+		static int counter = 0; // imgui needs 1 frame before window sizes are correct
+		if (!ui->scene_view_position_initialized && counter++ > 0) {
+			ui->scene_view_position_initialized = true;
+			// Place scene view in center of window
+			ui->scene_view.scaled_canvas_rect.set_position((scene_window_size - ui->scene_view.scaled_canvas_rect.size()) / 2.0f);
+		}
+
+		// Render scene texture
+		{
+			const platform::Texture& scene_texture = ui->window_canvas.texture;
+			glm::vec2 top_left = { 0.0f, 1.0f };
+			glm::vec2 bottom_right = {
+				std::clamp(scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
+				std::clamp(1.0f - scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
+			};
+			ImGui::Image(scene_texture.id, scene_window_size, top_left, bottom_right);
+		}
+
+		// Update scene view
+		{
+			const core::Rect scene_window_rect = core::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
+			update_scene_view(
+				&ui->scene_view,
+				input,
+				window_relative_mouse_pos,
+				scene_window_rect,
+				commands
+			);
+		}
+	}
+
 	std::vector<editor::EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		engine::GameState* game,
@@ -159,16 +199,19 @@ namespace editor {
 	) {
 		std::vector<editor::EditorCommand> commands;
 
-		/* Quit */
-		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
-			commands.push_back(editor::EditorCommand::Quit);
-		}
+		/* Events */
+		{
+			/* Quit */
+			if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
+				commands.push_back(editor::EditorCommand::Quit);
+			}
 
-		/* Window Canvas */
-		if (ui->window_canvas.texture.size != input.monitor_size) {
-			platform::free_canvas(ui->window_canvas);
-			ui->window_canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
-			LOG_INFO("Resized scene window canvas");
+			/* Window canvas resize */
+			if (ui->window_canvas.texture.size != input.monitor_size) {
+				platform::free_canvas(ui->window_canvas);
+				ui->window_canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
+				LOG_INFO("Resized scene window canvas");
+			}
 		}
 
 		/* Dockspace */
@@ -176,10 +219,13 @@ namespace editor {
 
 		/* Editor Menu Bar*/
 		bool reset_window_layout = false;
-		update_main_menu_bar(unsaved_changes, game_is_running, &commands, &reset_window_layout, &ui->show_imgui_demo);
-		if (reset_window_layout) {
-			setup_docking_space(dockspace);
+		if (ImWin32::BeginMainMenuBar()) {
+			update_main_menu_bar(unsaved_changes, game_is_running, &commands, &reset_window_layout, &ui->show_imgui_demo);
+			if (reset_window_layout) {
+				setup_docking_space(dockspace);
+			}
 		}
+		ImWin32::EndMainMenuBar();
 
 		/* ImGui Demo */
 		if (ui->show_imgui_demo) {
@@ -210,42 +256,10 @@ namespace editor {
 		ImGui::End();
 
 		/* Scene Window */
-		ui->scene_window_visible = ImGui::Begin(SCENE_WINDOW);
-		if (ui->scene_window_visible) {
-			const glm::vec2 scene_window_pos = ImGui::GetCursorScreenPos();
-			const glm::vec2 window_relative_mouse_pos = input.mouse.pos - scene_window_pos;
-			glm::vec2 scene_window_size = ImGui::GetContentRegionAvail();
-
-			// Initialize scene view
-			static int counter = 0; // imgui needs 1 frame before window sizes are correct
-			if (!ui->scene_view_position_initialized && counter++ > 0) {
-				ui->scene_view_position_initialized = true;
-				// Place scene view in center of window
-				ui->scene_view.scaled_canvas_rect.set_position((scene_window_size - ui->scene_view.scaled_canvas_rect.size()) / 2.0f);
-			}
-
-			// Render scene texture
-			{
-				const platform::Texture& scene_texture = ui->window_canvas.texture;
-				glm::vec2 top_left = { 0.0f, 1.0f };
-				glm::vec2 bottom_right = {
-					std::clamp(scene_window_size.x / scene_texture.size.x, 0.0f, 1.0f),
-					std::clamp(1.0f - scene_window_size.y / scene_texture.size.y, 0.0f, 1.0f),
-				};
-				ImGui::Image(scene_texture.id, scene_window_size, top_left, bottom_right);
-			}
-
-			// Update scene view
-			{
-				const core::Rect scene_window_rect = core::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
-				update_scene_view(
-					&ui->scene_view,
-					input,
-					window_relative_mouse_pos,
-					scene_window_rect,
-					&commands
-				);
-			}
+		ui->scene_window_visible = false;
+		if (ImGui::Begin(SCENE_WINDOW)) {
+			ui->scene_window_visible = true;
+			update_scene_window(input, ui, &commands);
 		}
 		ImGui::End();
 
@@ -258,7 +272,7 @@ namespace editor {
 	) {
 		// Only render scene if ImGui scene window open
 		if (ui.scene_window_visible) {
-			/* Render scene to canvas */
+			/* Render scene canvas */
 			renderer->set_draw_canvas(ui.scene_view.canvas);
 			render_scene_view(ui.scene_view, renderer);
 			renderer->reset_draw_canvas();
