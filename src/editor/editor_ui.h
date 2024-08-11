@@ -2,7 +2,8 @@
 
 #include <core/signal.h>
 #include <editor/editor_command.h>
-#include <editor/editor_scene_view.h>
+#include <editor/ui/scene_view.h>
+#include <editor/ui/scene_window.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -12,9 +13,7 @@
 #include <vector>
 
 namespace platform {
-
 	struct Input;
-
 } // namespace platform
 
 namespace engine {
@@ -34,11 +33,7 @@ namespace editor {
 		bool show_imgui_demo = false;
 		core::Signal<size_t> last_num_seen_log_entries = 0;
 
-		platform::Canvas window_canvas; // used to render ImGui::Image
-		bool scene_window_visible = false;
-		bool scene_view_position_initialized = false; // used to center view once we know ImGui window size
-
-		EditorSceneViewState scene_view;
+		SceneWindowState scene_window;
 	};
 
 	void init_editor_ui(
