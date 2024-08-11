@@ -107,6 +107,10 @@ namespace platform {
 		return std::exchange(m_commands, {});
 	}
 
+	void PlatformAPI::clear_log() {
+		m_commands.push_back(cmd::app::ClearLog {});
+	}
+
 	void PlatformAPI::quit() {
 		m_commands.push_back(cmd::app::Quit {});
 	}

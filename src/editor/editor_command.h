@@ -15,6 +15,7 @@ namespace editor {
 		RunGame,
 		ResetGameState,
 		// app
+		ClearLog,
 		Quit,
 	};
 

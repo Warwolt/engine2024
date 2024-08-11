@@ -238,6 +238,10 @@ namespace editor {
 					platform->set_window_mode(editor->ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
 					break;
 
+				case EditorCommand::ClearLog:
+					platform->clear_log();
+					break;
+
 				case EditorCommand::Quit:
 					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {

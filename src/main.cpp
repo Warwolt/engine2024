@@ -66,6 +66,7 @@ static void set_imgui_style_win32_like() {
 	io.Fonts->AddFontFromFileTTF("C:/windows/Fonts/tahoma.ttf", 16.0f);
 
 	/* Border sizes */
+	style.WindowBorderSize = 1.0f;
 	style.FrameBorderSize = 1.0f;
 	style.TabBorderSize = 1.0f;
 	style.DockingSeparatorSize = 3.0f;
@@ -441,7 +442,7 @@ int main(int argc, char** argv) {
 			input.mouse.x1_button.update(mouse_button_events[SDL_BUTTON_X1 - 1]);
 			input.mouse.x2_button.update(mouse_button_events[SDL_BUTTON_X2 - 1]);
 			input.is_editor_mode = is_editor_mode;
-			input.log = &platform::get_log();
+			input.log = &platform::get_in_memory_log();
 
 			SDL_DisplayMode display_mode;
 			SDL_GetCurrentDisplayMode(0, &display_mode);
@@ -473,6 +474,10 @@ int main(int argc, char** argv) {
 
 						case PlatformCommandType::Quit:
 							quit = true;
+							break;
+
+						case PlatformCommandType::ClearLog:
+							platform::clear_in_memory_log();
 							break;
 
 						case PlatformCommandType::RebuildEngineLibrary:

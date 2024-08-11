@@ -23,6 +23,7 @@ namespace platform {
 
 	enum class PlatformCommandType {
 		// app
+		ClearLog,
 		Quit,
 		RebuildEngineLibrary,
 		SetRunMode,
@@ -54,6 +55,10 @@ namespace platform {
 	};
 
 	namespace cmd::app {
+
+		struct ClearLog {
+			static constexpr auto TAG = PlatformCommandType::ClearLog;
+		};
 
 		struct Quit {
 			static constexpr auto TAG = PlatformCommandType::Quit;
@@ -135,6 +140,7 @@ namespace platform {
 
 	using PlatformCommand = core::TaggedVariant<
 		PlatformCommandType,
+		cmd::app::ClearLog,
 		cmd::app::Quit,
 		cmd::app::RebuildEngineLibrary,
 		cmd::app::SetRunMode,
@@ -154,6 +160,7 @@ namespace platform {
 		std::vector<PlatformCommand> drain_commands();
 
 		// application
+		void clear_log();
 		void quit();
 		void rebuild_engine_library();
 		void set_run_mode(RunMode mode);

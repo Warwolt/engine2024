@@ -111,8 +111,6 @@ namespace editor {
 		}
 
 		ImGui::Text("Project path: %s", project->path.string().c_str());
-
-		ImGui::Text("Window is maximized: %s", input.window->is_maximized() ? "true" : "false");
 	}
 
 	static void update_edit_window(
@@ -181,18 +179,15 @@ namespace editor {
 		}
 
 		/* Log Window */
-		// Make background of log white
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(255, 255, 255, 255));
 		if (ImGui::Begin(LOG_WINDOW)) {
 			if (input.log) {
-				update_log_window(*input.log, &ui->last_num_seen_log_entries);
+				update_log_window(*input.log, &commands, &ui->last_num_seen_log_entries);
 			}
 			else {
 				ImGui::Text("Log not available!");
 			}
 		}
 		ImGui::End();
-		ImGui::PopStyleColor();
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
