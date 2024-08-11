@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Create "Hello World" text scene using a Text component and scene tree
 - Split render and update into separate threads
 - Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
 - Try to fix slightly blurry ImGui font by building font atlas ourselves
@@ -20,6 +19,7 @@ Goals:
 - (Mess around with Bayer matrix dithering and Perlin noise)
 
 ## Doing
+- Create "Hello World" text scene using a Text component and scene tree
 
 ## Done
 - Remove `glGetUniformLocation` calls from hot loop, cache locations after shader loaded.
