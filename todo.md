@@ -8,12 +8,11 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Fix the window resize behavior (should only resize while left button held)
-- Add unit tests for Rect (since we have helper methods now)
-- Add logging window to editor
+- Create "Hello World" text scene using a Text component and scene tree
 - Set up cpu profiling
 - Enable caching for GitHub Actions
 - Figure out how to make alt-key focus the main menu
+- Fix the window resize behavior (should only resize while left button held)
 - Maybe:
   - ~~Disable RTTI and exceptions in both project and standard library~~
   - set VS_DEBUGGER_WORKING_DIRECTORY to project root
@@ -22,9 +21,11 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Move Rect to `core` namespace
+- Add logging window to editor
 
 ## Done
+- Add unit tests for Rect (since we have helper methods now)
+- Move Rect to `core` namespace
 - Rename top level files to match namespace
 - Move editor to its own namespace (editor, engine, platform, core)
 - Zoom in and out of canvas

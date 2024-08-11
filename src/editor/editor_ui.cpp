@@ -16,41 +16,58 @@
 
 namespace editor {
 
-	constexpr char PROJECT_WINDOW[] = "Project";
-	constexpr char GAME_WINDOW[] = "Game";
-	constexpr char SCENE_WINDOW[] = "Scene";
+	constexpr char LOG_WINDOW[] = "Log 1";
+	constexpr char SCENE_WINDOW[] = "Scene 2";
+	constexpr char PROJECT_WINDOW[] = "Project 3";
+	constexpr char GAME_WINDOW[] = "Game 4";
 
 	static void setup_docking_space(ImGuiID dockspace) {
 		/* Create docks */
 		ImGui::DockBuilderAddNode(dockspace); // Create a new dock node to use
 		ImGui::DockBuilderSetNodeSize(dockspace, ImVec2 { 1, 1 });
 
-		ImGuiID dock1 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Right, 0.75f, nullptr, &dockspace);
-		// +-----------+
-		// |           |
-		// |     1     |
-		// |           |
-		// +-----------+
+		// +---------------+
+		// |               |
+		// |               |
+		// |       1       |
+		// |               |
+		// |               |
+		// +---------------+
+		ImGuiID dock1 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Down, 0.25f, nullptr, &dockspace);
 
-		ImGuiID dock2 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Left, 0.5f, nullptr, &dockspace);
-		// +-----+-----+
-		// |   |       |
-		// | 2 |   1   |
-		// |   |       |
-		// +-----+-----+
-		//    <- split
+		// // +---------------+
+		// // |               |
+		// // |       2       |   ^
+		// // |               |   |
+		// // +---------------+ split
+		// // |       1       |
+		// // +---------------+
+		ImGuiID dock2 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Right, 0.75f, nullptr, &dockspace);
 
-		ImGuiID dock3 = ImGui::DockBuilderSplitNode(dock2, ImGuiDir_Down, 0.5f, nullptr, &dock2);
-		// +-----+-----+
-		// | 2 |       |  split
-		// +---+   1   |    |
-		// | 3 |       |    V
-		// +-----+-----+
+		// //    <- split
+		// // +-----+---------+
+		// // |     |         |
+		// // |  3  |    2    |
+		// // |     |         |
+		// // +---------------+
+		// // |       1       |
+		// // +---------------+
+		ImGuiID dock3 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Down, 0.5f, nullptr, &dockspace);
+
+		// // +-----+---------+
+		// // |  3  |         |  split
+		// // +-----+    2    |    |
+		// // |  4  |         |    V
+		// // +---------------+
+		// // |       1       |
+		// // +---------------+
+		ImGuiID dock4 = ImGui::DockBuilderSplitNode(dock3, ImGuiDir_Down, 0.5f, nullptr, &dock3);
 
 		/* Add windows to docks */
-		ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock1);
-		ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock2);
-		ImGui::DockBuilderDockWindow(GAME_WINDOW, dock3);
+		ImGui::DockBuilderDockWindow(LOG_WINDOW, dock1);
+		ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock2);
+		ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock3);
+		ImGui::DockBuilderDockWindow(GAME_WINDOW, dock4);
 		ImGui::DockBuilderFinish(dockspace);
 	}
 
@@ -176,6 +193,16 @@ namespace editor {
 		if (ui->show_imgui_demo) {
 			ImGui::ShowDemoWindow(&ui->show_imgui_demo);
 		}
+
+		/* Log Window */
+		if (ImGui::Begin(LOG_WINDOW)) {
+			for (int i = 0; i < 1000; i++) {
+				ImGui::Text("Logging");
+			}
+			// TODO: IF new log entry AND NOT scrolled up THEN set scroll position to bottom
+			// ImGui::SetScrollHereY();
+		}
+		ImGui::End();
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
