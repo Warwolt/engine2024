@@ -25,11 +25,20 @@ namespace editor {
 		glm::vec2 scene_window_size = ImGui::GetContentRegionAvail();
 
 		// Initialize scene view
-		static int counter = 0; // imgui needs 1 frame before window sizes are correct
-		if (!scene_window->position_initialized && counter++ > 0) {
-			scene_window->position_initialized = true;
-			// Place scene view in center of window
-			scene_window->scene_view.scaled_canvas_rect.set_position((scene_window_size - scene_window->scene_view.scaled_canvas_rect.size()) / 2.0f);
+		{
+			// Size
+			if (scene_window->canvas.texture.size != input.monitor_size) {
+				platform::free_canvas(scene_window->canvas);
+				scene_window->canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
+			}
+
+			// Position
+			static int counter = 0; // imgui needs 1 frame before window sizes are correct
+			if (!scene_window->position_initialized && counter++ > 0) {
+				scene_window->position_initialized = true;
+				// Place scene view in center of window
+				scene_window->scene_view.scaled_canvas_rect.set_position((scene_window_size - scene_window->scene_view.scaled_canvas_rect.size()) / 2.0f);
+			}
 		}
 
 		// Render scene texture

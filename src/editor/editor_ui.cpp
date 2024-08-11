@@ -157,18 +157,9 @@ namespace editor {
 	) {
 		std::vector<editor::EditorCommand> commands;
 
-		/* Events */
-		{
-			/* Quit */
-			if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
-				commands.push_back(editor::EditorCommand::Quit);
-			}
-
-			/* Window canvas resize */
-			if (ui->scene_window.canvas.texture.size != input.monitor_size) {
-				platform::free_canvas(ui->scene_window.canvas);
-				ui->scene_window.canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
-			}
+		/* Quit */
+		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
+			commands.push_back(editor::EditorCommand::Quit);
 		}
 
 		/* Dockspace */
