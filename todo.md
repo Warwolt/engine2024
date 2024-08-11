@@ -8,6 +8,7 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Factor out editor_ui code into component-functions (menu bar, windows)
 - Create "Hello World" text scene using a Text component and scene tree
 - Set up cpu profiling
 - Enable caching for GitHub Actions

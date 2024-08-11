@@ -204,14 +204,21 @@ namespace editor {
 		/* Log Window */
 		if (ImGui::Begin(LOG_WINDOW)) {
 			if (input.log) {
+				// Print log messages
 				for (const platform::LogEntry& entry : *input.log) {
 					ImGui::Text("%s", entry.message.c_str());
 				}
+
+				// Auto-scroll on new messages unless scroll position is set by user
 				ui->last_num_seen_log_entries = input.log->size();
-				if (ui->last_num_seen_log_entries.just_changed()) {
+				const float scroll_y = ImGui::GetScrollY();
+				const float scroll_max = ImGui::GetScrollMaxY();
+				const float text_height = ImGui::GetTextLineHeightWithSpacing();
+				const int lines_to_count = 5;
+				const bool scrolled_up = scroll_y <= scroll_max - lines_to_count * text_height;
+				if (ui->last_num_seen_log_entries.just_changed() && !scrolled_up) {
 					ImGui::SetScrollHereY();
 				}
-				// TODO: IF new log entry AND NOT scrolled up THEN set scroll position to bottom
 			}
 		}
 		ImGui::End();
