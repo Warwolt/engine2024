@@ -26,6 +26,7 @@ namespace platform {
 
 	void init_logging();
 	void init_test_logging();
-	const std::vector<LogEntry>& get_log();
+	const std::vector<LogEntry>& get_in_memory_log();
+	void clear_in_memory_log();
 
 } // namespace platform

@@ -64,8 +64,12 @@ namespace platform {
 		plog::init(plog::verbose, &consoleAppender);
 	}
 
-	const std::vector<LogEntry>& get_log() {
+	const std::vector<LogEntry>& get_in_memory_log() {
 		return g_log_entries;
+	}
+
+	void clear_in_memory_log() {
+		g_log_entries.clear();
 	}
 
 } // namespace platform

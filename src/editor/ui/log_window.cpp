@@ -2,6 +2,8 @@
 
 #include <imgui/imgui.h>
 
+#include <platform/debug/logging.h>
+
 namespace editor {
 
 	static ImU32 log_severity_to_color(plog::Severity severity) {
@@ -30,25 +32,38 @@ namespace editor {
 
 	void update_log_window(
 		const std::vector<platform::LogEntry>& log,
+		std::vector<EditorCommand>* commands,
 		core::Signal<size_t>* last_num_seen_log_entries
 	) {
-		// Print log messages
-		for (const platform::LogEntry& entry : log) {
-			ImGui::PushStyleColor(ImGuiCol_Text, log_severity_to_color(entry.severity));
-			ImGui::Text("%s", entry.message.c_str());
-			ImGui::PopStyleColor();
+		if (ImGui::Button("Clear")) {
+			commands->push_back(EditorCommand::ClearLog);
 		}
 
-		// Auto-scroll on new messages unless scroll position is set by user
-		*last_num_seen_log_entries = log.size();
-		const float scroll_y = ImGui::GetScrollY();
-		const float scroll_max = ImGui::GetScrollMaxY();
-		const float text_height = ImGui::GetTextLineHeightWithSpacing();
-		const int lines_to_count = 5;
-		const bool scrolled_up = scroll_y <= scroll_max - lines_to_count * text_height;
-		if (last_num_seen_log_entries->just_changed() && !scrolled_up) {
-			ImGui::SetScrollHereY();
+		ImGui::Spacing();
+
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
+		ImGui::BeginChild("LogOutput");
+		{
+			// Print log messages
+			for (const platform::LogEntry& entry : log) {
+				ImGui::PushStyleColor(ImGuiCol_Text, log_severity_to_color(entry.severity));
+				ImGui::Text("%s", entry.message.c_str());
+				ImGui::PopStyleColor();
+			}
+
+			// Auto-scroll on new messages unless scroll position is set by user
+			*last_num_seen_log_entries = log.size();
+			const float scroll_y = ImGui::GetScrollY();
+			const float scroll_max = ImGui::GetScrollMaxY();
+			const float text_height = ImGui::GetTextLineHeightWithSpacing();
+			const int lines_to_count = 5;
+			const bool scrolled_up = scroll_y <= scroll_max - lines_to_count * text_height;
+			if (last_num_seen_log_entries->just_changed() && !scrolled_up) {
+				ImGui::SetScrollHereY();
+			}
 		}
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
 	}
 
 } // namespace editor
