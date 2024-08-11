@@ -97,6 +97,26 @@ namespace editor {
 		shutdown_scene_view(ui.scene_view);
 	}
 
+	static void update_project_window(
+		bool unsaved_changes,
+		const platform::Input& input,
+		engine::ProjectState* project,
+		std::string* project_name_buf
+	) {
+		const int step = 1;
+		ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
+
+		ImGui::Text("Unsaved changes: %s", unsaved_changes ? "yes" : "no");
+
+		if (ImGui::InputText("Project name", project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
+			project->name = *project_name_buf;
+		}
+
+		ImGui::Text("Project path: %s", project->path.string().c_str());
+
+		ImGui::Text("Window is maximized: %s", input.window->is_maximized() ? "true" : "false");
+	}
+
 	static void update_edit_window(
 		bool game_is_running,
 		engine::GameState* game,
@@ -179,18 +199,7 @@ namespace editor {
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			const int step = 1;
-			ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
-
-			ImGui::Text("Unsaved changes: %s", unsaved_changes ? "yes" : "no");
-
-			if (ImGui::InputText("Project name", &ui->project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
-				project->name = ui->project_name_buf;
-			}
-
-			ImGui::Text("Project path: %s", project->path.string().c_str());
-
-			ImGui::Text("Window is maximized: %s", input.window->is_maximized() ? "true" : "false");
+			update_project_window(unsaved_changes, input, project, &ui->project_name_buf);
 		}
 		ImGui::End();
 
