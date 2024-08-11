@@ -9,6 +9,8 @@ Goals:
 
 ## TODO
 - Factor out editor_ui code into component-functions (menu bar, windows)
+- Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
+- Add hot reload option to menu bar
 - Create "Hello World" text scene using a Text component and scene tree
 - Set up cpu profiling
 - Enable caching for GitHub Actions
@@ -22,9 +24,9 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Add logging window to editor
 
 ## Done
+- Add logging window to editor
 - Add unit tests for Rect (since we have helper methods now)
 - Move Rect to `core` namespace
 - Rename top level files to match namespace
