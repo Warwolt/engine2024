@@ -8,22 +8,16 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Factor out editor_ui code into component-functions (menu bar, windows)
+- Create "Hello World" text scene using a Text component and scene tree
 - Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
 - Add hot reload option to menu bar
-- Create "Hello World" text scene using a Text component and scene tree
 - Set up cpu profiling
 - Enable caching for GitHub Actions
 - Figure out how to make alt-key focus the main menu
 - Fix the window resize behavior (should only resize while left button held)
-- Maybe:
-  - ~~Disable RTTI and exceptions in both project and standard library~~
-  - set VS_DEBUGGER_WORKING_DIRECTORY to project root
-  - Add tooling to measure memory usage
-  - Add TypeScript for game scripting
-    - https://v8.dev/docs/embed
 
 ## Doing
+- Factor out editor_ui code into component-functions (menu bar, windows)
 
 ## Done
 - Add logging window to editor

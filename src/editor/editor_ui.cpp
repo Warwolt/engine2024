@@ -1,5 +1,6 @@
 #include <editor/editor_ui.h>
 
+#include <editor/ui/main_menu_bar.h>
 #include <engine/state/engine_state.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
@@ -146,71 +147,10 @@ namespace editor {
 		ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 		/* Editor Menu Bar*/
-		if (ImWin32::BeginMainMenuBar()) {
-			if (ImWin32::BeginMenu(L"&File")) {
-				if (ImWin32::MenuItem(L"&New Project\tCtrl+N")) {
-					commands.push_back(editor::EditorCommand::NewProject);
-				}
-
-				ImWin32::Separator();
-
-				if (ImWin32::MenuItem(L"&Open Project\tCtrl+O")) {
-					commands.push_back(editor::EditorCommand::OpenProject);
-				}
-
-				ImWin32::Separator();
-
-				if (ImWin32::MenuItem(L"&Save Project\tCtrl+S", unsaved_changes)) {
-					commands.push_back(editor::EditorCommand::SaveProject);
-				}
-
-				if (ImWin32::MenuItem(L"Save Project &As\tCtrl+Shift+S")) {
-					commands.push_back(editor::EditorCommand::SaveProjectAs);
-				}
-
-				ImWin32::Separator();
-
-				if (ImWin32::MenuItem(L"&Quit\tCtrl+Q")) {
-					commands.push_back(editor::EditorCommand::Quit);
-				}
-
-				ImWin32::EndMenu();
-			}
-
-			if (ImWin32::BeginMenu(L"&Run")) {
-				if (game_is_running) {
-					if (ImWin32::MenuItem(L"Resume game")) {
-						commands.push_back(editor::EditorCommand::RunGame);
-					}
-					if (ImWin32::MenuItem(L"Stop game")) {
-						commands.push_back(editor::EditorCommand::ResetGameState);
-					}
-					if (ImWin32::MenuItem(L"Restart game")) {
-						commands.push_back(editor::EditorCommand::ResetGameState);
-						commands.push_back(editor::EditorCommand::RunGame);
-					}
-				}
-				else {
-					if (ImWin32::MenuItem(L"Run game")) {
-						commands.push_back(editor::EditorCommand::ResetGameState);
-						commands.push_back(editor::EditorCommand::RunGame);
-					}
-				}
-
-				if (ImWin32::MenuItem(L"Show ImGui Demo")) {
-					ui->show_imgui_demo = true;
-				}
-
-				ImWin32::EndMenu();
-			}
-
-			if (ImWin32::BeginMenu(L"&Window")) {
-				if (ImWin32::MenuItem(L"Reset Window Layout")) {
-					setup_docking_space(dockspace);
-				}
-			}
-
-			ImWin32::EndMainMenuBar();
+		bool reset_window_layout = false;
+		update_main_menu_bar(unsaved_changes, game_is_running, &commands, &reset_window_layout, &ui->show_imgui_demo);
+		if (reset_window_layout) {
+			setup_docking_space(dockspace);
 		}
 
 		/* ImGui Demo */
