@@ -163,7 +163,7 @@ namespace editor {
 		}
 
 		/* Dockspace */
-		ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+		ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_NoWindowMenuButton);
 
 		/* Editor Menu Bar*/
 		bool reset_window_layout = false;
