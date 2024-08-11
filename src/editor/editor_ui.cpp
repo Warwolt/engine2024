@@ -78,7 +78,7 @@ namespace editor {
 		const engine::ProjectState& project,
 		bool reset_docking
 	) {
-		init_editor_scene_view(&ui->scene_view);
+		init_scene_view(&ui->scene_view);
 
 		ui->window_canvas = platform::add_canvas(1, 1);
 		ui->project_name_buf = project.name;
@@ -94,31 +94,7 @@ namespace editor {
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
 		platform::free_canvas(ui.window_canvas);
-		shutdown_editor_scene_view(ui.scene_view);
-	}
-
-	static ImU32 log_severity_to_color(plog::Severity severity) {
-		ImU32 color = 0;
-		switch (severity) {
-			case plog::Severity::verbose:
-			case plog::Severity::debug:
-				color = IM_COL32(59, 215, 226, 255);
-				break;
-
-			case plog::Severity::info:
-				color = IM_COL32(255, 255, 255, 255);
-				break;
-
-			case plog::Severity::warning:
-				color = IM_COL32(255, 216, 96, 255);
-				break;
-
-			case plog::Severity::error:
-			case plog::Severity::fatal:
-				color = IM_COL32(255, 0, 0, 255);
-				break;
-		}
-		return color;
+		shutdown_scene_view(ui.scene_view);
 	}
 
 	std::vector<editor::EditorCommand> update_editor_ui(
@@ -241,13 +217,13 @@ namespace editor {
 			// Update scene view
 			{
 				const core::Rect scene_window_rect = core::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
-				std::vector<editor::EditorCommand> scene_view_commands = update_editor_scene_view(
+				update_scene_view(
 					&ui->scene_view,
 					input,
 					window_relative_mouse_pos,
-					scene_window_rect
+					scene_window_rect,
+					&commands
 				);
-				commands.append_range(scene_view_commands);
 			}
 		}
 		ImGui::End();
@@ -263,7 +239,7 @@ namespace editor {
 		if (ui.scene_window_visible) {
 			/* Render scene to canvas */
 			renderer->set_draw_canvas(ui.scene_view.canvas);
-			render_editor_scene_view(ui.scene_view, renderer);
+			render_scene_view(ui.scene_view, renderer);
 			renderer->reset_draw_canvas();
 
 			/* Render scene canvas to imgui canvas */

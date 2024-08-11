@@ -1,4 +1,4 @@
-#include <editor/editor_scene_view.h>
+#include <editor/ui/scene_view.h>
 
 #include <platform/input/input.h>
 
@@ -6,7 +6,7 @@
 
 namespace editor {
 
-	void init_editor_scene_view(EditorSceneViewState* scene) {
+	void init_scene_view(SceneViewState* scene) {
 		constexpr int canvas_width = 320;
 		constexpr int canvas_height = 320;
 		scene->canvas_size = { canvas_width, canvas_height };
@@ -15,12 +15,12 @@ namespace editor {
 		scene->zoom_index = 0;
 	}
 
-	void shutdown_editor_scene_view(const EditorSceneViewState& scene) {
+	void shutdown_scene_view(const SceneViewState& scene) {
 		platform::free_canvas(scene.canvas);
 	}
 
 	static void update_canvas_zoom(
-		EditorSceneViewState* scene,
+		SceneViewState* scene,
 		const platform::Input& input,
 		glm::vec2 window_relative_mouse_pos
 	) {
@@ -106,7 +106,7 @@ namespace editor {
 	}
 
 	static void update_canvas_mouse_drag(
-		EditorSceneViewState* scene_view,
+		SceneViewState* scene_view,
 		const platform::Input& input,
 		core::Rect scene_window_rect,
 		bool scene_window_is_hovered,
@@ -135,26 +135,23 @@ namespace editor {
 		}
 	}
 
-	std::vector<editor::EditorCommand> update_editor_scene_view(
-		EditorSceneViewState* scene_view,
+	void update_scene_view(
+		SceneViewState* scene_view,
 		const platform::Input& input,
 		glm::vec2 window_relative_mouse_pos,
-		core::Rect scene_window_rect
+		core::Rect scene_window_rect,
+		std::vector<editor::EditorCommand>* commands
 	) {
-		std::vector<editor::EditorCommand> commands;
-
 		const bool scene_window_is_hovered = scene_window_rect.overlaps_point(input.mouse.pos);
 		if (scene_window_is_hovered) {
 			update_canvas_zoom(scene_view, input, window_relative_mouse_pos);
 		}
 
-		update_canvas_mouse_drag(scene_view, input, scene_window_rect, scene_window_is_hovered, &commands);
-
-		return commands;
+		update_canvas_mouse_drag(scene_view, input, scene_window_rect, scene_window_is_hovered, commands);
 	}
 
-	void render_editor_scene_view(
-		const EditorSceneViewState& scene_view,
+	void render_scene_view(
+		const SceneViewState& scene_view,
 		platform::Renderer* renderer
 	) {
 		const glm::vec2 scene_canvas_size = scene_view.canvas.texture.size;

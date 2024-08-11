@@ -6,14 +6,12 @@
 #include <glm/vec2.hpp>
 
 namespace platform {
-
 	struct Input;
-
 }
 
 namespace editor {
 
-	struct EditorSceneViewState {
+	struct SceneViewState {
 		int zoom_index = 0;
 		bool is_being_dragging = false;
 		glm::vec2 canvas_size = { 0.0f, 0.0f };
@@ -21,18 +19,19 @@ namespace editor {
 		platform::Canvas canvas; // used to render the scene
 	};
 
-	void init_editor_scene_view(EditorSceneViewState* scene_view);
-	void shutdown_editor_scene_view(const EditorSceneViewState& scene_view);
+	void init_scene_view(SceneViewState* scene_view);
+	void shutdown_scene_view(const SceneViewState& scene_view);
 
-	std::vector<editor::EditorCommand> update_editor_scene_view(
-		EditorSceneViewState* scene_view,
+	void update_scene_view(
+		SceneViewState* scene_view,
 		const platform::Input& input,
 		glm::vec2 window_relative_mouse_pos,
-		core::Rect scene_window_rect
+		core::Rect scene_window_rect,
+		std::vector<editor::EditorCommand>* commands
 	);
 
-	void render_editor_scene_view(
-		const EditorSceneViewState& scene_view,
+	void render_scene_view(
+		const SceneViewState& scene_view,
 		platform::Renderer* renderer
 	);
 
