@@ -16,41 +16,58 @@
 
 namespace editor {
 
+	constexpr char LOG_WINDOW[] = "Log";
+	constexpr char SCENE_WINDOW[] = "Scene";
 	constexpr char PROJECT_WINDOW[] = "Project";
 	constexpr char GAME_WINDOW[] = "Game";
-	constexpr char SCENE_WINDOW[] = "Scene";
 
 	static void setup_docking_space(ImGuiID dockspace) {
 		/* Create docks */
 		ImGui::DockBuilderAddNode(dockspace); // Create a new dock node to use
 		ImGui::DockBuilderSetNodeSize(dockspace, ImVec2 { 1, 1 });
 
-		ImGuiID dock1 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Right, 0.75f, nullptr, &dockspace);
-		// +-----------+
-		// |           |
-		// |     1     |
-		// |           |
-		// +-----------+
+		// +---------------+
+		// |               |
+		// |               |
+		// |       1       |
+		// |               |
+		// |               |
+		// +---------------+
+		ImGuiID dock1 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Down, 0.25f, nullptr, &dockspace);
 
-		ImGuiID dock2 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Left, 0.5f, nullptr, &dockspace);
-		// +-----+-----+
-		// |   |       |
-		// | 2 |   1   |
-		// |   |       |
-		// +-----+-----+
-		//    <- split
+		// // +---------------+
+		// // |               |
+		// // |       2       |   ^
+		// // |               |   |
+		// // +---------------+ split
+		// // |       1       |
+		// // +---------------+
+		ImGuiID dock2 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Right, 0.75f, nullptr, &dockspace);
 
-		ImGuiID dock3 = ImGui::DockBuilderSplitNode(dock2, ImGuiDir_Down, 0.5f, nullptr, &dock2);
-		// +-----+-----+
-		// | 2 |       |  split
-		// +---+   1   |    |
-		// | 3 |       |    V
-		// +-----+-----+
+		// //    <- split
+		// // +-----+---------+
+		// // |     |         |
+		// // |  3  |    2    |
+		// // |     |         |
+		// // +---------------+
+		// // |       1       |
+		// // +---------------+
+		ImGuiID dock3 = ImGui::DockBuilderSplitNode(dockspace, ImGuiDir_Down, 0.5f, nullptr, &dockspace);
+
+		// // +-----+---------+
+		// // |  3  |         |  split
+		// // +-----+    2    |    |
+		// // |  4  |         |    V
+		// // +---------------+
+		// // |       1       |
+		// // +---------------+
+		ImGuiID dock4 = ImGui::DockBuilderSplitNode(dock3, ImGuiDir_Down, 0.5f, nullptr, &dock3);
 
 		/* Add windows to docks */
-		ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock1);
-		ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock2);
-		ImGui::DockBuilderDockWindow(GAME_WINDOW, dock3);
+		ImGui::DockBuilderDockWindow(LOG_WINDOW, dock1);
+		ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock2);
+		ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock3);
+		ImGui::DockBuilderDockWindow(GAME_WINDOW, dock4);
 		ImGui::DockBuilderFinish(dockspace);
 	}
 
@@ -76,6 +93,30 @@ namespace editor {
 	void shutdown_editor_ui(const EditorUiState& ui) {
 		platform::free_canvas(ui.window_canvas);
 		shutdown_editor_scene_view(ui.scene_view);
+	}
+
+	static ImU32 log_severity_to_color(plog::Severity severity) {
+		ImU32 color = 0;
+		switch (severity) {
+			case plog::Severity::verbose:
+			case plog::Severity::debug:
+				color = IM_COL32(59, 215, 226, 255);
+				break;
+
+			case plog::Severity::info:
+				color = IM_COL32(255, 255, 255, 255);
+				break;
+
+			case plog::Severity::warning:
+				color = IM_COL32(255, 216, 96, 255);
+				break;
+
+			case plog::Severity::error:
+			case plog::Severity::fatal:
+				color = IM_COL32(255, 0, 0, 255);
+				break;
+		}
+		return color;
 	}
 
 	std::vector<editor::EditorCommand> update_editor_ui(
@@ -176,6 +217,30 @@ namespace editor {
 		if (ui->show_imgui_demo) {
 			ImGui::ShowDemoWindow(&ui->show_imgui_demo);
 		}
+
+		/* Log Window */
+		if (ImGui::Begin(LOG_WINDOW)) {
+			if (input.log) {
+				// Print log messages
+				for (const platform::LogEntry& entry : *input.log) {
+					ImGui::PushStyleColor(ImGuiCol_Text, log_severity_to_color(entry.severity));
+					ImGui::Text("%s", entry.message.c_str());
+					ImGui::PopStyleColor();
+				}
+
+				// Auto-scroll on new messages unless scroll position is set by user
+				ui->last_num_seen_log_entries = input.log->size();
+				const float scroll_y = ImGui::GetScrollY();
+				const float scroll_max = ImGui::GetScrollMaxY();
+				const float text_height = ImGui::GetTextLineHeightWithSpacing();
+				const int lines_to_count = 5;
+				const bool scrolled_up = scroll_y <= scroll_max - lines_to_count * text_height;
+				if (ui->last_num_seen_log_entries.just_changed() && !scrolled_up) {
+					ImGui::SetScrollHereY();
+				}
+			}
+		}
+		ImGui::End();
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {

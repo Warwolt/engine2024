@@ -9,6 +9,9 @@
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <plog/Formatters/MessageOnlyFormatter.h>
 #include <plog/Init.h>
+#include <vector>
+
+static std::vector<platform::LogEntry> g_log_entries;
 
 namespace plog {
 
@@ -35,10 +38,13 @@ namespace plog {
 			ss << PLOG_NSTR("[") << pretty_file_name(record.getFile()).c_str() << PLOG_NSTR(":") << record.getLine() << PLOG_NSTR("] ");
 			ss << record.getMessage() << PLOG_NSTR("\n");
 
-			std::wstring str = ss.str();
+			std::string str = ss.str();
+
+			// save in-memory copy of log message
+			g_log_entries.push_back(platform::LogEntry { .message = str, .severity = record.getSeverity() });
 
 			// log to Visual Studio debug log
-			OutputDebugStringW(str.c_str());
+			OutputDebugStringA(str.c_str());
 
 			return str;
 		}
@@ -56,6 +62,10 @@ namespace platform {
 	void init_test_logging() {
 		static plog::ConsoleAppender<plog::MessageOnlyFormatter> consoleAppender(plog::streamStdErr);
 		plog::init(plog::verbose, &consoleAppender);
+	}
+
+	const std::vector<LogEntry>& get_log() {
+		return g_log_entries;
 	}
 
 } // namespace platform

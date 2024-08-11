@@ -8,12 +8,14 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Fix the window resize behavior (should only resize while left button held)
-- Add unit tests for Rect (since we have helper methods now)
-- Add logging window to editor
+- Factor out editor_ui code into component-functions (menu bar, windows)
+- Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
+- Add hot reload option to menu bar
+- Create "Hello World" text scene using a Text component and scene tree
 - Set up cpu profiling
 - Enable caching for GitHub Actions
 - Figure out how to make alt-key focus the main menu
+- Fix the window resize behavior (should only resize while left button held)
 - Maybe:
   - ~~Disable RTTI and exceptions in both project and standard library~~
   - set VS_DEBUGGER_WORKING_DIRECTORY to project root
@@ -22,9 +24,11 @@ Goals:
     - https://v8.dev/docs/embed
 
 ## Doing
-- Move Rect to `core` namespace
 
 ## Done
+- Add logging window to editor
+- Add unit tests for Rect (since we have helper methods now)
+- Move Rect to `core` namespace
 - Rename top level files to match namespace
 - Move editor to its own namespace (editor, engine, platform, core)
 - Zoom in and out of canvas
