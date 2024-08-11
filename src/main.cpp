@@ -63,7 +63,7 @@ static void set_imgui_style_win32_like() {
 	// FIXME: This gives a kind of blurry font, maybe we should build the font
 	// atlas ourselves and just hand it over to ImGui?
 	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->AddFontFromFileTTF("C:/windows/Fonts/tahoma.ttf", 16.0f);
+	io.Fonts->AddFontFromFileTTF("C:/windows/Fonts/tahoma.ttf", 13.0f);
 
 	/* Border sizes */
 	style.WindowBorderSize = 1.0f;
