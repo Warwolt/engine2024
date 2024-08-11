@@ -15,6 +15,14 @@
 
 namespace platform {
 
+	namespace Color {
+		// clang-format off
+		constexpr glm::vec4 red   { 1.0f, 0.0f, 0.0f, 1.0f };
+		constexpr glm::vec4 green { 0.0f, 1.0f, 0.0f, 1.0f };
+		constexpr glm::vec4 blue  { 0.0f, 0.0f, 1.0f, 1.0f };
+		// clang-format on
+	}
+
 	struct Vertex {
 		glm::vec2 pos;
 		glm::vec4 color;

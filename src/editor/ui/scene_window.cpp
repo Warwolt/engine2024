@@ -184,7 +184,6 @@ namespace editor {
 			if (scene_window_is_hovered) {
 				update_canvas_zoom(&scene_window->scene_view, input, window_relative_mouse_pos);
 			}
-
 			update_canvas_mouse_drag(&scene_window->scene_view, input, scene_window_rect, scene_window_is_hovered, commands);
 		}
 	}
@@ -198,9 +197,12 @@ namespace editor {
 		// Clear scene
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, scene_canvas_size }, { 0.75f, 0.75f, 0.75f, 1.0f });
 
-		// Coordinate Axes
-		renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x + 1.0f, scene_canvas_size.y / 2.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f }); // horizontal
-		renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y + 1.0f }, glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f }); // vertical
+		// Coordinate Axes, if we're zoomed in
+		// (If we're zoomed out they're drawn on window canvas instead)
+		if (scene_view.zoom_index >= 0) {
+			renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x + 1.0f, scene_canvas_size.y / 2.0f }, platform::Color::red); // horizontal
+			renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y + 1.0f }, platform::Color::green); // vertical
+		}
 	}
 
 	void render_scene_window(
@@ -216,8 +218,15 @@ namespace editor {
 
 			/* Render scene canvas to imgui canvas */
 			renderer->set_draw_canvas(scene_window.canvas);
-			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, glm::vec4 { 0.05f, 0.05f, 0.1f, 1.0f });
-			renderer->draw_texture(scene_window.scene_view.canvas.texture, scene_window.scene_view.scaled_canvas_rect);
+
+			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, glm::vec4 { 0.05f, 0.05f, 0.1f, 1.0f }); // clear
+			renderer->draw_texture(scene_window.scene_view.canvas.texture, scene_window.scene_view.scaled_canvas_rect); // render canvas
+			if (scene_window.scene_view.zoom_index < 0) {
+				core::Rect rect = scene_window.scene_view.scaled_canvas_rect;
+				core::Rect half_rect = scene_window.scene_view.scaled_canvas_rect / 2.0f;
+				renderer->draw_line({ rect.top_left.x, half_rect.bottom_right.y }, { rect.bottom_right.x, half_rect.bottom_right.y }, platform::Color::red);
+				renderer->draw_line({ half_rect.bottom_right.x, rect.top_left.y }, { half_rect.bottom_right.x, rect.bottom_right.y }, platform::Color::green);
+			}
 			renderer->reset_draw_canvas();
 		}
 	}
