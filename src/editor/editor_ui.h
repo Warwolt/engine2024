@@ -1,5 +1,6 @@
 #pragma once
 
+#include <core/signal.h>
 #include <editor/editor_command.h>
 #include <editor/editor_scene_view.h>
 #include <platform/graphics/renderer.h>
@@ -31,6 +32,7 @@ namespace editor {
 		std::string project_name_buf;
 		bool run_game_windowed = false;
 		bool show_imgui_demo = false;
+		core::Signal<size_t> last_num_seen_log_entries = 0;
 
 		platform::Canvas window_canvas; // used to render ImGui::Image
 		bool scene_window_visible = false;

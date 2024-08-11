@@ -16,10 +16,10 @@
 
 namespace editor {
 
-	constexpr char LOG_WINDOW[] = "Log 1";
-	constexpr char SCENE_WINDOW[] = "Scene 2";
-	constexpr char PROJECT_WINDOW[] = "Project 3";
-	constexpr char GAME_WINDOW[] = "Game 4";
+	constexpr char LOG_WINDOW[] = "Log";
+	constexpr char SCENE_WINDOW[] = "Scene";
+	constexpr char PROJECT_WINDOW[] = "Project";
+	constexpr char GAME_WINDOW[] = "Game";
 
 	static void setup_docking_space(ImGuiID dockspace) {
 		/* Create docks */
@@ -207,8 +207,11 @@ namespace editor {
 				for (const platform::LogEntry& entry : *input.log) {
 					ImGui::Text("%s", entry.message.c_str());
 				}
+				ui->last_num_seen_log_entries = input.log->size();
+				if (ui->last_num_seen_log_entries.just_changed()) {
+					ImGui::SetScrollHereY();
+				}
 				// TODO: IF new log entry AND NOT scrolled up THEN set scroll position to bottom
-				// ImGui::SetScrollHereY();
 			}
 		}
 		ImGui::End();
