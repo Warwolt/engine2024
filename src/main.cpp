@@ -62,7 +62,7 @@ static void set_imgui_style_win32_like() {
 
 	style.FrameBorderSize = 1.0f;
 	style.TabBorderSize = 1.0f;
-	style.DockingSeparatorSize = 1.0f;
+	style.DockingSeparatorSize = 3.0f;
 
 	style.WindowRounding = 0.0f;
 	style.ChildRounding = 0.0f;
@@ -78,7 +78,7 @@ static void set_imgui_style_win32_like() {
 	colors[ImGuiCol_WindowBg]               = ImVec4(0.94f, 0.94f, 0.94f, 1.00f);
 	colors[ImGuiCol_ChildBg]                = ImVec4(0.94f, 0.94f, 0.94f, 0.00f);
 	colors[ImGuiCol_PopupBg]                = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-	colors[ImGuiCol_Border]                 = ImVec4(0.42f, 0.42f, 0.42f, 0.35f);
+	colors[ImGuiCol_Border]                 = ImVec4(0.42f, 0.42f, 0.42f, 0.67f);
 	colors[ImGuiCol_BorderShadow]           = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 	colors[ImGuiCol_FrameBg]                = ImVec4(1.00f, 1.00f, 1.00f, 0.54f);
 	colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.90f, 0.95f, 0.98f, 1.00f);
@@ -117,11 +117,11 @@ static void set_imgui_style_win32_like() {
 	colors[ImGuiCol_PlotLinesHovered]       = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
 	colors[ImGuiCol_PlotHistogram]          = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
 	colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-	colors[ImGuiCol_TableHeaderBg]          = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
+	colors[ImGuiCol_TableHeaderBg]          = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
 	colors[ImGuiCol_TableBorderStrong]      = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);
 	colors[ImGuiCol_TableBorderLight]       = ImVec4(0.23f, 0.23f, 0.25f, 1.00f);
-	colors[ImGuiCol_TableRowBg]             = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-	colors[ImGuiCol_TableRowBgAlt]          = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+	colors[ImGuiCol_TableRowBg]             = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.98f, 0.98f, 0.98f, 1.00f);
 	colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.58f, 0.76f, 0.91f, 0.57f);
 	colors[ImGuiCol_DragDropTarget]         = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
 	colors[ImGuiCol_NavHighlight]           = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);

@@ -181,6 +181,8 @@ namespace editor {
 		}
 
 		/* Log Window */
+		// Make background of log white
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(255, 255, 255, 255));
 		if (ImGui::Begin(LOG_WINDOW)) {
 			if (input.log) {
 				update_log_window(*input.log, &ui->last_num_seen_log_entries);
@@ -190,6 +192,7 @@ namespace editor {
 			}
 		}
 		ImGui::End();
+		ImGui::PopStyleColor();
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
