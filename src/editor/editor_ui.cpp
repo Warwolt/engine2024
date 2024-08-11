@@ -194,13 +194,22 @@ namespace editor {
 			ImGui::ShowDemoWindow(&ui->show_imgui_demo);
 		}
 
+		if (ImGui::Begin("Debug")) {
+			if (ImGui::Button("Log")) {
+				LOG_DEBUG("Hello");
+			}
+		}
+		ImGui::End();
+
 		/* Log Window */
 		if (ImGui::Begin(LOG_WINDOW)) {
-			for (int i = 0; i < 1000; i++) {
-				ImGui::Text("Logging");
+			if (input.log) {
+				for (const platform::LogEntry& entry : *input.log) {
+					ImGui::Text("%s", entry.message.c_str());
+				}
+				// TODO: IF new log entry AND NOT scrolled up THEN set scroll position to bottom
+				// ImGui::SetScrollHereY();
 			}
-			// TODO: IF new log entry AND NOT scrolled up THEN set scroll position to bottom
-			// ImGui::SetScrollHereY();
 		}
 		ImGui::End();
 
