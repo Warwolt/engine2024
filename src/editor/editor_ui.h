@@ -2,7 +2,6 @@
 
 #include <core/signal.h>
 #include <editor/editor_command.h>
-#include <editor/ui/scene_view.h>
 #include <editor/ui/scene_window.h>
 #include <platform/graphics/renderer.h>
 

@@ -1,9 +1,23 @@
 #pragma once
 
-#include <editor/ui/scene_view.h>
+#include <editor/editor_command.h>
 #include <platform/graphics/renderer.h>
 
+#include <glm/vec2.hpp>
+
+namespace platform {
+	struct Input;
+}
+
 namespace editor {
+
+	struct SceneViewState {
+		int zoom_index = 0;
+		bool is_being_dragging = false;
+		glm::vec2 canvas_size = { 0.0f, 0.0f };
+		core::Rect scaled_canvas_rect;
+		platform::Canvas canvas; // used to render the scene
+	};
 
 	struct SceneWindowState {
 		bool is_visible = false;
@@ -13,7 +27,6 @@ namespace editor {
 	};
 
 	void init_scene_window(SceneWindowState* scene_window);
-
 	void shutdown_scene_window(const SceneWindowState& scene_window);
 
 	void update_scene_window(
