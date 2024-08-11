@@ -78,11 +78,12 @@ namespace editor {
 		bool reset_docking
 	) {
 		init_scene_view(&ui->scene_view);
+		init_scene_window(&ui->scene_window);
 
 		ui->window_canvas = platform::add_canvas(1, 1);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<engine::ProjectState>()(project);
-		ui->scene_view.position_initialized = false;
+		ui->scene_window.position_initialized = false;
 
 		/* Setup docking */
 		if (reset_docking) {
@@ -158,8 +159,8 @@ namespace editor {
 
 		// Initialize scene view
 		static int counter = 0; // imgui needs 1 frame before window sizes are correct
-		if (!ui->scene_view.position_initialized && counter++ > 0) {
-			ui->scene_view.position_initialized = true;
+		if (!ui->scene_window.position_initialized && counter++ > 0) {
+			ui->scene_window.position_initialized = true;
 			// Place scene view in center of window
 			ui->scene_view.scaled_canvas_rect.set_position((scene_window_size - ui->scene_view.scaled_canvas_rect.size()) / 2.0f);
 		}
@@ -210,7 +211,6 @@ namespace editor {
 			if (ui->window_canvas.texture.size != input.monitor_size) {
 				platform::free_canvas(ui->window_canvas);
 				ui->window_canvas = platform::add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
-				LOG_INFO("Resized scene window canvas");
 			}
 		}
 

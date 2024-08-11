@@ -9,7 +9,6 @@ namespace editor {
 	void init_scene_view(SceneViewState* scene) {
 		constexpr int canvas_width = 320;
 		constexpr int canvas_height = 320;
-		scene->position_initialized = false;
 		scene->canvas_size = { canvas_width, canvas_height };
 		scene->scaled_canvas_rect = core::Rect { { 0, 0 }, { canvas_width, canvas_height } };
 		scene->canvas = platform::add_canvas(canvas_width, canvas_height);

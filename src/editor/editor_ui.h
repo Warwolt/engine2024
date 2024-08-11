@@ -3,6 +3,7 @@
 #include <core/signal.h>
 #include <editor/editor_command.h>
 #include <editor/ui/scene_view.h>
+#include <editor/ui/scene_window.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -35,6 +36,7 @@ namespace editor {
 		platform::Canvas window_canvas; // used to render ImGui::Image
 		bool scene_window_visible = false;
 
+		SceneWindowState scene_window;
 		SceneViewState scene_view;
 	};
 
