@@ -58,12 +58,19 @@ static void set_normalized_device_coordinate_projection(platform::Renderer* rend
 
 static void set_imgui_style_win32_like() {
 	ImGuiStyle& style = ImGui::GetStyle();
-	ImVec4* colors = style.Colors;
 
+	/* Font */
+	// FIXME: This gives a kind of blurry font, maybe we should build the font
+	// atlas ourselves and just hand it over to ImGui?
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->AddFontFromFileTTF("C:/windows/Fonts/tahoma.ttf", 16.0f);
+
+	/* Border sizes */
 	style.FrameBorderSize = 1.0f;
 	style.TabBorderSize = 1.0f;
 	style.DockingSeparatorSize = 3.0f;
 
+	/* Rounding */
 	style.WindowRounding = 0.0f;
 	style.ChildRounding = 0.0f;
 	style.FrameRounding = 0.0f;
@@ -72,6 +79,8 @@ static void set_imgui_style_win32_like() {
 	style.GrabRounding = 0.0f;
 	style.TabRounding = 0.0f;
 
+	/* Colors */
+	ImVec4* colors = style.Colors;
 	// clang-format off
 	colors[ImGuiCol_Text]                   = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 	colors[ImGuiCol_TextDisabled]           = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
@@ -139,7 +148,6 @@ static void init_imgui(SDL_Window* window, SDL_GLContext gl_context) {
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable window docking
 
-	// ImGui::StyleColorsDark();
 	set_imgui_style_win32_like();
 
 	// Workaround for clipboard setup

@@ -10,6 +10,7 @@ Goals:
 ## TODO
 - Create "Hello World" text scene using a Text component and scene tree
 - Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
+- Try to fix slightly blurry ImGui font by building font atlas ourselves
 - Add hot reload option to menu bar
 - Set up cpu profiling
 - Enable caching for GitHub Actions
