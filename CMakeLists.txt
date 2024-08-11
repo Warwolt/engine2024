@@ -50,6 +50,9 @@ set(IMGUI_SRC
 
 add_compile_definitions(IMGUI_USER_CONFIG=<platform/debug/imconfig.h>)
 
+# Configure Plog to use char instead of wchar for better imgui integration
+add_compile_definitions(PLOG_CHAR_IS_UTF8)
+
 set(CORE_SRC
     src/core/parse.cpp
     src/core/string.cpp
