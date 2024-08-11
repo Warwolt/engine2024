@@ -6,9 +6,12 @@
 
 namespace editor {
 
+	constexpr int GRID_SIZE = 16;
+
 	void init_scene_window(SceneWindowState* scene_window) {
 		scene_window->position_initialized = false;
 		scene_window->canvas = platform::add_canvas(1, 1);
+		scene_window->scene_view.grid_canvas = platform::add_canvas(GRID_SIZE * 2, GRID_SIZE * 2);
 
 		constexpr int canvas_width = 1600;
 		constexpr int canvas_height = 1200;
@@ -20,7 +23,8 @@ namespace editor {
 
 	void shutdown_scene_window(const SceneWindowState& scene_window) {
 		platform::free_canvas(scene_window.canvas);
-		platform::free_canvas(scene_window.canvas);
+		platform::free_canvas(scene_window.scene_view.canvas);
+		platform::free_canvas(scene_window.scene_view.grid_canvas);
 	}
 
 	static float clamp_coordinate_to_fit_window(float coordinate, float window_size, float canvas_size) {
@@ -195,26 +199,34 @@ namespace editor {
 		const glm::vec2 scene_canvas_size = scene_view.canvas.texture.size;
 
 		// Clear scene
-		renderer->draw_rect_fill({ { 0.0f, 0.0f }, scene_canvas_size }, { 0.75f, 0.75f, 0.75f, 1.0f });
+		renderer->draw_rect_fill({ { 0.0f, 0.0f }, scene_canvas_size }, { 0.0f, 0.5f, 0.5f, 1.0f });
 
 		/* Render grid */
-		{
-			// FIXME: Probably this could be done more efficiently by creating a
-			// grid-texture and just using GL_REPEAT texture wrapping
+		if (0) {
 			constexpr glm::vec4 light_grey = glm::vec4 { 0.75f, 0.75f, 0.75f, 1.0f };
 			constexpr glm::vec4 dark_grey = glm::vec4 { 0.50f, 0.50f, 0.50f, 1.0f };
 
+			renderer->set_draw_canvas(scene_view.grid_canvas);
+			renderer->draw_rect_fill({ { 0, 0 }, { GRID_SIZE * 2, GRID_SIZE * 2 } }, dark_grey);
+			renderer->draw_rect_fill({ { GRID_SIZE, 0 }, { 2 * GRID_SIZE, GRID_SIZE } }, light_grey);
+			renderer->draw_rect_fill({ { 0, GRID_SIZE }, { GRID_SIZE, 2 * GRID_SIZE } }, light_grey);
+			renderer->reset_draw_canvas();
+
+			renderer->draw_texture(scene_view.grid_canvas.texture, { { 0, 0 }, scene_view.grid_canvas.texture.size });
+
+			// FIXME: Probably this could be done more efficiently by creating a
+			// grid-texture and just using GL_REPEAT texture wrapping
 			// FIXME: This has fucking ABYSMALL performance for some reason.
 			// We need to set up CPU profiling to figure out what's going on.
-			constexpr int grid_size = 16;
-			const int grid_width = (int)(std::round(scene_canvas_size.x / grid_size) * grid_size);
-			const int grid_height = (int)(std::round(scene_canvas_size.x / grid_size) * grid_size);
-			for (int x = 0; x < grid_width; x += grid_size) {
-				for (int y = 0; y < grid_height; y += grid_size) {
-					glm::vec4 color = x % (grid_size * 2) == y % (grid_size * 2) ? dark_grey : light_grey;
-					renderer->draw_rect_fill(core::Rect::with_pos_and_size({ x, y }, { grid_size, grid_size }), color);
-				}
-			}
+			// constexpr int grid_size = 16;
+			// const int grid_width = (int)(std::round(scene_canvas_size.x / grid_size) * grid_size);
+			// const int grid_height = (int)(std::round(scene_canvas_size.x / grid_size) * grid_size);
+			// for (int x = 0; x < grid_width; x += grid_size) {
+			// 	for (int y = 0; y < grid_height; y += grid_size) {
+			// 		glm::vec4 color = x % (grid_size * 2) == y % (grid_size * 2) ? dark_grey : light_grey;
+			// 		renderer->draw_rect_fill(core::Rect::with_pos_and_size({ x, y }, { grid_size, grid_size }), color);
+			// 	}
+			// }
 		}
 
 		// Coordinate Axes

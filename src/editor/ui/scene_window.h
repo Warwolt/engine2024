@@ -17,6 +17,7 @@ namespace editor {
 		glm::vec2 canvas_size = { 0.0f, 0.0f };
 		core::Rect scaled_canvas_rect;
 		platform::Canvas canvas; // used to render the scene
+		platform::Canvas grid_canvas; // used to render grid
 	};
 
 	struct SceneWindowState {
