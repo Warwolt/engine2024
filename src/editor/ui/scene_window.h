@@ -22,4 +22,9 @@ namespace editor {
 		std::vector<EditorCommand>* commands
 	);
 
+	void render_scene_window(
+		const SceneWindowState& scene_window,
+		platform::Renderer* renderer
+	);
+
 } // namespace editor

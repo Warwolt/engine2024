@@ -227,19 +227,7 @@ namespace editor {
 		const EditorUiState& ui,
 		platform::Renderer* renderer
 	) {
-		// Only render scene if ImGui scene window open
-		if (ui.scene_window.is_visible) {
-			/* Render scene canvas */
-			renderer->set_draw_canvas(ui.scene_window.scene_view.canvas);
-			render_scene_view(ui.scene_window.scene_view, renderer);
-			renderer->reset_draw_canvas();
-
-			/* Render scene canvas to imgui canvas */
-			renderer->set_draw_canvas(ui.scene_window.canvas);
-			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, ui.scene_window.canvas.texture.size }, glm::vec4 { 0.0f, 0.5f, 0.5f, 1.0f });
-			renderer->draw_texture(ui.scene_window.scene_view.canvas.texture, ui.scene_window.scene_view.scaled_canvas_rect);
-			renderer->reset_draw_canvas();
-		}
+		render_scene_window(ui.scene_window, renderer);
 	}
 
 } // namespace editor

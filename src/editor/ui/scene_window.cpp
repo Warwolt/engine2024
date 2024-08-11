@@ -56,4 +56,23 @@ namespace editor {
 		}
 	}
 
+	void render_scene_window(
+		const SceneWindowState& scene_window,
+		platform::Renderer* renderer
+	) {
+		// Only render scene if ImGui scene window open
+		if (scene_window.is_visible) {
+			/* Render scene canvas */
+			renderer->set_draw_canvas(scene_window.scene_view.canvas);
+			render_scene_view(scene_window.scene_view, renderer);
+			renderer->reset_draw_canvas();
+
+			/* Render scene canvas to imgui canvas */
+			renderer->set_draw_canvas(scene_window.canvas);
+			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, glm::vec4 { 0.0f, 0.5f, 0.5f, 1.0f });
+			renderer->draw_texture(scene_window.scene_view.canvas.texture, scene_window.scene_view.scaled_canvas_rect);
+			renderer->reset_draw_canvas();
+		}
+	}
+
 } // namespace editor
