@@ -12,6 +12,7 @@ namespace platform {
 namespace editor {
 
 	struct SceneViewState {
+		bool position_initialized = false; // used to center view once we know ImGui window size
 		int zoom_index = 0;
 		bool is_being_dragging = false;
 		glm::vec2 canvas_size = { 0.0f, 0.0f };

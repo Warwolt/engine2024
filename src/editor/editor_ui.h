@@ -12,9 +12,7 @@
 #include <vector>
 
 namespace platform {
-
 	struct Input;
-
 } // namespace platform
 
 namespace engine {
@@ -36,7 +34,6 @@ namespace editor {
 
 		platform::Canvas window_canvas; // used to render ImGui::Image
 		bool scene_window_visible = false;
-		bool scene_view_position_initialized = false; // used to center view once we know ImGui window size
 
 		SceneViewState scene_view;
 	};
