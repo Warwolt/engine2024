@@ -32,6 +32,12 @@ namespace core {
 		Rect& operator*=(const glm::vec2& rhs);
 		Rect& operator/=(const glm::vec2& rhs);
 
+		// scale centered around top_left
+		Rect& operator*=(const float& rhs);
+		Rect& operator/=(const float& rhs);
+		friend Rect operator*(Rect lhs, const float& rhs);
+		friend Rect operator/(Rect lhs, const float& rhs);
+
 		friend Rect operator+(Rect lhs, const Rect& rhs);
 		friend Rect operator-(Rect lhs, const Rect& rhs);
 		friend Rect operator*(Rect lhs, const Rect& rhs);

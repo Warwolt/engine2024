@@ -1,3 +1,4 @@
+#include "rect.h"
 #include <core/rect.h>
 
 namespace core {
@@ -79,6 +80,26 @@ namespace core {
 		this->top_left /= rhs;
 		this->bottom_right /= rhs;
 		return *this;
+	}
+
+	Rect& Rect::operator*=(const float& rhs) {
+		this->bottom_right *= rhs;
+		return *this;
+	}
+
+	Rect& Rect::operator/=(const float& rhs) {
+		this->bottom_right /= rhs;
+		return *this;
+	}
+
+	Rect operator*(Rect lhs, const float& rhs) {
+		lhs.bottom_right = lhs.top_left + lhs.size() * rhs;
+		return lhs;
+	}
+
+	Rect operator/(Rect lhs, const float& rhs) {
+		lhs.bottom_right = lhs.top_left + lhs.size() / rhs;
+		return lhs;
 	}
 
 	Rect operator+(Rect lhs, const Rect& rhs) {
