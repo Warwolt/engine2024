@@ -97,6 +97,37 @@ namespace editor {
 		shutdown_scene_view(ui.scene_view);
 	}
 
+	static void update_edit_window(
+		bool game_is_running,
+		engine::GameState* game,
+		std::vector<EditorCommand>* commands,
+		bool* run_game_windowed
+	) {
+		if (game_is_running) {
+			const int step = 1;
+			ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
+
+			if (ImGui::Button("Resume game")) {
+				commands->push_back(editor::EditorCommand::RunGame);
+			}
+			if (ImGui::Button("Stop game")) {
+				commands->push_back(editor::EditorCommand::ResetGameState);
+			}
+			if (ImGui::Button("Restart game")) {
+				commands->push_back(editor::EditorCommand::ResetGameState);
+				commands->push_back(editor::EditorCommand::RunGame);
+			}
+		}
+		else {
+			if (ImGui::Button("Run game")) {
+				commands->push_back(editor::EditorCommand::ResetGameState);
+				commands->push_back(editor::EditorCommand::RunGame);
+			}
+		}
+
+		ImGui::Checkbox("Windowed mode", run_game_windowed);
+	}
+
 	std::vector<editor::EditorCommand> update_editor_ui(
 		EditorUiState* ui,
 		engine::GameState* game,
@@ -140,6 +171,9 @@ namespace editor {
 			if (input.log) {
 				update_log_window(*input.log, &ui->last_num_seen_log_entries);
 			}
+			else {
+				ImGui::Text("Log not available!");
+			}
 		}
 		ImGui::End();
 
@@ -162,29 +196,7 @@ namespace editor {
 
 		/* Game Edit Window */
 		if (ImGui::Begin(GAME_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			if (game_is_running) {
-				const int step = 1;
-				ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
-
-				if (ImGui::Button("Resume game")) {
-					commands.push_back(editor::EditorCommand::RunGame);
-				}
-				if (ImGui::Button("Stop game")) {
-					commands.push_back(editor::EditorCommand::ResetGameState);
-				}
-				if (ImGui::Button("Restart game")) {
-					commands.push_back(editor::EditorCommand::ResetGameState);
-					commands.push_back(editor::EditorCommand::RunGame);
-				}
-			}
-			else {
-				if (ImGui::Button("Run game")) {
-					commands.push_back(editor::EditorCommand::ResetGameState);
-					commands.push_back(editor::EditorCommand::RunGame);
-				}
-			}
-
-			ImGui::Checkbox("Windowed mode", &ui->run_game_windowed);
+			update_edit_window(game_is_running, game, &commands, &ui->run_game_windowed);
 		}
 		ImGui::End();
 
