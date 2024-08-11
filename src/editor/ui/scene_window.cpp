@@ -197,8 +197,28 @@ namespace editor {
 		// Clear scene
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, scene_canvas_size }, { 0.75f, 0.75f, 0.75f, 1.0f });
 
-		// Coordinate Axes, if we're zoomed in
-		// (If we're zoomed out they're drawn on window canvas instead)
+		/* Render grid */
+		{
+			// FIXME: Probably this could be done more efficiently by creating a
+			// grid-texture and just using GL_REPEAT texture wrapping
+			constexpr glm::vec4 light_grey = glm::vec4 { 0.75f, 0.75f, 0.75f, 1.0f };
+			constexpr glm::vec4 dark_grey = glm::vec4 { 0.50f, 0.50f, 0.50f, 1.0f };
+
+			// FIXME: This has fucking ABYSMALL performance for some reason.
+			// We need to set up CPU profiling to figure out what's going on.
+			constexpr int grid_size = 16;
+			const int grid_width = (int)(std::round(scene_canvas_size.x / grid_size) * grid_size);
+			const int grid_height = (int)(std::round(scene_canvas_size.x / grid_size) * grid_size);
+			for (int x = 0; x < grid_width; x += grid_size) {
+				for (int y = 0; y < grid_height; y += grid_size) {
+					glm::vec4 color = x % (grid_size * 2) == y % (grid_size * 2) ? dark_grey : light_grey;
+					renderer->draw_rect_fill(core::Rect::with_pos_and_size({ x, y }, { grid_size, grid_size }), color);
+				}
+			}
+		}
+
+		// Coordinate Axes
+		// (If zoomed out, axes are rendered on top of the scene view isntead)
 		if (scene_view.zoom_index >= 0) {
 			renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x + 1.0f, scene_canvas_size.y / 2.0f }, platform::Color::red); // horizontal
 			renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y + 1.0f }, platform::Color::green); // vertical
@@ -221,6 +241,8 @@ namespace editor {
 
 			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, glm::vec4 { 0.05f, 0.05f, 0.1f, 1.0f }); // clear
 			renderer->draw_texture(scene_window.scene_view.canvas.texture, scene_window.scene_view.scaled_canvas_rect); // render canvas
+			// Coordinate axes.
+			// If we're zoomed out, we render on top of the texture to make sure the lines are crisp
 			if (scene_window.scene_view.zoom_index < 0) {
 				core::Rect rect = scene_window.scene_view.scaled_canvas_rect;
 				core::Rect half_rect = scene_window.scene_view.scaled_canvas_rect / 2.0f;
