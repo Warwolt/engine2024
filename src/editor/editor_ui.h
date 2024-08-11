@@ -33,11 +33,7 @@ namespace editor {
 		bool show_imgui_demo = false;
 		core::Signal<size_t> last_num_seen_log_entries = 0;
 
-		platform::Canvas window_canvas; // used to render ImGui::Image
-		bool scene_window_visible = false;
-
 		SceneWindowState scene_window;
-		SceneViewState scene_view;
 	};
 
 	void init_editor_ui(
