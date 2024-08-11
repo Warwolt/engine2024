@@ -13,7 +13,7 @@ namespace editor {
 				break;
 
 			case plog::Severity::info:
-				color = IM_COL32(255, 255, 255, 255);
+				color = IM_COL32(0, 0, 0, 255);
 				break;
 
 			case plog::Severity::warning:

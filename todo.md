@@ -8,7 +8,9 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Create "Hello World" text scene using a Text component and scene tree
 - Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
+- Try to fix slightly blurry ImGui font by building font atlas ourselves
 - Add hot reload option to menu bar
 - Set up cpu profiling
 - Enable caching for GitHub Actions
@@ -16,7 +18,7 @@ Goals:
 - Fix the window resize behavior (should only resize while left button held)
 
 ## Doing
-- Create "Hello World" text scene using a Text component and scene tree
+- Change theming to be less ImGui and a little more native Win32 looking
 
 ## Done
 - Factor out editor_ui code into component-functions (menu bar, windows)

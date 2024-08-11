@@ -78,7 +78,7 @@ namespace editor {
 
 			/* Render scene canvas to imgui canvas */
 			renderer->set_draw_canvas(scene_window.canvas);
-			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, glm::vec4 { 0.0f, 0.5f, 0.5f, 1.0f });
+			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, glm::vec4 { 0.05f, 0.05f, 0.1f, 1.0f });
 			renderer->draw_texture(scene_window.scene_view.canvas.texture, scene_window.scene_view.scaled_canvas_rect);
 			renderer->reset_draw_canvas();
 		}
