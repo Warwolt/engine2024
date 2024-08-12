@@ -241,17 +241,15 @@ namespace editor {
 				const core::Rect scaled_rect = scene_window.scene_view.scaled_canvas_rect;
 
 				/* Background*/
-				const glm::vec4 clear_color = platform::Color::rgba(73, 85, 102, 255);
-				renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, clear_color); // background
+				const glm::vec4 background_color = platform::Color::rgba(95, 140, 140, 255);
+				renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, background_color); // background
 
 				/* Canvas */
-				const glm::vec4 shadow_color = platform::Color::rgba(65, 65, 44, 255);
-				const glm::vec2 x_offset = { 1.0f, 0.0f };
-				const glm::vec2 y_offset = { 0.0f, 1.0f };
+				const glm::vec2 offset = { 1.0f, 1.0f };
+				const glm::vec4 outline_color = platform::Color::rgba(65, 65, 44, 255);
 				renderer->draw_texture(scene_window.scene_view.canvas.texture, scaled_rect); // render canvas
 				renderer->draw_rect(scaled_rect, platform::Color::black); // outline
-				renderer->draw_line(scaled_rect.top_right() + x_offset, scaled_rect.bottom_right + x_offset + y_offset, shadow_color); // shadow
-				renderer->draw_line(scaled_rect.bottom_left() + y_offset, scaled_rect.bottom_right + y_offset, shadow_color); // shadow
+				renderer->draw_rect({ scaled_rect.top_left - offset, scaled_rect.bottom_right + offset }, outline_color);
 
 				/* Coordinate axes */
 				// If we're zoomed out, we render on top of the texture to make sure the lines are crisp
