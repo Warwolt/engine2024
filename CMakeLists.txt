@@ -60,8 +60,8 @@ set(CORE_SRC
 )
 
 set(EDITOR_SRC
-    src/editor/editor_ui.cpp
     src/editor/editor.cpp
+    src/editor/ui/editor_ui.cpp
     src/editor/ui/log_window.cpp
     src/editor/ui/main_menu_bar.cpp
     src/editor/ui/scene_window.cpp

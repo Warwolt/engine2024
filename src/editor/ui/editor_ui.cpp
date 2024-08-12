@@ -1,4 +1,4 @@
-#include <editor/editor_ui.h>
+#include <editor/ui/editor_ui.h>
 
 #include <editor/ui/log_window.h>
 #include <editor/ui/main_menu_bar.h>
