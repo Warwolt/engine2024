@@ -56,7 +56,7 @@ namespace platform {
 	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
 	void free_shader_program(ShaderProgram shader_program);
 
-	Canvas add_canvas(int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge);
+	Canvas add_canvas(int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge, TextureFilter filter = TextureFilter::Nearest);
 	void free_canvas(Canvas canvas);
 
 	class Renderer {

@@ -17,8 +17,23 @@ namespace platform {
 		ClampToBorder,
 	};
 
+	enum class TextureFilter {
+		Nearest,
+		Linear,
+	};
+
 	int wrapping_mode_to_gl_int(TextureWrapping wrapping);
-	Texture add_texture(const unsigned char* data, int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge);
+	int filter_mode_to_gl_int(TextureFilter filter);
+
+	Texture add_texture(
+		const unsigned char* data,
+		int width,
+		int height,
+		TextureWrapping wrapping = TextureWrapping::ClampToEdge,
+		TextureFilter filter = TextureFilter::Nearest
+	);
+	void set_texture_wrapping(Texture texture, TextureWrapping wrapping);
+	void set_texture_filter(Texture texture, TextureFilter filter);
 	void free_texture(Texture texture);
 
 } // namespace platform
