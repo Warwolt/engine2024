@@ -77,7 +77,6 @@ namespace editor {
 		const engine::ProjectState& project,
 		bool reset_docking
 	) {
-		init_scene_view(&ui->scene_window.scene_view);
 		init_scene_window(&ui->scene_window);
 
 		ui->project_name_buf = project.name;
@@ -92,7 +91,6 @@ namespace editor {
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
 		shutdown_scene_window(ui.scene_window);
-		shutdown_scene_view(ui.scene_window.scene_view);
 	}
 
 	static void update_project_window(

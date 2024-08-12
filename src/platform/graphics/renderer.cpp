@@ -144,26 +144,25 @@ namespace platform {
 		glDeleteProgram(shader_program.id);
 	}
 
-	Canvas add_canvas(int width, int height) {
-		GLuint framebuffer;
-		GLuint texture;
+	Canvas add_canvas(int width, int height, TextureWrapping wrapping, TextureFilter filter) {
+		// create texture
+		GLuint texture_id;
+		glGenTextures(1, &texture_id);
+		Texture texture = Texture { texture_id, glm::vec2 { width, height } };
+		glBindTexture(GL_TEXTURE_2D, texture_id);
 
 		// create buffer
+		GLuint framebuffer;
 		glGenFramebuffers(1, &framebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-		// create texture
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		set_texture_filter(texture, filter);
+		set_texture_wrapping(texture, wrapping);
 
 		// attach texture to buffer and draw buffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
 
 		GLuint render_buffer;
 		glGenRenderbuffers(1, &render_buffer);
@@ -178,7 +177,7 @@ namespace platform {
 		glBindTexture(GL_TEXTURE_2D, NULL);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
-		return Canvas { framebuffer, Texture { texture, glm::vec2 { width, height } } };
+		return Canvas { framebuffer, texture };
 	}
 
 	void free_canvas(Canvas canvas) {
@@ -197,11 +196,11 @@ namespace platform {
 		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
 	}
 
-	void Renderer::set_draw_canvas(Canvas canvas) {
-		m_draw_canvas = canvas;
+	void Renderer::push_draw_canvas(Canvas canvas) {
+		m_draw_canvas_stack.push_back(canvas);
 	}
-	void Renderer::reset_draw_canvas() {
-		m_draw_canvas = {};
+	void Renderer::pop_draw_canvas() {
+		m_draw_canvas_stack.pop_back();
 	}
 
 	void Renderer::set_render_canvas(Canvas canvas) {
@@ -263,13 +262,13 @@ namespace platform {
 
 	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {
 		m_vertices.push_back(Vertex { .pos = point, .color = color });
-		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 1, .texture = m_white_texture, .canvas = m_draw_canvas });
+		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 1, .texture = m_white_texture, .canvas = _current_draw_canvas() });
 	}
 
 	void Renderer::draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color) {
 		m_vertices.push_back(Vertex { .pos = start, .color = color });
 		m_vertices.push_back(Vertex { .pos = end, .color = color });
-		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture, .canvas = m_draw_canvas });
+		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2, .texture = m_white_texture, .canvas = _current_draw_canvas() });
 	}
 
 	void Renderer::draw_rect(core::Rect quad, glm::vec4 color) {
@@ -287,7 +286,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
 		m_vertices.push_back(Vertex { .pos = { x1, y0 }, .color = color });
 
-		m_sections.push_back(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture, .canvas = m_draw_canvas });
+		m_sections.push_back(VertexSection { .mode = GL_LINE_LOOP, .length = 4, .texture = m_white_texture, .canvas = _current_draw_canvas() });
 	}
 
 	void Renderer::draw_rect_fill(core::Rect quad, glm::vec4 color) {
@@ -311,7 +310,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color });
 
 		// sections
-		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = m_white_texture, .canvas = m_draw_canvas });
+		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = m_white_texture, .canvas = _current_draw_canvas() });
 	}
 
 	void Renderer::draw_circle(glm::vec2 center, float radius, glm::vec4 color) {
@@ -329,7 +328,7 @@ namespace platform {
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { -x, y }, .color = color });
 		}
 
-		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture, .canvas = m_draw_canvas });
+		m_sections.push_back(VertexSection { .mode = GL_POINTS, .length = 8 * (GLsizei)quadrant_points.size(), .texture = m_white_texture, .canvas = _current_draw_canvas() });
 	}
 
 	void Renderer::draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color) {
@@ -359,7 +358,7 @@ namespace platform {
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, y }, .color = color });
 			m_vertices.push_back(Vertex { .pos = center + glm::vec2 { x, -y }, .color = color });
 		}
-		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture, .canvas = m_draw_canvas });
+		m_sections.push_back(VertexSection { .mode = GL_LINES, .length = 2 * (GLsizei)half_circle_points.size(), .texture = m_white_texture, .canvas = _current_draw_canvas() });
 	}
 
 	void Renderer::draw_texture(Texture texture, core::Rect quad) {
@@ -405,7 +404,7 @@ namespace platform {
 		m_vertices.push_back(Vertex { .pos = { x1, y1 }, .color = color, .uv = { u1, v0 } });
 
 		// sections
-		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture, .canvas = m_draw_canvas });
+		m_sections.push_back(VertexSection { .mode = GL_TRIANGLES, .length = 6, .texture = texture, .canvas = _current_draw_canvas() });
 	}
 
 	void Renderer::draw_character(const Font& font, char character, glm::vec2 pos, glm::vec4 color) {
@@ -457,6 +456,10 @@ namespace platform {
 		}
 
 		draw_text(font, text, pos - box_size / 2.0f, color);
+	}
+
+	std::optional<Canvas> Renderer::_current_draw_canvas() {
+		return m_draw_canvas_stack.empty() ? std::nullopt : std::make_optional(m_draw_canvas_stack.back());
 	}
 
 } // namespace platform

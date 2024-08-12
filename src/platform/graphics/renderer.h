@@ -9,11 +9,33 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 
+#include <algorithm>
 #include <expected>
 #include <optional>
 #include <vector>
 
 namespace platform {
+
+	namespace Color {
+		constexpr glm::vec4 rgba(int r, int g, int b, int a) {
+			return glm::vec4 {
+				(float)std::clamp(r, 0, 255) / 255.0f,
+				(float)std::clamp(g, 0, 255) / 255.0f,
+				(float)std::clamp(b, 0, 255) / 255.0f,
+				(float)std::clamp(a, 0, 255) / 255.0f,
+			};
+		}
+
+		// clang-format off
+		constexpr glm::vec4 red        { 1.0f, 0.0f, 0.0f, 1.0f };
+		constexpr glm::vec4 green      { 0.0f, 1.0f, 0.0f, 1.0f };
+		constexpr glm::vec4 blue       { 0.0f, 0.0f, 1.0f, 1.0f };
+		constexpr glm::vec4 black      { 0.0f, 0.0f, 0.0f, 1.0f };
+		constexpr glm::vec4 light_grey { 0.75f, 0.75f, 0.75f, 1.0f };
+		constexpr glm::vec4 dark_grey  { 0.50f, 0.50f, 0.50f, 1.0f };
+
+		// clang-format on
+	}
 
 	struct Vertex {
 		glm::vec2 pos;
@@ -48,7 +70,7 @@ namespace platform {
 	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
 	void free_shader_program(ShaderProgram shader_program);
 
-	Canvas add_canvas(int width, int height);
+	Canvas add_canvas(int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge, TextureFilter filter = TextureFilter::Nearest);
 	void free_canvas(Canvas canvas);
 
 	class Renderer {
@@ -57,8 +79,8 @@ namespace platform {
 
 		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
 
-		void set_draw_canvas(Canvas canvas);
-		void reset_draw_canvas();
+		void push_draw_canvas(Canvas canvas);
+		void pop_draw_canvas();
 
 		void set_render_canvas(Canvas canvas);
 		void reset_render_canvas();
@@ -82,10 +104,12 @@ namespace platform {
 
 
 	private:
+		std::optional<Canvas> _current_draw_canvas();
+
 		std::vector<Vertex> m_vertices;
 		std::vector<VertexSection> m_sections;
 		Texture m_white_texture;
-		std::optional<Canvas> m_draw_canvas;
+		std::vector<Canvas> m_draw_canvas_stack;
 		std::optional<Canvas> m_render_canvas;
 	};
 

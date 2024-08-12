@@ -20,7 +20,11 @@ namespace core {
 
 		glm::vec2 size() const;
 		glm::vec2 position() const;
+		glm::vec2 bottom_left() const;
+		glm::vec2 top_right() const;
+
 		bool overlaps_point(glm::vec2 point) const;
+
 
 		Rect& operator+=(const Rect& rhs);
 		Rect& operator-=(const Rect& rhs);
@@ -31,6 +35,12 @@ namespace core {
 		Rect& operator-=(const glm::vec2& rhs);
 		Rect& operator*=(const glm::vec2& rhs);
 		Rect& operator/=(const glm::vec2& rhs);
+
+		// scale centered around top_left
+		Rect& operator*=(const float& rhs);
+		Rect& operator/=(const float& rhs);
+		friend Rect operator*(Rect lhs, const float& rhs);
+		friend Rect operator/(Rect lhs, const float& rhs);
 
 		friend Rect operator+(Rect lhs, const Rect& rhs);
 		friend Rect operator-(Rect lhs, const Rect& rhs);

@@ -1,3 +1,4 @@
+#include "rect.h"
 #include <core/rect.h>
 
 namespace core {
@@ -25,6 +26,20 @@ namespace core {
 
 	glm::vec2 Rect::position() const {
 		return this->top_left;
+	}
+
+	glm::vec2 Rect::bottom_left() const {
+		return glm::vec2 {
+			this->top_left.x,
+			this->bottom_right.y
+		};
+	}
+
+	glm::vec2 Rect::top_right() const {
+		return glm::vec2 {
+			this->bottom_right.x,
+			this->top_left.y
+		};
 	}
 
 	bool Rect::overlaps_point(glm::vec2 point) const {
@@ -79,6 +94,26 @@ namespace core {
 		this->top_left /= rhs;
 		this->bottom_right /= rhs;
 		return *this;
+	}
+
+	Rect& Rect::operator*=(const float& rhs) {
+		this->bottom_right *= rhs;
+		return *this;
+	}
+
+	Rect& Rect::operator/=(const float& rhs) {
+		this->bottom_right /= rhs;
+		return *this;
+	}
+
+	Rect operator*(Rect lhs, const float& rhs) {
+		lhs.bottom_right = lhs.top_left + lhs.size() * rhs;
+		return lhs;
+	}
+
+	Rect operator/(Rect lhs, const float& rhs) {
+		lhs.bottom_right = lhs.top_left + lhs.size() / rhs;
+		return lhs;
 	}
 
 	Rect operator+(Rect lhs, const Rect& rhs) {
