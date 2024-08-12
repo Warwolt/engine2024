@@ -86,7 +86,7 @@ namespace editor {
 	) {
 		init_scene_window(&ui->scene_window);
 
-		ui->editor_fonts.system_font = add_font("C:/windows/Fonts/tahoma.ttf", 16);
+		ui->editor_fonts.system_font = add_font("C:/windows/Fonts/tahoma.ttf", 13);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<engine::ProjectState>()(project);
 

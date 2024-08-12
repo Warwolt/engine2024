@@ -8,6 +8,41 @@ namespace editor {
 
 	constexpr int GRID_SIZE = 32;
 
+	static float zoom_index_to_scale(int zoom_index) {
+		constexpr int min_zoom = -12;
+		constexpr int max_zoom = 12;
+		const float scale_up_factors[max_zoom + 1] = {
+			1.0f,
+			2.0f,
+			3.0f,
+			4.0f,
+			5.0f,
+			6.0f,
+			8.0f,
+			12.0f,
+			16.0f,
+			24.0f,
+			32.0f,
+			48.0f,
+			64.0f,
+		};
+		const float scale_down_factors[-min_zoom] = {
+			0.5f,
+			0.33f,
+			0.25f,
+			0.20f,
+			0.167f,
+			0.125f,
+			0.083f,
+			0.062f,
+			0.042f,
+			0.031f,
+			0.021f,
+			0.016f,
+		};
+		return zoom_index < 0 ? scale_down_factors[-zoom_index - 1] : scale_up_factors[zoom_index];
+	}
+
 	void init_scene_window(SceneWindowState* scene_window) {
 		scene_window->position_initialized = false;
 		scene_window->canvas = platform::add_canvas(1, 1);
@@ -84,38 +119,8 @@ namespace editor {
 		constexpr int max_zoom = 12;
 		const int new_zoom_index = std::clamp(scene->zoom_index + input.mouse.scroll_delta, min_zoom, max_zoom);
 		const bool zoom_has_changed = scene->zoom_index != new_zoom_index;
+		const float zoom = zoom_index_to_scale(new_zoom_index);
 		scene->zoom_index = new_zoom_index;
-
-		const float scale_up_factors[max_zoom + 1] = {
-			1.0f,
-			2.0f,
-			3.0f,
-			4.0f,
-			5.0f,
-			6.0f,
-			8.0f,
-			12.0f,
-			16.0f,
-			24.0f,
-			32.0f,
-			48.0f,
-			64.0f,
-		};
-		const float scale_down_factors[-min_zoom] = {
-			0.5f,
-			0.33f,
-			0.25f,
-			0.20f,
-			0.167f,
-			0.125f,
-			0.083f,
-			0.062f,
-			0.042f,
-			0.031f,
-			0.021f,
-			0.016f,
-		};
-		const float scale = new_zoom_index < 0 ? scale_down_factors[-new_zoom_index - 1] : scale_up_factors[new_zoom_index];
 
 		/* Move canvas when zooming */
 		if (zoom_has_changed) {
@@ -135,7 +140,7 @@ namespace editor {
 				std::clamp(window_relative_mouse_pos.x, scene->scaled_canvas_rect.top_left.x, scene->scaled_canvas_rect.bottom_right.x),
 				std::clamp(window_relative_mouse_pos.y, scene->scaled_canvas_rect.top_left.y, scene->scaled_canvas_rect.bottom_right.y),
 			};
-			const glm::vec2 new_scaled_size = scene->canvas_size * scale;
+			const glm::vec2 new_scaled_size = scene->canvas_size * zoom;
 			const glm::vec2 distance_to_top_left = clamped_mouse_position - scene->scaled_canvas_rect.top_left;
 			const float relative_scale = new_scaled_size.x / scene->scaled_canvas_rect.size().x;
 			scene->scaled_canvas_rect.set_size(new_scaled_size);
@@ -266,7 +271,8 @@ namespace editor {
 				}
 
 				// hello world
-				renderer->draw_text(editor_fonts.system_font, "Hello world", { 100, 100 }, platform::Color::white);
+				std::string zoom_text = std::format("{:.1f}%", 100 * zoom_index_to_scale(scene_window.scene_view.zoom_index));
+				renderer->draw_text(editor_fonts.system_font, zoom_text.c_str(), { 5, 20 }, { 1.0f, 1.0f, 1.0f, 0.75f });
 			}
 			renderer->pop_draw_canvas();
 		}
