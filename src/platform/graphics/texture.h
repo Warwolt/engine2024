@@ -10,7 +10,15 @@ namespace platform {
 		glm::vec2 size;
 	};
 
-	Texture add_texture(const unsigned char* data, int width, int height);
+	enum class TextureWrapping {
+		Repeat,
+		MirroredRepeat,
+		ClampToEdge,
+		ClampToBorder,
+	};
+
+	int wrapping_mode_to_gl_int(TextureWrapping wrapping);
+	Texture add_texture(const unsigned char* data, int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge);
 	void free_texture(Texture texture);
 
 } // namespace platform

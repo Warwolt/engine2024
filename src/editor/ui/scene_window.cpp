@@ -11,7 +11,7 @@ namespace editor {
 	void init_scene_window(SceneWindowState* scene_window) {
 		scene_window->position_initialized = false;
 		scene_window->canvas = platform::add_canvas(1, 1);
-		scene_window->scene_view.grid_canvas = platform::add_canvas(GRID_SIZE * 2, GRID_SIZE * 2);
+		scene_window->scene_view.grid_canvas = platform::add_canvas(GRID_SIZE * 2, GRID_SIZE * 2, platform::TextureWrapping::Repeat);
 
 		constexpr int canvas_width = 1600;
 		constexpr int canvas_height = 1200;
@@ -202,7 +202,7 @@ namespace editor {
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, scene_canvas_size }, { 0.0f, 0.5f, 0.5f, 1.0f });
 
 		/* Render grid */
-		if (0) {
+		{
 			constexpr glm::vec4 light_grey = glm::vec4 { 0.75f, 0.75f, 0.75f, 1.0f };
 			constexpr glm::vec4 dark_grey = glm::vec4 { 0.50f, 0.50f, 0.50f, 1.0f };
 
@@ -212,7 +212,8 @@ namespace editor {
 			renderer->draw_rect_fill({ { 0, GRID_SIZE }, { GRID_SIZE, 2 * GRID_SIZE } }, light_grey);
 			renderer->pop_draw_canvas();
 
-			renderer->draw_texture(scene_view.grid_canvas.texture, { { 0, 0 }, scene_view.grid_canvas.texture.size });
+			core::FlipRect uv = { { 0, 0 }, scene_canvas_size / (float)GRID_SIZE };
+			renderer->draw_texture_clipped(scene_view.grid_canvas.texture, { { 0, 0 }, scene_canvas_size }, uv);
 
 			// FIXME: Probably this could be done more efficiently by creating a
 			// grid-texture and just using GL_REPEAT texture wrapping
