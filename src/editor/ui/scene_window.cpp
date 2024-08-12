@@ -230,6 +230,7 @@ namespace editor {
 
 	void render_scene_window(
 		const SceneWindowState& scene_window,
+		const EditorFonts& editor_fonts,
 		platform::Renderer* renderer
 	) {
 		// Only render scene if ImGui scene window open
@@ -263,6 +264,9 @@ namespace editor {
 					renderer->draw_line({ rect.top_left.x, half_rect.bottom_right.y }, { rect.bottom_right.x, half_rect.bottom_right.y }, platform::Color::red);
 					renderer->draw_line({ half_rect.bottom_right.x, rect.top_left.y }, { half_rect.bottom_right.x, rect.bottom_right.y }, platform::Color::green);
 				}
+
+				// hello world
+				renderer->draw_text(editor_fonts.system_font, "Hello world", { 100, 100 }, platform::Color::white);
 			}
 			renderer->pop_draw_canvas();
 		}

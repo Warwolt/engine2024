@@ -1,5 +1,6 @@
 #include <editor/ui/editor_ui.h>
 
+#include <core/container.h>
 #include <editor/ui/log_window.h>
 #include <editor/ui/main_menu_bar.h>
 #include <engine/state/engine_state.h>
@@ -72,6 +73,12 @@ namespace editor {
 		ImGui::DockBuilderFinish(dockspace);
 	}
 
+	static platform::Font add_font(const char* path, uint8_t font_size) {
+		return core::container::unwrap(platform::add_ttf_font(path, font_size), [&] {
+			ABORT("Failed to load font \"%s\"", path);
+		});
+	}
+
 	void init_editor_ui(
 		EditorUiState* ui,
 		const engine::ProjectState& project,
@@ -79,6 +86,7 @@ namespace editor {
 	) {
 		init_scene_window(&ui->scene_window);
 
+		ui->editor_fonts.system_font = add_font("C:/windows/Fonts/tahoma.ttf", 16);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<engine::ProjectState>()(project);
 
@@ -90,6 +98,7 @@ namespace editor {
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
+		platform::free_font(ui.editor_fonts.system_font);
 		shutdown_scene_window(ui.scene_window);
 	}
 
@@ -213,7 +222,7 @@ namespace editor {
 		const EditorUiState& ui,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, renderer);
+		render_scene_window(ui.scene_window, ui.editor_fonts, renderer);
 	}
 
 } // namespace editor

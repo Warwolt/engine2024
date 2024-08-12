@@ -1,6 +1,7 @@
 #pragma once
 
 #include <editor/editor_command.h>
+#include <editor/ui/editor_fonts.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -38,6 +39,7 @@ namespace editor {
 
 	void render_scene_window(
 		const SceneWindowState& scene_window,
+		const EditorFonts& editor_fonts,
 		platform::Renderer* renderer
 	);
 

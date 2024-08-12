@@ -27,6 +27,7 @@ namespace platform {
 		}
 
 		// clang-format off
+		constexpr glm::vec4 white      { 1.0f, 1.0f, 1.0f, 1.0f };
 		constexpr glm::vec4 red        { 1.0f, 0.0f, 0.0f, 1.0f };
 		constexpr glm::vec4 green      { 0.0f, 1.0f, 0.0f, 1.0f };
 		constexpr glm::vec4 blue       { 0.0f, 0.0f, 1.0f, 1.0f };
