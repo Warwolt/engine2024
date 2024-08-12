@@ -206,6 +206,9 @@ namespace editor {
 			constexpr glm::vec4 light_grey = glm::vec4 { 0.75f, 0.75f, 0.75f, 1.0f };
 			constexpr glm::vec4 dark_grey = glm::vec4 { 0.50f, 0.50f, 0.50f, 1.0f };
 
+			// Blur when zoomed out
+			set_texture_filter(scene_view.grid_canvas.texture, scene_view.zoom_index < 0 ? platform::TextureFilter::Linear : platform::TextureFilter::Nearest);
+
 			renderer->push_draw_canvas(scene_view.grid_canvas);
 			renderer->draw_rect_fill({ { 0, 0 }, { GRID_SIZE * 2, GRID_SIZE * 2 } }, dark_grey);
 			renderer->draw_rect_fill({ { GRID_SIZE, 0 }, { 2 * GRID_SIZE, GRID_SIZE } }, light_grey);
@@ -214,20 +217,6 @@ namespace editor {
 
 			core::FlipRect uv = { { 0, 0 }, scene_canvas_size / (float)GRID_SIZE };
 			renderer->draw_texture_clipped(scene_view.grid_canvas.texture, { { 0, 0 }, scene_canvas_size }, uv);
-
-			// FIXME: Probably this could be done more efficiently by creating a
-			// grid-texture and just using GL_REPEAT texture wrapping
-			// FIXME: This has fucking ABYSMALL performance for some reason.
-			// We need to set up CPU profiling to figure out what's going on.
-			// constexpr int grid_size = 16;
-			// const int grid_width = (int)(std::round(scene_canvas_size.x / grid_size) * grid_size);
-			// const int grid_height = (int)(std::round(scene_canvas_size.x / grid_size) * grid_size);
-			// for (int x = 0; x < grid_width; x += grid_size) {
-			// 	for (int y = 0; y < grid_height; y += grid_size) {
-			// 		glm::vec4 color = x % (grid_size * 2) == y % (grid_size * 2) ? dark_grey : light_grey;
-			// 		renderer->draw_rect_fill(core::Rect::with_pos_and_size({ x, y }, { grid_size, grid_size }), color);
-			// 	}
-			// }
 		}
 
 		// Coordinate Axes
