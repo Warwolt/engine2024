@@ -207,9 +207,13 @@ namespace editor {
 			set_texture_filter(scene_view.grid_canvas.texture, scene_view.zoom_index < 0 ? platform::TextureFilter::Linear : platform::TextureFilter::Nearest);
 
 			renderer->push_draw_canvas(scene_view.grid_canvas);
-			renderer->draw_rect_fill({ { 0, 0 }, { GRID_SIZE * 2, GRID_SIZE * 2 } }, platform::Color::dark_grey);
-			renderer->draw_rect_fill({ { GRID_SIZE, 0 }, { 2 * GRID_SIZE, GRID_SIZE } }, platform::Color::light_grey);
-			renderer->draw_rect_fill({ { 0, GRID_SIZE }, { GRID_SIZE, 2 * GRID_SIZE } }, platform::Color::light_grey);
+			{
+				glm::vec4 dark = platform::Color::rgba(138, 83, 83, 255);
+				glm::vec4 light = platform::Color::rgba(167, 107, 107, 255);
+				renderer->draw_rect_fill({ { 0, 0 }, { GRID_SIZE * 2, GRID_SIZE * 2 } }, dark);
+				renderer->draw_rect_fill({ { GRID_SIZE, 0 }, { 2 * GRID_SIZE, GRID_SIZE } }, light);
+				renderer->draw_rect_fill({ { 0, GRID_SIZE }, { GRID_SIZE, 2 * GRID_SIZE } }, light);
+			}
 			renderer->pop_draw_canvas();
 
 			core::FlipRect uv = { { 0, 0 }, scene_canvas_size / (float)GRID_SIZE };
@@ -241,14 +245,14 @@ namespace editor {
 				const core::Rect scaled_rect = scene_window.scene_view.scaled_canvas_rect;
 
 				/* Background*/
-				const glm::vec4 background_color = platform::Color::rgba(95, 140, 140, 255);
+				const glm::vec4 background_color = platform::Color::rgba(35, 20, 20, 255);
 				renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, background_color); // background
 
 				/* Canvas */
 				const glm::vec2 offset = { 1.0f, 1.0f };
 				const glm::vec4 outline_color = platform::Color::rgba(65, 65, 44, 255);
 				renderer->draw_texture(scene_window.scene_view.canvas.texture, scaled_rect); // render canvas
-				renderer->draw_rect(scaled_rect, platform::Color::black); // outline
+				renderer->draw_rect(scaled_rect, outline_color); // outline
 				renderer->draw_rect({ scaled_rect.top_left - offset, scaled_rect.bottom_right + offset }, outline_color);
 
 				/* Coordinate axes */
