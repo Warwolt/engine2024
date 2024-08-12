@@ -6,15 +6,15 @@
 
 namespace editor {
 
-	constexpr int GRID_SIZE = 16;
+	constexpr int GRID_SIZE = 32;
 
 	void init_scene_window(SceneWindowState* scene_window) {
 		scene_window->position_initialized = false;
 		scene_window->canvas = platform::add_canvas(1, 1);
 		scene_window->scene_view.grid_canvas = platform::add_canvas(GRID_SIZE * 2, GRID_SIZE * 2, platform::TextureWrapping::Repeat);
 
-		constexpr int canvas_width = 1600;
-		constexpr int canvas_height = 1200;
+		constexpr int canvas_width = 640;
+		constexpr int canvas_height = 480;
 		scene_window->scene_view.canvas_size = { canvas_width, canvas_height };
 		scene_window->scene_view.scaled_canvas_rect = core::Rect { { 0, 0 }, { canvas_width, canvas_height } };
 		scene_window->scene_view.canvas = platform::add_canvas(canvas_width, canvas_height);
@@ -199,20 +199,17 @@ namespace editor {
 		const glm::vec2 scene_canvas_size = scene_view.canvas.texture.size;
 
 		// Clear scene
-		renderer->draw_rect_fill({ { 0.0f, 0.0f }, scene_canvas_size }, { 0.0f, 0.5f, 0.5f, 1.0f });
+		renderer->draw_rect_fill({ { 0.0f, 0.0f }, scene_canvas_size }, platform::Color::light_grey);
 
 		/* Render grid */
 		{
-			constexpr glm::vec4 light_grey = glm::vec4 { 0.75f, 0.75f, 0.75f, 1.0f };
-			constexpr glm::vec4 dark_grey = glm::vec4 { 0.50f, 0.50f, 0.50f, 1.0f };
-
 			// Blur when zoomed out
 			set_texture_filter(scene_view.grid_canvas.texture, scene_view.zoom_index < 0 ? platform::TextureFilter::Linear : platform::TextureFilter::Nearest);
 
 			renderer->push_draw_canvas(scene_view.grid_canvas);
-			renderer->draw_rect_fill({ { 0, 0 }, { GRID_SIZE * 2, GRID_SIZE * 2 } }, dark_grey);
-			renderer->draw_rect_fill({ { GRID_SIZE, 0 }, { 2 * GRID_SIZE, GRID_SIZE } }, light_grey);
-			renderer->draw_rect_fill({ { 0, GRID_SIZE }, { GRID_SIZE, 2 * GRID_SIZE } }, light_grey);
+			renderer->draw_rect_fill({ { 0, 0 }, { GRID_SIZE * 2, GRID_SIZE * 2 } }, platform::Color::dark_grey);
+			renderer->draw_rect_fill({ { GRID_SIZE, 0 }, { 2 * GRID_SIZE, GRID_SIZE } }, platform::Color::light_grey);
+			renderer->draw_rect_fill({ { 0, GRID_SIZE }, { GRID_SIZE, 2 * GRID_SIZE } }, platform::Color::light_grey);
 			renderer->pop_draw_canvas();
 
 			core::FlipRect uv = { { 0, 0 }, scene_canvas_size / (float)GRID_SIZE };
@@ -240,16 +237,30 @@ namespace editor {
 
 			/* Render scene canvas to imgui canvas */
 			renderer->push_draw_canvas(scene_window.canvas);
+			{
+				const core::Rect scaled_rect = scene_window.scene_view.scaled_canvas_rect;
 
-			renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, glm::vec4 { 0.05f, 0.05f, 0.1f, 1.0f }); // clear
-			renderer->draw_texture(scene_window.scene_view.canvas.texture, scene_window.scene_view.scaled_canvas_rect); // render canvas
-			// Coordinate axes.
-			// If we're zoomed out, we render on top of the texture to make sure the lines are crisp
-			if (scene_window.scene_view.zoom_index < 0) {
-				core::Rect rect = scene_window.scene_view.scaled_canvas_rect;
-				core::Rect half_rect = scene_window.scene_view.scaled_canvas_rect / 2.0f;
-				renderer->draw_line({ rect.top_left.x, half_rect.bottom_right.y }, { rect.bottom_right.x, half_rect.bottom_right.y }, platform::Color::red);
-				renderer->draw_line({ half_rect.bottom_right.x, rect.top_left.y }, { half_rect.bottom_right.x, rect.bottom_right.y }, platform::Color::green);
+				/* Background*/
+				const glm::vec4 clear_color = platform::Color::rgba(73, 85, 102, 255);
+				renderer->draw_rect_fill(core::Rect { glm::vec2 { 0.0f, 0.0f }, scene_window.canvas.texture.size }, clear_color); // background
+
+				/* Canvas */
+				const glm::vec4 shadow_color = platform::Color::rgba(65, 65, 44, 255);
+				const glm::vec2 x_offset = { 1.0f, 0.0f };
+				const glm::vec2 y_offset = { 0.0f, 1.0f };
+				renderer->draw_texture(scene_window.scene_view.canvas.texture, scaled_rect); // render canvas
+				renderer->draw_rect(scaled_rect, platform::Color::black); // outline
+				renderer->draw_line(scaled_rect.top_right() + x_offset, scaled_rect.bottom_right + x_offset + y_offset, shadow_color); // shadow
+				renderer->draw_line(scaled_rect.bottom_left() + y_offset, scaled_rect.bottom_right + y_offset, shadow_color); // shadow
+
+				/* Coordinate axes */
+				// If we're zoomed out, we render on top of the texture to make sure the lines are crisp
+				if (scene_window.scene_view.zoom_index < 0) {
+					const core::Rect rect = scaled_rect;
+					const core::Rect half_rect = scaled_rect / 2.0f;
+					renderer->draw_line({ rect.top_left.x, half_rect.bottom_right.y }, { rect.bottom_right.x, half_rect.bottom_right.y }, platform::Color::red);
+					renderer->draw_line({ half_rect.bottom_right.x, rect.top_left.y }, { half_rect.bottom_right.x, rect.bottom_right.y }, platform::Color::green);
+				}
 			}
 			renderer->pop_draw_canvas();
 		}

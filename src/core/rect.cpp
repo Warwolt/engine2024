@@ -28,6 +28,20 @@ namespace core {
 		return this->top_left;
 	}
 
+	glm::vec2 Rect::bottom_left() const {
+		return glm::vec2 {
+			this->top_left.x,
+			this->bottom_right.y
+		};
+	}
+
+	glm::vec2 Rect::top_right() const {
+		return glm::vec2 {
+			this->bottom_right.x,
+			this->top_left.y
+		};
+	}
+
 	bool Rect::overlaps_point(glm::vec2 point) const {
 		const bool overlaps_horizontally = this->top_left.x <= point.x && point.x <= this->bottom_right.x;
 		const bool overlaps_vertically = this->top_left.y <= point.y && point.y <= this->bottom_right.y;
