@@ -93,8 +93,8 @@ static void set_imgui_style_win32_like() {
 	colors[ImGuiCol_FrameBg]                = ImVec4(1.00f, 1.00f, 1.00f, 0.54f);
 	colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.90f, 0.95f, 0.98f, 1.00f);
 	colors[ImGuiCol_FrameBgActive]          = ImVec4(0.80f, 0.89f, 0.97f, 1.00f);
-	colors[ImGuiCol_TitleBg]                = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
-	colors[ImGuiCol_TitleBgActive]          = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+	colors[ImGuiCol_TitleBg]                = ImVec4(0.94f, 0.94f, 0.94f, 1.00f);
+	colors[ImGuiCol_TitleBgActive]          = ImVec4(0.94f, 0.94f, 0.94f, 1.00f);
 	colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.94f, 0.94f, 0.94f, 1.00f);
 	colors[ImGuiCol_MenuBarBg]              = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 	colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.94f, 0.94f, 0.94f, 0.53f);
