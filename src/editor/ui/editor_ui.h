@@ -2,6 +2,7 @@
 
 #include <core/signal.h>
 #include <editor/editor_command.h>
+#include <editor/ui/editor_fonts.h>
 #include <editor/ui/scene_window.h>
 #include <platform/graphics/renderer.h>
 
@@ -32,6 +33,7 @@ namespace editor {
 		bool show_imgui_demo = false;
 		core::Signal<size_t> last_num_seen_log_entries = 0;
 
+		EditorFonts editor_fonts;
 		SceneWindowState scene_window;
 	};
 
