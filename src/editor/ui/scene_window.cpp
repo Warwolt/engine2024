@@ -188,12 +188,15 @@ namespace editor {
 
 		// Update scene view
 		{
-			const core::Rect scene_window_rect = core::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
-			const bool scene_window_is_hovered = scene_window_rect.overlaps_point(input.mouse.pos);
-			if (scene_window_is_hovered) {
-				update_canvas_zoom(&scene_window->scene_view, input, window_relative_mouse_pos);
+			const bool scene_window_is_hovered = ImGui::IsWindowHovered();
+			const bool scene_window_is_focused = ImGui::IsWindowFocused();
+			if (scene_window_is_focused) {
+				if (scene_window_is_hovered) {
+					update_canvas_zoom(&scene_window->scene_view, input, window_relative_mouse_pos);
+				}
+				const core::Rect scene_window_rect = core::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
+				update_canvas_mouse_drag(&scene_window->scene_view, input, scene_window_rect, scene_window_is_hovered, commands);
 			}
-			update_canvas_mouse_drag(&scene_window->scene_view, input, scene_window_rect, scene_window_is_hovered, commands);
 		}
 	}
 
