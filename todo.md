@@ -8,8 +8,8 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Split render and update into separate threads
-- Add bar on top of windows for run-button
+- Add bar with run button (window that can't be docked)
+- Fix ImWin32 to render in order of item push _not_ in alphabetical order
 - Add context menu to log window with "clear" option
 - Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
 - Try to fix slightly blurry ImGui font by building font atlas ourselves
@@ -18,6 +18,7 @@ Goals:
 - Enable caching for GitHub Actions
 - Figure out how to make alt-key focus the main menu
 - Fix the window resize behavior (should only resize while left button held)
+- Split render and update into separate threads
 - (Mess around with Bayer matrix dithering and Perlin noise)
 
 ## Doing

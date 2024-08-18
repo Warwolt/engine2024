@@ -103,7 +103,6 @@ namespace editor {
 	}
 
 	static void update_project_window(
-		bool unsaved_changes,
 		engine::ProjectState* project,
 		std::string* project_name_buf
 	) {
@@ -115,6 +114,49 @@ namespace editor {
 
 		const int step = 1;
 		ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
+
+		ImGui::Spacing();
+
+		ImGui::Text("Scene graph:");
+		if (ImGui::Button("Add node")) {
+			LOG_DEBUG("Node added");
+		}
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
+		ImGui::BeginChild("LogOutput", ImVec2(0, 0), ImGuiChildFlags_Border);
+		{
+			// FIXME: need to figure out how to track selection reliably ...
+			// 1. need to read the imgui_demo
+			// 2. need to figure out some data structure
+			//
+			// Right now this code doesn't work as expected _at all_
+
+			static bool root_selected = false;
+			static bool text_selected = false;
+			if (ImGui::TreeNodeEx("Root", root_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None)) {
+				root_selected = true;
+				{
+					int text_flags = ImGuiTreeNodeFlags_None;
+					if (root_selected) {
+						text_flags |= ImGuiTreeNodeFlags_Selected;
+					}
+
+					if (ImGui::TreeNodeEx("Text", text_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None)) {
+						text_selected = true;
+						root_selected = false;
+						ImGui::TreePop();
+					}
+					else {
+						text_selected = false;
+					}
+				}
+				ImGui::TreePop();
+			}
+			else {
+				root_selected = false;
+			}
+		}
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
 	}
 
 	static void update_edit_window(
@@ -195,7 +237,7 @@ namespace editor {
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_project_window(unsaved_changes, project, &ui->project_name_buf);
+			update_project_window(project, &ui->project_name_buf);
 		}
 		ImGui::End();
 

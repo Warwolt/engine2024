@@ -187,7 +187,7 @@ namespace engine {
 
 	static void render_game(const State& state, platform::Renderer* renderer) {
 		// clear
-		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state.window_resolution }, glm::vec4 { 0.33f, 0.37f, 0.4f, 1.0f });
+		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state.window_resolution }, platform::Color::black);
 
 		platform::Font font = state.resources.fonts.at("arial-16");
 		glm::vec4 text_color = glm::vec4 { 0.92f, 0.92f, 0.92f, 1.0f };
