@@ -134,7 +134,7 @@ namespace editor {
 				text_node_selected = false;
 			}
 			if (root_node_open) {
-				const bool text_node_open = ImGui::TreeNodeEx("Text", text_node_selected ? selected_flags : unselected_flags);
+				const bool text_node_open = ImGui::TreeNodeEx("Text", text_node_selected ? selected_flags | ImGuiTreeNodeFlags_Bullet : unselected_flags | ImGuiTreeNodeFlags_Bullet);
 				if (ImGui::IsItemClicked()) {
 					root_node_selected = false;
 					text_node_selected = true;
