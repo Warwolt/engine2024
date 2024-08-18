@@ -124,33 +124,25 @@ namespace editor {
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
 		ImGui::BeginChild("LogOutput", ImVec2(0, 0), ImGuiChildFlags_Border);
 		{
-			// FIXME: need to actually check if the tree node was pressed _this frame_
-			// TreeNodeEx returns true if the node is _open_ but we want _clicked_ to track selection
+			static bool root_node_selected = false;
+			static bool text_node_selected = false;
+			// ImGuiTreeNodeFlags_OpenOnArrow
 
-			static bool root_selected = false;
-			static bool text_selected = false;
-			if (ImGui::TreeNodeEx("Root", root_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None)) {
-				root_selected = true;
-				{
-					int text_flags = ImGuiTreeNodeFlags_None;
-					if (root_selected) {
-						text_flags |= ImGuiTreeNodeFlags_Selected;
-					}
-
-					if (ImGui::TreeNodeEx("Text", text_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None)) {
-						text_selected = true;
-						root_selected = false;
-						ImGui::TreePop();
-					}
-					else {
-						text_selected = false;
-						root_selected = false;
-					}
+			const bool root_node_open = ImGui::TreeNodeEx("Scene", root_node_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None);
+			if (ImGui::IsItemClicked()) {
+				root_node_selected = true;
+				text_node_selected = false;
+			}
+			if (root_node_open) {
+				const bool text_node_open = ImGui::TreeNodeEx("Text", text_node_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None);
+				if (ImGui::IsItemClicked()) {
+					root_node_selected = false;
+					text_node_selected = true;
+				}
+				if (text_node_open) {
+					ImGui::TreePop();
 				}
 				ImGui::TreePop();
-			}
-			else {
-				root_selected = false;
 			}
 		}
 		ImGui::EndChild();
