@@ -107,16 +107,14 @@ namespace editor {
 		engine::ProjectState* project,
 		std::string* project_name_buf
 	) {
-		const int step = 1;
-		ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
-
-		ImGui::Text("Unsaved changes: %s", unsaved_changes ? "yes" : "no");
-
 		if (ImGui::InputText("Project name", project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
 			project->name = *project_name_buf;
 		}
 
-		ImGui::Text("Project path: %s", project->path.string().c_str());
+		ImGui::SeparatorText("Scene");
+
+		const int step = 1;
+		ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
 	}
 
 	static void update_edit_window(

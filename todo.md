@@ -9,6 +9,7 @@ Goals:
 
 ## TODO
 - Split render and update into separate threads
+- Add bar on top of windows for run-button
 - Add context menu to log window with "clear" option
 - Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
 - Try to fix slightly blurry ImGui font by building font atlas ourselves
