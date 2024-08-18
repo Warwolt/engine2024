@@ -124,11 +124,8 @@ namespace editor {
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
 		ImGui::BeginChild("LogOutput", ImVec2(0, 0), ImGuiChildFlags_Border);
 		{
-			// FIXME: need to figure out how to track selection reliably ...
-			// 1. need to read the imgui_demo
-			// 2. need to figure out some data structure
-			//
-			// Right now this code doesn't work as expected _at all_
+			// FIXME: need to actually check if the tree node was pressed _this frame_
+			// TreeNodeEx returns true if the node is _open_ but we want _clicked_ to track selection
 
 			static bool root_selected = false;
 			static bool text_selected = false;
@@ -147,6 +144,7 @@ namespace editor {
 					}
 					else {
 						text_selected = false;
+						root_selected = false;
 					}
 				}
 				ImGui::TreePop();
