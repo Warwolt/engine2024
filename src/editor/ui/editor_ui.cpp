@@ -126,15 +126,15 @@ namespace editor {
 		{
 			static bool root_node_selected = false;
 			static bool text_node_selected = false;
-			// ImGuiTreeNodeFlags_OpenOnArrow
-
-			const bool root_node_open = ImGui::TreeNodeEx("Scene", root_node_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None);
+			const int unselected_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+			const int selected_flags = unselected_flags | ImGuiTreeNodeFlags_Selected;
+			const bool root_node_open = ImGui::TreeNodeEx("Scene", root_node_selected ? selected_flags : unselected_flags);
 			if (ImGui::IsItemClicked()) {
 				root_node_selected = true;
 				text_node_selected = false;
 			}
 			if (root_node_open) {
-				const bool text_node_open = ImGui::TreeNodeEx("Text", text_node_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None);
+				const bool text_node_open = ImGui::TreeNodeEx("Text", text_node_selected ? selected_flags : unselected_flags);
 				if (ImGui::IsItemClicked()) {
 					root_node_selected = false;
 					text_node_selected = true;
