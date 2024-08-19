@@ -11,7 +11,7 @@
 #include <plog/Init.h>
 
 namespace engine {
-	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform) {
+	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform, const platform::Input& input) {
 		struct Resolution {
 			glm::ivec2 value;
 			const char* str;
@@ -42,6 +42,12 @@ namespace engine {
 		if (ImGui::Button("Change resolution")) {
 			glm::ivec2 resolution = resolutions[debug_ui->resolution_index].value;
 			platform->change_resolution(resolution.x, resolution.y);
+		}
+
+		ImGui::SeparatorText("Render Debug");
+		{
+			ImGui::Text("Draw calls: %zu", input.renderer_debug_data.num_draw_calls);
+			ImGui::Text("Num vertices: %zu", input.renderer_debug_data.num_vertices);
 		}
 	}
 
@@ -151,7 +157,7 @@ namespace engine {
 			}
 
 			if (state->debug_ui.show_debug_ui) {
-				draw_imgui(&state->debug_ui, platform);
+				draw_imgui(&state->debug_ui, platform, input);
 			}
 		}
 

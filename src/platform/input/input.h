@@ -2,6 +2,7 @@
 
 #include <core/signal.h>
 #include <platform/debug/logging.h>
+#include <platform/graphics/renderer_debug.h>
 #include <platform/input/keyboard.h>
 #include <platform/input/timing.h>
 #include <platform/os/win32.h>
@@ -45,6 +46,8 @@ namespace platform {
 		Keyboard keyboard;
 		Mouse mouse;
 
+		// debug
+		RenderDebugData renderer_debug_data;
 		const std::vector<LogEntry>* log; // may be null
 	};
 

@@ -217,12 +217,15 @@ namespace platform {
 	}
 
 	void Renderer::render(ShaderProgram shader_program) {
+		m_debug_data = { 0 };
+
 		glUseProgram(shader_program.id);
 		glBindVertexArray(shader_program.vao);
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
 
 		/* Upload vertices */
 		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
+		m_debug_data.num_vertices = m_vertices.size();
 
 		/* Draw vertices */
 		GLint offset = 0;
@@ -244,6 +247,7 @@ namespace platform {
 				set_pixel_coordinate_projection(this, shader_program, (int)canvas->texture.size.x, (int)canvas->texture.size.y);
 			}
 
+			m_debug_data.num_draw_calls += 1;
 			glDrawArrays(section.mode, offset, section.length);
 			glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
@@ -456,6 +460,10 @@ namespace platform {
 		}
 
 		draw_text(font, text, pos - box_size / 2.0f, color);
+	}
+
+	RenderDebugData Renderer::debug_data() const {
+		return m_debug_data;
 	}
 
 	std::optional<Canvas> Renderer::_current_draw_canvas() {

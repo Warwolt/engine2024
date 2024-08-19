@@ -3,6 +3,7 @@
 #include <core/rect.h>
 #include <platform/graphics/font.h>
 #include <platform/graphics/image.h>
+#include <platform/graphics/renderer_debug.h>
 #include <platform/graphics/texture.h>
 
 #include <SDL2/SDL.h>
@@ -103,6 +104,7 @@ namespace platform {
 		void draw_text(const Font& font, const char* text, glm::vec2 pos, glm::vec4 color);
 		void draw_text_centered(const Font& font, const char* text, glm::vec2 pos, glm::vec4 color);
 
+		RenderDebugData debug_data() const;
 
 	private:
 		std::optional<Canvas> _current_draw_canvas();
@@ -112,6 +114,7 @@ namespace platform {
 		Texture m_white_texture;
 		std::vector<Canvas> m_draw_canvas_stack;
 		std::optional<Canvas> m_render_canvas;
+		RenderDebugData m_debug_data = { 0 };
 	};
 
 } // namespace platform
