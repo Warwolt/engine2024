@@ -48,6 +48,7 @@ namespace engine {
 		{
 			ImGui::Text("Draw calls: %zu", input.renderer_debug_data.num_draw_calls);
 			ImGui::Text("Num vertices: %zu", input.renderer_debug_data.num_vertices);
+			ImGui::Text("Render ms: %zu.%zu", input.renderer_debug_data.render_ms, input.renderer_debug_data.render_ns % 1000000);
 		}
 	}
 

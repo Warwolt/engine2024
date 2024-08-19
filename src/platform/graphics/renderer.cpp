@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp> // glm::ortho
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <platform/debug/logging.h>
+#include <platform/input/timing.h>
 #include <stb_image/stb_image.h>
 
 #include <algorithm>
@@ -218,6 +219,7 @@ namespace platform {
 
 	void Renderer::render(ShaderProgram shader_program) {
 		m_debug_data = { 0 };
+		Timer render_timer;
 
 		glUseProgram(shader_program.id);
 		glBindVertexArray(shader_program.vao);
@@ -262,6 +264,9 @@ namespace platform {
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 		glUseProgram(NULL);
+
+		m_debug_data.render_ms = render_timer.elapsed_ms();
+		m_debug_data.render_ns = render_timer.elapsed_ns();
 	}
 
 	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {
