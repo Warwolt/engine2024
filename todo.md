@@ -9,6 +9,7 @@ Goals:
 
 ## TODO
 - Create "Hello World" text scene using a Text component and scene tree
+- Split render and update into separate threads
 - Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
 - Try to fix slightly blurry ImGui font by building font atlas ourselves
 - Add hot reload option to menu bar
@@ -18,9 +19,10 @@ Goals:
 - Fix the window resize behavior (should only resize while left button held)
 
 ## Doing
-- Change theming to be less ImGui and a little more native Win32 looking
+
 
 ## Done
+- Change theming to be less ImGui and a little more native Win32 looking
 - Factor out editor_ui code into component-functions (menu bar, windows)
 - Add logging window to editor
 - Add unit tests for Rect (since we have helper methods now)
