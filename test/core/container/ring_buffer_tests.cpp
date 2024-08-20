@@ -9,6 +9,12 @@ TEST(RingBufferTests, InitiallyEmpty) {
 	EXPECT_TRUE(ring_buffer.empty());
 }
 
+TEST(RingBufferTests, DifferentSizeNotEqual) {
+	core::RingBuffer<int, 4> lhs = { 1, 2, 3 };
+	core::RingBuffer<int, 4> rhs = { 1, 2, 3, 4 };
+	EXPECT_NE(lhs, rhs);
+}
+
 TEST(RingBufferTests, PushOnceToEmpty_ReadBack) {
 	core::RingBuffer<int, 4> ring_buffer;
 
@@ -45,5 +51,3 @@ TEST(RingBufferTests, WritingPastCapacity_OverwritesPrevious) {
 	EXPECT_EQ(ring_buffer.front(), 11);
 	EXPECT_EQ(ring_buffer, expected);
 }
-
-// writing past and indexing

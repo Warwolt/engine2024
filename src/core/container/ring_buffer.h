@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <initializer_list>
+#include <iterator>
 #include <stdint.h>
 
 namespace core {
@@ -10,10 +11,32 @@ namespace core {
 	template <typename T, size_t N>
 	class RingBuffer {
 	public:
+		class Iterator {
+		public:
+			using iterator_category = std::forward_iterator_tag;
+			using difference_type = std::ptrdiff_t;
+			using value_type = T;
+			using pointer = T*;
+			using reference = T&;
+
+			Iterator(std::array<T, N>& elements, size_t index)
+				: m_elements(elements)
+				, m_index(index) {
+			}
+
+			reference operator*() const { return m_elements[m_index]; }
+			pointer operator->() { return &m_elements[m_index]; }
+
+		private:
+			std::array<T, N>& m_elements;
+			size_t m_index = 0;
+		};
+
 		RingBuffer() = default;
 
 		RingBuffer(std::initializer_list<T> init) {
-			std::copy(init.begin(), init.end(), m_elements.begin());
+			std::copy_n(init.begin(), N, m_elements.begin());
+			m_size = init.size();
 		}
 
 		bool empty() const {
@@ -42,7 +65,7 @@ namespace core {
 		}
 
 		bool operator==(const RingBuffer<T, N>& other) const {
-			return m_elements == other.m_elements;
+			return m_size == other.m_size && m_elements == other.m_elements;
 		}
 
 		T& operator[](size_t i) {
