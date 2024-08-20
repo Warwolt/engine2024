@@ -20,7 +20,7 @@ Goals:
 - (Mess around with Bayer matrix dithering and Perlin noise)
 
 ## Doing
-
+- Add a RingBuffer type
 
 ## Done
 - Change theming to be less ImGui and a little more native Win32 looking

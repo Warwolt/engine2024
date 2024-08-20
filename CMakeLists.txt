@@ -95,6 +95,7 @@ set(PLATFORM_SRC
 )
 
 set(TEST_SRC
+    test/core/container/ring_buffer_tests.cpp
     test/core/rect_tests.cpp
     test/core/resource_handler_tests.cpp
     test/core/signal_tests.cpp
