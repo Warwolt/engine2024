@@ -17,11 +17,12 @@ Goals:
 - Enable caching for GitHub Actions
 - Figure out how to make alt-key focus the main menu
 - Fix the window resize behavior (should only resize while left button held)
+- (Mess around with Bayer matrix dithering and Perlin noise)
 
 ## Doing
 
-
 ## Done
+- Add a RingBuffer type
 - Change theming to be less ImGui and a little more native Win32 looking
 - Factor out editor_ui code into component-functions (menu bar, windows)
 - Add logging window to editor
