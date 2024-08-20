@@ -2,6 +2,8 @@
 
 #include <core/container/ring_buffer.h>
 
+#include <numeric>
+
 TEST(RingBufferTests, InitiallyEmpty) {
 	core::RingBuffer<int, 4> ring_buffer;
 
@@ -112,4 +114,12 @@ TEST(RingBufferTests, Iterators_ForEachLoop) {
 
 	const std::vector<int> expected_values = { 1, 2, 3, 4 };
 	EXPECT_EQ(values, expected_values);
+}
+
+TEST(RingBufferTests, Iterators_AccumulateAlgorithm) {
+	core::RingBuffer<int, 4> ring_buffer = { 1, 2, 3, 4 };
+
+	int sum = std::accumulate(ring_buffer.begin(), ring_buffer.end(), 0);
+
+	EXPECT_EQ(sum, 1 + 2 + 3 + 4);
 }
