@@ -114,7 +114,7 @@ namespace platform {
 		Texture m_white_texture;
 		std::vector<Canvas> m_draw_canvas_stack;
 		std::optional<Canvas> m_render_canvas;
-		RenderDebugData m_debug_data = { 0 };
+		RenderDebugData m_debug_data;
 	};
 
 } // namespace platform

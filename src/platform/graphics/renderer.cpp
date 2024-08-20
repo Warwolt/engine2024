@@ -218,7 +218,7 @@ namespace platform {
 	}
 
 	void Renderer::render(ShaderProgram shader_program) {
-		m_debug_data = { 0 };
+		m_debug_data = {};
 		Timer render_timer;
 
 		glUseProgram(shader_program.id);
@@ -231,6 +231,7 @@ namespace platform {
 
 		/* Draw vertices */
 		GLint offset = 0;
+		int i = 0;
 		for (const VertexSection& section : m_sections) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, section.texture.id);
@@ -254,6 +255,7 @@ namespace platform {
 			glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
 			offset += section.length;
+			i++;
 		}
 
 		/* Clear render data */
