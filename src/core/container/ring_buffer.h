@@ -34,11 +34,11 @@ namespace core {
 		}
 
 		const T& back() const {
-			return m_elements[m_end - 1];
+			return m_elements[(N + m_end - 1) % N];
 		}
 
 		const T& front() const {
-			return m_elements[m_start - 1];
+			return m_elements[m_start];
 		}
 
 		bool operator==(const RingBuffer<T, N>& other) const {

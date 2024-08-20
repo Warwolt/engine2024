@@ -42,7 +42,7 @@ TEST(RingBufferTests, WritingPastCapacity_OverwritesPrevious) {
 
 	const core::RingBuffer<int, 4> expected = { 14, 11, 12, 13 };
 	EXPECT_EQ(ring_buffer.back(), 14);
-	EXPECT_EQ(ring_buffer.front(), 14);
+	EXPECT_EQ(ring_buffer.front(), 11);
 	EXPECT_EQ(ring_buffer, expected);
 }
 
