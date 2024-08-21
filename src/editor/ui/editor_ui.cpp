@@ -102,12 +102,7 @@ namespace editor {
 			GraphNode {
 				.id = 0,
 				.type = NodeType::Root,
-				.children = {
-					GraphNode {
-						.id = 1,
-						.type = NodeType::Text,
-					},
-				},
+				.children = {},
 			};
 	}
 
@@ -121,12 +116,20 @@ namespace editor {
 		if (scene_graph_ui->selected_node == node.id) {
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
+		if (node.children.empty()) {
+			flags |= ImGuiTreeNodeFlags_Bullet;
+		}
 		if (node.type == NodeType::Root) {
 			flags |= ImGuiTreeNodeFlags_DefaultOpen;
 		}
 
 		std::string label = std::format("{}##{}", core::util::enum_to_string(node.type), node.id);
-		const bool node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
+		bool node_is_open = scene_graph_ui->nodes[node.id].is_open;
+		if (node_is_open) {
+			ImGui::SetNextItemOpen(true);
+		}
+		node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
+		scene_graph_ui->nodes[node.id].is_open = node_is_open;
 
 		if (ImGui::IsItemClicked()) {
 			scene_graph_ui->selected_node = node.id;
@@ -172,10 +175,13 @@ namespace editor {
 			/* Scene graph buttons */
 			ImGui::Text("Scene graph:");
 			if (ImGui::Button("Add node")) {
-				if (GraphNode* node = find_graph_node(&ui->scene_graph, ui->scene_graph_ui.selected_node)) {
-					ui->scene_graph_ui.next_id += 1;
-					node->children.push_back(GraphNode { .id = ui->scene_graph_ui.next_id, .type = NodeType::Text });
-					ui->scene_graph_ui.selected_node = ui->scene_graph_ui.next_id;
+				if (GraphNode* parent_node = find_graph_node(&ui->scene_graph, ui->scene_graph_ui.selected_node)) {
+					const NodeId child_id = ui->scene_graph_ui.next_id;
+					parent_node->children.push_back(GraphNode { .id = child_id, .type = NodeType::Text });
+					ui->scene_graph_ui.nodes[parent_node->id].is_open = true;
+					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
+					ui->scene_graph_ui.selected_node = child_id;
+					ui->scene_graph_ui.next_id++;
 				}
 			}
 

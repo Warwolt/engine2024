@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace platform {
@@ -39,9 +40,14 @@ namespace editor {
 		std::vector<GraphNode> children;
 	};
 
+	struct UiGraphNode {
+		bool is_open = false;
+	};
+
 	struct SceneGraphUiState {
 		NodeId selected_node = 0;
 		NodeId next_id = 1;
+		std::unordered_map<NodeId, UiGraphNode> nodes = { { 0, { .is_open = true } } };
 	};
 
 	struct EditorUiState {
