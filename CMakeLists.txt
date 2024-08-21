@@ -71,6 +71,7 @@ set(EDITOR_SRC
 set(ENGINE_SRC
     src/engine/engine_api.cpp
     src/engine/state/game_state.cpp
+    src/engine/state/scene_graph.cpp
     src/engine/state/project_state.cpp
     src/engine/system/animation.cpp
     src/engine/system/hot_reloading.cpp
