@@ -51,7 +51,7 @@ static void set_viewport_to_center_canvas(int window_width, int window_height, i
 	glViewport((window_width - canvas_width) / 2, (window_height - canvas_height) / 2, canvas_width, canvas_height);
 }
 
-static void set_normalized_device_coordinate_projection(platform::Renderer* renderer, platform::ShaderProgram shader_program) {
+static void set_normalized_device_coordinate_projection(platform::Renderer* renderer, const platform::ShaderProgram& shader_program) {
 	glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	renderer->set_projection(shader_program, projection);
 }
