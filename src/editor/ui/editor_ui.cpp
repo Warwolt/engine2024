@@ -116,9 +116,9 @@ namespace editor {
 		shutdown_scene_window(ui.scene_window);
 	}
 
-	static int render_scene_graph(const GraphNode& node, int selected_id) {
+	static void render_scene_graph(SceneGraphUiState* scene_graph_ui, const GraphNode& node) {
 		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-		if (selected_id == node.id) {
+		if (scene_graph_ui->selected_node == node.id) {
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
 		if (node.type == NodeType::Root) {
@@ -129,17 +129,15 @@ namespace editor {
 		const bool node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
 
 		if (ImGui::IsItemClicked()) {
-			selected_id = node.id;
+			scene_graph_ui->selected_node = node.id;
 		}
 
 		if (node_is_open) {
 			for (const GraphNode& child : node.children) {
-				selected_id = render_scene_graph(child, selected_id);
+				render_scene_graph(scene_graph_ui, child);
 			}
 			ImGui::TreePop();
 		}
-
-		return selected_id;
 	}
 
 	static GraphNode* find_graph_node(GraphNode* node, int target_id) {
@@ -169,19 +167,29 @@ namespace editor {
 
 		ImGui::Spacing();
 
-		ImGui::Text("Scene graph:");
-		if (ImGui::Button("Add node")) {
-			if (GraphNode* node = find_graph_node(&ui->scene_graph, ui->selected_node_id)) {
-				ui->next_graph_id += 1;
-				node->children.push_back(GraphNode { .id = ui->next_graph_id, .type = NodeType::Text });
-				ui->selected_node_id = ui->next_graph_id;
+		/* Scene Graph */
+		{
+			/* Scene graph buttons */
+			ImGui::Text("Scene graph:");
+			if (ImGui::Button("Add node")) {
+				if (GraphNode* node = find_graph_node(&ui->scene_graph, ui->scene_graph_ui.selected_node)) {
+					ui->scene_graph_ui.next_id += 1;
+					node->children.push_back(GraphNode { .id = ui->scene_graph_ui.next_id, .type = NodeType::Text });
+					ui->scene_graph_ui.selected_node = ui->scene_graph_ui.next_id;
+				}
+			}
+
+			/* Scene Graph Tree */
+			{
+				ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
+				ImGui::BeginChild("SceneGraph", ImVec2(0, 0), ImGuiChildFlags_Border);
+
+				render_scene_graph(&ui->scene_graph_ui, ui->scene_graph);
+
+				ImGui::EndChild();
+				ImGui::PopStyleColor();
 			}
 		}
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
-		ImGui::BeginChild("SceneGraph", ImVec2(0, 0), ImGuiChildFlags_Border);
-		ui->selected_node_id = render_scene_graph(ui->scene_graph, ui->selected_node_id);
-		ImGui::EndChild();
-		ImGui::PopStyleColor();
 	}
 
 	static void update_edit_window(

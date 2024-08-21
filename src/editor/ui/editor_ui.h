@@ -26,6 +26,8 @@ namespace engine {
 
 namespace editor {
 
+	using NodeId = int;
+
 	enum class NodeType {
 		Root,
 		Text,
@@ -37,6 +39,11 @@ namespace editor {
 		std::vector<GraphNode> children;
 	};
 
+	struct SceneGraphUiState {
+		NodeId selected_node = 0;
+		NodeId next_id = 1;
+	};
+
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
@@ -44,11 +51,10 @@ namespace editor {
 		bool show_imgui_demo = false;
 		core::Signal<size_t> last_num_seen_log_entries = 0;
 
-		int selected_node_id = 0;
 		EditorFonts editor_fonts;
 		SceneWindowState scene_window;
 
-		int next_graph_id = 1;
+		SceneGraphUiState scene_graph_ui;
 		GraphNode scene_graph; // TODO move this to engine
 	};
 
