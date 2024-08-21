@@ -142,6 +142,18 @@ namespace editor {
 		return selected_id;
 	}
 
+	static GraphNode* find_graph_node(GraphNode* node, int target_id) {
+		if (node->id == target_id) {
+			return node;
+		}
+		for (GraphNode& child : node->children) {
+			if (GraphNode* node2 = find_graph_node(&child, target_id)) {
+				return node2;
+			}
+		}
+		return nullptr;
+	}
+
 	static void update_project_window(
 		engine::ProjectState* project,
 		EditorUiState* ui
@@ -159,12 +171,11 @@ namespace editor {
 
 		ImGui::Text("Scene graph:");
 		if (ImGui::Button("Add node")) {
-			// just push to root
-			// TODO: push to selected
-			static int next_id = 2; // need to figure out how to track the ID
-			ui->scene_graph.children.push_back(GraphNode { .id = next_id, .type = NodeType::Text });
-			LOG_INFO("Added node with id %d", next_id);
-			next_id += 1;
+			if (GraphNode* node = find_graph_node(&ui->scene_graph, ui->selected_node_id)) {
+				ui->next_graph_id += 1;
+				node->children.push_back(GraphNode { .id = ui->next_graph_id, .type = NodeType::Text });
+				ui->selected_node_id = ui->next_graph_id;
+			}
 		}
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
 		ImGui::BeginChild("SceneGraph", ImVec2(0, 0), ImGuiChildFlags_Border);

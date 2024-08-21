@@ -48,6 +48,7 @@ namespace editor {
 		EditorFonts editor_fonts;
 		SceneWindowState scene_window;
 
+		int next_graph_id = 1;
 		GraphNode scene_graph; // TODO move this to engine
 	};
 
