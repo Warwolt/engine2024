@@ -98,9 +98,9 @@ namespace editor {
 
 		// fake a scene graph
 		ui->scene_graph =
-			GraphNode {
+			engine::GraphNode {
 				.id = engine::GraphNodeId(0),
-				.type = NodeType::Root,
+				.type = engine::NodeType::Root,
 				.children = {},
 			};
 	}
@@ -110,7 +110,7 @@ namespace editor {
 		shutdown_scene_window(ui.scene_window);
 	}
 
-	static void render_scene_graph(SceneGraphUiState* scene_graph_ui, const GraphNode& node) {
+	static void render_scene_graph(SceneGraphUiState* scene_graph_ui, const engine::GraphNode& node) {
 		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 		if (scene_graph_ui->selected_node == node.id) {
 			flags |= ImGuiTreeNodeFlags_Selected;
@@ -118,7 +118,7 @@ namespace editor {
 		if (node.children.empty()) {
 			flags |= ImGuiTreeNodeFlags_Bullet;
 		}
-		if (node.type == NodeType::Root) {
+		if (node.type == engine::NodeType::Root) {
 			flags |= ImGuiTreeNodeFlags_DefaultOpen;
 		}
 
@@ -129,10 +129,10 @@ namespace editor {
 
 		const char* node_name = "";
 		switch (node.type) {
-			case NodeType::Root:
+			case engine::NodeType::Root:
 				node_name = "Scene";
 				break;
-			case NodeType::Text:
+			case engine::NodeType::Text:
 				node_name = " Text";
 				break;
 		}
@@ -145,33 +145,33 @@ namespace editor {
 		}
 
 		if (node_is_open) {
-			for (const GraphNode& child : node.children) {
+			for (const engine::GraphNode& child : node.children) {
 				render_scene_graph(scene_graph_ui, child);
 			}
 			ImGui::TreePop();
 		}
 	}
 
-	static GraphNode* find_graph_node(GraphNode* node, engine::GraphNodeId id) {
+	static engine::GraphNode* find_graph_node(engine::GraphNode* node, engine::GraphNodeId id) {
 		if (node->id == id) {
 			return node;
 		}
-		for (GraphNode& child : node->children) {
-			if (GraphNode* node2 = find_graph_node(&child, id)) {
+		for (engine::GraphNode& child : node->children) {
+			if (engine::GraphNode* node2 = find_graph_node(&child, id)) {
 				return node2;
 			}
 		}
 		return nullptr;
 	}
 
-	static GraphNode* find_graph_node_parent(GraphNode* node, engine::GraphNodeId id) {
-		for (GraphNode& child : node->children) {
+	static engine::GraphNode* find_graph_node_parent(engine::GraphNode* node, engine::GraphNodeId id) {
+		for (engine::GraphNode& child : node->children) {
 			if (child.id == id) {
 				return node;
 			}
 		}
-		for (GraphNode& child : node->children) {
-			if (GraphNode* node2 = find_graph_node_parent(&child, id)) {
+		for (engine::GraphNode& child : node->children) {
+			if (engine::GraphNode* node2 = find_graph_node_parent(&child, id)) {
 				return node2;
 			}
 		}
@@ -198,9 +198,9 @@ namespace editor {
 			/* Scene graph buttons */
 			ImGui::Text("Scene graph:");
 			if (ImGui::Button("Add node")) {
-				if (GraphNode* node = find_graph_node(&ui->scene_graph, ui->scene_graph_ui.selected_node)) {
+				if (engine::GraphNode* node = find_graph_node(&ui->scene_graph, ui->scene_graph_ui.selected_node)) {
 					const engine::GraphNodeId child_id = ui->scene_graph_ui.next_id;
-					node->children.push_back(GraphNode { .id = child_id, .type = NodeType::Text });
+					node->children.push_back(engine::GraphNode { .id = child_id, .type = engine::NodeType::Text });
 					ui->scene_graph_ui.nodes[node->id].is_open = true;
 					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
 					ui->scene_graph_ui.next_id.value++;
@@ -210,7 +210,7 @@ namespace editor {
 			ImGui::SameLine();
 			if (ImGui::Button("Remove node")) {
 				const engine::GraphNodeId selected_node = ui->scene_graph_ui.selected_node;
-				if (GraphNode* node = find_graph_node_parent(&ui->scene_graph, selected_node)) {
+				if (engine::GraphNode* node = find_graph_node_parent(&ui->scene_graph, selected_node)) {
 					for (size_t i = 0; i < node->children.size(); i++) {
 						if (node->children[i].id == selected_node) {
 							node->children.erase(node->children.begin() + i);

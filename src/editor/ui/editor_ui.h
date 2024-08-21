@@ -28,17 +28,6 @@ namespace engine {
 
 namespace editor {
 
-	enum class NodeType {
-		Root,
-		Text,
-	};
-
-	struct GraphNode {
-		engine::GraphNodeId id = engine::GraphNodeId(0);
-		NodeType type = NodeType::Root;
-		std::vector<GraphNode> children;
-	};
-
 	struct UiGraphNode {
 		bool is_open = false;
 	};
@@ -60,7 +49,7 @@ namespace editor {
 		SceneWindowState scene_window;
 
 		SceneGraphUiState scene_graph_ui;
-		GraphNode scene_graph; // TODO move this to engine
+		engine::GraphNode scene_graph; // TODO move this to engine
 	};
 
 	void init_editor_ui(
