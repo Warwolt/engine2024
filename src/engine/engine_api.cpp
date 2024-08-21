@@ -10,8 +10,10 @@
 #include <imgui/imgui.h>
 #include <plog/Init.h>
 
+#include <numeric>
+
 namespace engine {
-	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform) {
+	static void draw_imgui(DebugUiState* debug_ui, platform::PlatformAPI* platform, const platform::Input& input) {
 		struct Resolution {
 			glm::ivec2 value;
 			const char* str;
@@ -42,6 +44,20 @@ namespace engine {
 		if (ImGui::Button("Change resolution")) {
 			glm::ivec2 resolution = resolutions[debug_ui->resolution_index].value;
 			platform->change_resolution(resolution.x, resolution.y);
+		}
+
+		ImGui::SeparatorText("Render Debug");
+		{
+			debug_ui->frame_render_deltas.push_back((float)input.renderer_debug_data.render_ns / 1000000.0f);
+			debug_ui->second_counter_ms += input.delta_ms;
+			if (debug_ui->second_counter_ms >= 1000) {
+				debug_ui->second_counter_ms = 0;
+				debug_ui->render_delta_avg_ms = std::accumulate(debug_ui->frame_render_deltas.begin(), debug_ui->frame_render_deltas.end(), 0.0f) / debug_ui->frame_render_deltas.size();
+			}
+
+			ImGui::Text("Draw calls: %zu", input.renderer_debug_data.num_draw_calls);
+			ImGui::Text("Num vertices: %zu", input.renderer_debug_data.num_vertices);
+			ImGui::Text("Render ms: %2.2f", debug_ui->render_delta_avg_ms);
 		}
 	}
 
@@ -151,7 +167,7 @@ namespace engine {
 			}
 
 			if (state->debug_ui.show_debug_ui) {
-				draw_imgui(&state->debug_ui, platform);
+				draw_imgui(&state->debug_ui, platform, input);
 			}
 		}
 

@@ -14,4 +14,8 @@ namespace platform {
 		return std::chrono::duration_cast<std::chrono::milliseconds>(m_clock.now() - m_start).count();
 	}
 
+	uint64_t Timer::elapsed_ns() {
+		return std::chrono::duration_cast<std::chrono::nanoseconds>(m_clock.now() - m_start).count();
+	}
+
 } // namespace platform

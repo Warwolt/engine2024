@@ -572,6 +572,8 @@ int main(int argc, char** argv) {
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
 				renderer.reset_render_canvas();
+
+				input.renderer_debug_data = renderer.debug_data();
 			}
 
 			/* Render canvas to window */

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <core/container/ring_buffer.h>
 #include <editor/editor.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
@@ -19,6 +20,11 @@ namespace engine {
 	struct DebugUiState {
 		bool show_debug_ui = false;
 		int resolution_index = 0;
+
+		// frame rate measurement
+		uint64_t second_counter_ms = 0;
+		core::RingBuffer<float, 60> frame_render_deltas;
+		float render_delta_avg_ms = 0.0f;
 	};
 
 	struct Resources {

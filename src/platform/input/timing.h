@@ -11,6 +11,7 @@ namespace platform {
 
 		void reset();
 		uint64_t elapsed_ms();
+		uint64_t elapsed_ns();
 
 	private:
 		std::chrono::steady_clock::time_point m_start;

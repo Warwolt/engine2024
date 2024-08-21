@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp> // glm::ortho
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <platform/debug/logging.h>
+#include <platform/input/timing.h>
 #include <stb_image/stb_image.h>
 
 #include <algorithm>
@@ -217,15 +218,20 @@ namespace platform {
 	}
 
 	void Renderer::render(ShaderProgram shader_program) {
+		m_debug_data = {};
+		Timer render_timer;
+
 		glUseProgram(shader_program.id);
 		glBindVertexArray(shader_program.vao);
 		glBindBuffer(GL_ARRAY_BUFFER, shader_program.vbo);
 
 		/* Upload vertices */
 		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
+		m_debug_data.num_vertices = m_vertices.size();
 
 		/* Draw vertices */
 		GLint offset = 0;
+		int i = 0;
 		for (const VertexSection& section : m_sections) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, section.texture.id);
@@ -244,10 +250,12 @@ namespace platform {
 				set_pixel_coordinate_projection(this, shader_program, (int)canvas->texture.size.x, (int)canvas->texture.size.y);
 			}
 
+			m_debug_data.num_draw_calls += 1;
 			glDrawArrays(section.mode, offset, section.length);
 			glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
 			offset += section.length;
+			i++;
 		}
 
 		/* Clear render data */
@@ -258,6 +266,9 @@ namespace platform {
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 		glUseProgram(NULL);
+
+		m_debug_data.render_ms = render_timer.elapsed_ms();
+		m_debug_data.render_ns = render_timer.elapsed_ns();
 	}
 
 	void Renderer::draw_point(glm::vec2 point, glm::vec4 color) {
@@ -456,6 +467,10 @@ namespace platform {
 		}
 
 		draw_text(font, text, pos - box_size / 2.0f, color);
+	}
+
+	RenderDebugData Renderer::debug_data() const {
+		return m_debug_data;
 	}
 
 	std::optional<Canvas> Renderer::_current_draw_canvas() {
