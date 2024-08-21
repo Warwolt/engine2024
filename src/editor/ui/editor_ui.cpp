@@ -99,7 +99,7 @@ namespace editor {
 		// fake a scene graph
 		ui->scene_graph =
 			GraphNode {
-				.id = 0,
+				.id = engine::GraphNodeId(0),
 				.type = NodeType::Root,
 				.children = {},
 			};
@@ -136,7 +136,7 @@ namespace editor {
 				node_name = " Text";
 				break;
 		}
-		std::string label = std::format("{}##{}", node_name, node.id);
+		std::string label = std::format("{}##{}", node_name, node.id.value);
 		node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
 		scene_graph_ui->nodes[node.id].is_open = node_is_open;
 
@@ -152,7 +152,7 @@ namespace editor {
 		}
 	}
 
-	static GraphNode* find_graph_node(GraphNode* node, int id) {
+	static GraphNode* find_graph_node(GraphNode* node, engine::GraphNodeId id) {
 		if (node->id == id) {
 			return node;
 		}
@@ -164,7 +164,7 @@ namespace editor {
 		return nullptr;
 	}
 
-	static GraphNode* find_graph_node_parent(GraphNode* node, int id) {
+	static GraphNode* find_graph_node_parent(GraphNode* node, engine::GraphNodeId id) {
 		for (GraphNode& child : node->children) {
 			if (child.id == id) {
 				return node;
@@ -199,17 +199,17 @@ namespace editor {
 			ImGui::Text("Scene graph:");
 			if (ImGui::Button("Add node")) {
 				if (GraphNode* node = find_graph_node(&ui->scene_graph, ui->scene_graph_ui.selected_node)) {
-					const NodeId child_id = ui->scene_graph_ui.next_id;
+					const engine::GraphNodeId child_id = ui->scene_graph_ui.next_id;
 					node->children.push_back(GraphNode { .id = child_id, .type = NodeType::Text });
 					ui->scene_graph_ui.nodes[node->id].is_open = true;
 					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
-					ui->scene_graph_ui.next_id++;
-					LOG_INFO("Added node with id %d", child_id);
+					ui->scene_graph_ui.next_id.value++;
+					LOG_INFO("Added node with id %d", child_id.value);
 				}
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Remove node")) {
-				const NodeId selected_node = ui->scene_graph_ui.selected_node;
+				const engine::GraphNodeId selected_node = ui->scene_graph_ui.selected_node;
 				if (GraphNode* node = find_graph_node_parent(&ui->scene_graph, selected_node)) {
 					for (size_t i = 0; i < node->children.size(); i++) {
 						if (node->children[i].id == selected_node) {
@@ -221,7 +221,7 @@ namespace editor {
 								size_t j = std::min(i, node->children.size() - 1); // keep `i` within bounds of new size
 								ui->scene_graph_ui.selected_node = node->children[j].id;
 							}
-							LOG_INFO("Removed node with id %d", selected_node);
+							LOG_INFO("Removed node with id %d", selected_node.value);
 							break;
 						}
 					}

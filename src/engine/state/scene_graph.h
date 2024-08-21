@@ -5,9 +5,9 @@
 #include <vector>
 
 namespace engine {
-	DEFINE_NEWTYPE(GraphNodeId, size_t);
+	DEFINE_NEWTYPE(GraphNodeId, int);
 }
-DEFINE_NEWTYPE_HASH(engine::GraphNodeId, size_t);
+DEFINE_NEWTYPE_HASH(engine::GraphNodeId, int);
 
 namespace engine {
 
