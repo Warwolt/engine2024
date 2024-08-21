@@ -2,6 +2,4 @@
 
 namespace engine {
 
-	//
-
 } // namespace engine

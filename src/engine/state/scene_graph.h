@@ -5,13 +5,11 @@
 #include <vector>
 
 namespace engine {
+	DEFINE_NEWTYPE(GraphNodeId, size_t);
+}
+DEFINE_NEWTYPE_HASH(engine::GraphNodeId, size_t);
 
-	struct GraphNodeId : public core::NewType<size_t> {
-		GraphNodeId() = default;
-		explicit GraphNodeId(const size_t& value)
-			: NewType(value) {
-		}
-	};
+namespace engine {
 
 	enum class NodeType {
 		Root,

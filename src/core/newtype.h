@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 namespace core {
 
 	template <typename T>
@@ -35,3 +37,22 @@ namespace core {
 	};
 
 } // namespace core
+
+#define DEFINE_NEWTYPE(name, type)             \
+	struct name : public core::NewType<type> { \
+		name() = default;                      \
+		explicit name(const type& value)       \
+			: NewType(value) {                 \
+		}                                      \
+	};
+
+// Note! Macro must be expanded in top-level namespace
+// since we specialize inside the std namespace.
+#define DEFINE_NEWTYPE_HASH(name, type)              \
+	namespace std {                                  \
+		template <> struct hash<name> {              \
+			size_t operator()(const name& x) const { \
+				return std::hash<type>()(x.value);   \
+			}                                        \
+		};                                           \
+	}
