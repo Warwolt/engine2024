@@ -104,19 +104,27 @@ namespace editor {
 	}
 
 	static int render_scene_graph(const GraphNode& node, int selected_id) {
-		const int unselected_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-		const int selected_flags = unselected_flags | ImGuiTreeNodeFlags_Selected;
-		const bool is_selected = selected_id == node.id;
-		const bool node_is_open = ImGui::TreeNodeEx(core::util::enum_to_string(node.type), is_selected ? selected_flags : unselected_flags);
+		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+		if (selected_id == node.id) {
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+		if (node.type == NodeType::Root) {
+			flags |= ImGuiTreeNodeFlags_DefaultOpen;
+		}
+
+		const bool node_is_open = ImGui::TreeNodeEx(core::util::enum_to_string(node.type), flags);
+
 		if (ImGui::IsItemClicked()) {
 			selected_id = node.id;
 		}
+
 		if (node_is_open) {
 			for (const GraphNode& child : node.children) {
 				selected_id = render_scene_graph(child, selected_id);
 			}
 			ImGui::TreePop();
 		}
+
 		return selected_id;
 	}
 
