@@ -47,6 +47,8 @@ namespace editor {
 		int selected_node_id = 0;
 		EditorFonts editor_fonts;
 		SceneWindowState scene_window;
+
+		GraphNode scene_graph; // TODO move this to engine
 	};
 
 	void init_editor_ui(

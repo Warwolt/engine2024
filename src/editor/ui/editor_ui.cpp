@@ -96,6 +96,19 @@ namespace editor {
 			ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 			setup_docking_space(dockspace);
 		}
+
+		// fake a scene graph
+		ui->scene_graph =
+			GraphNode {
+				.id = 0,
+				.type = NodeType::Root,
+				.children = {
+					GraphNode {
+						.id = 1,
+						.type = NodeType::Text,
+					},
+				},
+			};
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
@@ -112,7 +125,8 @@ namespace editor {
 			flags |= ImGuiTreeNodeFlags_DefaultOpen;
 		}
 
-		const bool node_is_open = ImGui::TreeNodeEx(core::util::enum_to_string(node.type), flags);
+		std::string label = std::format("{}##{}", core::util::enum_to_string(node.type), node.id);
+		const bool node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
 
 		if (ImGui::IsItemClicked()) {
 			selected_id = node.id;
@@ -145,24 +159,16 @@ namespace editor {
 
 		ImGui::Text("Scene graph:");
 		if (ImGui::Button("Add node")) {
-			LOG_DEBUG("Node added");
+			// just push to root
+			// TODO: push to selected
+			static int next_id = 2; // need to figure out how to track the ID
+			ui->scene_graph.children.push_back(GraphNode { .id = next_id, .type = NodeType::Text });
+			LOG_INFO("Added node with id %d", next_id);
+			next_id += 1;
 		}
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
 		ImGui::BeginChild("SceneGraph", ImVec2(0, 0), ImGuiChildFlags_Border);
-		{
-			GraphNode root =
-				GraphNode {
-					.id = 0,
-					.type = NodeType::Root,
-					.children = {
-						GraphNode {
-							.id = 1,
-							.type = NodeType::Text,
-						},
-					},
-				};
-			ui->selected_node_id = render_scene_graph(root, ui->selected_node_id);
-		}
+		ui->selected_node_id = render_scene_graph(ui->scene_graph, ui->selected_node_id);
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
 	}
