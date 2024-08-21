@@ -344,7 +344,7 @@ namespace editor {
 		const EditorUiState& ui,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, ui.editor_fonts, renderer);
+		render_scene_window(ui.scene_window, ui.scene_graph, ui.editor_fonts, renderer);
 	}
 
 } // namespace editor

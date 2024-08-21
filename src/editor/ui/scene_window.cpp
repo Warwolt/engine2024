@@ -202,6 +202,8 @@ namespace editor {
 
 	static void render_scene_view(
 		const SceneViewState& scene_view,
+		const engine::GraphNode& scene_graph,
+		const EditorFonts& editor_fonts,
 		platform::Renderer* renderer
 	) {
 		const glm::vec2 scene_canvas_size = scene_view.canvas.texture.size;
@@ -234,10 +236,23 @@ namespace editor {
 			renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x + 1.0f, scene_canvas_size.y / 2.0f }, platform::Color::red); // horizontal
 			renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y + 1.0f }, platform::Color::green); // vertical
 		}
+
+		/* Render scene */
+		{
+			// Very crude rendering of scene graph
+			// TODO: Position and value of text in separate text-component vector
+			for (const engine::GraphNode& child : scene_graph.children) {
+				if (child.type == engine::NodeType::Text) {
+					glm::vec2 hack_offset = glm::vec2 { 45.0f, -4.0f };
+					renderer->draw_text(editor_fonts.system_font, "Hello world!", scene_canvas_size / 2.0f - hack_offset, { 1.0f, 1.0f, 1.0f, 1.0f });
+				}
+			}
+		}
 	}
 
 	void render_scene_window(
 		const SceneWindowState& scene_window,
+		const engine::GraphNode& scene_graph,
 		const EditorFonts& editor_fonts,
 		platform::Renderer* renderer
 	) {
@@ -245,7 +260,7 @@ namespace editor {
 		if (scene_window.is_visible) {
 			/* Render scene canvas */
 			renderer->push_draw_canvas(scene_window.scene_view.canvas);
-			render_scene_view(scene_window.scene_view, renderer);
+			render_scene_view(scene_window.scene_view, scene_graph, editor_fonts, renderer);
 			renderer->pop_draw_canvas();
 
 			/* Render scene canvas to imgui canvas */

@@ -2,6 +2,7 @@
 
 #include <editor/editor_command.h>
 #include <editor/ui/editor_fonts.h>
+#include <engine/state/scene_graph.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -39,6 +40,7 @@ namespace editor {
 
 	void render_scene_window(
 		const SceneWindowState& scene_window,
+		const engine::GraphNode& scene_graph,
 		const EditorFonts& editor_fonts,
 		platform::Renderer* renderer
 	);
