@@ -103,17 +103,21 @@ namespace editor {
 		shutdown_scene_window(ui.scene_window);
 	}
 
-	static void render_scene_graph(const GraphNode& node, int selected_id) {
+	static int render_scene_graph(const GraphNode& node, int selected_id) {
 		const int unselected_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 		const int selected_flags = unselected_flags | ImGuiTreeNodeFlags_Selected;
 		const bool is_selected = selected_id == node.id;
 		const bool node_is_open = ImGui::TreeNodeEx(core::util::enum_to_string(node.type), is_selected ? selected_flags : unselected_flags);
+		if (ImGui::IsItemClicked()) {
+			selected_id = node.id;
+		}
 		if (node_is_open) {
 			for (const GraphNode& child : node.children) {
-				render_scene_graph(child, selected_id);
+				selected_id = render_scene_graph(child, selected_id);
 			}
 			ImGui::TreePop();
 		}
+		return selected_id;
 	}
 
 	static void update_project_window(
@@ -145,9 +149,11 @@ namespace editor {
 					.children = {
 						GraphNode {
 							.id = 1,
-							.type = NodeType::Text } }
+							.type = NodeType::Text,
+						},
+					},
 				};
-			render_scene_graph(root, ui->selected_node_id);
+			ui->selected_node_id = render_scene_graph(root, ui->selected_node_id);
 		}
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
