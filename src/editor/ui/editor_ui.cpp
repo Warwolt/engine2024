@@ -203,14 +203,14 @@ namespace editor {
 					node->children.push_back(GraphNode { .id = child_id, .type = NodeType::Text });
 					ui->scene_graph_ui.nodes[node->id].is_open = true;
 					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
-					ui->scene_graph_ui.selected_node = child_id;
 					ui->scene_graph_ui.next_id++;
 				}
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Remove node")) {
-				if (GraphNode* node = find_graph_node_parent(&ui->scene_graph, ui->scene_graph_ui.selected_node)) {
-					std::erase_if(node->children, [&](GraphNode& child) { return child.id == ui->scene_graph_ui.selected_node; });
+				const NodeId selected_node = ui->scene_graph_ui.selected_node;
+				if (GraphNode* node = find_graph_node_parent(&ui->scene_graph, selected_node)) {
+					std::erase_if(node->children, [&](GraphNode& child) { return child.id == selected_node; });
 				}
 			}
 
