@@ -61,6 +61,9 @@ namespace platform {
 		GLuint id;
 		GLuint vao;
 		GLuint vbo;
+		struct {
+			GLint projection;
+		} uniforms;
 	};
 
 	enum class ShaderProgramError {
@@ -70,7 +73,7 @@ namespace platform {
 	};
 
 	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
-	void free_shader_program(ShaderProgram shader_program);
+	void free_shader_program(const ShaderProgram& shader_program);
 
 	Canvas add_canvas(int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge, TextureFilter filter = TextureFilter::Nearest);
 	void free_canvas(Canvas canvas);
@@ -79,7 +82,7 @@ namespace platform {
 	public:
 		Renderer(SDL_GLContext gl_context);
 
-		void set_projection(ShaderProgram shader_program, glm::mat4 projection);
+		void set_projection(const ShaderProgram& shader_program, glm::mat4 projection);
 
 		void push_draw_canvas(Canvas canvas);
 		void pop_draw_canvas();
@@ -87,7 +90,7 @@ namespace platform {
 		void set_render_canvas(Canvas canvas);
 		void reset_render_canvas();
 
-		void render(ShaderProgram shader_program);
+		void render(const ShaderProgram& shader_program);
 
 		void draw_point(glm::vec2 point, glm::vec4 color);
 		void draw_line(glm::vec2 start, glm::vec2 end, glm::vec4 color);

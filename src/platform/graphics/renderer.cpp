@@ -131,15 +131,25 @@ namespace platform {
 		);
 		glEnableVertexAttribArray(2);
 
+		/* Load locations */
+		GLint projection_uniform = glGetUniformLocation(shader_program_id, "projection");
+
 		/* Unbind */
 		glUseProgram(NULL);
 		glBindBuffer(GL_ARRAY_BUFFER, NULL);
 		glBindVertexArray(NULL);
 
-		return ShaderProgram { shader_program_id, vao, vbo };
+		return ShaderProgram {
+			.id = shader_program_id,
+			.vao = vao,
+			.vbo = vbo,
+			.uniforms {
+				.projection = projection_uniform,
+			},
+		};
 	}
 
-	void free_shader_program(ShaderProgram shader_program) {
+	void free_shader_program(const ShaderProgram& shader_program) {
 		glDeleteVertexArrays(1, &shader_program.vao);
 		glDeleteBuffers(1, &shader_program.vbo);
 		glDeleteProgram(shader_program.id);
@@ -191,10 +201,9 @@ namespace platform {
 		m_white_texture = add_texture(data, 1, 1);
 	}
 
-	void Renderer::set_projection(ShaderProgram shader_program, glm::mat4 projection) {
+	void Renderer::set_projection(const ShaderProgram& shader_program, glm::mat4 projection) {
 		glUseProgram(shader_program.id);
-		GLint projection_uniform = glGetUniformLocation(shader_program.id, "projection");
-		glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, &projection[0][0]);
+		glUniformMatrix4fv(shader_program.uniforms.projection, 1, GL_FALSE, &projection[0][0]);
 	}
 
 	void Renderer::push_draw_canvas(Canvas canvas) {
@@ -211,13 +220,13 @@ namespace platform {
 		m_render_canvas = {};
 	}
 
-	static void set_pixel_coordinate_projection(Renderer* renderer, platform::ShaderProgram shader_program, int width, int height) {
+	static void set_pixel_coordinate_projection(Renderer* renderer, const ShaderProgram& shader_program, int width, int height) {
 		float grid_offset = 0.375f; // used to avoid missing pixels
 		glm::mat4 projection = glm::ortho(grid_offset, grid_offset + width, grid_offset + height, grid_offset, -1.0f, 1.0f);
 		renderer->set_projection(shader_program, projection);
 	}
 
-	void Renderer::render(ShaderProgram shader_program) {
+	void Renderer::render(const ShaderProgram& shader_program) {
 		m_debug_data = {};
 		Timer render_timer;
 
