@@ -1,6 +1,7 @@
 #include <editor/ui/editor_ui.h>
 
 #include <core/container.h>
+#include <core/util.h>
 #include <editor/ui/log_window.h>
 #include <editor/ui/main_menu_bar.h>
 #include <engine/state/engine_state.h>
@@ -102,12 +103,25 @@ namespace editor {
 		shutdown_scene_window(ui.scene_window);
 	}
 
+	static void render_scene_graph(const GraphNode& node, int selected_id) {
+		const int unselected_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+		const int selected_flags = unselected_flags | ImGuiTreeNodeFlags_Selected;
+		const bool is_selected = selected_id == node.id;
+		const bool node_is_open = ImGui::TreeNodeEx(core::util::enum_to_string(node.type), is_selected ? selected_flags : unselected_flags);
+		if (node_is_open) {
+			for (const GraphNode& child : node.children) {
+				render_scene_graph(child, selected_id);
+			}
+			ImGui::TreePop();
+		}
+	}
+
 	static void update_project_window(
 		engine::ProjectState* project,
-		std::string* project_name_buf
+		EditorUiState* ui
 	) {
-		if (ImGui::InputText("Project name", project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
-			project->name = *project_name_buf;
+		if (ImGui::InputText("Project name", &ui->project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
+			project->name = ui->project_name_buf;
 		}
 
 		ImGui::SeparatorText("Scene");
@@ -122,28 +136,18 @@ namespace editor {
 			LOG_DEBUG("Node added");
 		}
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
-		ImGui::BeginChild("LogOutput", ImVec2(0, 0), ImGuiChildFlags_Border);
+		ImGui::BeginChild("SceneGraph", ImVec2(0, 0), ImGuiChildFlags_Border);
 		{
-			static bool root_node_selected = false;
-			static bool text_node_selected = false;
-			const int unselected_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-			const int selected_flags = unselected_flags | ImGuiTreeNodeFlags_Selected;
-			const bool root_node_open = ImGui::TreeNodeEx("Scene", root_node_selected ? selected_flags : unselected_flags);
-			if (ImGui::IsItemClicked()) {
-				root_node_selected = true;
-				text_node_selected = false;
-			}
-			if (root_node_open) {
-				const bool text_node_open = ImGui::TreeNodeEx("Text", text_node_selected ? selected_flags | ImGuiTreeNodeFlags_Bullet : unselected_flags | ImGuiTreeNodeFlags_Bullet);
-				if (ImGui::IsItemClicked()) {
-					root_node_selected = false;
-					text_node_selected = true;
-				}
-				if (text_node_open) {
-					ImGui::TreePop();
-				}
-				ImGui::TreePop();
-			}
+			GraphNode root =
+				GraphNode {
+					.id = 0,
+					.type = NodeType::Root,
+					.children = {
+						GraphNode {
+							.id = 1,
+							.type = NodeType::Text } }
+				};
+			render_scene_graph(root, ui->selected_node_id);
 		}
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
@@ -227,7 +231,7 @@ namespace editor {
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_project_window(project, &ui->project_name_buf);
+			update_project_window(project, ui);
 		}
 		ImGui::End();
 

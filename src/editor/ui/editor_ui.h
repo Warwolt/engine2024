@@ -26,6 +26,17 @@ namespace engine {
 
 namespace editor {
 
+	enum class NodeType {
+		Root,
+		Text,
+	};
+
+	struct GraphNode {
+		int id = 0;
+		NodeType type = NodeType::Root;
+		std::vector<GraphNode> children;
+	};
+
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
@@ -33,6 +44,7 @@ namespace editor {
 		bool show_imgui_demo = false;
 		core::Signal<size_t> last_num_seen_log_entries = 0;
 
+		int selected_node_id = 0;
 		EditorFonts editor_fonts;
 		SceneWindowState scene_window;
 	};
