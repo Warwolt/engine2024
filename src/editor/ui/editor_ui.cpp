@@ -210,7 +210,21 @@ namespace editor {
 			if (ImGui::Button("Remove node")) {
 				const NodeId selected_node = ui->scene_graph_ui.selected_node;
 				if (GraphNode* node = find_graph_node_parent(&ui->scene_graph, selected_node)) {
-					std::erase_if(node->children, [&](GraphNode& child) { return child.id == selected_node; });
+					// remove node, then update selected node to try to keep
+					// same index into the child vector
+					for (size_t i = 0; i < node->children.size(); i++) {
+						if (node->children[i].id == selected_node) {
+							node->children.erase(node->children.begin() + i);
+							if (node->children.empty()) {
+								ui->scene_graph_ui.selected_node = node->id;
+							}
+							else {
+								size_t j = std::min(i, node->children.size() - 1); // keep `i` within bounds of new size
+								ui->scene_graph_ui.selected_node = node->children[j].id;
+							}
+							break;
+						}
+					}
 				}
 			}
 
