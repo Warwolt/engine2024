@@ -193,6 +193,14 @@ namespace editor {
 
 		ImGui::Spacing();
 
+		// hack
+		engine::GraphNode* selected_node = find_graph_node(&ui->scene_graph, ui->scene_graph_ui.selected_node);
+		glm::vec2 position = selected_node ? selected_node->position : glm::vec2 { 0.0f, 0.0f };
+		ImGui::SliderFloat2("position", (float*)&position, -100.0f, 100.0f);
+		if (selected_node) {
+			selected_node->position = position;
+		}
+
 		/* Scene Graph */
 		{
 			/* Scene graph buttons */
