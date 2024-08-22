@@ -5,9 +5,14 @@
 #include <vector>
 
 namespace engine {
-	DEFINE_NEWTYPE(GraphNodeId, int);
+	struct GraphNodeId : public core::NewType<int> {
+		GraphNodeId() = default;
+		explicit GraphNodeId(const int& value)
+			: NewType(value) {
+		}
+	};
 }
-DEFINE_NEWTYPE_HASH(engine::GraphNodeId, int);
+DEFINE_NEWTYPE_HASH_IMPL(engine::GraphNodeId, int);
 
 namespace engine {
 
@@ -20,6 +25,10 @@ namespace engine {
 		GraphNodeId id = GraphNodeId(0);
 		NodeType type = NodeType::Root;
 		std::vector<GraphNode> children;
+	};
+
+	struct SceneGraph {
+		GraphNode root;
 	};
 
 } // namespace engine

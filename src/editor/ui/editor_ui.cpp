@@ -204,7 +204,6 @@ namespace editor {
 					ui->scene_graph_ui.nodes[node->id].is_open = true;
 					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
 					ui->scene_graph_ui.next_id.value++;
-					LOG_INFO("Added node with id %d", child_id.value);
 				}
 			}
 			ImGui::SameLine();
@@ -221,7 +220,6 @@ namespace editor {
 								size_t j = std::min(i, node->children.size() - 1); // keep `i` within bounds of new size
 								ui->scene_graph_ui.selected_node = node->children[j].id;
 							}
-							LOG_INFO("Removed node with id %d", selected_node.value);
 							break;
 						}
 					}
