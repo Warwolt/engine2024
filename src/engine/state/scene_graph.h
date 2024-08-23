@@ -2,7 +2,6 @@
 
 #include <core/newtype.h>
 
-#include <glm/vec2.hpp>
 #include <vector>
 
 namespace engine {
@@ -25,8 +24,11 @@ namespace engine {
 	struct GraphNode {
 		GraphNodeId id = GraphNodeId(0);
 		NodeType type = NodeType::Root;
-		glm::vec2 position;
 		std::vector<GraphNode> children;
+	};
+
+	struct SceneGraph {
+		GraphNode root;
 	};
 
 } // namespace engine
