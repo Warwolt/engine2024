@@ -27,8 +27,4 @@ namespace engine {
 		std::vector<GraphNode> children;
 	};
 
-	struct SceneGraph {
-		GraphNode root;
-	};
-
 } // namespace engine
