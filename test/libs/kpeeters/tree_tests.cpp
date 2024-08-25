@@ -104,3 +104,33 @@ TEST(TreeTests, EraseSubTree) {
 	const std::vector<int> expected = { 1, 3 };
 	EXPECT_EQ(nodes, expected);
 }
+
+TEST(TreeTests, DepthFirstRecursion) {
+	kpeeters::tree<int> tree;
+
+	//      1
+	//    /  \
+	//   2    3
+	// / | \
+	// 4 5 6
+	auto root = tree.insert(tree.begin(), 1);
+	auto left_child = tree.append_child(root, 2);
+	tree.append_child(root, 3);
+	tree.append_child(left_child, 4);
+	tree.append_child(left_child, 5);
+	tree.append_child(left_child, 6);
+
+	auto sum_tree_ = [](this const auto& self, const kpeeters::tree<int>& tree, kpeeters::tree<int>::iterator node, int sum) -> int {
+		sum += node.node->data;
+		for (unsigned int i = 0; i < tree.number_of_children(node); i++) {
+			sum = self(tree, tree.child(node, i), sum);
+		}
+		return sum;
+	};
+	auto sum_tree = [&](this const auto& self, const kpeeters::tree<int>& tree) -> int {
+		return sum_tree_(tree, tree.begin(), 0);
+	};
+	int sum = sum_tree(tree);
+
+	EXPECT_EQ(sum, 1 + 2 + 4 + 5 + 6 + 3);
+}

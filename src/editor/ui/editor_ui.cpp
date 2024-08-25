@@ -110,7 +110,13 @@ namespace editor {
 		shutdown_scene_window(ui.scene_window);
 	}
 
+	static void render_graph_node(SceneGraphUiState* scene_graph_ui, kpeeters::tree<engine::GraphNode>::iterator node) {
+		ImGui::Text("Hello");
+		// Need to somehow recur through children
+	}
+
 	static void render_scene_graph(SceneGraphUiState* scene_graph_ui, const engine::SceneGraph& scene_graph) {
+		render_graph_node(scene_graph_ui, scene_graph.tree.begin());
 		// int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 		// if (scene_graph_ui->selected_node == node.id) {
 		// 	flags |= ImGuiTreeNodeFlags_Selected;
