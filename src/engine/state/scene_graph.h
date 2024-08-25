@@ -19,19 +19,19 @@ DEFINE_NEWTYPE_HASH_IMPL(engine::GraphNodeId, int);
 
 namespace engine {
 
-	enum class NodeType {
+	enum class GraphNodeType {
 		Root,
 		Text,
 	};
 
 	struct GraphNode {
 		GraphNodeId id = GraphNodeId(0);
-		NodeType type = NodeType::Root;
+		GraphNodeType type = GraphNodeType::Root;
 		glm::vec2 position = { 0.0f, 0.0f };
 	};
 
 	struct SceneGraph {
-		kpeeters::tree<GraphNode> tree = { GraphNode { .id = GraphNodeId(0), .type = NodeType::Root, .position = { 0.0f, 0.0f } } };
+		kpeeters::tree<GraphNode> tree = { GraphNode { .id = GraphNodeId(0), .type = GraphNodeType::Root, .position = { 0.0f, 0.0f } } };
 	};
 
 } // namespace engine

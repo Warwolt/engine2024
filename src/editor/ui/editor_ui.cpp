@@ -96,13 +96,23 @@ namespace editor {
 			setup_docking_space(dockspace);
 		}
 
-		// fake a scene graph
-		// ui->scene_graph =
-		// 	engine::GraphNode {
-		// 		.id = engine::GraphNodeId(0),
-		// 		.type = engine::NodeType::Root,
-		// 		.children = {},
-		// 	};
+		// fake elements
+		ui->scene_graph.tree.append_child(
+			ui->scene_graph.tree.begin(),
+			engine::GraphNode {
+				.id = engine::GraphNodeId(1),
+				.type = engine::GraphNodeType::Text,
+				.position = { 0.0f, 0.0f },
+			}
+		);
+		ui->scene_graph.tree.append_child(
+			ui->scene_graph.tree.begin(),
+			engine::GraphNode {
+				.id = engine::GraphNodeId(2),
+				.type = engine::GraphNodeType::Text,
+				.position = { 0.0f, 0.0f },
+			}
+		);
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
@@ -110,13 +120,26 @@ namespace editor {
 		shutdown_scene_window(ui.scene_window);
 	}
 
-	static void render_graph_node(SceneGraphUiState* scene_graph_ui, kpeeters::tree<engine::GraphNode>::iterator node) {
-		ImGui::Text("Hello");
-		// Need to somehow recur through children
+	static void render_graph_node(SceneGraphUiState* scene_graph_ui, const kpeeters::tree<engine::GraphNode>::tree_node* node) {
+		const char* node_name = "";
+		switch (node->data.type) {
+			case engine::GraphNodeType::Root:
+				node_name = "Scene";
+				break;
+			case engine::GraphNodeType::Text:
+				node_name = " Text";
+				break;
+		}
+		std::string label = std::format("{}##{}", node_name, node->data.id.value);
+		ImGui::Text("%s", label.c_str());
+
+		for (auto* child = node->first_child; child != nullptr; child = child->next_sibling) {
+			render_graph_node(scene_graph_ui, child);
+		}
 	}
 
 	static void render_scene_graph(SceneGraphUiState* scene_graph_ui, const engine::SceneGraph& scene_graph) {
-		render_graph_node(scene_graph_ui, scene_graph.tree.begin());
+		render_graph_node(scene_graph_ui, scene_graph.tree.begin().node);
 		// int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 		// if (scene_graph_ui->selected_node == node.id) {
 		// 	flags |= ImGuiTreeNodeFlags_Selected;
