@@ -97,16 +97,16 @@ namespace editor {
 		}
 
 		// fake elements
-		ui->scene_graph.tree.append_child(
-			ui->scene_graph.tree.begin(),
+		ui->scene_graph.m_tree.append_child(
+			ui->scene_graph.m_tree.begin(),
 			engine::GraphNode {
 				.id = engine::GraphNodeId(1),
 				.type = engine::GraphNodeType::Text,
 				.position = { 0.0f, 0.0f },
 			}
 		);
-		ui->scene_graph.tree.append_child(
-			ui->scene_graph.tree.begin(),
+		ui->scene_graph.m_tree.append_child(
+			ui->scene_graph.m_tree.begin(),
 			engine::GraphNode {
 				.id = engine::GraphNodeId(2),
 				.type = engine::GraphNodeType::Text,
@@ -120,17 +120,21 @@ namespace editor {
 		shutdown_scene_window(ui.scene_window);
 	}
 
-	static void render_graph_node(SceneGraphUiState* scene_graph_ui, const kpeeters::tree<engine::GraphNode>::tree_node* node) {
-		const char* node_name = "";
-		switch (node->data.type) {
+	static std::string get_graph_node_label(const engine::GraphNode& node) {
+		const char* name = "n/a";
+		switch (node.type) {
 			case engine::GraphNodeType::Root:
-				node_name = "Scene";
+				name = "Scene";
 				break;
 			case engine::GraphNodeType::Text:
-				node_name = " Text";
+				name = "Text";
 				break;
 		}
-		std::string label = std::format("{}##{}", node_name, node->data.id.value);
+		return std::format("{}##{}", name, node.id.value);
+	}
+
+	static void render_graph_node(SceneGraphUiState* scene_graph_ui, const kpeeters::tree<engine::GraphNode>::tree_node* node) {
+		std::string label = get_graph_node_label(node->data);
 		ImGui::Text("%s", label.c_str());
 
 		for (auto* child = node->first_child; child != nullptr; child = child->next_sibling) {
@@ -139,7 +143,7 @@ namespace editor {
 	}
 
 	static void render_scene_graph(SceneGraphUiState* scene_graph_ui, const engine::SceneGraph& scene_graph) {
-		render_graph_node(scene_graph_ui, scene_graph.tree.begin().node);
+		render_graph_node(scene_graph_ui, scene_graph.tree().begin().node);
 		// int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 		// if (scene_graph_ui->selected_node == node.id) {
 		// 	flags |= ImGuiTreeNodeFlags_Selected;

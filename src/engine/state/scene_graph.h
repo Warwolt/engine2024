@@ -30,8 +30,11 @@ namespace engine {
 		glm::vec2 position = { 0.0f, 0.0f };
 	};
 
-	struct SceneGraph {
-		kpeeters::tree<GraphNode> tree = { GraphNode { .id = GraphNodeId(0), .type = GraphNodeType::Root, .position = { 0.0f, 0.0f } } };
+	class SceneGraph {
+	public:
+		const kpeeters::tree<GraphNode>& tree() const;
+		kpeeters::tree<GraphNode> m_tree = { GraphNode { .id = GraphNodeId(0), .type = GraphNodeType::Root, .position = { 0.0f, 0.0f } } };
+	private:
 	};
 
 } // namespace engine
