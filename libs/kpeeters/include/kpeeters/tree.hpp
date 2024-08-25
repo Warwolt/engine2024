@@ -468,7 +468,7 @@ namespace kpeeters {
 		/// Compute the depth distance between two nodes, counting all levels for which predicate returns true.
 		template <class Predicate>
 		static int distance(const iterator_base& top, const iterator_base& bottom, Predicate p);
-		/// Determine the maximal depth of the tree. An empty tree has max_depth=-1.
+		/// Determine the maximal depth of the tree. An empty tree has max_depth=0.
 		int max_depth() const;
 		/// Determine the maximal depth of the tree with top node at the given position.
 		int max_depth(const iterator_base&) const;
@@ -2211,7 +2211,7 @@ namespace kpeeters {
 		for (tree_node* it = head->next_sibling; it != feet; it = it->next_sibling)
 			maxd = std::max(maxd, max_depth(it));
 
-		return maxd;
+		return maxd + 1;
 	}
 
 	template <class T, class tree_node_allocator>
@@ -2219,7 +2219,7 @@ namespace kpeeters {
 		tree_node* tmp = pos.node;
 
 		if (tmp == 0 || tmp == head || tmp == feet)
-			return -1;
+			return 0;
 
 		int curdepth = 0, maxdepth = 0;
 		while (true) { // try to walk the bottom of the tree
@@ -2231,12 +2231,12 @@ namespace kpeeters {
 					do {
 						tmp = tmp->parent;
 						if (tmp == 0)
-							return maxdepth;
+							return maxdepth + 1;
 						--curdepth;
 					} while (tmp->next_sibling == 0);
 				}
 				if (tmp == pos.node)
-					return maxdepth;
+					return maxdepth + 1;
 				tmp = tmp->next_sibling;
 			}
 			tmp = tmp->first_child;
