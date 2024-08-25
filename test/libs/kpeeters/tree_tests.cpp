@@ -122,7 +122,7 @@ TEST(TreeTests, DepthFirstRecursion) {
 
 	auto sum_tree_ = [](this const auto& self, kpeeters::tree<int>::tree_node* node, int sum) -> int {
 		sum += node->data;
-		for (kpeeters::tree<int>::tree_node* child = node->first_child; child != nullptr; child = child->next_sibling) {
+		for (auto* child = node->first_child; child != nullptr; child = child->next_sibling) {
 			sum = self(child, sum);
 		}
 		return sum;
