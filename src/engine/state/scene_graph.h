@@ -30,11 +30,20 @@ namespace engine {
 		glm::vec2 position = { 0.0f, 0.0f };
 	};
 
+	struct TextNode {
+		std::string value;
+	};
+
 	class SceneGraph {
 	public:
 		const kpeeters::tree<GraphNode>& tree() const;
-		kpeeters::tree<GraphNode> m_tree = { GraphNode { .id = GraphNodeId(0), .type = GraphNodeType::Root, .position = { 0.0f, 0.0f } } };
+		kpeeters::tree<GraphNode>::iterator root() const;
+		GraphNodeId add_text_node(kpeeters::tree<GraphNode>::iterator position, TextNode text_node);
+
 	private:
+		int m_next_id = 1;
+		kpeeters::tree<GraphNode> m_tree = { GraphNode { .id = GraphNodeId(0), .type = GraphNodeType::Root, .position = { 0.0f, 0.0f } } };
+		std::vector<TextNode> m_text_nodes;
 	};
 
 } // namespace engine

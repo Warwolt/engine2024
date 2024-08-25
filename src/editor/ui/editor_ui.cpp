@@ -96,23 +96,9 @@ namespace editor {
 			setup_docking_space(dockspace);
 		}
 
-		// fake elements
-		ui->scene_graph.m_tree.append_child(
-			ui->scene_graph.m_tree.begin(),
-			engine::GraphNode {
-				.id = engine::GraphNodeId(1),
-				.type = engine::GraphNodeType::Text,
-				.position = { 0.0f, 0.0f },
-			}
-		);
-		ui->scene_graph.m_tree.append_child(
-			ui->scene_graph.m_tree.begin(),
-			engine::GraphNode {
-				.id = engine::GraphNodeId(2),
-				.type = engine::GraphNodeType::Text,
-				.position = { 0.0f, 0.0f },
-			}
-		);
+		// add fake elements
+		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .value = "Hello" });
+		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .value = "World" });
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
