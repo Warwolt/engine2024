@@ -134,3 +134,23 @@ TEST(TreeTests, DepthFirstRecursion) {
 
 	EXPECT_EQ(sum, 1 + 2 + 4 + 5 + 6 + 3);
 }
+
+TEST(TreeTests, FindNodeWithValue) {
+	kpeeters::tree<int> tree;
+
+	//      1
+	//    /  \
+	//   2    3
+	// / | \
+	// 4 5 6
+	auto root = tree.insert(tree.begin(), 1);
+	auto left_child = tree.append_child(root, 2);
+	tree.append_child(root, 3);
+	tree.append_child(left_child, 4);
+	tree.append_child(left_child, 5);
+	tree.append_child(left_child, 6);
+
+	auto it = std::find(tree.begin(), tree.end(), 5);
+
+	EXPECT_EQ(*it, 5);
+}

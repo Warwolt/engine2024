@@ -36,13 +36,25 @@ namespace engine {
 
 	class SceneGraph {
 	public:
-		const kpeeters::tree<GraphNode>& tree() const;
-		kpeeters::tree<GraphNode>::iterator root() const;
-		GraphNodeId add_text_node(kpeeters::tree<GraphNode>::iterator position, TextNode text_node);
+		using Tree = kpeeters::tree<GraphNode>;
+
+		// FIX-ME: Doesn't link if this is in the .cpp file for some reason
+		SceneGraph() {
+			GraphNode root_node = {
+				.id = GraphNodeId(0),
+				.type = GraphNodeType::Root,
+				.position = { 0.0f, 0.0f },
+			};
+			m_tree = kpeeters::tree<GraphNode>(root_node);
+		}
+
+		const Tree& tree() const;
+		Tree::iterator root() const;
+		GraphNodeId add_text_node(Tree::iterator position, TextNode text_node);
 
 	private:
 		int m_next_id = 1;
-		kpeeters::tree<GraphNode> m_tree = { GraphNode { .id = GraphNodeId(0), .type = GraphNodeType::Root, .position = { 0.0f, 0.0f } } };
+		kpeeters::tree<GraphNode> m_tree;
 		std::vector<TextNode> m_text_nodes;
 	};
 

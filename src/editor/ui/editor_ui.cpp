@@ -175,16 +175,16 @@ namespace editor {
 		/* Scene Graph */
 		{
 			/* Scene graph buttons */
+			const auto is_selected_node = [&](const engine::GraphNode& node) { return node.id == ui->scene_graph_ui.selected_node; };
 			ImGui::Text("Scene graph:");
 			if (ImGui::Button("Add node")) {
-				LOG_DEBUG("Add node");
-				// if (engine::GraphNode* node = find_graph_node(&ui->scene_graph, ui->scene_graph_ui.selected_node)) {
-				// 	const engine::GraphNodeId child_id = ui->scene_graph_ui.next_id;
-				// 	node->children.push_back(engine::GraphNode { .id = child_id, .type = engine::NodeType::Text });
-				// 	ui->scene_graph_ui.nodes[node->id].is_open = true;
-				// 	ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
-				// 	ui->scene_graph_ui.next_id.value++;
-				// }
+				const engine::SceneGraph::Tree& tree = ui->scene_graph.tree();
+				if (auto node = std::find_if(tree.begin(), tree.end(), is_selected_node); node != tree.end()) {
+					auto root = ui->scene_graph.root();
+					engine::GraphNodeId child_id = ui->scene_graph.add_text_node(node, engine::TextNode());
+					ui->scene_graph_ui.nodes[node->id].is_open = true;
+					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
+				}
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Remove node")) {
