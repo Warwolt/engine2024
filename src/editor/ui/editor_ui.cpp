@@ -133,56 +133,42 @@ namespace editor {
 		return std::format("{}##{}", name, node.id.value);
 	}
 
-	static void render_graph_node(SceneGraphUiState* scene_graph_ui, const kpeeters::tree<engine::GraphNode>::tree_node* node) {
-		std::string label = get_graph_node_label(node->data);
-		ImGui::Text("%s", label.c_str());
+	static void render_graph_node(SceneGraphUiState* scene_graph_ui, const kpeeters::tree<engine::GraphNode>::tree_node* node_it) {
+		const engine::GraphNode& node = node_it->data;
 
-		for (auto* child = node->first_child; child != nullptr; child = child->next_sibling) {
-			render_graph_node(scene_graph_ui, child);
+		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+		if (scene_graph_ui->selected_node == node.id) {
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+		if (node_it->is_leaf()) {
+			flags |= ImGuiTreeNodeFlags_Bullet;
+		}
+		if (node.type == engine::GraphNodeType::Root) {
+			flags |= ImGuiTreeNodeFlags_DefaultOpen;
+		}
+
+		std::string label = get_graph_node_label(node);
+		if (scene_graph_ui->nodes[node.id].is_open) {
+			ImGui::SetNextItemOpen(true);
+		}
+		bool node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
+		scene_graph_ui->nodes[node.id].is_open = node_is_open;
+
+		if (ImGui::IsItemClicked()) {
+			scene_graph_ui->selected_node = node.id;
+		}
+
+		if (node_is_open) {
+			for (auto* child = node_it->first_child; child != nullptr; child = child->next_sibling) {
+				render_graph_node(scene_graph_ui, child);
+			}
+			ImGui::TreePop();
 		}
 	}
 
 	static void render_scene_graph(SceneGraphUiState* scene_graph_ui, const engine::SceneGraph& scene_graph) {
-		render_graph_node(scene_graph_ui, scene_graph.tree().begin().node);
-		// int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-		// if (scene_graph_ui->selected_node == node.id) {
-		// 	flags |= ImGuiTreeNodeFlags_Selected;
-		// }
-		// if (node.children.empty()) {
-		// 	flags |= ImGuiTreeNodeFlags_Bullet;
-		// }
-		// if (node.type == engine::NodeType::Root) {
-		// 	flags |= ImGuiTreeNodeFlags_DefaultOpen;
-		// }
-
-		// bool node_is_open = scene_graph_ui->nodes[node.id].is_open;
-		// if (node_is_open) {
-		// 	ImGui::SetNextItemOpen(true);
-		// }
-
-		// const char* node_name = "";
-		// switch (node.type) {
-		// 	case engine::NodeType::Root:
-		// 		node_name = "Scene";
-		// 		break;
-		// 	case engine::NodeType::Text:
-		// 		node_name = " Text";
-		// 		break;
-		// }
-		// std::string label = std::format("{}##{}", node_name, node.id.value);
-		// node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
-		// scene_graph_ui->nodes[node.id].is_open = node_is_open;
-
-		// if (ImGui::IsItemClicked()) {
-		// 	scene_graph_ui->selected_node = node.id;
-		// }
-
-		// if (node_is_open) {
-		// 	for (const engine::GraphNode& child : node.children) {
-		// 		render_scene_graph(scene_graph_ui, child);
-		// 	}
-		// 	ImGui::TreePop();
-		// }
+		const kpeeters::tree<engine::GraphNode>::tree_node* root_node = scene_graph.tree().begin().node;
+		render_graph_node(scene_graph_ui, root_node);
 	}
 
 	static void update_project_window(

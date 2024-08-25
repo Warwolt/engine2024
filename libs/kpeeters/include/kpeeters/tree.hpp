@@ -44,6 +44,10 @@ namespace kpeeters {
 		tree_node_(const T&);
 		tree_node_(T&&);
 
+		bool is_leaf() const {
+			return first_child == nullptr;
+		}
+
 		tree_node_<T>* parent;
 		tree_node_<T>*first_child, *last_child;
 		tree_node_<T>*prev_sibling, *next_sibling;
