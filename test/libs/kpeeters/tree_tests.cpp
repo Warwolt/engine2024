@@ -153,4 +153,5 @@ TEST(TreeTests, FindNodeWithValue) {
 	auto it = std::find(tree.begin(), tree.end(), 5);
 
 	EXPECT_EQ(*it, 5);
+	EXPECT_EQ(*(++it), 6);
 }
