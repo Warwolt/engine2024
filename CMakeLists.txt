@@ -27,10 +27,11 @@ add_compile_definitions(JSON_DIAGNOSTICS=1)
 set(INC
     src
     libs/glm
-    libs/plog/include
-    libs/magic_enum/include
     libs/json/include
+    libs/kpeeters/include
+    libs/magic_enum/include
     libs/mini
+    libs/plog/include
     ${GLEW_DIR}/include
     ${SDL_DIR}/include
     ${IMGUI_DIR}
@@ -101,6 +102,7 @@ set(TEST_SRC
     test/core/signal_tests.cpp
     test/core/tagged_variant_tests.cpp
     test/engine/animation_tests.cpp
+    test/libs/kpeeters/tree_tests.cpp
     test/platform/imwin32_tests.cpp
     test/platform/keyboard_tests.cpp
     test/platform/zip_tests.cpp
