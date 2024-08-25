@@ -120,15 +120,15 @@ TEST(TreeTests, DepthFirstRecursion) {
 	tree.append_child(left_child, 5);
 	tree.append_child(left_child, 6);
 
-	auto sum_tree_ = [](this const auto& self, const kpeeters::tree<int>& tree, kpeeters::tree<int>::iterator node, int sum) -> int {
-		sum += node.node->data;
-		for (unsigned int i = 0; i < tree.number_of_children(node); i++) {
-			sum = self(tree, tree.child(node, i), sum);
+	auto sum_tree_ = [](this const auto& self, kpeeters::tree<int>::tree_node* node, int sum) -> int {
+		sum += node->data;
+		for (kpeeters::tree<int>::tree_node* child = node->first_child; child != nullptr; child = child->next_sibling) {
+			sum = self(child, sum);
 		}
 		return sum;
 	};
-	auto sum_tree = [&](this const auto& self, const kpeeters::tree<int>& tree) -> int {
-		return sum_tree_(tree, tree.begin(), 0);
+	auto sum_tree = [&](const kpeeters::tree<int>& tree) -> int {
+		return sum_tree_(tree.begin().node, 0);
 	};
 	int sum = sum_tree(tree);
 
