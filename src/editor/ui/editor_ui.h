@@ -49,7 +49,7 @@ namespace editor {
 		SceneWindowState scene_window;
 
 		SceneGraphUiState scene_graph_ui;
-		engine::GraphNode scene_graph; // TODO move this to engine
+		engine::SceneGraph scene_graph; // TODO move this to engine
 	};
 
 	void init_editor_ui(

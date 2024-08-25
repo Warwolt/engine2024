@@ -40,7 +40,7 @@ namespace editor {
 
 	void render_scene_window(
 		const SceneWindowState& scene_window,
-		const engine::GraphNode& scene_graph,
+		const engine::SceneGraph& scene_graph,
 		const EditorFonts& editor_fonts,
 		platform::Renderer* renderer
 	);

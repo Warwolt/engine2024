@@ -202,7 +202,7 @@ namespace editor {
 
 	static void render_scene_view(
 		const SceneViewState& scene_view,
-		const engine::GraphNode& scene_graph,
+		const engine::SceneGraph& scene_graph,
 		const EditorFonts& editor_fonts,
 		platform::Renderer* renderer
 	) {
@@ -239,20 +239,13 @@ namespace editor {
 
 		/* Render scene */
 		{
-			// Very crude rendering of scene graph
-			// TODO: Position and value of text in separate text-component vector
-			for (const engine::GraphNode& child : scene_graph.children) {
-				if (child.type == engine::NodeType::Text) {
-					glm::vec2 hack_offset = glm::vec2 { 45.0f, -4.0f };
-					renderer->draw_text(editor_fonts.system_font, "Hello world!", scene_canvas_size / 2.0f - hack_offset, { 1.0f, 1.0f, 1.0f, 1.0f });
-				}
-			}
+			// TODO render scene nodes
 		}
 	}
 
 	void render_scene_window(
 		const SceneWindowState& scene_window,
-		const engine::GraphNode& scene_graph,
+		const engine::SceneGraph& scene_graph,
 		const EditorFonts& editor_fonts,
 		platform::Renderer* renderer
 	) {
