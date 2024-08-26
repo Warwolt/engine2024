@@ -31,6 +31,7 @@ namespace engine {
 	};
 
 	struct TextNode {
+		GraphNodeId id = GraphNodeId(-1);
 		std::string value;
 	};
 
@@ -50,11 +51,20 @@ namespace engine {
 
 		const Tree& tree() const;
 		Tree::iterator root() const;
+		const std::vector<TextNode>& text_nodes() const;
+
 		GraphNodeId add_text_node(Tree::iterator position, TextNode text_node);
+		Tree::iterator remove_node(Tree::iterator position);
 
 	private:
+		void _remove_node_from_vector(Tree::iterator node);
+
 		int m_next_id = 1;
 		kpeeters::tree<GraphNode> m_tree;
+
+		// FIXME:
+		// write a combination data structure which is a std::vector<T> with data, and a
+		// std::map<Id, size_t> mapping between an identifier and the index into the vector
 		std::vector<TextNode> m_text_nodes;
 	};
 

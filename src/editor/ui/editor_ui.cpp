@@ -188,23 +188,11 @@ namespace editor {
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Remove node")) {
-				LOG_DEBUG("Remove node");
-				// const engine::GraphNodeId selected_node = ui->scene_graph_ui.selected_node;
-				// if (engine::GraphNode* node = find_graph_node_parent(&ui->scene_graph, selected_node)) {
-				// 	for (size_t i = 0; i < node->children.size(); i++) {
-				// 		if (node->children[i].id == selected_node) {
-				// 			node->children.erase(node->children.begin() + i);
-				// 			if (node->children.empty()) {
-				// 				ui->scene_graph_ui.selected_node = node->id;
-				// 			}
-				// 			else {
-				// 				size_t j = std::min(i, node->children.size() - 1); // keep `i` within bounds of new size
-				// 				ui->scene_graph_ui.selected_node = node->children[j].id;
-				// 			}
-				// 			break;
-				// 		}
-				// 	}
-				// }
+				const engine::SceneGraph::Tree& tree = ui->scene_graph.tree();
+				if (auto node = std::find_if(tree.begin(), tree.end(), is_selected_node); node != tree.end() && node != ui->scene_graph.root()) {
+					auto next_node = ui->scene_graph.remove_node(node);
+					ui->scene_graph_ui.selected_node = next_node->id;
+				}
 			}
 
 			/* Scene Graph Tree */
@@ -213,6 +201,12 @@ namespace editor {
 				ImGui::BeginChild("SceneGraph", ImVec2(0, 0), ImGuiChildFlags_Border);
 
 				render_scene_graph(&ui->scene_graph_ui, ui->scene_graph);
+
+				// debug render vectors
+				ImGui::Text("Text nodes:");
+				for (const engine::TextNode& node : ui->scene_graph.text_nodes()) {
+					ImGui::Text("\"%s\" %d", node.value.c_str(), node.id.value);
+				}
 
 				ImGui::EndChild();
 				ImGui::PopStyleColor();
