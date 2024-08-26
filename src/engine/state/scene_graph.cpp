@@ -4,7 +4,22 @@
 
 namespace engine {
 
-	const kpeeters::tree<GraphNode>& SceneGraph::tree() const {
+	// Tries to pick a node with the same index and depth as the node to be removed.
+	// When failing, tries to stay on the same depth, else picks parent.
+	static SceneGraph::Tree::iterator get_post_remove_node(SceneGraph::Tree::iterator node) {
+		if (node.node->next_sibling) {
+			return node.node->next_sibling;
+		}
+		else if (node.node->prev_sibling) {
+			return node.node->prev_sibling;
+		}
+		else {
+			return node.node->parent;
+		}
+	}
+
+	const kpeeters::tree<GraphNode>&
+	SceneGraph::tree() const {
 		return m_tree;
 	}
 
@@ -33,12 +48,15 @@ namespace engine {
 			return m_tree.end();
 		}
 
-		// Erase sub tree nodes
 		for (auto sub_node = Tree::begin(node); sub_node != Tree::end(node); sub_node++) {
 			_remove_node_from_vector(sub_node);
 		}
 		_remove_node_from_vector(node);
-		return m_tree.erase(node);
+
+		Tree::iterator next_node = get_post_remove_node(node);
+		m_tree.erase(node);
+
+		return next_node;
 	}
 
 	void SceneGraph::_remove_node_from_vector(Tree::iterator node) {
