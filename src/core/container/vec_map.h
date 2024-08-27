@@ -28,6 +28,25 @@ namespace core {
 			return m_values.empty();
 		}
 
+		bool operator==(const VecMap<Key, T>& rhs) const {
+			if (m_values.size() != rhs.size()) {
+				return false;
+			}
+
+			for (auto& [key, index] : m_key_to_index) {
+				if (!rhs.m_key_to_index.contains(key)) {
+					return false;
+				}
+				size_t rhs_index = rhs.m_key_to_index.at(key);
+				if (m_values.at(index) != rhs.m_values.at(rhs_index)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+
 	private:
 		std::vector<T> m_values;
 		std::unordered_map<Key, size_t> m_key_to_index;
