@@ -46,6 +46,26 @@ namespace core {
 			return true;
 		}
 
+		bool operator!=(const VecMap<Key, T>& rhs) const {
+			return !(*this == rhs);
+		}
+
+		T& operator[](const Key& key) {
+			if (m_key_to_index.contains(key)) {
+				return m_values[m_key_to_index[key]];
+			}
+			m_values.push_back(T());
+			m_key_to_index[key] = m_values.size() - 1;
+			return m_values.back();
+		}
+
+		T& at(const Key& key) {
+			return m_values[m_key_to_index.at(key)];
+		}
+
+		const T& at(const Key& key) const {
+			return m_values[m_key_to_index.at(key)];
+		}
 
 	private:
 		std::vector<T> m_values;
