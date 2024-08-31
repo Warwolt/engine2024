@@ -116,7 +116,12 @@ namespace core {
 		}
 
 		iterator erase(const Key& key) {
-			size_t index = m_indexes[key];
+			auto it = m_indexes.find(key);
+			if (it == m_indexes.end()) {
+				return m_values.end();
+			}
+
+			size_t index = it->second;
 
 			// replace element-to-remove with last element
 			m_values[index] = m_values.back();
@@ -126,7 +131,7 @@ namespace core {
 			m_values.pop_back();
 			m_indexes.erase(key);
 
-			return m_values.end();
+			return m_values.begin() + index;
 		}
 
 	private:
