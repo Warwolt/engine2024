@@ -320,7 +320,14 @@ int main(int argc, char** argv) {
 	platform::Timer frame_timer;
 	platform::Input input;
 	platform::PlatformAPI platform;
-	engine::State state;
+	engine::State* state;
+	{
+		platform::Timer init_timer;
+		start_imgui_frame(); // this allows engine to initialize imgui state
+		state = engine.initialize(&config);
+		ImGui::EndFrame();
+		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
+	}
 
 	bool quit = false;
 	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
@@ -330,14 +337,7 @@ int main(int argc, char** argv) {
 	if (run_mode == platform::RunMode::Game) {
 		// load game pak
 		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
-		engine.load_project(&state, path.string().c_str());
-	}
-	{
-		platform::Timer init_timer;
-		start_imgui_frame(); // this allows engine to initialize imgui state
-		engine.initialize(&state, &config);
-		ImGui::EndFrame();
-		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
+		engine.load_project(state, path.string().c_str());
 	}
 
 	/* Main loop */
@@ -457,7 +457,7 @@ int main(int argc, char** argv) {
 
 			/* Engine update */
 			start_imgui_frame();
-			engine.update(&state, input, &platform);
+			engine.update(state, input, &platform);
 
 			/* Platform update */
 			while (platform.has_commands()) {
@@ -568,7 +568,7 @@ int main(int argc, char** argv) {
 
 			/* Render to canvas */
 			{
-				engine.render(&renderer, &state);
+				engine.render(&renderer, state);
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
 				renderer.reset_render_canvas();
@@ -608,7 +608,7 @@ int main(int argc, char** argv) {
 	/* Deinitialize */
 	ImWin32::DestroyContext();
 	deinit_imgui();
-	engine.shutdown(&state);
+	engine.shutdown(state);
 	platform::free_shader_program(shader_program);
 	platform::shutdown(gl_context);
 	window.destroy();

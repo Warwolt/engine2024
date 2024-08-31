@@ -77,7 +77,9 @@ namespace engine {
 		platform::set_ft(ft);
 	}
 
-	void initialize(State* state, const platform::Configuration* config) {
+	State* initialize(const platform::Configuration* config) {
+		State* state = new State();
+
 		/* Initialize */
 		const bool reset_docking = !config->window.docking_initialized;
 		init_editor(&state->editor, state->project, reset_docking);
@@ -90,6 +92,8 @@ namespace engine {
 			});
 			state->resources.fonts["arial-16"] = font;
 		}
+
+		return state;
 	}
 
 	void shutdown(State* state) {
@@ -102,6 +106,8 @@ namespace engine {
 		for (const auto& [_, canvas] : state->resources.canvases) {
 			platform::free_canvas(canvas);
 		}
+
+		delete state;
 	}
 
 	void load_project(State* state, const char* path_str) {

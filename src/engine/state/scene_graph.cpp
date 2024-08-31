@@ -18,6 +18,14 @@ namespace engine {
 		}
 	}
 
+	SceneGraph::SceneGraph() {
+		GraphNode root_node = {
+			.id = GraphNodeId(0),
+			.type = GraphNodeType::Root,
+		};
+		m_tree = kpeeters::tree<GraphNode>(root_node);
+	}
+
 	const kpeeters::tree<GraphNode>&
 	SceneGraph::tree() const {
 		return m_tree;
