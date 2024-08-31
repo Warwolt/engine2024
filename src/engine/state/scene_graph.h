@@ -40,7 +40,19 @@ namespace engine {
 	public:
 		using Tree = kpeeters::tree<GraphNode>;
 
-		// FIX-ME: Doesn't link if this is in the .cpp file for some reason
+		// FIX-ME:
+		// Currently, main.cpp needs to be able to construct `engine::State`,
+		// which SceneGraph ends up being a member of.
+		//
+		// Since main.cpp links against the engine as a DLL, we don't have
+		// access to `SceneGraph::SceneGraph()` statically.
+		//
+		// The problem that needs fixing is making sure `main.cpp` can own the
+		// engine state (so it persist between hot reloading) but allow
+		// `engine::State` to contain members that run constructors.
+		//
+		// (Solution: Make the engine DLL return a heap allocated instance of
+		// the initial engine state)
 		SceneGraph() {
 			GraphNode root_node = {
 				.id = GraphNodeId(0),
