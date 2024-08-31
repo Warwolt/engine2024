@@ -161,6 +161,7 @@ namespace editor {
 		const float scene_scale = zoom_index_to_scale(scene_window->scene_view.zoom_index);
 		const glm::vec2 canvas_relative_mouse_pos = (window_relative_mouse_pos - scaled_canvas_rect.position()) / scene_scale;
 		glm::vec2 scene_window_size = ImGui::GetContentRegionAvail();
+		const core::Rect scene_window_rect = core::Rect::with_pos_and_size(scene_window_pos, scene_window_size);
 
 		// Initialize scene view
 		{
@@ -199,7 +200,6 @@ namespace editor {
 				if (scene_window_is_hovered) {
 					update_canvas_zoom(&scene_window->scene_view, input, window_relative_mouse_pos);
 				}
-				const core::Rect scene_window_rect = core::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 				update_canvas_mouse_drag(&scene_window->scene_view, input, scene_window_rect, scene_window_is_hovered, commands);
 
 				// select items
