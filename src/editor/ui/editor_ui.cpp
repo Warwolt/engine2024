@@ -191,12 +191,6 @@ namespace editor {
 
 				render_scene_graph(&ui->scene_graph_ui, ui->scene_graph);
 
-				// debug render vectors
-				ImGui::SeparatorText("Text nodes");
-				for (const engine::TextNode& node : ui->scene_graph.text_nodes()) {
-					ImGui::Text("\"%s\"", node.text.c_str());
-				}
-
 				ImGui::EndChild();
 				ImGui::PopStyleColor();
 			}

@@ -162,15 +162,6 @@ namespace editor {
 		const glm::vec2 canvas_relative_mouse_pos = (window_relative_mouse_pos - scaled_canvas_rect.position()) / scene_scale;
 		glm::vec2 scene_window_size = ImGui::GetContentRegionAvail();
 
-		if (ImGui::Begin("Debug2")) {
-			ImGui::Text("Window position: %f %f", scene_window_pos.x, scene_window_pos.y);
-			ImGui::Text("Canvas position: %f %f", scaled_canvas_rect.position().x, scaled_canvas_rect.position().y);
-			ImGui::Text("Canvas size: %f %f", scaled_canvas_rect.size().x, scaled_canvas_rect.size().y);
-			ImGui::Text("Window relative mouse position: %f %f", window_relative_mouse_pos.x, window_relative_mouse_pos.y);
-			ImGui::Text("Canvas relative mouse position: %f %f", canvas_relative_mouse_pos.x, canvas_relative_mouse_pos.y);
-		}
-		ImGui::End();
-
 		// Initialize scene view
 		{
 			// Size
