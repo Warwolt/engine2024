@@ -158,7 +158,7 @@ namespace editor {
 	}
 
 	static void update_project_window(
-		engine::ProjectState* project,
+		engine::ProjectState* /* project */,
 		EditorUiState* ui
 	) {
 		/* Scene Graph */
@@ -295,7 +295,7 @@ namespace editor {
 		ui->scene_window.is_visible = false;
 		if (ImGui::Begin(SCENE_WINDOW)) {
 			ui->scene_window.is_visible = true;
-			update_scene_window(&ui->scene_window, input, &commands);
+			update_scene_window(&ui->scene_window, &ui->scene_graph, input, &commands);
 		}
 		ImGui::End();
 

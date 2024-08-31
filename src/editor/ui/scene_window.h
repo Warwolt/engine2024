@@ -34,6 +34,7 @@ namespace editor {
 
 	void update_scene_window(
 		SceneWindowState* scene_window,
+		engine::SceneGraph* scene_graph,
 		const platform::Input& input,
 		std::vector<EditorCommand>* commands
 	);

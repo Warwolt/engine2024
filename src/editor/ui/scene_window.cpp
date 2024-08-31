@@ -151,6 +151,7 @@ namespace editor {
 	// Updates the ImGui window that contains the current scene
 	void update_scene_window(
 		SceneWindowState* scene_window,
+		engine::SceneGraph* scene_graph,
 		const platform::Input& input,
 		std::vector<EditorCommand>* commands
 	) {
@@ -199,7 +200,7 @@ namespace editor {
 			ImGui::Image(scene_texture.id, scene_window_size, top_left, bottom_right);
 		}
 
-		// Update scene view
+		// Update scene interactions
 		{
 			const bool scene_window_is_hovered = ImGui::IsWindowHovered();
 			const bool scene_window_is_focused = ImGui::IsWindowFocused();
@@ -209,6 +210,27 @@ namespace editor {
 				}
 				const core::Rect scene_window_rect = core::Rect::with_pos_and_size(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 				update_canvas_mouse_drag(&scene_window->scene_view, input, scene_window_rect, scene_window_is_hovered, commands);
+
+				// select items
+				// FIXME: we need some way of iterating over ALL the nodes in the scene!
+				// for each node: IF mouse is over node AND left mouse clicked THEN select node
+				for (const engine::TextNode& text_node : scene_graph->text_nodes()) {
+					// FIXME:
+					// - To get the bounding rect, we need the glyphs in the font
+					// - We cannot store the font in every single TextNode
+					// - So, we need some centralized place for storing text + font
+					// => Add some kind of "text system" that owns all text nodes and _data common to all nodes_ like the fonts
+					//    Editing text nodes are always done via the system.
+					//
+					// Each scene is a tree of nodes:
+					// - Nodes are (type, id)-pairs
+					// - Each type has a corresponding system
+					// - Each id maps to a value in that system
+					// - Each system can store additional resources (like the fonts for the text system)
+					//
+					// Updating a node is always done _via_ the system
+					// font_system.set_text(node_id, "Hello world!");
+				}
 			}
 		}
 	}
