@@ -1,5 +1,6 @@
 #pragma once
 
+#include <core/container/vec_map.h>
 #include <core/newtype.h>
 
 #include <glm/vec2.hpp>
@@ -27,11 +28,10 @@ namespace engine {
 	struct GraphNode {
 		GraphNodeId id = GraphNodeId(0);
 		GraphNodeType type = GraphNodeType::Root;
-		glm::vec2 position = { 0.0f, 0.0f };
 	};
 
 	struct TextNode {
-		GraphNodeId id = GraphNodeId(-1);
+		glm::vec2 position = { 0.0f, 0.0f };
 		std::string value;
 	};
 
@@ -44,7 +44,6 @@ namespace engine {
 			GraphNode root_node = {
 				.id = GraphNodeId(0),
 				.type = GraphNodeType::Root,
-				.position = { 0.0f, 0.0f },
 			};
 			m_tree = kpeeters::tree<GraphNode>(root_node);
 		}
@@ -61,11 +60,7 @@ namespace engine {
 
 		int m_next_id = 1;
 		kpeeters::tree<GraphNode> m_tree;
-
-		// FIXME:
-		// write a combination data structure which is a std::vector<T> with data, and a
-		// std::map<Id, size_t> mapping between an identifier and the index into the vector
-		std::vector<TextNode> m_text_nodes;
+		core::VecMap<GraphNodeId, TextNode> m_text_nodes;
 	};
 
 } // namespace engine

@@ -109,6 +109,23 @@ TEST(VecMapTests, AtOperator_ExistingKey_ReturnsThatValue) {
 	EXPECT_EQ(const_vec_map.at("key"), 1234);
 }
 
+TEST(VecMapTests, AccessUnderlyingData) {
+	core::VecMap<std::string, int> vec_map = {
+		{ "first", 1 },
+		{ "second", 2 },
+		{ "third", 3 },
+	};
+
+	std::vector<int> values = vec_map.data();
+
+	const std::vector<int> expected = {
+		1,
+		2,
+		3,
+	};
+	EXPECT_EQ(values, expected);
+}
+
 TEST(VecMapTests, ConstructedWithInitializerList_DuplicateEntriesIgnored) {
 	core::VecMap<std::string, int> vec_map = {
 		{ "first", 1 },

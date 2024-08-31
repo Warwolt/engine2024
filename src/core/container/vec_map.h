@@ -94,6 +94,10 @@ namespace core {
 			return m_values[m_indexes.at(key)];
 		}
 
+		const std::vector<T>& data() const {
+			return m_values;
+		};
+
 		void clear() noexcept {
 			m_values.clear();
 			m_indexes.clear();

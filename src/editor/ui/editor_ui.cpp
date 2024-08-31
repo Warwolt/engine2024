@@ -205,7 +205,7 @@ namespace editor {
 				// debug render vectors
 				ImGui::SeparatorText("Text nodes");
 				for (const engine::TextNode& node : ui->scene_graph.text_nodes()) {
-					ImGui::Text("\"%s\" %d", node.value.c_str(), node.id.value);
+					ImGui::Text("\"%s\"", node.value.c_str());
 				}
 
 				ImGui::EndChild();

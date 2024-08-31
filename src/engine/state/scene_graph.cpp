@@ -28,17 +28,13 @@ namespace engine {
 	}
 
 	const std::vector<TextNode>& SceneGraph::text_nodes() const {
-		return m_text_nodes;
+		return m_text_nodes.data();
 	}
 
 	GraphNodeId SceneGraph::add_text_node(kpeeters::tree<GraphNode>::iterator position, TextNode text_node) {
 		GraphNodeId node_id = GraphNodeId(m_next_id++);
 		m_tree.append_child(position, GraphNode { .id = node_id, .type = GraphNodeType::Text });
-
-		// NOTE: doing this until we've moved to the associative vector ("vector_map") we need
-		text_node.id = node_id;
-
-		m_text_nodes.push_back(text_node);
+		m_text_nodes.insert({ node_id, text_node });
 		return node_id;
 	}
 
@@ -66,7 +62,7 @@ namespace engine {
 				break;
 
 			case GraphNodeType::Text:
-				std::erase_if(m_text_nodes, [&](const TextNode& visited_node) { return visited_node.id == node->id; });
+				m_text_nodes.erase(node->id);
 				break;
 		}
 	}
