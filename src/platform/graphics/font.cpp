@@ -117,7 +117,7 @@ namespace platform {
 		free_texture(font.atlas);
 	}
 
-	core::Rect text_bounding_box(const Font& font, const std::string& text) {
+	core::Rect get_text_bounding_box(const Font& font, const std::string& text) {
 		glm::vec2 pen = { 0.0f, 0.0f };
 		float width = 0.0f;
 		const char* chars = text.data();

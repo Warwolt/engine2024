@@ -161,17 +161,6 @@ namespace editor {
 		engine::ProjectState* project,
 		EditorUiState* ui
 	) {
-		if (ImGui::InputText("Project name", &ui->project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
-			project->name = ui->project_name_buf;
-		}
-
-		ImGui::SeparatorText("Scene");
-
-		const int step = 1;
-		ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
-
-		ImGui::Spacing();
-
 		/* Scene Graph */
 		{
 			/* Scene graph buttons */

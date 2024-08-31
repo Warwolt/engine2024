@@ -148,14 +148,27 @@ namespace editor {
 		}
 	}
 
+	// Updates the ImGui window that contains the current scene
 	void update_scene_window(
 		SceneWindowState* scene_window,
 		const platform::Input& input,
 		std::vector<EditorCommand>* commands
 	) {
 		const glm::vec2 scene_window_pos = ImGui::GetCursorScreenPos();
+		const core::Rect& scaled_canvas_rect = scene_window->scene_view.scaled_canvas_rect;
 		const glm::vec2 window_relative_mouse_pos = input.mouse.pos - scene_window_pos;
+		const float scene_scale = zoom_index_to_scale(scene_window->scene_view.zoom_index);
+		const glm::vec2 canvas_relative_mouse_pos = (window_relative_mouse_pos - scaled_canvas_rect.position()) / scene_scale;
 		glm::vec2 scene_window_size = ImGui::GetContentRegionAvail();
+
+		if (ImGui::Begin("Debug2")) {
+			ImGui::Text("Window position: %f %f", scene_window_pos.x, scene_window_pos.y);
+			ImGui::Text("Canvas position: %f %f", scaled_canvas_rect.position().x, scaled_canvas_rect.position().y);
+			ImGui::Text("Canvas size: %f %f", scaled_canvas_rect.size().x, scaled_canvas_rect.size().y);
+			ImGui::Text("Window relative mouse position: %f %f", window_relative_mouse_pos.x, window_relative_mouse_pos.y);
+			ImGui::Text("Canvas relative mouse position: %f %f", canvas_relative_mouse_pos.x, canvas_relative_mouse_pos.y);
+		}
+		ImGui::End();
 
 		// Initialize scene view
 		{
@@ -200,6 +213,7 @@ namespace editor {
 		}
 	}
 
+	// Render the scene itself, which is inside the scene window
 	static void render_scene_view(
 		const SceneViewState& scene_view,
 		const engine::SceneGraph& scene_graph,
@@ -242,12 +256,11 @@ namespace editor {
 			glm::vec2 canvas_center = scene_canvas_size / 2.0f;
 			for (const engine::TextNode& text_node : scene_graph.text_nodes()) {
 				renderer->draw_text(editor_fonts.system_font, text_node.text, canvas_center + text_node.position, platform::Color::white);
+				if (text_node.is_selected) {
+					core::Rect quad = platform::get_text_bounding_box(editor_fonts.system_font, text_node.text);
+					renderer->draw_rect(quad + canvas_center + text_node.position, platform::Color::white);
+				}
 			}
-
-			// render box around first text
-			const engine::TextNode& text_node = scene_graph.text_nodes()[0];
-			core::Rect quad = platform::text_bounding_box(editor_fonts.system_font, text_node.text);
-			renderer->draw_rect(quad + canvas_center + text_node.position, platform::Color::white);
 		}
 	}
 

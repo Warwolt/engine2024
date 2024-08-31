@@ -39,5 +39,5 @@ namespace platform {
 	std::optional<Font> add_ttf_font(const char* font_path, uint8_t font_size);
 	void free_font(const Font& font);
 
-	core::Rect text_bounding_box(const Font& font, const std::string& text);
+	core::Rect get_text_bounding_box(const Font& font, const std::string& text);
 }
