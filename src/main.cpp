@@ -81,8 +81,8 @@ static void set_imgui_style_win32_like() {
 	style.TabRounding = 0.0f;
 
 	/* Colors */
-	ImVec4* colors = style.Colors;
 	// clang-format off
+	ImVec4* colors = style.Colors;
 	colors[ImGuiCol_Text]                   = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 	colors[ImGuiCol_TextDisabled]           = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
 	colors[ImGuiCol_WindowBg]               = ImVec4(0.94f, 0.94f, 0.94f, 1.00f);
@@ -107,7 +107,7 @@ static void set_imgui_style_win32_like() {
 	colors[ImGuiCol_Button]                 = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
 	colors[ImGuiCol_ButtonHovered]          = ImVec4(0.90f, 0.95f, 0.98f, 1.00f);
 	colors[ImGuiCol_ButtonActive]           = ImVec4(0.80f, 0.89f, 0.97f, 1.00f);
-	colors[ImGuiCol_Header]                 = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
+	colors[ImGuiCol_Header]                 = ImVec4(0.94f, 0.94f, 0.94f, 1.00f);
 	colors[ImGuiCol_HeaderHovered]          = ImVec4(0.90f, 0.95f, 0.98f, 1.00f);
 	colors[ImGuiCol_HeaderActive]           = ImVec4(0.80f, 0.89f, 0.97f, 1.00f);
 	colors[ImGuiCol_Separator]              = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);

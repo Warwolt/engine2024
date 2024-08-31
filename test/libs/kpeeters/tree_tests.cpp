@@ -104,3 +104,79 @@ TEST(TreeTests, EraseSubTree) {
 	const std::vector<int> expected = { 1, 3 };
 	EXPECT_EQ(nodes, expected);
 }
+
+TEST(TreeTests, DepthFirstRecursion) {
+	kpeeters::tree<int> tree;
+
+	//      1
+	//    /  \
+	//   2    3
+	// / | \
+	// 4 5 6
+	auto root = tree.insert(tree.begin(), 1);
+	auto left_child = tree.append_child(root, 2);
+	tree.append_child(root, 3);
+	tree.append_child(left_child, 4);
+	tree.append_child(left_child, 5);
+	tree.append_child(left_child, 6);
+
+	auto sum_tree_ = [](this const auto& self, const kpeeters::tree<int>::tree_node* node, int sum) -> int {
+		sum += node->data;
+		for (auto* child = node->first_child; child != nullptr; child = child->next_sibling) {
+			sum = self(child, sum);
+		}
+		return sum;
+	};
+	auto sum_tree = [&](const kpeeters::tree<int>& tree) -> int {
+		return sum_tree_(tree.begin().node, 0);
+	};
+	int sum = sum_tree(tree);
+
+	EXPECT_EQ(sum, 1 + 2 + 4 + 5 + 6 + 3);
+}
+
+TEST(TreeTests, FindNodeWithValue) {
+	kpeeters::tree<int> tree;
+
+	//      1
+	//    /  \
+	//   2    3
+	// / | \
+	// 4 5 6
+	auto root = tree.insert(tree.begin(), 1);
+	auto left_child = tree.append_child(root, 2);
+	tree.append_child(root, 3);
+	tree.append_child(left_child, 4);
+	tree.append_child(left_child, 5);
+	tree.append_child(left_child, 6);
+
+	auto it = std::find(tree.begin(), tree.end(), 5);
+
+	EXPECT_EQ(*it, 5);
+	EXPECT_EQ(*(++it), 6);
+}
+
+TEST(TreeTests, CollectSubTreeNodes) {
+	kpeeters::tree<int> tree;
+
+	//      1
+	//    /  \
+	//   2    3
+	// / | \
+	// 4 5 6
+	auto root = tree.insert(tree.begin(), 1);
+	auto left_child = tree.append_child(root, 2);
+	tree.append_child(root, 3);
+	tree.append_child(left_child, 4);
+	tree.append_child(left_child, 5);
+	tree.append_child(left_child, 6);
+
+	// iterate over subtree starting below 2
+	std::vector<int> sub_tree_nodes;
+	for (auto node = kpeeters::tree<int>::begin(left_child); node != kpeeters::tree<int>::end(left_child); node++) {
+		sub_tree_nodes.push_back(*node);
+	}
+
+	std::vector<int> expected_nodes = { 4, 5, 6 };
+	EXPECT_EQ(sub_tree_nodes, expected_nodes);
+}

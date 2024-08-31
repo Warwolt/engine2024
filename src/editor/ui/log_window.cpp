@@ -42,7 +42,7 @@ namespace editor {
 		ImGui::Spacing();
 
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
-		ImGui::BeginChild("LogOutput");
+		ImGui::BeginChild("LogOutput", ImVec2(0, 0), ImGuiChildFlags_Border);
 		{
 			// Print log messages
 			for (const platform::LogEntry& entry : log) {

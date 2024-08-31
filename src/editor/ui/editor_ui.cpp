@@ -95,6 +95,10 @@ namespace editor {
 			ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 			setup_docking_space(dockspace);
 		}
+
+		// add fake elements
+		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .position = { 0.0f, 0.0f }, .text = "Hello" });
+		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .position = { 0.0f, 15.0f }, .text = "World" });
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
@@ -102,21 +106,95 @@ namespace editor {
 		shutdown_scene_window(ui.scene_window);
 	}
 
-	static void update_project_window(
-		bool unsaved_changes,
-		engine::ProjectState* project,
-		std::string* project_name_buf
-	) {
-		const int step = 1;
-		ImGui::InputScalar("Project Counter", ImGuiDataType_S16, &project->counter, &step, NULL, "%d");
+	static std::string get_graph_node_label(const engine::GraphNode& node) {
+		const char* name = "n/a";
+		switch (node.type) {
+			case engine::GraphNodeType::Root:
+				name = "Scene";
+				break;
+			case engine::GraphNodeType::Text:
+				name = "Text";
+				break;
+		}
+		return std::format("{}##{}", name, node.id.value);
+	}
 
-		ImGui::Text("Unsaved changes: %s", unsaved_changes ? "yes" : "no");
+	static void render_scene_graph_sub_tree(SceneGraphUiState* scene_graph_ui, const kpeeters::tree<engine::GraphNode>::tree_node* node_it) {
+		const engine::GraphNode& node = node_it->data;
 
-		if (ImGui::InputText("Project name", project_name_buf, ImGuiInputTextFlags_EnterReturnsTrue)) {
-			project->name = *project_name_buf;
+		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+		if (scene_graph_ui->selected_node == node.id) {
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+		if (node_it->is_leaf()) {
+			flags |= ImGuiTreeNodeFlags_Bullet;
+		}
+		if (node.type == engine::GraphNodeType::Root) {
+			flags |= ImGuiTreeNodeFlags_DefaultOpen;
 		}
 
-		ImGui::Text("Project path: %s", project->path.string().c_str());
+		std::string label = get_graph_node_label(node);
+		if (scene_graph_ui->nodes[node.id].is_open) {
+			ImGui::SetNextItemOpen(true);
+		}
+		bool node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
+		scene_graph_ui->nodes[node.id].is_open = node_is_open;
+
+		if (ImGui::IsItemClicked()) {
+			scene_graph_ui->selected_node = node.id;
+		}
+
+		if (node_is_open) {
+			for (auto* child = node_it->first_child; child != nullptr; child = child->next_sibling) {
+				render_scene_graph_sub_tree(scene_graph_ui, child);
+			}
+			ImGui::TreePop();
+		}
+	}
+
+	static void render_scene_graph(SceneGraphUiState* scene_graph_ui, const engine::SceneGraph& scene_graph) {
+		const kpeeters::tree<engine::GraphNode>::tree_node* root_node = scene_graph.tree().begin().node;
+		render_scene_graph_sub_tree(scene_graph_ui, root_node);
+	}
+
+	static void update_project_window(
+		engine::ProjectState* /* project */,
+		EditorUiState* ui
+	) {
+		/* Scene Graph */
+		{
+			/* Scene graph buttons */
+			const auto is_selected_node = [&](const engine::GraphNode& node) { return node.id == ui->scene_graph_ui.selected_node; };
+			ImGui::Text("Scene graph:");
+			if (ImGui::Button("Add node")) {
+				const engine::SceneGraph::Tree& tree = ui->scene_graph.tree();
+				if (auto node = std::find_if(tree.begin(), tree.end(), is_selected_node); node != tree.end()) {
+					auto root = ui->scene_graph.root();
+					engine::GraphNodeId child_id = ui->scene_graph.add_text_node(node, engine::TextNode());
+					ui->scene_graph_ui.nodes[node->id].is_open = true;
+					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Remove node")) {
+				const engine::SceneGraph::Tree& tree = ui->scene_graph.tree();
+				if (auto node = std::find_if(tree.begin(), tree.end(), is_selected_node); node != tree.end() && node != ui->scene_graph.root()) {
+					auto next_node = ui->scene_graph.remove_node(node);
+					ui->scene_graph_ui.selected_node = next_node->id;
+				}
+			}
+
+			/* Scene Graph Tree */
+			{
+				ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
+				ImGui::BeginChild("SceneGraph", ImVec2(0, 0), ImGuiChildFlags_Border);
+
+				render_scene_graph(&ui->scene_graph_ui, ui->scene_graph);
+
+				ImGui::EndChild();
+				ImGui::PopStyleColor();
+			}
+		}
 	}
 
 	static void update_edit_window(
@@ -197,7 +275,7 @@ namespace editor {
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_project_window(unsaved_changes, project, &ui->project_name_buf);
+			update_project_window(project, ui);
 		}
 		ImGui::End();
 
@@ -211,7 +289,7 @@ namespace editor {
 		ui->scene_window.is_visible = false;
 		if (ImGui::Begin(SCENE_WINDOW)) {
 			ui->scene_window.is_visible = true;
-			update_scene_window(&ui->scene_window, input, &commands);
+			update_scene_window(&ui->scene_window, &ui->scene_graph, input, &commands);
 		}
 		ImGui::End();
 
@@ -222,7 +300,7 @@ namespace editor {
 		const EditorUiState& ui,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, ui.editor_fonts, renderer);
+		render_scene_window(ui.scene_window, ui.scene_graph, ui.editor_fonts, renderer);
 	}
 
 } // namespace editor

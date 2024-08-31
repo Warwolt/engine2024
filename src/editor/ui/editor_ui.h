@@ -4,12 +4,14 @@
 #include <editor/editor_command.h>
 #include <editor/ui/editor_fonts.h>
 #include <editor/ui/scene_window.h>
+#include <engine/state/scene_graph.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
 
 #include <stdint.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace platform {
@@ -26,6 +28,16 @@ namespace engine {
 
 namespace editor {
 
+	struct UiGraphNode {
+		bool is_open = false;
+	};
+
+	struct SceneGraphUiState {
+		engine::GraphNodeId selected_node = engine::GraphNodeId(0);
+		engine::GraphNodeId next_id = engine::GraphNodeId(1);
+		std::unordered_map<engine::GraphNodeId, UiGraphNode> nodes = { { engine::GraphNodeId(0), { .is_open = true } } };
+	};
+
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
@@ -35,6 +47,9 @@ namespace editor {
 
 		EditorFonts editor_fonts;
 		SceneWindowState scene_window;
+
+		SceneGraphUiState scene_graph_ui;
+		engine::SceneGraph scene_graph; // TODO move this to engine
 	};
 
 	void init_editor_ui(
