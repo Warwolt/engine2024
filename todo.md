@@ -23,9 +23,9 @@ Goals:
 - (Mess around with Bayer matrix dithering and Perlin noise)
 
 ## Doing
-- Make `engine::State` heap allocated to get around constructors not being linked
 
 ## Done
+- Make `engine::State` heap allocated to get around constructors not being linked
 - Create "Hello World" text scene using a Text component and scene tree
 - Remove `glGetUniformLocation` calls from hot loop, cache locations after shader loaded.
 - Add a RingBuffer type
