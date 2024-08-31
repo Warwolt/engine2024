@@ -119,7 +119,7 @@ namespace editor {
 		return std::format("{}##{}", name, node.id.value);
 	}
 
-	static void render_graph_node(SceneGraphUiState* scene_graph_ui, const kpeeters::tree<engine::GraphNode>::tree_node* node_it) {
+	static void render_scene_graph_sub_tree(SceneGraphUiState* scene_graph_ui, const kpeeters::tree<engine::GraphNode>::tree_node* node_it) {
 		const engine::GraphNode& node = node_it->data;
 
 		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
@@ -146,7 +146,7 @@ namespace editor {
 
 		if (node_is_open) {
 			for (auto* child = node_it->first_child; child != nullptr; child = child->next_sibling) {
-				render_graph_node(scene_graph_ui, child);
+				render_scene_graph_sub_tree(scene_graph_ui, child);
 			}
 			ImGui::TreePop();
 		}
@@ -154,7 +154,7 @@ namespace editor {
 
 	static void render_scene_graph(SceneGraphUiState* scene_graph_ui, const engine::SceneGraph& scene_graph) {
 		const kpeeters::tree<engine::GraphNode>::tree_node* root_node = scene_graph.tree().begin().node;
-		render_graph_node(scene_graph_ui, root_node);
+		render_scene_graph_sub_tree(scene_graph_ui, root_node);
 	}
 
 	static void update_project_window(
