@@ -131,10 +131,10 @@ namespace core {
 
 	private:
 		const Key& _last_key() {
-			auto it = std::find_if(m_indexes.begin(), m_indexes.end(), [&](const std::pair<Key, T>& key_val) {
+			auto is_last_index = [&](const std::pair<Key, size_t>& key_val) {
 				return key_val.second == m_values.size() - 1;
-			});
-			return it->first;
+			};
+			return std::find_if(m_indexes.begin(), m_indexes.end(), is_last_index)->first;
 		}
 
 		std::vector<T> m_values;

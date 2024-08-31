@@ -217,7 +217,6 @@ TEST(VecMapTests, Clear_RemovesAllElements) {
 	EXPECT_TRUE(values.empty());
 }
 
-// erase returns iterator to next element after erased element
 TEST(VecMapTests, Erase_WithMatchingKey_RemovesElement) {
 	core::VecMap<std::string, int> vec_map = {
 		{ "first", 10 },
@@ -230,6 +229,22 @@ TEST(VecMapTests, Erase_WithMatchingKey_RemovesElement) {
 	const core::VecMap<std::string, int> expected = {
 		{ "first", 10 },
 		{ "third", 30 },
+	};
+	EXPECT_EQ(vec_map, expected);
+}
+
+TEST(VecMapTests, Erase_LastElemenet_RemovesElement) {
+	core::VecMap<std::string, int> vec_map = {
+		{ "first", 10 },
+		{ "second", 20 },
+		{ "third", 30 },
+	};
+
+	vec_map.erase("third");
+
+	const core::VecMap<std::string, int> expected = {
+		{ "first", 10 },
+		{ "second", 20 },
 	};
 	EXPECT_EQ(vec_map, expected);
 }
