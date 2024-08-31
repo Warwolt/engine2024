@@ -37,6 +37,7 @@ namespace platform {
 
 	std::optional<Font> add_ttf_font(const char* font_path, uint8_t font_size) {
 		Font font;
+		font.size = font_size;
 
 		/* Load font */
 		FT_Face face;
@@ -58,7 +59,7 @@ namespace platform {
 		uint32_t texture_height = rows * glyph_height;
 
 		/* Save line spacing */
-		font.height = face->size->metrics.height / pixels_per_point;
+		font.line_height = (face->size->metrics.ascender - face->size->metrics.descender) / pixels_per_point;
 
 		/* Compute glyphs */
 		std::vector<uint8_t> glyph_pixels = std::vector<uint8_t>(texture_width * texture_height);
@@ -114,6 +115,20 @@ namespace platform {
 
 	void free_font(const Font& font) {
 		free_texture(font.atlas);
+	}
+
+	core::Rect text_bounding_box(const Font& font, const std::string& text) {
+		glm::vec2 pen = { 0.0f, 0.0f };
+		float width = 0.0f;
+		const char* chars = text.data();
+		for (char character = *chars; character != '\0'; character = *(++chars)) {
+			const Glyph& glyph = font.glyphs[character];
+			width += glyph.advance;
+		}
+		return core::Rect {
+			.top_left = { 0.0f, -(float)font.size - 1.0f },
+			.bottom_right = { width + 2.0f, 2.0f }
+		};
 	}
 
 } // namespace platform

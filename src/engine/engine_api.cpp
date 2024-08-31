@@ -193,7 +193,7 @@ namespace engine {
 		glm::vec4 text_color = glm::vec4 { 0.92f, 0.92f, 0.92f, 1.0f };
 		std::string text = std::to_string(state.game.counter);
 		glm::vec2 line1_pos = state.window_resolution / 2.0f;
-		glm::vec2 line2_pos = state.window_resolution / 2.0f + glm::vec2 { 0.0f, font.height };
+		glm::vec2 line2_pos = state.window_resolution / 2.0f + glm::vec2 { 0.0f, font.line_height };
 		renderer->draw_text_centered(font, "Game", line1_pos, text_color);
 		renderer->draw_text_centered(font, text.c_str(), line2_pos, text_color);
 	}

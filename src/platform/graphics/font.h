@@ -2,6 +2,8 @@
 
 #include <ft2build.h>
 
+#include <core/rect.h>
+
 #include <freetype/freetype.h>
 #include <glm/glm.hpp>
 #include <platform/graphics/texture.h>
@@ -9,6 +11,7 @@
 #include <optional>
 #include <stddef.h>
 #include <stdint.h>
+#include <string>
 
 namespace platform {
 
@@ -23,7 +26,8 @@ namespace platform {
 		static constexpr size_t NUM_GLYPHS = 127;
 		Glyph glyphs[NUM_GLYPHS]; // indexed using ascii values
 		platform::Texture atlas;
-		int height; // measured from baseline
+		size_t size;
+		int line_height; // measured from baseline
 	};
 
 	void set_ft(FT_Library ft);
@@ -35,4 +39,5 @@ namespace platform {
 	std::optional<Font> add_ttf_font(const char* font_path, uint8_t font_size);
 	void free_font(const Font& font);
 
+	core::Rect text_bounding_box(const Font& font, const std::string& text);
 }

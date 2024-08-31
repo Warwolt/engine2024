@@ -239,9 +239,15 @@ namespace editor {
 
 		/* Render scene */
 		{
+			glm::vec2 canvas_center = scene_canvas_size / 2.0f;
 			for (const engine::TextNode& text_node : scene_graph.text_nodes()) {
-				renderer->draw_text(editor_fonts.system_font, text_node.text, scene_canvas_size / 2.0f + text_node.position, platform::Color::white);
+				renderer->draw_text(editor_fonts.system_font, text_node.text, canvas_center + text_node.position, platform::Color::white);
 			}
+
+			// render box around first text
+			const engine::TextNode& text_node = scene_graph.text_nodes()[0];
+			core::Rect quad = platform::text_bounding_box(editor_fonts.system_font, text_node.text);
+			renderer->draw_rect(quad + canvas_center + text_node.position, platform::Color::white);
 		}
 	}
 
