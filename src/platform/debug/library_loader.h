@@ -22,7 +22,7 @@ namespace platform {
 		void (*set_freetype_library)(FT_Library ft);
 
 		// engine interface
-		void (*initialize)(engine::State*, const platform::Configuration* config);
+		engine::State* (*initialize)(const platform::Configuration* config);
 		void (*load_project)(engine::State*, const char* path);
 		void (*shutdown)(engine::State*);
 		void (*update)(engine::State*, const platform::Input&, platform::PlatformAPI*);
