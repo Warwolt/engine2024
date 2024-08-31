@@ -32,7 +32,7 @@ namespace engine {
 
 	struct TextNode {
 		glm::vec2 position = { 0.0f, 0.0f };
-		std::string value;
+		std::string text;
 	};
 
 	class SceneGraph {

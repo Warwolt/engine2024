@@ -239,7 +239,9 @@ namespace editor {
 
 		/* Render scene */
 		{
-			// TODO render scene nodes
+			for (const engine::TextNode& text_node : scene_graph.text_nodes()) {
+				renderer->draw_text(editor_fonts.system_font, text_node.text, scene_canvas_size / 2.0f + text_node.position, platform::Color::white);
+			}
 		}
 	}
 

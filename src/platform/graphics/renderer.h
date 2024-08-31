@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <expected>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace platform {
@@ -104,8 +105,8 @@ namespace platform {
 		void draw_texture_clipped_with_color(Texture texture, core::Rect quad, core::FlipRect uv, glm::vec4 color);
 
 		void draw_character(const Font& font, char character, glm::vec2 pos, glm::vec4 color);
-		void draw_text(const Font& font, const char* text, glm::vec2 pos, glm::vec4 color);
-		void draw_text_centered(const Font& font, const char* text, glm::vec2 pos, glm::vec4 color);
+		void draw_text(const Font& font, const std::string& text, glm::vec2 pos, glm::vec4 color);
+		void draw_text_centered(const Font& font, const std::string& text, glm::vec2 pos, glm::vec4 color);
 
 		RenderDebugData debug_data() const;
 

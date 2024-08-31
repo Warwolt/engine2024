@@ -448,9 +448,10 @@ namespace platform {
 		draw_texture_clipped_with_color(font.atlas, quad, uv, color);
 	}
 
-	void Renderer::draw_text(const Font& font, const char* text, glm::vec2 pos, glm::vec4 color) {
+	void Renderer::draw_text(const Font& font, const std::string& text, glm::vec2 pos, glm::vec4 color) {
 		glm::vec2 pen = pos;
-		for (char character = *text; character != '\0'; character = *(++text)) {
+		const char* chars = text.data();
+		for (char character = *chars; character != '\0'; character = *(++chars)) {
 			const platform::Glyph& glyph = font.glyphs[character];
 
 			if (character != ' ') {
@@ -465,12 +466,12 @@ namespace platform {
 		}
 	}
 
-	void Renderer::draw_text_centered(const Font& font, const char* text, glm::vec2 pos, glm::vec4 color) {
+	void Renderer::draw_text_centered(const Font& font, const std::string& text, glm::vec2 pos, glm::vec4 color) {
 		glm::vec2 box_size = { 0.0f, 0.0f };
 		box_size.y = (float)font.height;
 
-		const char* it = text;
-		for (char character = *it; character != '\0'; character = *(++it)) {
+		const char* chars = text.data();
+		for (char character = *chars; character != '\0'; character = *(++chars)) {
 			const platform::Glyph& glyph = font.glyphs[character];
 			box_size.x += glyph.advance;
 		}

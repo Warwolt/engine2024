@@ -97,8 +97,8 @@ namespace editor {
 		}
 
 		// add fake elements
-		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .value = "Hello" });
-		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .value = "World" });
+		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .position = { 0.0f, 0.0f }, .text = "Hello" });
+		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .position = { 0.0f, 15.0f }, .text = "World" });
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
@@ -205,7 +205,7 @@ namespace editor {
 				// debug render vectors
 				ImGui::SeparatorText("Text nodes");
 				for (const engine::TextNode& node : ui->scene_graph.text_nodes()) {
-					ImGui::Text("\"%s\"", node.value.c_str());
+					ImGui::Text("\"%s\"", node.text.c_str());
 				}
 
 				ImGui::EndChild();
