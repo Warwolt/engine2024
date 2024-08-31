@@ -179,6 +179,7 @@ TEST(VecMapTests, Insert_NewKey_AddsElementToEnd) {
 	EXPECT_EQ(vec_map["second"], 22);
 	EXPECT_EQ(values, expected);
 }
+
 TEST(VecMapTests, Insert_ExistingKey_OverwritesValue) {
 	core::VecMap<std::string, int> vec_map {
 		{ "first", 1 },
@@ -198,6 +199,41 @@ TEST(VecMapTests, Insert_ExistingKey_OverwritesValue) {
 	EXPECT_EQ(values, expected);
 }
 
-// erase
+TEST(VecMapTests, Clear_RemovesAllElements) {
+	core::VecMap<std::string, int> vec_map = {
+		{ "first", 1 },
+		{ "second", 2 },
+		{ "third", 33 },
+	};
 
-// clear
+	vec_map.clear();
+	std::vector<int> values;
+	for (int value : vec_map) {
+		values.push_back(value);
+	}
+
+	EXPECT_TRUE(vec_map.empty());
+	EXPECT_EQ(vec_map.size(), 0);
+	EXPECT_TRUE(values.empty());
+}
+
+// erase returns iterator to next element after erased element
+TEST(VecMapTests, Erase_WithMatchingKey_RemovesElement) {
+	core::VecMap<std::string, int> vec_map = {
+		{ "first", 10 },
+		{ "second", 20 },
+		{ "third", 30 },
+	};
+
+	vec_map.erase("second");
+
+	const core::VecMap<std::string, int> expected = {
+		{ "first", 10 },
+		{ "third", 30 },
+	};
+	EXPECT_EQ(vec_map, expected);
+}
+
+// erase with non-existing key does nothing
+
+// erase with std::remove_if

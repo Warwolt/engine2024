@@ -18,9 +18,9 @@ namespace core {
 		VecMap(std::initializer_list<std::pair<const Key, T>> init) {
 			size_t i = 0;
 			for (const auto& [key, value] : init) {
-				if (!m_key_to_index.contains(key)) {
+				if (!m_indexes.contains(key)) {
 					m_values.push_back(value);
-					m_key_to_index.emplace(key, i++);
+					m_indexes.emplace(key, i++);
 				}
 			}
 		}
@@ -38,11 +38,11 @@ namespace core {
 				return false;
 			}
 
-			for (auto& [key, index] : m_key_to_index) {
-				if (!rhs.m_key_to_index.contains(key)) {
+			for (auto& [key, index] : m_indexes) {
+				if (!rhs.m_indexes.contains(key)) {
 					return false;
 				}
-				size_t rhs_index = rhs.m_key_to_index.at(key);
+				size_t rhs_index = rhs.m_indexes.at(key);
 				if (m_values.at(index) != rhs.m_values.at(rhs_index)) {
 					return false;
 				}
@@ -56,40 +56,47 @@ namespace core {
 		}
 
 		T& operator[](const Key& key) {
-			if (m_key_to_index.contains(key)) {
-				return m_values[m_key_to_index[key]];
+			if (m_indexes.contains(key)) {
+				return m_values[m_indexes[key]];
 			}
 			m_values.push_back(T());
-			m_key_to_index[key] = m_values.size() - 1;
+			m_indexes[key] = m_values.size() - 1;
 			return m_values.back();
 		}
 
 		std::pair<iterator, bool> insert(const std::pair<Key, T>& key_val) {
 			const auto& [key, value] = key_val;
 
-			// update existing key
-			if (m_key_to_index.contains(key)) {
-				size_t index = m_key_to_index[key];
+			if (m_indexes.contains(key)) {
+				//  existing key
+				size_t index = m_indexes[key];
 				iterator it = m_values.begin() + index;
 				*it = value;
+
 				return { it, false };
 			}
+			else {
+				// new key
+				m_values.push_back(value);
+				size_t index = m_values.size() - 1;
+				m_indexes[key] = index;
+				iterator it = m_values.begin() + index;
 
-			// new key
-			m_values.push_back(value);
-			size_t index = m_values.size() - 1;
-			m_key_to_index[key] = index;
-			iterator it = m_values.begin() + index;
-
-			return { it, true };
+				return { it, true };
+			}
 		}
 
 		T& at(const Key& key) {
-			return m_values[m_key_to_index.at(key)];
+			return m_values[m_indexes.at(key)];
 		}
 
 		const T& at(const Key& key) const {
-			return m_values[m_key_to_index.at(key)];
+			return m_values[m_indexes.at(key)];
+		}
+
+		void clear() noexcept {
+			m_values.clear();
+			m_indexes.clear();
 		}
 
 		iterator begin() {
@@ -108,9 +115,30 @@ namespace core {
 			return m_values.end();
 		}
 
+		iterator erase(const Key& key) {
+			size_t index = m_indexes[key];
+
+			// replace element-to-remove with last element
+			m_values[index] = m_values.back();
+			m_indexes[_last_key()] = index;
+
+			// remove last element
+			m_values.pop_back();
+			m_indexes.erase(key);
+
+			return m_values.end();
+		}
+
 	private:
+		const Key& _last_key() {
+			auto it = std::find_if(m_indexes.begin(), m_indexes.end(), [&](const std::pair<Key, T>& key_val) {
+				return key_val.second == m_values.size() - 1;
+			});
+			return it->first;
+		}
+
 		std::vector<T> m_values;
-		std::unordered_map<Key, size_t> m_key_to_index;
+		std::unordered_map<Key, size_t> m_indexes;
 	};
 
 } // namespace core
