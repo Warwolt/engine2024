@@ -8,7 +8,11 @@ Goals:
   - "Mario maker" style
 
 ## TODO
+- Run current scene in engine
+- Save scene to disk
+
 - Add bar with run button (window that can't be docked)
+- Add property editor for selected node
 - Fix ImWin32 to render in order of item push _not_ in alphabetical order
 - Add context menu to log window with "clear" option
 - Capture `platform::run_command` stdout and stderr to in-memory log and print in editor log window
@@ -22,9 +26,9 @@ Goals:
 - (Mess around with Bayer matrix dithering and Perlin noise)
 
 ## Doing
-- Add TextSystem to store TextNode instances
 
 ## Done
+- Add TextSystem to store TextNode instances
 - Return a key-value pair for VecMap::iterator
 - Fix canvas moving outside of ImGui::Image we render the canvas inside of
 - Make `engine::State` heap allocated to get around constructors not being linked
