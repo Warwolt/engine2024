@@ -37,6 +37,7 @@ namespace editor {
 		engine::GameState* game,
 		engine::ProjectState* project,
 		engine::Systems* systems,
+		engine::SceneGraph* scene_graph,
 		const platform::Input& input,
 		const engine::Resources& resources,
 		platform::PlatformAPI* platform

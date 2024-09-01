@@ -44,6 +44,7 @@ namespace engine {
 	struct State {
 		Resources resources;
 		Systems systems;
+		SceneGraph scene_graph; // <-- at some point this should be a stack
 		bool editor_is_running;
 		glm::vec2 window_resolution;
 		DebugUiState debug_ui;

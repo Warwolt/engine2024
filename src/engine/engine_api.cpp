@@ -86,12 +86,23 @@ namespace engine {
 
 		/* Add fonts */
 		{
+			// TODO: remove this and just use the font in the text system
 			const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
 			platform::Font font = core::container::unwrap(platform::add_ttf_font(arial_font_path, 16), [&] {
 				ABORT("Failed to load font \"%s\"", arial_font_path);
 			});
 			state->resources.fonts["arial-16"] = font;
 		}
+
+		// add fake elements
+		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
+		FontID arial_font_16 = core::container::unwrap(state->systems.text.add_ttf_font(arial_font_path, 16), [&] {
+			ABORT("Failed to load font \"%s\"", arial_font_path);
+		});
+		TextID hello = state->systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
+		TextID world = state->systems.text.add_text_node(arial_font_16, "World", { 0.0f, 18.0f });
+		state->scene_graph.add_text_node(state->scene_graph.root(), hello);
+		state->scene_graph.add_text_node(state->scene_graph.root(), world);
 
 		return state;
 	}
@@ -186,7 +197,16 @@ namespace engine {
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, &window_title);
 			platform->set_window_title(window_title.c_str());
 			if (input.mode == platform::RunMode::Editor) {
-				editor::update_editor(&state->editor, &state->game, &state->project, &state->systems, input, state->resources, platform);
+				editor::update_editor(
+					&state->editor,
+					&state->game,
+					&state->project,
+					&state->systems,
+					&state->scene_graph,
+					input,
+					state->resources,
+					platform
+				);
 			}
 		}
 	}

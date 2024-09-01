@@ -50,10 +50,7 @@ namespace editor {
 		EditorFonts editor_fonts;
 		SceneWindowState scene_window;
 
-		SceneGraphUiState scene_graph_ui;
-
-		// TODO move tese to the engine
-		engine::SceneGraph scene_graph;
+		SceneGraphUiState scene_graph_ui; // Rename to "ui_scene_data" or something?
 	};
 
 	void init_editor_ui(
@@ -70,6 +67,7 @@ namespace editor {
 		engine::GameState* game,
 		engine::ProjectState* project,
 		engine::Systems* systems,
+		engine::SceneGraph* scene_graph,
 		const platform::Input& input,
 		const engine::Resources& resources,
 		bool unsaved_changes,
