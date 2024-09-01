@@ -215,13 +215,12 @@ namespace engine {
 		// clear
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state.window_resolution }, platform::Color::black);
 
-		platform::Font font = state.resources.fonts.at("arial-16");
-		glm::vec4 text_color = glm::vec4 { 0.92f, 0.92f, 0.92f, 1.0f };
-		std::string text = std::to_string(state.game.counter);
-		glm::vec2 line1_pos = state.window_resolution / 2.0f;
-		glm::vec2 line2_pos = state.window_resolution / 2.0f + glm::vec2 { 0.0f, font.line_height };
-		renderer->draw_text_centered(font, "Game", line1_pos, text_color);
-		renderer->draw_text_centered(font, text.c_str(), line2_pos, text_color);
+		// render text
+		glm::vec2 window_center = state.window_resolution / 2.0f;
+		for (const auto& [node_id, text_node] : state.systems.text.text_nodes()) {
+			const platform::Font& font = state.systems.text.fonts().at(text_node.font_id);
+			renderer->draw_text(font, text_node.text, window_center + text_node.position, platform::Color::white);
+		}
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
