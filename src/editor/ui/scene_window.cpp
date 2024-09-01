@@ -229,7 +229,6 @@ namespace editor {
 	// Render the scene itself, which is inside the scene window
 	static void render_scene_view(
 		const SceneViewState& scene_view,
-		const EditorFonts& editor_fonts,
 		const engine::TextSystem& text_system,
 		platform::Renderer* renderer
 	) {
@@ -288,7 +287,7 @@ namespace editor {
 		if (scene_window.is_visible) {
 			/* Render scene canvas */
 			renderer->push_draw_canvas(scene_window.scene_view.canvas);
-			render_scene_view(scene_window.scene_view, editor_fonts, text_system, renderer);
+			render_scene_view(scene_window.scene_view, text_system, renderer);
 			renderer->pop_draw_canvas();
 
 			/* Render scene canvas to imgui canvas */
