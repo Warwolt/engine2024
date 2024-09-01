@@ -8,7 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Fix canvas moving outside of ImGui::Image we render the canvas inside of
 - Add bar with run button (window that can't be docked)
 - Fix ImWin32 to render in order of item push _not_ in alphabetical order
 - Add context menu to log window with "clear" option
@@ -25,6 +24,7 @@ Goals:
 ## Doing
 
 ## Done
+- Fix canvas moving outside of ImGui::Image we render the canvas inside of
 - Make `engine::State` heap allocated to get around constructors not being linked
 - Create "Hello World" text scene using a Text component and scene tree
 - Remove `glGetUniformLocation` calls from hot loop, cache locations after shader loaded.
