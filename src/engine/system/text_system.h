@@ -2,6 +2,7 @@
 
 #include <core/container/vec_map.h>
 #include <core/newtype.h>
+#include <core/rect.h>
 #include <platform/graphics/font.h>
 
 #include <glm/vec2.hpp>
@@ -21,7 +22,7 @@ namespace engine {
 		std::string text;
 		FontID font;
 		glm::vec2 position = { 0.0f, 0.0f };
-		glm::vec2 size = { 0.0f, 0.0f };
+		core::Rect rect;
 	};
 
 	class TextSystem {

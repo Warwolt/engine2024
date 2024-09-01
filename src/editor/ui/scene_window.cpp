@@ -272,8 +272,7 @@ namespace editor {
 				renderer->draw_text(system_font, text_node.text, canvas_center + text_node.position, platform::Color::white);
 				const bool is_selected = text_node.text == "Hello"; // temporary hack
 				if (is_selected) {
-					core::Rect quad = core::Rect::with_pos_and_size(canvas_center + text_node.position, text_node.size);
-					renderer->draw_rect(quad, platform::Color::white);
+					renderer->draw_rect(text_node.rect + canvas_center, platform::Color::white);
 				}
 			}
 		}

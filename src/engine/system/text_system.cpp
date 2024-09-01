@@ -28,7 +28,7 @@ namespace engine {
 			.text = text,
 			.font = font,
 			.position = position,
-			.size = platform::get_text_bounding_box(m_fonts[font], text).size(),
+			.rect = platform::get_text_bounding_box(m_fonts[font], text) + position,
 		};
 
 		m_nodes.insert({ id, node });
