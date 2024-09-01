@@ -20,7 +20,7 @@ namespace engine {
 
 	struct TextNode {
 		std::string text;
-		FontID font; // <-- rename to font_id
+		FontID font_id;
 		glm::vec2 position = { 0.0f, 0.0f };
 		core::Rect rect;
 	};
