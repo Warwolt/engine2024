@@ -258,7 +258,7 @@ namespace editor {
 		}
 
 		// Coordinate Axes
-		// (If zoomed out, axes are rendered on top of the scene view isntead)
+		// (If zoomed out, axes are rendered on top of the scene view instead of inside the scene to make sure they're always crisp)
 		if (scene_view.zoom_index >= 0) {
 			renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x + 1.0f, scene_canvas_size.y / 2.0f }, platform::Color::red); // horizontal
 			renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y + 1.0f }, platform::Color::green); // vertical
@@ -270,7 +270,7 @@ namespace editor {
 			for (const auto& [node_id, text_node] : text_system.text_nodes()) {
 				const platform::Font& font = text_system.fonts().at(text_node.font_id);
 				renderer->draw_text(font, text_node.text, canvas_center + text_node.position, platform::Color::white);
-				const bool is_selected = text_node.text == "Hello"; // temporary hack
+				const bool is_selected = false; // TODO: determine if node is selected
 				if (is_selected) {
 					renderer->draw_rect(text_node.rect + canvas_center, platform::Color::white);
 				}
