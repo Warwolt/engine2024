@@ -59,6 +59,14 @@ namespace engine {
 		return next_node;
 	}
 
+	std::optional<TextID> SceneGraph::text_id(GraphNodeID node_id) {
+		auto it = m_text_ids.find(node_id);
+		if (it == m_text_ids.end()) {
+			return {};
+		}
+		return it->second;
+	}
+
 	void SceneGraph::_remove_node(Tree::iterator node) {
 		switch (node->type) {
 			case GraphNodeType::Root:

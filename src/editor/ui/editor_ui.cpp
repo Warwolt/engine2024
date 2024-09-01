@@ -181,6 +181,13 @@ namespace editor {
 			if (ImGui::Button("Remove node")) {
 				const engine::SceneGraph::Tree& tree = ui->scene_graph.tree();
 				if (auto node = std::find_if(tree.begin(), tree.end(), is_selected_node); node != tree.end() && node != ui->scene_graph.root()) {
+					switch (node->type) {
+						case engine::GraphNodeType::Root:
+							break;
+						case engine::GraphNodeType::Text:
+							ui->text_system.remove_text_node(ui->scene_graph.text_id(node->id).value());
+							break;
+					}
 					auto next_node = ui->scene_graph.remove_node(node);
 					ui->scene_graph_ui.selected_node = next_node->id;
 				}

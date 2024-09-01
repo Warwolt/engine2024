@@ -9,6 +9,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <optional>
 
 namespace engine {
 	DEFINE_NEWTYPE(GraphNodeID, int);
@@ -39,6 +40,8 @@ namespace engine {
 
 		GraphNodeID add_text_node(Tree::iterator position, TextID text_id);
 		Tree::iterator remove_node(Tree::iterator position);
+
+		std::optional<TextID> text_id(GraphNodeID node_id);
 
 	private:
 		void _remove_node(Tree::iterator node);
