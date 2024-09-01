@@ -38,6 +38,14 @@ namespace core {
 
 } // namespace core
 
+#define DEFINE_NEWTYPE(name, type)                 \
+	struct name : public core::NewType<type> {     \
+		name() = default;                          \
+		constexpr explicit name(const type& value) \
+			: NewType(value) {                     \
+		}                                          \
+	}
+
 // Note! Macro must be expanded in top-level namespace
 // since we specialize inside the std namespace.
 #define DEFINE_NEWTYPE_HASH_IMPL(name, type)         \

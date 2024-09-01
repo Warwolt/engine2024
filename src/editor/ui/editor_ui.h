@@ -5,6 +5,7 @@
 #include <editor/ui/editor_fonts.h>
 #include <editor/ui/scene_window.h>
 #include <engine/state/scene_graph.h>
+#include <engine/system/text_system.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -33,9 +34,9 @@ namespace editor {
 	};
 
 	struct SceneGraphUiState {
-		engine::GraphNodeId selected_node = engine::GraphNodeId(0);
-		engine::GraphNodeId next_id = engine::GraphNodeId(1);
-		std::unordered_map<engine::GraphNodeId, UiGraphNode> nodes = { { engine::GraphNodeId(0), { .is_open = true } } };
+		engine::GraphNodeID selected_node = engine::GraphNodeID(0);
+		engine::GraphNodeID next_id = engine::GraphNodeID(1);
+		std::unordered_map<engine::GraphNodeID, UiGraphNode> nodes = { { engine::GraphNodeID(0), { .is_open = true } } };
 	};
 
 	struct EditorUiState {
@@ -49,7 +50,10 @@ namespace editor {
 		SceneWindowState scene_window;
 
 		SceneGraphUiState scene_graph_ui;
-		engine::SceneGraph scene_graph; // TODO move this to engine
+
+		// TODO move tese to the engine
+		engine::TextSystem text_system;
+		engine::SceneGraph scene_graph;
 	};
 
 	void init_editor_ui(

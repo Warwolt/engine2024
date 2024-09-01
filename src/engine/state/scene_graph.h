@@ -2,21 +2,19 @@
 
 #include <core/container/vec_map.h>
 #include <core/newtype.h>
+#include <engine/system/text_system.h>
 
 #include <glm/vec2.hpp>
 #include <kpeeters/tree.hpp>
 
+#include <unordered_map>
 #include <vector>
+#include <optional>
 
 namespace engine {
-	struct GraphNodeId : public core::NewType<int> {
-		GraphNodeId() = default;
-		explicit GraphNodeId(const int& value)
-			: NewType(value) {
-		}
-	};
+	DEFINE_NEWTYPE(GraphNodeID, int);
 }
-DEFINE_NEWTYPE_HASH_IMPL(engine::GraphNodeId, int);
+DEFINE_NEWTYPE_HASH_IMPL(engine::GraphNodeID, int);
 
 namespace engine {
 
@@ -26,14 +24,9 @@ namespace engine {
 	};
 
 	struct GraphNode {
-		GraphNodeId id = GraphNodeId(0);
+		static constexpr GraphNodeID INVALID_ID = GraphNodeID(-1);
+		GraphNodeID id = INVALID_ID;
 		GraphNodeType type = GraphNodeType::Root;
-	};
-
-	struct TextNode {
-		glm::vec2 position = { 0.0f, 0.0f };
-		std::string text;
-		bool is_selected = false;
 	};
 
 	class SceneGraph {
@@ -44,17 +37,18 @@ namespace engine {
 
 		const Tree& tree() const;
 		Tree::iterator root() const;
-		const std::vector<std::pair<GraphNodeId, TextNode>>& text_nodes() const;
 
-		GraphNodeId add_text_node(Tree::iterator position, TextNode text_node);
+		GraphNodeID add_text_node(Tree::iterator position, TextID text_id);
 		Tree::iterator remove_node(Tree::iterator position);
 
+		std::optional<TextID> text_id(GraphNodeID node_id);
+
 	private:
-		void _remove_node_from_vector(Tree::iterator node);
+		void _remove_node(Tree::iterator node);
 
 		int m_next_id = 1;
 		kpeeters::tree<GraphNode> m_tree;
-		core::VecMap<GraphNodeId, TextNode> m_text_nodes;
+		std::unordered_map<GraphNodeID, TextID> m_text_ids;
 	};
 
 } // namespace engine

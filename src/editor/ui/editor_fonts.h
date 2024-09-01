@@ -1,11 +1,11 @@
 #pragma once
 
-#include <platform/graphics/font.h>
+#include <engine/system/text_system.h>
 
 namespace editor {
 
 	struct EditorFonts {
-		platform::Font system_font;
+		engine::FontID system_font_id;
 	};
 
 } // namespace editor
