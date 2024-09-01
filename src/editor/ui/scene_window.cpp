@@ -267,9 +267,9 @@ namespace editor {
 		/* Render scene */
 		{
 			glm::vec2 canvas_center = scene_canvas_size / 2.0f;
-			const platform::Font& system_font = text_system.fonts().at(editor_fonts.system_font_id);
 			for (const auto& [node_id, text_node] : text_system.text_nodes()) {
-				renderer->draw_text(system_font, text_node.text, canvas_center + text_node.position, platform::Color::white);
+				const platform::Font& font = text_system.fonts().at(text_node.font);
+				renderer->draw_text(font, text_node.text, canvas_center + text_node.position, platform::Color::white);
 				const bool is_selected = text_node.text == "Hello"; // temporary hack
 				if (is_selected) {
 					renderer->draw_rect(text_node.rect + canvas_center, platform::Color::white);
