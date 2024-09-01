@@ -131,7 +131,6 @@ namespace editor {
 		engine::Systems* systems,
 		engine::SceneGraph* scene_graph,
 		const platform::Input& input,
-		const engine::Resources& resources,
 		platform::PlatformAPI* platform
 	) {
 		const size_t current_project_hash = std::hash<engine::ProjectState>()(*project);
@@ -146,7 +145,6 @@ namespace editor {
 			systems,
 			scene_graph,
 			input,
-			resources,
 			editor->project_has_unsaved_changes,
 			editor->game_is_running
 		);

@@ -28,21 +28,12 @@ namespace engine {
 		float render_delta_avg_ms = 0.0f;
 	};
 
-	// NOTE: Very likely that this struct won't be needed as we move stuff into
-	// system-classes instead, since the systems should handle resource ownership.
-	struct Resources {
-		std::unordered_map<std::string, platform::Texture> textures;
-		std::unordered_map<std::string, platform::Font> fonts;
-		std::unordered_map<std::string, platform::Canvas> canvases;
-	};
-
 	struct Systems {
 		AnimationSystem animation;
 		TextSystem text;
 	};
 
 	struct State {
-		Resources resources;
 		Systems systems;
 		SceneGraph scene_graph; // <-- at some point this should be a stack
 		bool editor_is_running;

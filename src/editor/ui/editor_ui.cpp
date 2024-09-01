@@ -242,7 +242,6 @@ namespace editor {
 		engine::Systems* systems,
 		engine::SceneGraph* scene_graph,
 		const platform::Input& input,
-		const engine::Resources& /* resources */,
 		bool unsaved_changes,
 		bool game_is_running
 	) {

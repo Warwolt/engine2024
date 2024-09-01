@@ -84,16 +84,6 @@ namespace engine {
 		const bool reset_docking = !config->window.docking_initialized;
 		init_editor(&state->editor, &state->systems, state->project, reset_docking);
 
-		/* Add fonts */
-		{
-			// TODO: remove this and just use the font in the text system
-			const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-			platform::Font font = core::container::unwrap(platform::add_ttf_font(arial_font_path, 16), [&] {
-				ABORT("Failed to load font \"%s\"", arial_font_path);
-			});
-			state->resources.fonts["arial-16"] = font;
-		}
-
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
 		FontID arial_font_16 = core::container::unwrap(state->systems.text.add_ttf_font(arial_font_path, 16), [&] {
@@ -108,16 +98,6 @@ namespace engine {
 	}
 
 	void shutdown(State* state) {
-		for (const auto& [_, texture] : state->resources.textures) {
-			platform::free_texture(texture);
-		}
-		for (const auto& [_, font] : state->resources.fonts) {
-			platform::free_font(font);
-		}
-		for (const auto& [_, canvas] : state->resources.canvases) {
-			platform::free_canvas(canvas);
-		}
-
 		delete state;
 	}
 
@@ -204,7 +184,6 @@ namespace engine {
 					&state->systems,
 					&state->scene_graph,
 					input,
-					state->resources,
 					platform
 				);
 			}
