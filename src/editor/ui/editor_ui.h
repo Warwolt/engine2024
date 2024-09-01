@@ -24,6 +24,7 @@ namespace engine {
 	struct GameState;
 	struct ProjectState;
 	struct Resources;
+	struct Systems;
 
 }
 
@@ -52,12 +53,12 @@ namespace editor {
 		SceneGraphUiState scene_graph_ui;
 
 		// TODO move tese to the engine
-		engine::TextSystem text_system;
 		engine::SceneGraph scene_graph;
 	};
 
 	void init_editor_ui(
 		EditorUiState* ui,
+		engine::TextSystem* text_system,
 		const engine::ProjectState& project,
 		bool reset_docking
 	);
@@ -68,6 +69,7 @@ namespace editor {
 		EditorUiState* ui,
 		engine::GameState* game,
 		engine::ProjectState* project,
+		engine::Systems* systems,
 		const platform::Input& input,
 		const engine::Resources& resources,
 		bool unsaved_changes,
@@ -76,6 +78,7 @@ namespace editor {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
+		const engine::Systems& text_system,
 		platform::Renderer* renderer
 	);
 

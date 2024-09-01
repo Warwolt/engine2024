@@ -81,12 +81,13 @@ namespace editor {
 
 	void init_editor_ui(
 		EditorUiState* ui,
+		engine::TextSystem* text_system,
 		const engine::ProjectState& project,
 		bool reset_docking
 	) {
 		init_scene_window(&ui->scene_window);
 
-		ui->editor_fonts.system_font_id = add_font(&ui->text_system, "C:/windows/Fonts/tahoma.ttf", 13);
+		ui->editor_fonts.system_font_id = add_font(text_system, "C:/windows/Fonts/tahoma.ttf", 13);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<engine::ProjectState>()(project);
 
@@ -97,8 +98,8 @@ namespace editor {
 		}
 
 		// add fake elements
-		engine::TextID hello = ui->text_system.add_text_node(ui->editor_fonts.system_font_id, "Hello", { 0.0f, 0.0f });
-		engine::TextID world = ui->text_system.add_text_node(ui->editor_fonts.system_font_id, "World", { 0.0f, 15.0f });
+		engine::TextID hello = text_system->add_text_node(ui->editor_fonts.system_font_id, "Hello", { 0.0f, 0.0f });
+		engine::TextID world = text_system->add_text_node(ui->editor_fonts.system_font_id, "World", { 0.0f, 15.0f });
 		ui->scene_graph.add_text_node(ui->scene_graph.root(), hello);
 		ui->scene_graph.add_text_node(ui->scene_graph.root(), world);
 	}
@@ -160,6 +161,7 @@ namespace editor {
 
 	static void update_project_window(
 		engine::ProjectState* /* project */,
+		engine::TextSystem* text_system,
 		EditorUiState* ui
 	) {
 		/* Scene Graph */
@@ -171,7 +173,7 @@ namespace editor {
 				const engine::SceneGraph::Tree& tree = ui->scene_graph.tree();
 				if (auto node = std::find_if(tree.begin(), tree.end(), is_selected_node); node != tree.end()) {
 					auto root = ui->scene_graph.root();
-					engine::TextID text_id = ui->text_system.add_text_node(ui->editor_fonts.system_font_id);
+					engine::TextID text_id = text_system->add_text_node(ui->editor_fonts.system_font_id);
 					engine::GraphNodeID child_id = ui->scene_graph.add_text_node(node, text_id);
 					ui->scene_graph_ui.nodes[node->id].is_open = true;
 					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
@@ -186,7 +188,7 @@ namespace editor {
 						case engine::GraphNodeType::Root:
 							break;
 						case engine::GraphNodeType::Text:
-							ui->text_system.remove_text_node(ui->scene_graph.text_id(node->id).value());
+							text_system->remove_text_node(ui->scene_graph.text_id(node->id).value());
 							break;
 					}
 					auto next_node = ui->scene_graph.remove_node(node);
@@ -242,6 +244,7 @@ namespace editor {
 		EditorUiState* ui,
 		engine::GameState* game,
 		engine::ProjectState* project,
+		engine::Systems* systems,
 		const platform::Input& input,
 		const engine::Resources& /* resources */,
 		bool unsaved_changes,
@@ -285,7 +288,7 @@ namespace editor {
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_project_window(project, ui);
+			update_project_window(project, &systems->text, ui);
 		}
 		ImGui::End();
 
@@ -308,9 +311,10 @@ namespace editor {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
+		const engine::Systems& systems,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, ui.editor_fonts, ui.text_system, renderer);
+		render_scene_window(ui.scene_window, ui.editor_fonts, systems.text, renderer);
 	}
 
 } // namespace editor

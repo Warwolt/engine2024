@@ -6,6 +6,7 @@
 #include <engine/state/project_state.h>
 #include <engine/system/animation.h>
 #include <engine/system/hot_reloading.h>
+#include <engine/system/text_system.h>
 #include <platform/graphics/font.h>
 #include <platform/graphics/renderer.h>
 #include <platform/input/input.h>
@@ -27,6 +28,8 @@ namespace engine {
 		float render_delta_avg_ms = 0.0f;
 	};
 
+	// NOTE: Very likely that this struct won't be needed as we move stuff into
+	// system-classes instead, since the systems should handle resource ownership.
 	struct Resources {
 		std::unordered_map<std::string, platform::Texture> textures;
 		std::unordered_map<std::string, platform::Font> fonts;
@@ -35,6 +38,7 @@ namespace engine {
 
 	struct Systems {
 		AnimationSystem animation;
+		TextSystem text;
 	};
 
 	struct State {

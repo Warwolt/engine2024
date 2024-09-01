@@ -8,9 +8,10 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Run current scene in engine
 - Save scene to disk
 
+- Make scene graph affect "unsaved changes"
+- Rename ´engine_api´ files to just `engine`
 - Add bar with run button (window that can't be docked)
 - Add property editor for selected node
 - Fix ImWin32 to render in order of item push _not_ in alphabetical order
@@ -26,6 +27,7 @@ Goals:
 - (Mess around with Bayer matrix dithering and Perlin noise)
 
 ## Doing
+- Run current scene in engine
 
 ## Done
 - Add TextSystem to store TextNode instances

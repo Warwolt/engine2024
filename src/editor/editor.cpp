@@ -3,6 +3,7 @@
 #include <core/container.h>
 #include <core/future.h>
 #include <editor/editor_command.h>
+#include <engine/state/engine_state.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <platform/debug/logging.h>
@@ -25,13 +26,14 @@ namespace editor {
 
 	static void new_project(
 		EditorState* editor,
+		engine::Systems* systems,
 		engine::GameState* game,
 		engine::ProjectState* project
 	) {
 		LOG_INFO("Opened new project");
 		*project = {};
 		*game = {};
-		init_editor(editor, *project, false);
+		init_editor(editor, systems, *project, false);
 	}
 
 	static void open_project(
@@ -118,14 +120,15 @@ namespace editor {
 		LOG_INFO("Editor quit");
 	}
 
-	void init_editor(EditorState* editor, const engine::ProjectState& project, bool reset_docking) {
-		init_editor_ui(&editor->ui, project, reset_docking);
+	void init_editor(EditorState* editor, engine::Systems* systems, const engine::ProjectState& project, bool reset_docking) {
+		init_editor_ui(&editor->ui, &systems->text, project, reset_docking);
 	}
 
 	void update_editor(
 		EditorState* editor,
 		engine::GameState* game,
 		engine::ProjectState* project,
+		engine::Systems* systems,
 		const platform::Input& input,
 		const engine::Resources& resources,
 		platform::PlatformAPI* platform
@@ -139,6 +142,7 @@ namespace editor {
 			&editor->ui,
 			game,
 			project,
+			systems,
 			input,
 			resources,
 			editor->project_has_unsaved_changes,
@@ -190,11 +194,11 @@ namespace editor {
 				case EditorCommand::NewProject:
 					if (editor->project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, project, platform, [=]() {
-							new_project(editor, game, project);
+							new_project(editor, systems, game, project);
 						});
 					}
 					else {
-						new_project(editor, game, project);
+						new_project(editor, systems, game, project);
 					}
 					break;
 
@@ -258,9 +262,10 @@ namespace editor {
 
 	void render_editor(
 		const EditorState& editor,
+		const engine::Systems& systems,
 		platform::Renderer* renderer
 	) {
-		render_editor_ui(editor.ui, renderer);
+		render_editor_ui(editor.ui, systems, renderer);
 	}
 
 } // namespace editor

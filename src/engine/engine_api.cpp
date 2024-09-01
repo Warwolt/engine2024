@@ -82,7 +82,7 @@ namespace engine {
 
 		/* Initialize */
 		const bool reset_docking = !config->window.docking_initialized;
-		init_editor(&state->editor, state->project, reset_docking);
+		init_editor(&state->editor, &state->systems, state->project, reset_docking);
 
 		/* Add fonts */
 		{
@@ -186,7 +186,7 @@ namespace engine {
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, &window_title);
 			platform->set_window_title(window_title.c_str());
 			if (input.mode == platform::RunMode::Editor) {
-				editor::update_editor(&state->editor, &state->game, &state->project, input, state->resources, platform);
+				editor::update_editor(&state->editor, &state->game, &state->project, &state->systems, input, state->resources, platform);
 			}
 		}
 	}
@@ -206,7 +206,7 @@ namespace engine {
 
 	void render(platform::Renderer* renderer, const State* state) {
 		if (state->editor_is_running) {
-			editor::render_editor(state->editor, renderer);
+			editor::render_editor(state->editor, state->systems, renderer);
 		}
 		else {
 			render_game(*state, renderer);
