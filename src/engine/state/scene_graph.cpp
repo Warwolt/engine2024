@@ -35,7 +35,7 @@ namespace engine {
 		return m_tree.begin();
 	}
 
-	const std::vector<TextNode>& SceneGraph::text_nodes() const {
+	const std::vector<std::pair<GraphNodeId, TextNode>>& SceneGraph::text_nodes() const {
 		return m_text_nodes.data();
 	}
 
