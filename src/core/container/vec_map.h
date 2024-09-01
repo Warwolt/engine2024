@@ -11,15 +11,16 @@ namespace core {
 	template <typename Key, typename T>
 	class VecMap {
 	public:
-		using iterator = std::vector<T>::iterator;
-		using const_iterator = std::vector<T>::const_iterator;
+		using value_type = std::pair<Key, T>;
+		using iterator = std::vector<value_type>::iterator;
+		using const_iterator = std::vector<value_type>::const_iterator;
 
 		VecMap() = default;
-		VecMap(std::initializer_list<std::pair<const Key, T>> init) {
+		VecMap(std::initializer_list<value_type> init) {
 			size_t i = 0;
 			for (const auto& [key, value] : init) {
 				if (!m_indexes.contains(key)) {
-					m_values.push_back(value);
+					m_values.push_back({ key, value });
 					m_indexes.emplace(key, i++);
 				}
 			}
@@ -57,27 +58,27 @@ namespace core {
 
 		T& operator[](const Key& key) {
 			if (m_indexes.contains(key)) {
-				return m_values[m_indexes[key]];
+				return m_values[m_indexes[key]].second;
 			}
-			m_values.push_back(T());
+			m_values.push_back({ key, T() });
 			m_indexes[key] = m_values.size() - 1;
-			return m_values.back();
+			return m_values.back().second;
 		}
 
-		std::pair<iterator, bool> insert(const std::pair<Key, T>& key_val) {
+		std::pair<iterator, bool> insert(const value_type& key_val) {
 			const auto& [key, value] = key_val;
 
 			if (m_indexes.contains(key)) {
 				//  existing key
 				size_t index = m_indexes[key];
 				iterator it = m_values.begin() + index;
-				*it = value;
+				it->second = value;
 
 				return { it, false };
 			}
 			else {
 				// new key
-				m_values.push_back(value);
+				m_values.push_back(key_val);
 				size_t index = m_values.size() - 1;
 				m_indexes[key] = index;
 				iterator it = m_values.begin() + index;
@@ -87,14 +88,14 @@ namespace core {
 		}
 
 		T& at(const Key& key) {
-			return m_values[m_indexes.at(key)];
+			return m_values[m_indexes.at(key)].second;
 		}
 
 		const T& at(const Key& key) const {
-			return m_values[m_indexes.at(key)];
+			return m_values[m_indexes.at(key)].second;
 		}
 
-		const std::vector<T>& data() const {
+		const std::vector<value_type>& data() const {
 			return m_values;
 		};
 
@@ -128,7 +129,7 @@ namespace core {
 			size_t index = it->second;
 
 			// replace element-to-remove with last element
-			m_values[index] = m_values.back();
+			std::swap(m_values[index], m_values.back());
 			m_indexes[_last_key()] = index;
 
 			// remove last element
@@ -146,7 +147,7 @@ namespace core {
 			return std::find_if(m_indexes.begin(), m_indexes.end(), is_last_index)->first;
 		}
 
-		std::vector<T> m_values;
+		std::vector<value_type> m_values;
 		std::unordered_map<Key, size_t> m_indexes;
 	};
 

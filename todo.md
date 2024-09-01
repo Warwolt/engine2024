@@ -24,6 +24,7 @@ Goals:
 ## Doing
 
 ## Done
+- Return a key-value pair for VecMap::iterator
 - Fix canvas moving outside of ImGui::Image we render the canvas inside of
 - Make `engine::State` heap allocated to get around constructors not being linked
 - Create "Hello World" text scene using a Text component and scene tree

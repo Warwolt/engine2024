@@ -116,12 +116,12 @@ TEST(VecMapTests, AccessUnderlyingData) {
 		{ "third", 3 },
 	};
 
-	std::vector<int> values = vec_map.data();
+	std::vector<std::pair<std::string, int>> values = vec_map.data();
 
-	const std::vector<int> expected = {
-		1,
-		2,
-		3,
+	const std::vector<std::pair<std::string, int>> expected = {
+		{ "first", 1 },
+		{ "second", 2 },
+		{ "third", 3 },
 	};
 	EXPECT_EQ(values, expected);
 }
@@ -158,11 +158,11 @@ TEST(VecMapTests, Iterator_IteratesInOrderOfInsertion) {
 	};
 
 	std::vector<int> values;
-	for (int value : vec_map) {
+	for (const auto& [key, value] : vec_map) {
 		values.push_back(value);
 	}
 	std::vector<int> const_values;
-	for (int value : const_vec_map) {
+	for (const auto& [key, value] : const_vec_map) {
 		const_values.push_back(value);
 	}
 
@@ -183,15 +183,18 @@ TEST(VecMapTests, Insert_NewKey_AddsElementToEnd) {
 	};
 
 	const auto& [iterator, was_inserted] = vec_map.insert({ "second", 22 });
-	std::vector<int> values;
-	for (int value : vec_map) {
-		values.push_back(value);
+	std::vector<std::pair<std::string, int>> values;
+	for (auto& [key, value] : vec_map) {
+		values.push_back({ key, value });
 	}
 
-	const std::vector<int> expected = { 1, 22 };
+	const std::vector<std::pair<std::string, int>> expected = {
+		{ "first", 1 },
+		{ "second", 22 },
+	};
 	EXPECT_TRUE(was_inserted);
 	ASSERT_NE(iterator, vec_map.end());
-	EXPECT_EQ(*iterator, 22);
+	EXPECT_EQ(iterator->second, 22);
 	EXPECT_EQ(vec_map["first"], 1);
 	EXPECT_EQ(vec_map["second"], 22);
 	EXPECT_EQ(values, expected);
@@ -204,14 +207,14 @@ TEST(VecMapTests, Insert_ExistingKey_OverwritesValue) {
 
 	const auto& [iterator, was_inserted] = vec_map.insert({ "first", 12 });
 	std::vector<int> values;
-	for (int value : vec_map) {
+	for (auto& [key, value] : vec_map) {
 		values.push_back(value);
 	}
 
 	const std::vector<int> expected = { 12 };
 	EXPECT_FALSE(was_inserted);
 	ASSERT_NE(iterator, vec_map.end());
-	EXPECT_EQ(*iterator, 12);
+	EXPECT_EQ(iterator->second, 12);
 	EXPECT_EQ(vec_map["first"], 12);
 	EXPECT_EQ(values, expected);
 }
@@ -225,7 +228,7 @@ TEST(VecMapTests, Clear_RemovesAllElements) {
 
 	vec_map.clear();
 	std::vector<int> values;
-	for (int value : vec_map) {
+	for (auto& [key, value] : vec_map) {
 		values.push_back(value);
 	}
 
@@ -260,7 +263,7 @@ TEST(VecMapTests, Erase_ReturnsIteratorToNextElement) {
 	auto it = vec_map.erase("second");
 
 	ASSERT_NE(it, vec_map.end());
-	EXPECT_EQ(*it, 30);
+	EXPECT_EQ(it->second, 30);
 }
 
 TEST(VecMapTests, Erase_LastElemenet_RemovesElement) {

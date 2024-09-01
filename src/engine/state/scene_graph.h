@@ -44,7 +44,7 @@ namespace engine {
 
 		const Tree& tree() const;
 		Tree::iterator root() const;
-		const std::vector<TextNode>& text_nodes() const;
+		const std::vector<std::pair<GraphNodeId, TextNode>>& text_nodes() const;
 
 		GraphNodeId add_text_node(Tree::iterator position, TextNode text_node);
 		Tree::iterator remove_node(Tree::iterator position);
