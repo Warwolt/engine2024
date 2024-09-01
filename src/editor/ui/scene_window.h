@@ -41,8 +41,8 @@ namespace editor {
 
 	void render_scene_window(
 		const SceneWindowState& scene_window,
-		const engine::SceneGraph& scene_graph,
 		const EditorFonts& editor_fonts,
+		const engine::TextSystem& text_system,
 		platform::Renderer* renderer
 	);
 

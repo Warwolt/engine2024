@@ -229,8 +229,8 @@ namespace editor {
 	// Render the scene itself, which is inside the scene window
 	static void render_scene_view(
 		const SceneViewState& scene_view,
-		const engine::SceneGraph& scene_graph,
 		const EditorFonts& editor_fonts,
+		const engine::TextSystem& text_system,
 		platform::Renderer* renderer
 	) {
 		const glm::vec2 scene_canvas_size = scene_view.canvas.texture.size;
@@ -267,11 +267,13 @@ namespace editor {
 		/* Render scene */
 		{
 			glm::vec2 canvas_center = scene_canvas_size / 2.0f;
-			for (const auto& [node_id, text_node] : scene_graph.text_nodes()) {
-				renderer->draw_text(editor_fonts.system_font, text_node.text, canvas_center + text_node.position, platform::Color::white);
-				if (text_node.is_selected) {
-					core::Rect quad = platform::get_text_bounding_box(editor_fonts.system_font, text_node.text);
-					renderer->draw_rect(quad + canvas_center + text_node.position, platform::Color::white);
+			const platform::Font& system_font = text_system.fonts().at(editor_fonts.system_font_id);
+			for (const auto& [node_id, text_node] : text_system.text_nodes()) {
+				renderer->draw_text(system_font, text_node.text, canvas_center + text_node.position, platform::Color::white);
+				const bool is_selected = text_node.text == "Hello"; // temporary hack
+				if (is_selected) {
+					core::Rect quad = core::Rect::with_pos_and_size(canvas_center + text_node.position, text_node.size);
+					renderer->draw_rect(quad, platform::Color::white);
 				}
 			}
 		}
@@ -279,15 +281,15 @@ namespace editor {
 
 	void render_scene_window(
 		const SceneWindowState& scene_window,
-		const engine::SceneGraph& scene_graph,
 		const EditorFonts& editor_fonts,
+		const engine::TextSystem& text_system,
 		platform::Renderer* renderer
 	) {
 		// Only render scene if ImGui scene window open
 		if (scene_window.is_visible) {
 			/* Render scene canvas */
 			renderer->push_draw_canvas(scene_window.scene_view.canvas);
-			render_scene_view(scene_window.scene_view, scene_graph, editor_fonts, renderer);
+			render_scene_view(scene_window.scene_view, editor_fonts, text_system, renderer);
 			renderer->pop_draw_canvas();
 
 			/* Render scene canvas to imgui canvas */
@@ -315,9 +317,10 @@ namespace editor {
 					renderer->draw_line({ half_rect.bottom_right.x, rect.top_left.y }, { half_rect.bottom_right.x, rect.bottom_right.y }, platform::Color::green);
 				}
 
-				// hello world
+				// Print zoom
+				const platform::Font& system_font = text_system.fonts().at(editor_fonts.system_font_id);
 				std::string zoom_text = std::format("{:.1f}%", 100 * zoom_index_to_scale(scene_window.scene_view.zoom_index));
-				renderer->draw_text(editor_fonts.system_font, zoom_text.c_str(), { 5, 20 }, { 1.0f, 1.0f, 1.0f, 0.75f });
+				renderer->draw_text(system_font, zoom_text.c_str(), { 5, 20 }, { 1.0f, 1.0f, 1.0f, 0.75f });
 			}
 			renderer->pop_draw_canvas();
 		}

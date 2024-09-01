@@ -34,6 +34,10 @@ namespace core {
 			return m_values.empty();
 		}
 
+		bool contains(const Key& key) const {
+			return m_indexes.contains(key);
+		}
+
 		bool operator==(const VecMap<Key, T>& rhs) const {
 			if (m_values.size() != rhs.size()) {
 				return false;

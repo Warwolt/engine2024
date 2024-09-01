@@ -20,7 +20,7 @@ namespace engine {
 
 	SceneGraph::SceneGraph() {
 		GraphNode root_node = {
-			.id = GraphNodeId(0),
+			.id = GraphNodeID(0),
 			.type = GraphNodeType::Root,
 		};
 		m_tree = kpeeters::tree<GraphNode>(root_node);
@@ -35,14 +35,10 @@ namespace engine {
 		return m_tree.begin();
 	}
 
-	const std::vector<std::pair<GraphNodeId, TextNode>>& SceneGraph::text_nodes() const {
-		return m_text_nodes.data();
-	}
-
-	GraphNodeId SceneGraph::add_text_node(kpeeters::tree<GraphNode>::iterator position, TextNode text_node) {
-		GraphNodeId node_id = GraphNodeId(m_next_id++);
+	GraphNodeID SceneGraph::add_text_node(kpeeters::tree<GraphNode>::iterator position, TextID text_id) {
+		GraphNodeID node_id = GraphNodeID(m_next_id++);
 		m_tree.append_child(position, GraphNode { .id = node_id, .type = GraphNodeType::Text });
-		m_text_nodes.insert({ node_id, text_node });
+		m_text_ids.insert({ node_id, text_id });
 		return node_id;
 	}
 
@@ -53,9 +49,9 @@ namespace engine {
 		}
 
 		for (auto sub_node = Tree::begin(node); sub_node != Tree::end(node); sub_node++) {
-			_remove_node_from_vector(sub_node);
+			_remove_node(sub_node);
 		}
-		_remove_node_from_vector(node);
+		_remove_node(node);
 
 		Tree::iterator next_node = get_post_remove_node(node);
 		m_tree.erase(node);
@@ -63,14 +59,14 @@ namespace engine {
 		return next_node;
 	}
 
-	void SceneGraph::_remove_node_from_vector(Tree::iterator node) {
+	void SceneGraph::_remove_node(Tree::iterator node) {
 		switch (node->type) {
 			case GraphNodeType::Root:
 				// root cannot be erased
 				break;
 
 			case GraphNodeType::Text:
-				m_text_nodes.erase(node->id);
+				m_text_ids.erase(node->id);
 				break;
 		}
 	}

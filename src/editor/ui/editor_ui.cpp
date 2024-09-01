@@ -73,8 +73,8 @@ namespace editor {
 		ImGui::DockBuilderFinish(dockspace);
 	}
 
-	static platform::Font add_font(const char* path, uint8_t font_size) {
-		return core::container::unwrap(platform::add_ttf_font(path, font_size), [&] {
+	static engine::FontID add_font(engine::TextSystem* text_system, const char* path, uint8_t font_size) {
+		return core::container::unwrap(text_system->add_ttf_font(path, font_size), [&] {
 			ABORT("Failed to load font \"%s\"", path);
 		});
 	}
@@ -86,7 +86,7 @@ namespace editor {
 	) {
 		init_scene_window(&ui->scene_window);
 
-		ui->editor_fonts.system_font = add_font("C:/windows/Fonts/tahoma.ttf", 13);
+		ui->editor_fonts.system_font_id = add_font(&ui->text_system, "C:/windows/Fonts/tahoma.ttf", 13);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<engine::ProjectState>()(project);
 
@@ -97,12 +97,13 @@ namespace editor {
 		}
 
 		// add fake elements
-		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .position = { 0.0f, 0.0f }, .text = "Hello" });
-		ui->scene_graph.add_text_node(ui->scene_graph.root(), engine::TextNode { .position = { 0.0f, 15.0f }, .text = "World" });
+		engine::TextID hello = ui->text_system.add_text_node(ui->editor_fonts.system_font_id, "Hello", { 0.0f, 0.0f });
+		engine::TextID world = ui->text_system.add_text_node(ui->editor_fonts.system_font_id, "World", { 0.0f, 15.0f });
+		ui->scene_graph.add_text_node(ui->scene_graph.root(), hello);
+		ui->scene_graph.add_text_node(ui->scene_graph.root(), world);
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
-		platform::free_font(ui.editor_fonts.system_font);
 		shutdown_scene_window(ui.scene_window);
 	}
 
@@ -170,7 +171,8 @@ namespace editor {
 				const engine::SceneGraph::Tree& tree = ui->scene_graph.tree();
 				if (auto node = std::find_if(tree.begin(), tree.end(), is_selected_node); node != tree.end()) {
 					auto root = ui->scene_graph.root();
-					engine::GraphNodeId child_id = ui->scene_graph.add_text_node(node, engine::TextNode());
+					engine::TextID text_id = ui->text_system.add_text_node(ui->editor_fonts.system_font_id);
+					engine::GraphNodeID child_id = ui->scene_graph.add_text_node(node, text_id);
 					ui->scene_graph_ui.nodes[node->id].is_open = true;
 					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
 				}
@@ -300,7 +302,7 @@ namespace editor {
 		const EditorUiState& ui,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, ui.scene_graph, ui.editor_fonts, renderer);
+		render_scene_window(ui.scene_window, ui.editor_fonts, ui.text_system, renderer);
 	}
 
 } // namespace editor

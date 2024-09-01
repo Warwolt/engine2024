@@ -22,6 +22,7 @@ Goals:
 - (Mess around with Bayer matrix dithering and Perlin noise)
 
 ## Doing
+- Add TextSystem to store TextNode instances
 
 ## Done
 - Return a key-value pair for VecMap::iterator

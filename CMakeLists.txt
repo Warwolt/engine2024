@@ -75,6 +75,7 @@ set(ENGINE_SRC
     src/engine/state/project_state.cpp
     src/engine/system/animation.cpp
     src/engine/system/hot_reloading.cpp
+    src/engine/system/text_system.cpp
 )
 
 set(PLATFORM_SRC
