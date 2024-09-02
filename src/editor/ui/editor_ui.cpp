@@ -81,12 +81,13 @@ namespace editor {
 
 	void init_editor_ui(
 		EditorUiState* ui,
+		engine::TextSystem* text_system,
 		const engine::ProjectState& project,
 		bool reset_docking
 	) {
 		init_scene_window(&ui->scene_window);
 
-		ui->editor_fonts.system_font_id = add_font(&ui->text_system, "C:/windows/Fonts/tahoma.ttf", 13);
+		ui->editor_fonts.system_font_id = add_font(text_system, "C:/windows/Fonts/tahoma.ttf", 13);
 		ui->project_name_buf = project.name;
 		ui->cached_project_hash = std::hash<engine::ProjectState>()(project);
 
@@ -95,12 +96,6 @@ namespace editor {
 			ImGuiID dockspace = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 			setup_docking_space(dockspace);
 		}
-
-		// add fake elements
-		engine::TextID hello = ui->text_system.add_text_node(ui->editor_fonts.system_font_id, "Hello", { 0.0f, 0.0f });
-		engine::TextID world = ui->text_system.add_text_node(ui->editor_fonts.system_font_id, "World", { 0.0f, 15.0f });
-		ui->scene_graph.add_text_node(ui->scene_graph.root(), hello);
-		ui->scene_graph.add_text_node(ui->scene_graph.root(), world);
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
@@ -160,6 +155,8 @@ namespace editor {
 
 	static void update_project_window(
 		engine::ProjectState* /* project */,
+		engine::TextSystem* text_system,
+		engine::SceneGraph* scene_graph,
 		EditorUiState* ui
 	) {
 		/* Scene Graph */
@@ -168,28 +165,28 @@ namespace editor {
 			const auto is_selected_node = [&](const engine::GraphNode& node) { return node.id == ui->scene_graph_ui.selected_node; };
 			ImGui::Text("Scene graph:");
 			if (ImGui::Button("Add node")) {
-				const engine::SceneGraph::Tree& tree = ui->scene_graph.tree();
+				const engine::SceneGraph::Tree& tree = scene_graph->tree();
 				if (auto node = std::find_if(tree.begin(), tree.end(), is_selected_node); node != tree.end()) {
-					auto root = ui->scene_graph.root();
-					engine::TextID text_id = ui->text_system.add_text_node(ui->editor_fonts.system_font_id);
-					engine::GraphNodeID child_id = ui->scene_graph.add_text_node(node, text_id);
+					auto root = scene_graph->root();
+					engine::TextID text_id = text_system->add_text_node(ui->editor_fonts.system_font_id);
+					engine::GraphNodeID child_id = scene_graph->add_text_node(node, text_id);
 					ui->scene_graph_ui.nodes[node->id].is_open = true;
 					ui->scene_graph_ui.nodes[child_id] = UiGraphNode { .is_open = false };
 				}
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Remove node")) {
-				const engine::SceneGraph::Tree& tree = ui->scene_graph.tree();
+				const engine::SceneGraph::Tree& tree = scene_graph->tree();
 				auto node = std::find_if(tree.begin(), tree.end(), is_selected_node);
-				if (node != tree.end() && node != ui->scene_graph.root()) {
+				if (node != tree.end() && node != scene_graph->root()) {
 					switch (node->type) {
 						case engine::GraphNodeType::Root:
 							break;
 						case engine::GraphNodeType::Text:
-							ui->text_system.remove_text_node(ui->scene_graph.text_id(node->id).value());
+							text_system->remove_text_node(scene_graph->text_id(node->id).value());
 							break;
 					}
-					auto next_node = ui->scene_graph.remove_node(node);
+					auto next_node = scene_graph->remove_node(node);
 					ui->scene_graph_ui.selected_node = next_node->id;
 				}
 			}
@@ -199,7 +196,7 @@ namespace editor {
 				ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
 				ImGui::BeginChild("SceneGraph", ImVec2(0, 0), ImGuiChildFlags_Border);
 
-				render_scene_graph(&ui->scene_graph_ui, ui->scene_graph);
+				render_scene_graph(&ui->scene_graph_ui, *scene_graph);
 
 				ImGui::EndChild();
 				ImGui::PopStyleColor();
@@ -242,8 +239,9 @@ namespace editor {
 		EditorUiState* ui,
 		engine::GameState* game,
 		engine::ProjectState* project,
+		engine::Systems* systems,
+		engine::SceneGraph* scene_graph,
 		const platform::Input& input,
-		const engine::Resources& /* resources */,
 		bool unsaved_changes,
 		bool game_is_running
 	) {
@@ -285,7 +283,7 @@ namespace editor {
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_project_window(project, ui);
+			update_project_window(project, &systems->text, scene_graph, ui);
 		}
 		ImGui::End();
 
@@ -299,7 +297,7 @@ namespace editor {
 		ui->scene_window.is_visible = false;
 		if (ImGui::Begin(SCENE_WINDOW)) {
 			ui->scene_window.is_visible = true;
-			update_scene_window(&ui->scene_window, &ui->scene_graph, input, &commands);
+			update_scene_window(&ui->scene_window, scene_graph, input, &commands);
 		}
 		ImGui::End();
 
@@ -308,9 +306,10 @@ namespace editor {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
+		const engine::Systems& systems,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, ui.editor_fonts, ui.text_system, renderer);
+		render_scene_window(ui.scene_window, ui.editor_fonts, systems.text, renderer);
 	}
 
 } // namespace editor

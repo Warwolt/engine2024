@@ -229,7 +229,6 @@ namespace editor {
 	// Render the scene itself, which is inside the scene window
 	static void render_scene_view(
 		const SceneViewState& scene_view,
-		const EditorFonts& editor_fonts,
 		const engine::TextSystem& text_system,
 		platform::Renderer* renderer
 	) {
@@ -258,7 +257,7 @@ namespace editor {
 		}
 
 		// Coordinate Axes
-		// (If zoomed out, axes are rendered on top of the scene view isntead)
+		// (If zoomed out, axes are rendered on top of the scene view instead of inside the scene to make sure they're always crisp)
 		if (scene_view.zoom_index >= 0) {
 			renderer->draw_line({ 0.0f, scene_canvas_size.y / 2.0f }, { scene_canvas_size.x + 1.0f, scene_canvas_size.y / 2.0f }, platform::Color::red); // horizontal
 			renderer->draw_line({ scene_canvas_size.x / 2.0f, 0.0f }, { scene_canvas_size.x / 2.0f, scene_canvas_size.y + 1.0f }, platform::Color::green); // vertical
@@ -267,10 +266,10 @@ namespace editor {
 		/* Render scene */
 		{
 			glm::vec2 canvas_center = scene_canvas_size / 2.0f;
-			const platform::Font& system_font = text_system.fonts().at(editor_fonts.system_font_id);
 			for (const auto& [node_id, text_node] : text_system.text_nodes()) {
-				renderer->draw_text(system_font, text_node.text, canvas_center + text_node.position, platform::Color::white);
-				const bool is_selected = text_node.text == "Hello"; // temporary hack
+				const platform::Font& font = text_system.fonts().at(text_node.font_id);
+				renderer->draw_text(font, text_node.text, canvas_center + text_node.position, platform::Color::white);
+				const bool is_selected = false; // TODO: determine if node is selected
 				if (is_selected) {
 					renderer->draw_rect(text_node.rect + canvas_center, platform::Color::white);
 				}
@@ -288,7 +287,7 @@ namespace editor {
 		if (scene_window.is_visible) {
 			/* Render scene canvas */
 			renderer->push_draw_canvas(scene_window.scene_view.canvas);
-			render_scene_view(scene_window.scene_view, editor_fonts, text_system, renderer);
+			render_scene_view(scene_window.scene_view, text_system, renderer);
 			renderer->pop_draw_canvas();
 
 			/* Render scene canvas to imgui canvas */

@@ -6,6 +6,7 @@
 #include <engine/state/project_state.h>
 #include <engine/system/animation.h>
 #include <engine/system/hot_reloading.h>
+#include <engine/system/text_system.h>
 #include <platform/graphics/font.h>
 #include <platform/graphics/renderer.h>
 #include <platform/input/input.h>
@@ -27,19 +28,14 @@ namespace engine {
 		float render_delta_avg_ms = 0.0f;
 	};
 
-	struct Resources {
-		std::unordered_map<std::string, platform::Texture> textures;
-		std::unordered_map<std::string, platform::Font> fonts;
-		std::unordered_map<std::string, platform::Canvas> canvases;
-	};
-
 	struct Systems {
 		AnimationSystem animation;
+		TextSystem text;
 	};
 
 	struct State {
-		Resources resources;
 		Systems systems;
+		SceneGraph scene_graph; // <-- at some point this should be a stack
 		bool editor_is_running;
 		glm::vec2 window_resolution;
 		DebugUiState debug_ui;

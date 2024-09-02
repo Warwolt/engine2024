@@ -82,31 +82,22 @@ namespace engine {
 
 		/* Initialize */
 		const bool reset_docking = !config->window.docking_initialized;
-		init_editor(&state->editor, state->project, reset_docking);
+		init_editor(&state->editor, &state->systems, state->project, reset_docking);
 
-		/* Add fonts */
-		{
-			const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-			platform::Font font = core::container::unwrap(platform::add_ttf_font(arial_font_path, 16), [&] {
-				ABORT("Failed to load font \"%s\"", arial_font_path);
-			});
-			state->resources.fonts["arial-16"] = font;
-		}
+		// add fake elements
+		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
+		FontID arial_font_16 = core::container::unwrap(state->systems.text.add_ttf_font(arial_font_path, 16), [&] {
+			ABORT("Failed to load font \"%s\"", arial_font_path);
+		});
+		TextID hello = state->systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
+		TextID world = state->systems.text.add_text_node(arial_font_16, "World", { 0.0f, 18.0f });
+		state->scene_graph.add_text_node(state->scene_graph.root(), hello);
+		state->scene_graph.add_text_node(state->scene_graph.root(), world);
 
 		return state;
 	}
 
 	void shutdown(State* state) {
-		for (const auto& [_, texture] : state->resources.textures) {
-			platform::free_texture(texture);
-		}
-		for (const auto& [_, font] : state->resources.fonts) {
-			platform::free_font(font);
-		}
-		for (const auto& [_, canvas] : state->resources.canvases) {
-			platform::free_canvas(canvas);
-		}
-
 		delete state;
 	}
 
@@ -186,7 +177,15 @@ namespace engine {
 			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, &window_title);
 			platform->set_window_title(window_title.c_str());
 			if (input.mode == platform::RunMode::Editor) {
-				editor::update_editor(&state->editor, &state->game, &state->project, input, state->resources, platform);
+				editor::update_editor(
+					&state->editor,
+					&state->game,
+					&state->project,
+					&state->systems,
+					&state->scene_graph,
+					input,
+					platform
+				);
 			}
 		}
 	}
@@ -195,18 +194,17 @@ namespace engine {
 		// clear
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state.window_resolution }, platform::Color::black);
 
-		platform::Font font = state.resources.fonts.at("arial-16");
-		glm::vec4 text_color = glm::vec4 { 0.92f, 0.92f, 0.92f, 1.0f };
-		std::string text = std::to_string(state.game.counter);
-		glm::vec2 line1_pos = state.window_resolution / 2.0f;
-		glm::vec2 line2_pos = state.window_resolution / 2.0f + glm::vec2 { 0.0f, font.line_height };
-		renderer->draw_text_centered(font, "Game", line1_pos, text_color);
-		renderer->draw_text_centered(font, text.c_str(), line2_pos, text_color);
+		// render text
+		glm::vec2 window_center = state.window_resolution / 2.0f;
+		for (const auto& [node_id, text_node] : state.systems.text.text_nodes()) {
+			const platform::Font& font = state.systems.text.fonts().at(text_node.font_id);
+			renderer->draw_text(font, text_node.text, window_center + text_node.position, platform::Color::white);
+		}
 	}
 
 	void render(platform::Renderer* renderer, const State* state) {
 		if (state->editor_is_running) {
-			editor::render_editor(state->editor, renderer);
+			editor::render_editor(state->editor, state->systems, renderer);
 		}
 		else {
 			render_game(*state, renderer);

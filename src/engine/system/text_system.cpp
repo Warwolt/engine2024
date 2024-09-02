@@ -26,7 +26,7 @@ namespace engine {
 		const TextID id = TextID(m_next_text_id++);
 		TextNode node = TextNode {
 			.text = text,
-			.font = font,
+			.font_id = font,
 			.position = position,
 			.rect = platform::get_text_bounding_box(m_fonts[font], text) + position,
 		};
