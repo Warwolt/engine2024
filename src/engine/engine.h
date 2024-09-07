@@ -16,6 +16,13 @@
 #include <string>
 #include <unordered_map>
 
+namespace platform {
+	struct Input;
+	struct Configuration;
+	class PlatformAPI;
+	class Renderer;
+}
+
 namespace engine {
 
 	struct DebugUiState {
@@ -33,16 +40,27 @@ namespace engine {
 		TextSystem text;
 	};
 
-	struct State {
-		Systems systems;
-		SceneGraph scene_graph; // <-- at some point this should be a stack
-		bool editor_is_running;
-		glm::vec2 window_resolution;
-		DebugUiState debug_ui;
-		HotReloadingState hot_reloading;
-		ProjectState project;
-		GameState game;
-		editor::EditorState editor;
+	class Engine {
+	public:
+		Engine() = default;
+		explicit Engine(const platform::Configuration* config);
+
+		void load_project(const char* path);
+		void update(const platform::Input& input, platform::PlatformAPI* platform);
+		void render(platform::Renderer* renderer) const;
+
+	private:
+		void _render_game(platform::Renderer* renderer) const;
+
+		Systems m_systems;
+		SceneGraph m_scene_graph; // <-- at some point this should be a stack
+		bool m_editor_is_running;
+		glm::vec2 m_window_resolution;
+		DebugUiState m_debug_ui;
+		HotReloadingState m_hot_reloading;
+		ProjectState m_project;
+		GameState m_game;
+		editor::EditorState m_editor;
 	};
 
 } // namespace engine

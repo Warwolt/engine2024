@@ -69,6 +69,7 @@ set(EDITOR_SRC
 )
 
 set(ENGINE_SRC
+    src/engine/engine.cpp
     src/engine/engine_api.cpp
     src/engine/state/game_state.cpp
     src/engine/state/scene_graph.cpp
