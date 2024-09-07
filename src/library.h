@@ -13,7 +13,7 @@ namespace ImWin32 {
 } // namespace ImWin32
 typedef struct FT_LibraryRec_* FT_Library;
 
-namespace engine {
+namespace library {
 
 	// global state wiring
 	extern "C" __declspec(dllexport) void set_logger(plog::Severity severity, plog::IAppender* appender);
@@ -22,10 +22,10 @@ namespace engine {
 	extern "C" __declspec(dllexport) void set_freetype_library(FT_Library ft);
 
 	// engine interface
-	extern "C" __declspec(dllexport) Engine* initialize(const platform::Configuration* config);
-	extern "C" __declspec(dllexport) void shutdown(Engine* engine);
-	extern "C" __declspec(dllexport) void load_project(Engine* engine, const char* path);
-	extern "C" __declspec(dllexport) void update(Engine* engine, const platform::Input& input, platform::PlatformAPI* platform);
-	extern "C" __declspec(dllexport) void render(const Engine& engine, platform::Renderer* renderer);
+	extern "C" __declspec(dllexport) engine::Engine* initialize(const platform::Configuration* config);
+	extern "C" __declspec(dllexport) void shutdown(engine::Engine* engine);
+	extern "C" __declspec(dllexport) void load_project(engine::Engine* engine, const char* path);
+	extern "C" __declspec(dllexport) void update(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform);
+	extern "C" __declspec(dllexport) void render(const engine::Engine& engine, platform::Renderer* renderer);
 
-} // namespace engine
+} // namespace library

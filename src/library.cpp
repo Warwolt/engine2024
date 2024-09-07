@@ -1,4 +1,4 @@
-#include <engine/engine_api.h>
+#include <library.h>
 
 #include <core/container.h>
 #include <engine/system/hot_reloading.h>
@@ -12,7 +12,7 @@
 
 #include <numeric>
 
-namespace engine {
+namespace library {
 
 	void set_logger(plog::Severity severity, plog::IAppender* appender) {
 		plog::init(severity, appender);
@@ -30,24 +30,24 @@ namespace engine {
 		platform::set_ft(ft);
 	}
 
-	Engine* initialize(const platform::Configuration* config) {
-		return new Engine(config);
+	engine::Engine* initialize(const platform::Configuration* config) {
+		return new engine::Engine(config);
 	}
 
-	void shutdown(Engine* engine) {
+	void shutdown(engine::Engine* engine) {
 		delete engine;
 	}
 
-	void load_project(Engine* engine, const char* path) {
+	void load_project(engine::Engine* engine, const char* path) {
 		engine->load_project(path);
 	}
 
-	void update(Engine* engine, const platform::Input& input, platform::PlatformAPI* platform) {
+	void update(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform) {
 		engine->update(input, platform);
 	}
 
-	void render(const Engine& engine, platform::Renderer* renderer) {
+	void render(const engine::Engine& engine, platform::Renderer* renderer) {
 		engine.render(renderer);
 	}
 
-} // namespace engine
+} // namespace library

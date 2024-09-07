@@ -6,6 +6,7 @@ option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
 
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
 set(UNIT_TESTS unit_tests)
+set(HOT_RELOAD_DLL ${CMAKE_PROJECT_NAME}Shared)
 set(CORE_LIB ${CMAKE_PROJECT_NAME}Core)
 set(EDITOR_LIB ${CMAKE_PROJECT_NAME}Editor)
 set(ENGINE_LIB ${CMAKE_PROJECT_NAME}Engine)
@@ -69,8 +70,8 @@ set(EDITOR_SRC
 )
 
 set(ENGINE_SRC
+    src/library.cpp
     src/engine/engine.cpp
-    src/engine/engine_api.cpp
     src/engine/state/game_state.cpp
     src/engine/state/scene_graph.cpp
     src/engine/state/project_state.cpp
@@ -157,10 +158,13 @@ target_include_directories(${EDITOR_LIB} PUBLIC ${INC})
 target_link_libraries(${EDITOR_LIB} PUBLIC ${EXTERNAL_LIBS})
 
 # Engine
-add_library(${ENGINE_LIB} SHARED ${ENGINE_SRC})
+add_library(${ENGINE_LIB} STATIC ${ENGINE_SRC})
 target_include_directories(${ENGINE_LIB} PUBLIC ${INC})
 target_link_libraries(${ENGINE_LIB} PUBLIC ${PLATFORM_LIB} ${EDITOR_LIB} ${CORE_LIB} ${EXTERNAL_LIBS})
 set_target_properties(${ENGINE_LIB} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS YES)
+
+# Library
+# add_library(${HOT_RELOAD_DLL} SHARED )
 
 # Main
 add_executable(${MAIN_BINARY} src/main.cpp)

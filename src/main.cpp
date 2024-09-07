@@ -3,7 +3,7 @@
 
 #include <core/container.h>
 #include <core/util.h>
-#include <engine/engine_api.h>
+#include <library.h>
 #include <platform/debug/assert.h>
 #include <platform/debug/library_loader.h>
 #include <platform/debug/logging.h>
