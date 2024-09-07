@@ -101,19 +101,8 @@ namespace engine {
 		delete state;
 	}
 
-	void load_project(Engine* state, const char* path_str) {
-		std::filesystem::path path = std::filesystem::path(path_str);
-		if (std::filesystem::is_regular_file(path)) {
-			std::vector<uint8_t> data = platform::read_file_bytes(path).value();
-			state->m_project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
-				ABORT("Could not parse json file \"%s\": %s", path_str, error.c_str());
-			});
-			init_game_state(&state->m_game, state->m_project);
-			LOG_INFO("Game data loaded from \"%s\"", path_str);
-		}
-		else {
-			LOG_ERROR("Could not load game data from path \"%s\"", path_str);
-		}
+	void load_project(Engine* engine, const char* path) {
+		engine->load_project(path);
 	}
 
 	void update(Engine* state, const platform::Input& input, platform::PlatformAPI* platform) {
