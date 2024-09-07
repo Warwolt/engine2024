@@ -49,7 +49,9 @@ namespace engine {
 		void update(const platform::Input& input, platform::PlatformAPI* platform);
 		void render(platform::Renderer* renderer) const;
 
-		// TODO move all this to private
+	private:
+		void _render_game(platform::Renderer* renderer) const;
+
 		Systems m_systems;
 		SceneGraph m_scene_graph; // <-- at some point this should be a stack
 		bool m_editor_is_running;
@@ -59,9 +61,6 @@ namespace engine {
 		ProjectState m_project;
 		GameState m_game;
 		editor::EditorState m_editor;
-
-	private:
-		void _render_game(platform::Renderer* renderer) const;
 	};
 
 } // namespace engine
