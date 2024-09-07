@@ -12,7 +12,7 @@ namespace platform {
 namespace engine {
 
 	class AnimationSystem;
-	struct EngineState;
+	class EngineState;
 
 	struct HotReloadingState {
 		AnimationID title_animation_id;

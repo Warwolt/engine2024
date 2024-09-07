@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/state/engine_state.h>
+#include <engine/engine.h>
 #include <platform/debug/logging.h>
 #include <platform/file/config.h>
 #include <platform/graphics/renderer.h>

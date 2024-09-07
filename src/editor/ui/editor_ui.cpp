@@ -3,7 +3,7 @@
 #include <core/container.h>
 #include <editor/ui/log_window.h>
 #include <editor/ui/main_menu_bar.h>
-#include <engine/state/engine_state.h>
+#include <engine/engine.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <imgui/imgui.h>

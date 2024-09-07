@@ -33,7 +33,11 @@ namespace engine {
 		TextSystem text;
 	};
 
-	struct EngineState {
+	class EngineState {
+	public:
+		void load_project(const char* path);
+
+		// TODO move all this to private
 		Systems systems;
 		SceneGraph scene_graph; // <-- at some point this should be a stack
 		bool editor_is_running;
@@ -43,6 +47,8 @@ namespace engine {
 		ProjectState project;
 		GameState game;
 		editor::EditorState editor;
+
+	private:
 	};
 
 } // namespace engine

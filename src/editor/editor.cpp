@@ -3,7 +3,7 @@
 #include <core/container.h>
 #include <core/future.h>
 #include <editor/editor_command.h>
-#include <engine/state/engine_state.h>
+#include <engine/engine.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <platform/debug/logging.h>
