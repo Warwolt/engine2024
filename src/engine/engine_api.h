@@ -1,5 +1,6 @@
 #pragma once
 
+#include <editor/editor.h>
 #include <engine/engine.h>
 #include <platform/debug/logging.h>
 #include <platform/file/config.h>

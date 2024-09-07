@@ -25,7 +25,7 @@ namespace editor {
 	};
 
 	static void new_project(
-		EditorState* editor,
+		Editor* editor,
 		engine::Systems* systems,
 		engine::GameState* game,
 		engine::ProjectState* project
@@ -37,7 +37,7 @@ namespace editor {
 	}
 
 	static void open_project(
-		EditorState* editor,
+		Editor* editor,
 		engine::GameState* game,
 		engine::ProjectState* project,
 		platform::PlatformAPI* platform
@@ -55,7 +55,7 @@ namespace editor {
 	}
 
 	static void save_project_as(
-		EditorState* editor,
+		Editor* editor,
 		engine::ProjectState* project,
 		platform::PlatformAPI* platform,
 		std::function<void()> on_file_saved = []() {}
@@ -71,7 +71,7 @@ namespace editor {
 	}
 
 	static void save_project(
-		EditorState* editor,
+		Editor* editor,
 		engine::ProjectState* project,
 		platform::PlatformAPI* platform,
 		std::function<void()> on_file_saved = []() {}
@@ -94,7 +94,7 @@ namespace editor {
 	}
 
 	static void show_unsaved_project_changes_dialog(
-		EditorState* editor,
+		Editor* editor,
 		engine::ProjectState* project,
 		platform::PlatformAPI* platform,
 		std::function<void()> on_dialog_not_cancelled = []() {}
@@ -120,12 +120,12 @@ namespace editor {
 		LOG_INFO("Editor quit");
 	}
 
-	void init_editor(EditorState* editor, engine::Systems* systems, const engine::ProjectState& project, bool reset_docking) {
+	void init_editor(Editor* editor, engine::Systems* systems, const engine::ProjectState& project, bool reset_docking) {
 		init_editor_ui(&editor->ui, &systems->text, project, reset_docking);
 	}
 
 	void update_editor(
-		EditorState* editor,
+		Editor* editor,
 		engine::GameState* game,
 		engine::ProjectState* project,
 		engine::Systems* systems,
@@ -261,7 +261,7 @@ namespace editor {
 	}
 
 	void render_editor(
-		const EditorState& editor,
+		const Editor& editor,
 		const engine::Systems& systems,
 		platform::Renderer* renderer
 	) {

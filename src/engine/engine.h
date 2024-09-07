@@ -60,7 +60,7 @@ namespace engine {
 		HotReloadingState m_hot_reloading;
 		ProjectState m_project;
 		GameState m_game;
-		editor::EditorState m_editor;
+		editor::Editor m_editor;
 	};
 
 } // namespace engine
