@@ -320,7 +320,7 @@ int main(int argc, char** argv) {
 	platform::Timer frame_timer;
 	platform::Input input;
 	platform::PlatformAPI platform;
-	engine::EngineState* engine_state;
+	engine::Engine* engine_state;
 	{
 		platform::Timer init_timer;
 		start_imgui_frame(); // this allows engine to initialize imgui state

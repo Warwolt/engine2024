@@ -33,20 +33,20 @@ namespace engine {
 		TextSystem text;
 	};
 
-	class EngineState {
+	class Engine {
 	public:
 		void load_project(const char* path);
 
 		// TODO move all this to private
-		Systems systems;
-		SceneGraph scene_graph; // <-- at some point this should be a stack
-		bool editor_is_running;
-		glm::vec2 window_resolution;
-		DebugUiState debug_ui;
-		HotReloadingState hot_reloading;
-		ProjectState project;
-		GameState game;
-		editor::EditorState editor;
+		Systems m_systems;
+		SceneGraph m_scene_graph; // <-- at some point this should be a stack
+		bool m_editor_is_running;
+		glm::vec2 m_window_resolution;
+		DebugUiState m_debug_ui;
+		HotReloadingState m_hot_reloading;
+		ProjectState m_project;
+		GameState m_game;
+		editor::EditorState m_editor;
 
 	private:
 	};

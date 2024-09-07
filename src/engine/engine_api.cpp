@@ -77,38 +77,38 @@ namespace engine {
 		platform::set_ft(ft);
 	}
 
-	EngineState* initialize(const platform::Configuration* config) {
-		EngineState* state = new EngineState();
+	Engine* initialize(const platform::Configuration* config) {
+		Engine* state = new Engine();
 
 		/* Initialize */
 		const bool reset_docking = !config->window.docking_initialized;
-		init_editor(&state->editor, &state->systems, state->project, reset_docking);
+		init_editor(&state->m_editor, &state->m_systems, state->m_project, reset_docking);
 
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-		FontID arial_font_16 = core::container::unwrap(state->systems.text.add_ttf_font(arial_font_path, 16), [&] {
+		FontID arial_font_16 = core::container::unwrap(state->m_systems.text.add_ttf_font(arial_font_path, 16), [&] {
 			ABORT("Failed to load font \"%s\"", arial_font_path);
 		});
-		TextID hello = state->systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
-		TextID world = state->systems.text.add_text_node(arial_font_16, "World", { 0.0f, 18.0f });
-		state->scene_graph.add_text_node(state->scene_graph.root(), hello);
-		state->scene_graph.add_text_node(state->scene_graph.root(), world);
+		TextID hello = state->m_systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
+		TextID world = state->m_systems.text.add_text_node(arial_font_16, "World", { 0.0f, 18.0f });
+		state->m_scene_graph.add_text_node(state->m_scene_graph.root(), hello);
+		state->m_scene_graph.add_text_node(state->m_scene_graph.root(), world);
 
 		return state;
 	}
 
-	void shutdown(EngineState* state) {
+	void shutdown(Engine* state) {
 		delete state;
 	}
 
-	void load_project(EngineState* state, const char* path_str) {
+	void load_project(Engine* state, const char* path_str) {
 		std::filesystem::path path = std::filesystem::path(path_str);
 		if (std::filesystem::is_regular_file(path)) {
 			std::vector<uint8_t> data = platform::read_file_bytes(path).value();
-			state->project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
+			state->m_project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
 				ABORT("Could not parse json file \"%s\": %s", path_str, error.c_str());
 			});
-			init_game_state(&state->game, state->project);
+			init_game_state(&state->m_game, state->m_project);
 			LOG_INFO("Game data loaded from \"%s\"", path_str);
 		}
 		else {
@@ -116,9 +116,9 @@ namespace engine {
 		}
 	}
 
-	void update(EngineState* state, const platform::Input& input, platform::PlatformAPI* platform) {
-		state->window_resolution = input.window_resolution;
-		state->editor_is_running = input.mode == platform::RunMode::Editor;
+	void update(Engine* state, const platform::Input& input, platform::PlatformAPI* platform) {
+		state->m_window_resolution = input.window_resolution;
+		state->m_editor_is_running = input.mode == platform::RunMode::Editor;
 		const bool game_is_running = input.mode == platform::RunMode::Game;
 
 		/* Quit */
@@ -143,10 +143,10 @@ namespace engine {
 
 		/* Update game */
 		if (game_is_running) {
-			state->game.time_ms += input.delta_ms;
-			if (state->game.time_ms >= 1000) {
-				state->game.time_ms -= 1000;
-				state->game.counter += 1;
+			state->m_game.time_ms += input.delta_ms;
+			if (state->m_game.time_ms >= 1000) {
+				state->m_game.time_ms -= 1000;
+				state->m_game.counter += 1;
 			}
 		}
 
@@ -160,29 +160,29 @@ namespace engine {
 		/* Debug UI */
 		{
 			if (input.keyboard.key_pressed_now(SDLK_F3)) {
-				state->debug_ui.show_debug_ui = !state->debug_ui.show_debug_ui;
+				state->m_debug_ui.show_debug_ui = !state->m_debug_ui.show_debug_ui;
 			}
 
-			if (state->debug_ui.show_debug_ui) {
-				draw_imgui(&state->debug_ui, platform, input);
+			if (state->m_debug_ui.show_debug_ui) {
+				draw_imgui(&state->m_debug_ui, platform, input);
 			}
 		}
 
 		/* Modules */
 		{
-			std::string window_title = state->project.name;
+			std::string window_title = state->m_project.name;
 			if (input.is_editor_mode) {
-				window_title += std::string(state->editor.project_has_unsaved_changes ? "*" : "") + " - Engine2024";
+				window_title += std::string(state->m_editor.project_has_unsaved_changes ? "*" : "") + " - Engine2024";
 			}
-			update_hot_reloading(&state->hot_reloading, &state->systems.animation, input, platform, &window_title);
+			update_hot_reloading(&state->m_hot_reloading, &state->m_systems.animation, input, platform, &window_title);
 			platform->set_window_title(window_title.c_str());
 			if (input.mode == platform::RunMode::Editor) {
 				editor::update_editor(
-					&state->editor,
-					&state->game,
-					&state->project,
-					&state->systems,
-					&state->scene_graph,
+					&state->m_editor,
+					&state->m_game,
+					&state->m_project,
+					&state->m_systems,
+					&state->m_scene_graph,
 					input,
 					platform
 				);
@@ -190,21 +190,21 @@ namespace engine {
 		}
 	}
 
-	static void render_game(const EngineState& state, platform::Renderer* renderer) {
+	static void render_game(const Engine& state, platform::Renderer* renderer) {
 		// clear
-		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state.window_resolution }, platform::Color::black);
+		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state.m_window_resolution }, platform::Color::black);
 
 		// render text
-		glm::vec2 window_center = state.window_resolution / 2.0f;
-		for (const auto& [node_id, text_node] : state.systems.text.text_nodes()) {
-			const platform::Font& font = state.systems.text.fonts().at(text_node.font_id);
+		glm::vec2 window_center = state.m_window_resolution / 2.0f;
+		for (const auto& [node_id, text_node] : state.m_systems.text.text_nodes()) {
+			const platform::Font& font = state.m_systems.text.fonts().at(text_node.font_id);
 			renderer->draw_text(font, text_node.text, window_center + text_node.position, platform::Color::white);
 		}
 	}
 
-	void render(platform::Renderer* renderer, const EngineState* state) {
-		if (state->editor_is_running) {
-			editor::render_editor(state->editor, state->systems, renderer);
+	void render(platform::Renderer* renderer, const Engine* state) {
+		if (state->m_editor_is_running) {
+			editor::render_editor(state->m_editor, state->m_systems, renderer);
 		}
 		else {
 			render_game(*state, renderer);
