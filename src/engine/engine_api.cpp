@@ -62,25 +62,8 @@ namespace engine {
 		engine->update(input, platform);
 	}
 
-	static void render_game(const Engine& state, platform::Renderer* renderer) {
-		// clear
-		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state.m_window_resolution }, platform::Color::black);
-
-		// render text
-		glm::vec2 window_center = state.m_window_resolution / 2.0f;
-		for (const auto& [node_id, text_node] : state.m_systems.text.text_nodes()) {
-			const platform::Font& font = state.m_systems.text.fonts().at(text_node.font_id);
-			renderer->draw_text(font, text_node.text, window_center + text_node.position, platform::Color::white);
-		}
-	}
-
-	void render(platform::Renderer* renderer, const Engine* state) {
-		if (state->m_editor_is_running) {
-			editor::render_editor(state->m_editor, state->m_systems, renderer);
-		}
-		else {
-			render_game(*state, renderer);
-		}
+	void render(const Engine& engine, platform::Renderer* renderer) {
+		engine.render(renderer);
 	}
 
 } // namespace engine

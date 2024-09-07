@@ -568,7 +568,7 @@ int main(int argc, char** argv) {
 
 			/* Render to canvas */
 			{
-				engine.render(&renderer, engine_state);
+				engine.render(*engine_state, &renderer);
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
 				renderer.reset_render_canvas();

@@ -25,6 +25,6 @@ namespace engine {
 	extern "C" __declspec(dllexport) void shutdown(Engine* state);
 	extern "C" __declspec(dllexport) void load_project(Engine* state, const char* path);
 	extern "C" __declspec(dllexport) void update(Engine* state, const platform::Input& input, platform::PlatformAPI* platform);
-	extern "C" __declspec(dllexport) void render(platform::Renderer* renderer, const Engine* engine);
+	extern "C" __declspec(dllexport) void render(const Engine& engine, platform::Renderer* renderer);
 
 } // namespace engine

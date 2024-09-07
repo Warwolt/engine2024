@@ -149,4 +149,25 @@ namespace engine {
 		}
 	}
 
+	void Engine::render(platform::Renderer* renderer) const {
+		if (m_editor_is_running) {
+			editor::render_editor(m_editor, m_systems, renderer);
+		}
+		else {
+			_render_game(renderer);
+		}
+	}
+
+	void Engine::_render_game(platform::Renderer* renderer) const {
+		// clear
+		renderer->draw_rect_fill({ { 0.0f, 0.0f }, m_window_resolution }, platform::Color::black);
+
+		// render text
+		glm::vec2 window_center = m_window_resolution / 2.0f;
+		for (const auto& [node_id, text_node] : m_systems.text.text_nodes()) {
+			const platform::Font& font = m_systems.text.fonts().at(text_node.font_id);
+			renderer->draw_text(font, text_node.text, window_center + text_node.position, platform::Color::white);
+		}
+	}
+
 } // namespace engine

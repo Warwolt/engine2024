@@ -19,6 +19,7 @@
 namespace platform {
 	struct Input;
 	class PlatformAPI;
+	class Renderer;
 }
 
 namespace engine {
@@ -42,6 +43,7 @@ namespace engine {
 	public:
 		void load_project(const char* path);
 		void update(const platform::Input& input, platform::PlatformAPI* platform);
+		void render(platform::Renderer* renderer) const;
 
 		// TODO move all this to private
 		Systems m_systems;
@@ -55,6 +57,7 @@ namespace engine {
 		editor::EditorState m_editor;
 
 	private:
+		void _render_game(platform::Renderer* renderer) const;
 	};
 
 } // namespace engine
