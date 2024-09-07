@@ -10,11 +10,11 @@
 
 #include <imgui/imgui.h>
 
-#define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                          \
-	do {                                                                                                                               \
-		decltype(engine_library.function_name) fn = (decltype(engine_library.function_name))(GetProcAddress(hmodule, #function_name)); \
-		ASSERT(fn != nullptr, "GetProcAddress(\"" #function_name "\") returned null. Is the function name correct?");                  \
-		engine_library.function_name = fn;                                                                                             \
+#define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                                \
+	do {                                                                                                                                     \
+		decltype(engine_library.function_name) fn = (decltype(engine_library.function_name))(GetProcAddress(hmodule, #function_name));       \
+		ASSERT(fn != nullptr, "GetProcAddress(\"" #function_name "\") returned null. Is the function name \"" #function_name "\" correct?"); \
+		engine_library.function_name = fn;                                                                                                   \
 	} while (0)
 
 namespace platform {
@@ -123,11 +123,11 @@ namespace platform {
 		LOAD_FUNCTION(m_copied_library, engine_library, set_imwin32_context);
 		LOAD_FUNCTION(m_copied_library, engine_library, set_freetype_library);
 
-		LOAD_FUNCTION(m_copied_library, engine_library, initialize);
+		LOAD_FUNCTION(m_copied_library, engine_library, initialize_engine);
+		LOAD_FUNCTION(m_copied_library, engine_library, shutdown_engine);
+		LOAD_FUNCTION(m_copied_library, engine_library, update_engine);
+		LOAD_FUNCTION(m_copied_library, engine_library, render_engine);
 		LOAD_FUNCTION(m_copied_library, engine_library, load_project);
-		LOAD_FUNCTION(m_copied_library, engine_library, shutdown);
-		LOAD_FUNCTION(m_copied_library, engine_library, update);
-		LOAD_FUNCTION(m_copied_library, engine_library, render);
 
 		return engine_library;
 	}

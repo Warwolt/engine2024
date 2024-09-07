@@ -30,11 +30,11 @@ namespace library {
 		platform::set_ft(ft);
 	}
 
-	engine::Engine* initialize(const platform::Configuration* config) {
+	engine::Engine* initialize_engine(const platform::Configuration* config) {
 		return new engine::Engine(config);
 	}
 
-	void shutdown(engine::Engine* engine) {
+	void shutdown_engine(engine::Engine* engine) {
 		delete engine;
 	}
 
@@ -42,11 +42,11 @@ namespace library {
 		engine->load_project(path);
 	}
 
-	void update(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform) {
+	void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform) {
 		engine->update(input, platform);
 	}
 
-	void render(const engine::Engine& engine, platform::Renderer* renderer) {
+	void render_engine(const engine::Engine& engine, platform::Renderer* renderer) {
 		engine.render(renderer);
 	}
 

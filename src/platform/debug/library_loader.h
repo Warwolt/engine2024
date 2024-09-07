@@ -22,11 +22,11 @@ namespace platform {
 		void (*set_freetype_library)(FT_Library ft);
 
 		// engine interface
-		engine::Engine* (*initialize)(const platform::Configuration* config);
-		void (*shutdown)(engine::Engine*);
+		engine::Engine* (*initialize_engine)(const platform::Configuration* config);
+		void (*shutdown_engine)(engine::Engine*);
+		void (*update_engine)(engine::Engine*, const platform::Input&, platform::PlatformAPI*);
+		void (*render_engine)(const engine::Engine&, platform::Renderer*);
 		void (*load_project)(engine::Engine*, const char* path);
-		void (*update)(engine::Engine*, const platform::Input&, platform::PlatformAPI*);
-		void (*render)(const engine::Engine&, platform::Renderer*);
 	};
 
 	enum class LoadLibraryError {
