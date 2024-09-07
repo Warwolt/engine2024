@@ -127,7 +127,7 @@ namespace platform {
 		LOAD_FUNCTION(m_copied_library, engine_library, shutdown_engine);
 		LOAD_FUNCTION(m_copied_library, engine_library, update_engine);
 		LOAD_FUNCTION(m_copied_library, engine_library, render_engine);
-		LOAD_FUNCTION(m_copied_library, engine_library, load_project);
+		LOAD_FUNCTION(m_copied_library, engine_library, load_engine_data);
 
 		return engine_library;
 	}

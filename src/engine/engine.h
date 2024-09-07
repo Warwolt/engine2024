@@ -1,9 +1,9 @@
 #pragma once
 
 #include <core/container/ring_buffer.h>
-#include <editor/editor.h>
 #include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
+#include <engine/state/scene_graph.h>
 #include <engine/system/animation.h>
 #include <engine/system/hot_reloading.h>
 #include <engine/system/text_system.h>
@@ -45,7 +45,7 @@ namespace engine {
 		Engine() = default;
 		explicit Engine(const platform::Configuration* config);
 
-		void load_project(const char* path);
+		void load_data(const char* path);
 		void update(const platform::Input& input, platform::PlatformAPI* platform);
 		void render(platform::Renderer* renderer) const;
 
@@ -54,13 +54,12 @@ namespace engine {
 
 		Systems m_systems;
 		SceneGraph m_scene_graph; // <-- at some point this should be a stack
-		bool m_editor_is_running;
+		bool m_game_is_running;
 		glm::vec2 m_window_resolution;
 		DebugUiState m_debug_ui;
 		HotReloadingState m_hot_reloading;
 		ProjectState m_project;
 		GameState m_game;
-		editor::Editor m_editor;
 	};
 
 } // namespace engine

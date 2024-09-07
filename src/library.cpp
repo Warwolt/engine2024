@@ -38,16 +38,16 @@ namespace library {
 		delete engine;
 	}
 
-	void load_project(engine::Engine* engine, const char* path) {
-		engine->load_project(path);
-	}
-
 	void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform) {
 		engine->update(input, platform);
 	}
 
 	void render_engine(const engine::Engine& engine, platform::Renderer* renderer) {
 		engine.render(renderer);
+	}
+
+	void load_engine_data(engine::Engine* engine, const char* path) {
+		engine->load_data(path);
 	}
 
 } // namespace library

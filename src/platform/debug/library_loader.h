@@ -26,7 +26,7 @@ namespace platform {
 		void (*shutdown_engine)(engine::Engine*);
 		void (*update_engine)(engine::Engine*, const platform::Input&, platform::PlatformAPI*);
 		void (*render_engine)(const engine::Engine&, platform::Renderer*);
-		void (*load_project)(engine::Engine*, const char* path);
+		void (*load_engine_data)(engine::Engine*, const char* path);
 	};
 
 	enum class LoadLibraryError {

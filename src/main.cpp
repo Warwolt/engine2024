@@ -337,7 +337,7 @@ int main(int argc, char** argv) {
 	if (run_mode == platform::RunMode::Game) {
 		// load game pak
 		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
-		library.load_project(engine, path.string().c_str());
+		library.load_engine_data(engine, path.string().c_str());
 	}
 
 	/* Main loop */

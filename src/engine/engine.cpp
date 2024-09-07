@@ -63,8 +63,8 @@ namespace engine {
 
 	Engine::Engine(const platform::Configuration* config) {
 		/* Initialize */
-		const bool reset_docking = !config->window.docking_initialized;
-		init_editor(&m_editor, &m_systems, m_project, reset_docking);
+		//const bool reset_docking = !config->window.docking_initialized;
+		//init_editor(&m_editor, &m_systems, m_project, reset_docking);
 
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
@@ -77,7 +77,7 @@ namespace engine {
 		m_scene_graph.add_text_node(m_scene_graph.root(), world);
 	}
 
-	void Engine::load_project(const char* path_str) {
+	void Engine::load_data(const char* path_str) {
 		std::filesystem::path path = std::filesystem::path(path_str);
 		if (std::filesystem::is_regular_file(path)) {
 			std::vector<uint8_t> data = platform::read_file_bytes(path).value();
@@ -94,13 +94,12 @@ namespace engine {
 
 	void Engine::update(const platform::Input& input, platform::PlatformAPI* platform) {
 		m_window_resolution = input.window_resolution;
-		m_editor_is_running = input.mode == platform::RunMode::Editor;
-		const bool game_is_running = input.mode == platform::RunMode::Game;
+		m_game_is_running = input.mode == platform::RunMode::Game;
 
 		/* Quit */
 		{
 			// editor handles quit in editor mode
-			if (game_is_running) {
+			if (m_game_is_running) {
 				if (input.quit_signal_received) {
 					platform->quit();
 				}
@@ -118,7 +117,7 @@ namespace engine {
 		}
 
 		/* Update game */
-		if (game_is_running) {
+		if (m_game_is_running) {
 			m_game.time_ms += input.delta_ms;
 			if (m_game.time_ms >= 1000) {
 				m_game.time_ms -= 1000;
@@ -147,30 +146,27 @@ namespace engine {
 		/* Modules */
 		{
 			std::string window_title = m_project.name;
-			if (input.is_editor_mode) {
-				window_title += std::string(m_editor.project_has_unsaved_changes ? "*" : "") + " - Engine2024";
-			}
 			update_hot_reloading(&m_hot_reloading, &m_systems.animation, input, platform, &window_title);
 			platform->set_window_title(window_title.c_str());
-			if (input.mode == platform::RunMode::Editor) {
-				editor::update_editor(
-					&m_editor,
-					&m_game,
-					&m_project,
-					&m_systems,
-					&m_scene_graph,
-					input,
-					platform
-				);
-			}
+			//if (input.is_editor_mode) {
+			//	window_title += std::string(m_editor.project_has_unsaved_changes ? "*" : "") + " - Engine2024";
+			//}
+			//if (input.mode == platform::RunMode::Editor) {
+			//	editor::update_editor(
+			//		&m_editor,
+			//		&m_game,
+			//		&m_project,
+			//		&m_systems,
+			//		&m_scene_graph,
+			//		input,
+			//		platform
+			//	);
+			//}
 		}
 	}
 
 	void Engine::render(platform::Renderer* renderer) const {
-		if (m_editor_is_running) {
-			editor::render_editor(m_editor, m_systems, renderer);
-		}
-		else {
+		if (m_game_is_running) {
 			_render_game(renderer);
 		}
 	}

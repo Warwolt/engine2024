@@ -24,8 +24,10 @@ namespace library {
 	// engine interface
 	extern "C" __declspec(dllexport) engine::Engine* initialize_engine(const platform::Configuration* config);
 	extern "C" __declspec(dllexport) void shutdown_engine(engine::Engine* engine);
-	extern "C" __declspec(dllexport) void load_project(engine::Engine* engine, const char* path);
 	extern "C" __declspec(dllexport) void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform);
 	extern "C" __declspec(dllexport) void render_engine(const engine::Engine& engine, platform::Renderer* renderer);
+	extern "C" __declspec(dllexport) void load_engine_data(engine::Engine* engine, const char* path);
+
+	// editor interface
 
 } // namespace library
