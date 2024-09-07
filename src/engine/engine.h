@@ -16,6 +16,11 @@
 #include <string>
 #include <unordered_map>
 
+namespace platform {
+	struct Input;
+	class PlatformAPI;
+}
+
 namespace engine {
 
 	struct DebugUiState {
@@ -36,6 +41,7 @@ namespace engine {
 	class Engine {
 	public:
 		void load_project(const char* path);
+		void update(const platform::Input& input, platform::PlatformAPI* platform);
 
 		// TODO move all this to private
 		Systems m_systems;
