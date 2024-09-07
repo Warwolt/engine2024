@@ -18,6 +18,7 @@
 
 namespace platform {
 	struct Input;
+	struct Configuration;
 	class PlatformAPI;
 	class Renderer;
 }
@@ -41,6 +42,9 @@ namespace engine {
 
 	class Engine {
 	public:
+		Engine() = default;
+		explicit Engine(const platform::Configuration* config);
+
 		void load_project(const char* path);
 		void update(const platform::Input& input, platform::PlatformAPI* platform);
 		void render(platform::Renderer* renderer) const;

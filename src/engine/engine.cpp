@@ -3,6 +3,7 @@
 #include <core/container.h>
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
+#include <platform/file/config.h>
 #include <platform/file/file.h>
 
 #include <imgui/imgui.h>
@@ -58,6 +59,22 @@ namespace engine {
 			ImGui::Text("Num vertices: %zu", input.renderer_debug_data.num_vertices);
 			ImGui::Text("Render ms: %2.2f", debug_ui->render_delta_avg_ms);
 		}
+	}
+
+	Engine::Engine(const platform::Configuration* config) {
+		/* Initialize */
+		const bool reset_docking = !config->window.docking_initialized;
+		init_editor(&m_editor, &m_systems, m_project, reset_docking);
+
+		// add fake elements
+		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
+		FontID arial_font_16 = core::container::unwrap(m_systems.text.add_ttf_font(arial_font_path, 16), [&] {
+			ABORT("Failed to load font \"%s\"", arial_font_path);
+		});
+		TextID hello = m_systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
+		TextID world = m_systems.text.add_text_node(arial_font_16, "World", { 0.0f, 18.0f });
+		m_scene_graph.add_text_node(m_scene_graph.root(), hello);
+		m_scene_graph.add_text_node(m_scene_graph.root(), world);
 	}
 
 	void Engine::load_project(const char* path_str) {

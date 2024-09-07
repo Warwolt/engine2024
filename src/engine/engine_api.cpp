@@ -31,27 +31,11 @@ namespace engine {
 	}
 
 	Engine* initialize(const platform::Configuration* config) {
-		Engine* state = new Engine();
-
-		/* Initialize */
-		const bool reset_docking = !config->window.docking_initialized;
-		init_editor(&state->m_editor, &state->m_systems, state->m_project, reset_docking);
-
-		// add fake elements
-		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-		FontID arial_font_16 = core::container::unwrap(state->m_systems.text.add_ttf_font(arial_font_path, 16), [&] {
-			ABORT("Failed to load font \"%s\"", arial_font_path);
-		});
-		TextID hello = state->m_systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
-		TextID world = state->m_systems.text.add_text_node(arial_font_16, "World", { 0.0f, 18.0f });
-		state->m_scene_graph.add_text_node(state->m_scene_graph.root(), hello);
-		state->m_scene_graph.add_text_node(state->m_scene_graph.root(), world);
-
-		return state;
+		return new Engine(config);
 	}
 
-	void shutdown(Engine* state) {
-		delete state;
+	void shutdown(Engine* engine) {
+		delete engine;
 	}
 
 	void load_project(Engine* engine, const char* path) {
