@@ -35,7 +35,7 @@
 
 #include <fstream>
 
-const char* LIBRARY_NAME = "GameEngine2024Engine";
+const char* LIBRARY_NAME = "GameEngine2024Library";
 
 static void set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
 	int scale = (int)std::min(std::floor((float)window_width / (float)canvas_width), std::floor((float)window_height / (float)canvas_height));
