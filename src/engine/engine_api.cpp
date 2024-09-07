@@ -77,8 +77,8 @@ namespace engine {
 		platform::set_ft(ft);
 	}
 
-	State* initialize(const platform::Configuration* config) {
-		State* state = new State();
+	EngineState* initialize(const platform::Configuration* config) {
+		EngineState* state = new EngineState();
 
 		/* Initialize */
 		const bool reset_docking = !config->window.docking_initialized;
@@ -97,11 +97,11 @@ namespace engine {
 		return state;
 	}
 
-	void shutdown(State* state) {
+	void shutdown(EngineState* state) {
 		delete state;
 	}
 
-	void load_project(State* state, const char* path_str) {
+	void load_project(EngineState* state, const char* path_str) {
 		std::filesystem::path path = std::filesystem::path(path_str);
 		if (std::filesystem::is_regular_file(path)) {
 			std::vector<uint8_t> data = platform::read_file_bytes(path).value();
@@ -116,7 +116,7 @@ namespace engine {
 		}
 	}
 
-	void update(State* state, const platform::Input& input, platform::PlatformAPI* platform) {
+	void update(EngineState* state, const platform::Input& input, platform::PlatformAPI* platform) {
 		state->window_resolution = input.window_resolution;
 		state->editor_is_running = input.mode == platform::RunMode::Editor;
 		const bool game_is_running = input.mode == platform::RunMode::Game;
@@ -190,7 +190,7 @@ namespace engine {
 		}
 	}
 
-	static void render_game(const State& state, platform::Renderer* renderer) {
+	static void render_game(const EngineState& state, platform::Renderer* renderer) {
 		// clear
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, state.window_resolution }, platform::Color::black);
 
@@ -202,7 +202,7 @@ namespace engine {
 		}
 	}
 
-	void render(platform::Renderer* renderer, const State* state) {
+	void render(platform::Renderer* renderer, const EngineState* state) {
 		if (state->editor_is_running) {
 			editor::render_editor(state->editor, state->systems, renderer);
 		}

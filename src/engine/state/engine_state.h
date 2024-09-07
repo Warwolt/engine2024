@@ -33,7 +33,7 @@ namespace engine {
 		TextSystem text;
 	};
 
-	struct State {
+	struct EngineState {
 		Systems systems;
 		SceneGraph scene_graph; // <-- at some point this should be a stack
 		bool editor_is_running;
