@@ -204,8 +204,7 @@ namespace editor {
 
 	static void update_edit_window(
 		bool game_is_running,
-		std::vector<EditorCommand>* commands,
-		bool* run_game_windowed
+		std::vector<EditorCommand>* commands
 	) {
 		if (game_is_running) {
 			if (ImGui::Button("Resume game")) {
@@ -225,8 +224,6 @@ namespace editor {
 				commands->push_back(editor::EditorCommand::RunGame);
 			}
 		}
-
-		ImGui::Checkbox("Windowed mode", run_game_windowed);
 	}
 
 	std::vector<editor::EditorCommand> update_editor_ui(
@@ -280,7 +277,7 @@ namespace editor {
 
 		/* Game Edit Window */
 		if (ImGui::Begin(GAME_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_edit_window(game_is_running, &commands, &ui->run_game_windowed);
+			update_edit_window(game_is_running, &commands);
 		}
 		ImGui::End();
 

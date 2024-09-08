@@ -32,7 +32,6 @@ namespace editor {
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
-		bool run_game_windowed = false;
 		bool show_imgui_demo = false;
 		core::Signal<size_t> last_num_seen_log_entries = 0;
 

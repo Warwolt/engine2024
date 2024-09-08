@@ -224,7 +224,7 @@ namespace editor {
 
 				case EditorCommand::RunGame:
 					platform->set_run_mode(platform::RunMode::Game);
-					platform->set_window_mode(m_ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
+					platform->set_window_mode(platform::WindowMode::FullScreen);
 					break;
 
 				case EditorCommand::ClearLog:
