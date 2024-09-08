@@ -17,14 +17,13 @@
 
 namespace platform {
 	struct Input;
-} // namespace platform
+}
 
 namespace engine {
-
 	struct GameState;
 	struct ProjectState;
 	struct Systems;
-
+	class Engine;
 }
 
 namespace editor {
@@ -63,18 +62,14 @@ namespace editor {
 
 	std::vector<editor::EditorCommand> update_editor_ui(
 		EditorUiState* ui,
-		engine::GameState* game,
-		engine::ProjectState* project,
-		engine::Systems* systems,
-		engine::SceneGraph* scene_graph,
+		engine::Engine* engine,
 		const platform::Input& input,
-		bool unsaved_changes,
-		bool game_is_running
+		bool unsaved_changes
 	);
 
 	void render_editor_ui(
 		const EditorUiState& ui,
-		const engine::Systems& text_system,
+		const engine::Engine& engine,
 		platform::Renderer* renderer
 	);
 

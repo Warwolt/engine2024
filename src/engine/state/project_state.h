@@ -15,7 +15,7 @@ namespace engine {
 	 * Run-time information is stored in GameState
 	 */
 	struct ProjectState {
-		std::filesystem::path path;
+		std::filesystem::path path = {};
 		std::string name = "Untitled Project";
 		int counter = 0;
 

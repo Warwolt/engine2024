@@ -6,6 +6,7 @@ option(WARNINGS_AS_ERRORS "Compile with warnings as errors" OFF)
 
 set(MAIN_BINARY ${CMAKE_PROJECT_NAME})
 set(UNIT_TESTS unit_tests)
+set(DLL_LIB ${CMAKE_PROJECT_NAME}Library)
 set(CORE_LIB ${CMAKE_PROJECT_NAME}Core)
 set(EDITOR_LIB ${CMAKE_PROJECT_NAME}Editor)
 set(ENGINE_LIB ${CMAKE_PROJECT_NAME}Engine)
@@ -70,8 +71,6 @@ set(EDITOR_SRC
 
 set(ENGINE_SRC
     src/engine/engine.cpp
-    src/engine/engine_api.cpp
-    src/engine/state/game_state.cpp
     src/engine/state/scene_graph.cpp
     src/engine/state/project_state.cpp
     src/engine/system/animation.cpp
@@ -157,10 +156,15 @@ target_include_directories(${EDITOR_LIB} PUBLIC ${INC})
 target_link_libraries(${EDITOR_LIB} PUBLIC ${EXTERNAL_LIBS})
 
 # Engine
-add_library(${ENGINE_LIB} SHARED ${ENGINE_SRC})
+add_library(${ENGINE_LIB} STATIC ${ENGINE_SRC})
 target_include_directories(${ENGINE_LIB} PUBLIC ${INC})
 target_link_libraries(${ENGINE_LIB} PUBLIC ${PLATFORM_LIB} ${EDITOR_LIB} ${CORE_LIB} ${EXTERNAL_LIBS})
-set_target_properties(${ENGINE_LIB} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS YES)
+
+# Library
+add_library(${DLL_LIB} SHARED src/library.cpp)
+target_include_directories(${DLL_LIB} PUBLIC ${INC})
+target_link_libraries(${DLL_LIB} PUBLIC ${EDITOR_LIB} ${ENGINE_LIB})
+set_target_properties(${DLL_LIB} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS YES)
 
 # Main
 add_executable(${MAIN_BINARY} src/main.cpp)
@@ -173,7 +177,7 @@ target_include_directories(${UNIT_TESTS} PUBLIC test)
 target_link_libraries(${UNIT_TESTS} PUBLIC gtest gmock ${PLATFORM_LIB} ${EDITOR_LIB} ${ENGINE_LIB})
 
 # Set compile options for targets
-foreach(TARGET IN ITEMS ${MAIN_BINARY} ${CORE_LIB} ${PLATFORM_LIB} ${EDITOR_LIB} ${ENGINE_LIB} ${UNIT_TESTS})
+foreach(TARGET IN ITEMS ${MAIN_BINARY} ${CORE_LIB} ${DLL_LIB} ${EDITOR_LIB} ${ENGINE_LIB} ${PLATFORM_LIB} ${UNIT_TESTS})
     set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 23)
     target_compile_options(${TARGET} PUBLIC
         $<$<CXX_COMPILER_ID:MSVC>: /W4>

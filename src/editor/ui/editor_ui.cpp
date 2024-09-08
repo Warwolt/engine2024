@@ -4,7 +4,6 @@
 #include <editor/ui/log_window.h>
 #include <editor/ui/main_menu_bar.h>
 #include <engine/engine.h>
-#include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -154,7 +153,6 @@ namespace editor {
 	}
 
 	static void update_project_window(
-		engine::ProjectState* /* project */,
 		engine::TextSystem* text_system,
 		engine::SceneGraph* scene_graph,
 		EditorUiState* ui
@@ -206,14 +204,10 @@ namespace editor {
 
 	static void update_edit_window(
 		bool game_is_running,
-		engine::GameState* game,
 		std::vector<EditorCommand>* commands,
 		bool* run_game_windowed
 	) {
 		if (game_is_running) {
-			const int step = 1;
-			ImGui::InputScalar("Game Counter", ImGuiDataType_S16, &game->counter, &step, NULL, "%d");
-
 			if (ImGui::Button("Resume game")) {
 				commands->push_back(editor::EditorCommand::RunGame);
 			}
@@ -237,14 +231,11 @@ namespace editor {
 
 	std::vector<editor::EditorCommand> update_editor_ui(
 		EditorUiState* ui,
-		engine::GameState* game,
-		engine::ProjectState* project,
-		engine::Systems* systems,
-		engine::SceneGraph* scene_graph,
+		engine::Engine* engine,
 		const platform::Input& input,
-		bool unsaved_changes,
-		bool game_is_running
+		bool unsaved_changes
 	) {
+		bool game_is_running = input.mode == platform::RunMode::Game;
 		std::vector<editor::EditorCommand> commands;
 
 		/* Quit */
@@ -283,13 +274,13 @@ namespace editor {
 
 		/* Project Window */
 		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_project_window(project, &systems->text, scene_graph, ui);
+			update_project_window(&engine->systems().text, &engine->scene_graph(), ui);
 		}
 		ImGui::End();
 
 		/* Game Edit Window */
 		if (ImGui::Begin(GAME_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_edit_window(game_is_running, game, &commands, &ui->run_game_windowed);
+			update_edit_window(game_is_running, &commands, &ui->run_game_windowed);
 		}
 		ImGui::End();
 
@@ -297,7 +288,7 @@ namespace editor {
 		ui->scene_window.is_visible = false;
 		if (ImGui::Begin(SCENE_WINDOW)) {
 			ui->scene_window.is_visible = true;
-			update_scene_window(&ui->scene_window, scene_graph, input, &commands);
+			update_scene_window(&ui->scene_window, &engine->scene_graph(), input, &commands);
 		}
 		ImGui::End();
 
@@ -306,10 +297,10 @@ namespace editor {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
-		const engine::Systems& systems,
+		const engine::Engine& engine,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, ui.editor_fonts, systems.text, renderer);
+		render_scene_window(ui.scene_window, ui.editor_fonts, engine.systems().text, renderer);
 	}
 
 } // namespace editor

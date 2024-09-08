@@ -3,7 +3,7 @@
 
 #include <core/container.h>
 #include <core/util.h>
-#include <engine/engine_api.h>
+#include <library.h>
 #include <platform/debug/assert.h>
 #include <platform/debug/library_loader.h>
 #include <platform/debug/logging.h>
@@ -35,7 +35,7 @@
 
 #include <fstream>
 
-const char* LIBRARY_NAME = "GameEngine2024Engine";
+const char* LIBRARY_NAME = "GameEngine2024Library";
 
 static void set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
 	int scale = (int)std::min(std::floor((float)window_width / (float)canvas_width), std::floor((float)window_height / (float)canvas_height));
@@ -310,23 +310,31 @@ int main(int argc, char** argv) {
 	/* Load engine DLL */
 	platform::EngineLibraryLoader library_loader;
 	platform::EngineLibraryHotReloader hot_reloader = platform::EngineLibraryHotReloader(&library_loader, LIBRARY_NAME);
-	platform::EngineLibrary engine = core::container::unwrap(library_loader.load_library(LIBRARY_NAME), [](platform::LoadLibraryError error) {
+	platform::EngineLibrary library = core::container::unwrap(library_loader.load_library(LIBRARY_NAME), [](platform::LoadLibraryError error) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, core::util::enum_to_string(error));
 	});
-	platform::on_engine_library_loaded(&engine);
+	platform::on_engine_library_loaded(&library);
 	LOG_INFO("Engine library loaded");
 
 	/* Main loop */
 	platform::Timer frame_timer;
 	platform::Input input;
 	platform::PlatformAPI platform;
-	engine::Engine* engine_state;
+
+	/* Initialize engine */
+	engine::Engine* engine = nullptr;
 	{
 		platform::Timer init_timer;
 		start_imgui_frame(); // this allows engine to initialize imgui state
-		engine_state = engine.initialize(&config);
+		engine = library.initialize_engine();
 		ImGui::EndFrame();
 		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
+	}
+
+	/* Initialize editor */
+	editor::Editor* editor = nullptr;
+	if (is_editor_mode) {
+		editor = library.initialize_editor(engine, config);
 	}
 
 	bool quit = false;
@@ -337,7 +345,7 @@ int main(int argc, char** argv) {
 	if (run_mode == platform::RunMode::Game) {
 		// load game pak
 		std::filesystem::path path = std::filesystem::path(platform::application_path()).replace_extension("pak");
-		engine.load_project(engine_state, path.string().c_str());
+		library.load_engine_data(engine, path.string().c_str());
 	}
 
 	/* Main loop */
@@ -453,11 +461,14 @@ int main(int argc, char** argv) {
 		/* Update */
 		{
 			/* Hot reloading */
-			hot_reloader.update(&engine);
+			hot_reloader.update(&library);
 
 			/* Engine update */
 			start_imgui_frame();
-			engine.update(engine_state, input, &platform);
+			if (editor) {
+				library.update_editor(editor, config, input, engine, &platform);
+			}
+			library.update_engine(engine, input, &platform);
 
 			/* Platform update */
 			while (platform.has_commands()) {
@@ -568,7 +579,13 @@ int main(int argc, char** argv) {
 
 			/* Render to canvas */
 			{
-				engine.render(*engine_state, &renderer);
+				if (editor && run_mode == platform::RunMode::Editor) {
+					library.render_editor(*editor, *engine, &renderer);
+				}
+				else {
+					library.render_engine(*engine, &renderer);
+				}
+
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
 				renderer.reset_render_canvas();
@@ -608,7 +625,8 @@ int main(int argc, char** argv) {
 	/* Deinitialize */
 	ImWin32::DestroyContext();
 	deinit_imgui();
-	engine.shutdown(engine_state);
+	library.shutdown_editor(editor);
+	library.shutdown_engine(engine);
 	platform::free_shader_program(shader_program);
 	platform::shutdown(gl_context);
 	window.destroy();
