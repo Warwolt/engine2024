@@ -66,6 +66,7 @@ set(EDITOR_SRC
     src/editor/ui/editor_ui.cpp
     src/editor/ui/log_window.cpp
     src/editor/ui/main_menu_bar.cpp
+    src/editor/ui/scene_graph_window.cpp
     src/editor/ui/scene_window.cpp
 )
 

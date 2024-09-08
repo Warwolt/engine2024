@@ -33,7 +33,8 @@ namespace engine {
 		core::RingBuffer<float, 60> frame_render_deltas;
 		float render_delta_avg_ms = 0.0f;
 	};
-
+	
+	// TODO: move this out into its own header
 	struct Systems {
 		AnimationSystem animation;
 		TextSystem text;

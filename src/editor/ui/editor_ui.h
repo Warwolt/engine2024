@@ -3,6 +3,7 @@
 #include <core/signal.h>
 #include <editor/editor_command.h>
 #include <editor/ui/log_window.h>
+#include <editor/ui/scene_graph_window.h>
 #include <editor/ui/scene_window.h>
 #include <engine/state/scene_graph.h>
 #include <engine/system/text_system.h>
@@ -28,11 +29,6 @@ namespace engine {
 }
 
 namespace editor {
-
-	struct SceneGraphWindow {
-		std::unordered_map<engine::GraphNodeID, bool> node_is_selected = { { engine::GraphNodeID(0), true } };
-		std::unordered_map<engine::GraphNodeID, bool> node_is_open;
-	};
 
 	struct EditorUiState {
 		bool show_imgui_demo = false;
