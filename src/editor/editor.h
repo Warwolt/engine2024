@@ -1,7 +1,13 @@
 #pragma once
 
-#include <editor/ui/editor_ui.h>
+#include <editor/editor_command.h>
+#include <editor/ui/log_window.h>
+#include <editor/ui/scene_graph_window.h>
+#include <editor/ui/scene_window.h>
+#include <engine/system/text_system.h>
 #include <platform/platform_api.h>
+
+#include <vector>
 
 namespace platform {
 	class Renderer;
@@ -28,11 +34,26 @@ namespace editor {
 			engine::Engine* engine,
 			platform::PlatformAPI* platform
 		);
-		void render(const engine::Engine& engine, platform::Renderer* renderer) const;
+
+		void render(
+			const engine::Engine& engine,
+			platform::Renderer* renderer
+		) const;
 
 	private:
-		EditorUiState m_ui; // <---- remove
+		std::vector<editor::EditorCommand> _update_ui(
+			engine::Engine* engine,
+			const platform::Input& input,
+			bool unsaved_changes
+		);
+
 		size_t m_project_hash; // for "unsaved changes" prompts
+		bool m_show_imgui_demo = false;
+		engine::FontID m_system_font_id;
+
+		LogWindow m_log_window;
+		SceneGraphWindow m_scene_graph_window;
+		SceneWindow m_scene_window;
 	};
 
 } // namespace editor
