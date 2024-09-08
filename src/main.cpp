@@ -326,7 +326,7 @@ int main(int argc, char** argv) {
 	{
 		platform::Timer init_timer;
 		start_imgui_frame(); // this allows engine to initialize imgui state
-		engine = library.initialize_engine(config);
+		engine = library.initialize_engine();
 		ImGui::EndFrame();
 		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
 	}

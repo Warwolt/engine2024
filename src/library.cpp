@@ -30,8 +30,8 @@ namespace library {
 		platform::set_ft(ft);
 	}
 
-	engine::Engine* initialize_engine(const platform::Configuration& config) {
-		return new engine::Engine(config);
+	engine::Engine* initialize_engine() {
+		return new engine::Engine();
 	}
 
 	void shutdown_engine(engine::Engine* engine) {

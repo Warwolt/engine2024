@@ -61,7 +61,7 @@ namespace engine {
 		}
 	}
 
-	Engine::Engine(const platform::Configuration& config) {
+	Engine::Engine() {
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
 		FontID arial_font_16 = core::container::unwrap(m_systems.text.add_ttf_font(arial_font_path, 16), [&] {

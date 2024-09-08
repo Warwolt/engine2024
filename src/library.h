@@ -22,7 +22,7 @@ namespace library {
 	extern "C" __declspec(dllexport) void set_freetype_library(FT_Library ft);
 
 	// engine interface
-	extern "C" __declspec(dllexport) engine::Engine* initialize_engine(const platform::Configuration& config);
+	extern "C" __declspec(dllexport) engine::Engine* initialize_engine();
 	extern "C" __declspec(dllexport) void shutdown_engine(engine::Engine* engine);
 	extern "C" __declspec(dllexport) void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform);
 	extern "C" __declspec(dllexport) void render_engine(const engine::Engine& engine, platform::Renderer* renderer);
