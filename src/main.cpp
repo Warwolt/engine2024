@@ -458,11 +458,6 @@ int main(int argc, char** argv) {
 			input.monitor_size.y = (float)display_mode.h;
 		}
 
-		// DONT MERGE TO MAIN
-		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
-			quit = true; // <--- need this while disabling editor
-		}
-
 		/* Update */
 		{
 			/* Hot reloading */
@@ -471,7 +466,7 @@ int main(int argc, char** argv) {
 			/* Engine update */
 			start_imgui_frame();
 			if (editor) {
-				library.update_editor(editor, engine, input, &platform);
+				library.update_editor(editor, config, input, engine, &platform);
 			}
 			library.update_engine(engine, input, &platform);
 

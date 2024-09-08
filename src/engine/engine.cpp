@@ -62,10 +62,6 @@ namespace engine {
 	}
 
 	Engine::Engine(const platform::Configuration& config) {
-		/* Initialize */
-		//const bool reset_docking = !config->window.docking_initialized;
-		//init_editor(&m_editor, &m_systems, m_project, reset_docking);
-
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
 		FontID arial_font_16 = core::container::unwrap(m_systems.text.add_ttf_font(arial_font_path, 16), [&] {
@@ -138,20 +134,6 @@ namespace engine {
 			std::string window_title = m_project.name;
 			update_hot_reloading(&m_hot_reloading, &m_systems.animation, input, platform, &window_title);
 			platform->set_window_title(window_title.c_str());
-			//if (input.is_editor_mode) {
-			//	window_title += std::string(m_editor.project_has_unsaved_changes ? "*" : "") + " - Engine2024";
-			//}
-			//if (input.mode == platform::RunMode::Editor) {
-			//	editor::update_editor(
-			//		&m_editor,
-			//		&m_game,
-			//		&m_project,
-			//		&m_systems,
-			//		&m_scene_graph,
-			//		input,
-			//		platform
-			//	);
-			//}
 		}
 	}
 
