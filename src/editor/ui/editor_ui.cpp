@@ -156,7 +156,7 @@ namespace editor {
 		/* Log Window */
 		if (ImGui::Begin(LOG_WINDOW)) {
 			if (input.log) {
-				update_log_window(&ui->log_window, *input.log, &commands);
+				ui->log_window.update(*input.log, &commands);
 			}
 			else {
 				ImGui::Text("Log not available!");

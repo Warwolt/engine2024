@@ -20,7 +20,6 @@ namespace editor {
 
 	class Editor {
 	public:
-		Editor() = default;
 		Editor(engine::Engine* engine, const platform::Configuration& config);
 
 		void update(
@@ -32,8 +31,8 @@ namespace editor {
 		void render(const engine::Engine& engine, platform::Renderer* renderer) const;
 
 	private:
+		EditorUiState m_ui; // <---- remove
 		size_t m_project_hash; // for "unsaved changes" prompts
-		EditorUiState m_ui;
 	};
 
 } // namespace editor
