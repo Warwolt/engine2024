@@ -123,7 +123,7 @@ namespace editor {
 		const size_t current_project_hash = std::hash<engine::ProjectState>()(engine->project());
 		const bool is_new_file = engine->project().path.empty();
 		const bool game_is_running = input.mode == platform::RunMode::Game;
-		m_project_has_unsaved_changes = m_ui.cached_project_hash != current_project_hash;
+		const bool project_has_unsaved_changes = m_ui.cached_project_hash != current_project_hash;
 
 		/* Run UI */
 		std::vector<EditorCommand> commands;
@@ -132,7 +132,7 @@ namespace editor {
 				&m_ui,
 				engine,
 				input,
-				m_project_has_unsaved_changes
+				project_has_unsaved_changes
 			);
 		}
 
@@ -179,7 +179,7 @@ namespace editor {
 		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
 				case EditorCommand::NewProject:
-					if (m_project_has_unsaved_changes) {
+					if (project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
 							new_project(this, engine, config);
 						});
@@ -190,7 +190,7 @@ namespace editor {
 					break;
 
 				case EditorCommand::OpenProject:
-					if (m_project_has_unsaved_changes) {
+					if (project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
 							open_project(this, engine, platform);
 						});
@@ -201,7 +201,7 @@ namespace editor {
 					break;
 
 				case EditorCommand::SaveProject:
-					if (m_project_has_unsaved_changes || is_new_file) {
+					if (project_has_unsaved_changes || is_new_file) {
 						save_project(this, &engine->project(), platform);
 					}
 					break;
@@ -232,7 +232,7 @@ namespace editor {
 					break;
 
 				case EditorCommand::Quit:
-					if (m_project_has_unsaved_changes) {
+					if (project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
 							quit_editor(platform);
 						});

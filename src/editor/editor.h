@@ -32,7 +32,6 @@ namespace editor {
 		void render(const engine::Engine& engine, platform::Renderer* renderer) const;
 
 	private:
-		bool m_project_has_unsaved_changes = false;
 		EditorUiState m_ui;
 	};
 
