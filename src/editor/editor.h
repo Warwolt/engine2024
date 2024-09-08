@@ -18,30 +18,21 @@ namespace engine {
 
 namespace editor {
 
-	struct Editor {
-		EditorUiState ui;
-		bool project_has_unsaved_changes = false;
+	class Editor {
+	public:
+		Editor() = default;
+		Editor(engine::Engine* engine, const platform::Configuration& config);
+
+		void update(
+			const platform::Input& input,
+			const platform::Configuration& config,
+			engine::Engine* engine,
+			platform::PlatformAPI* platform
+		);
+		void render(const engine::Engine& engine, platform::Renderer* renderer) const;
+
+	private:
+		EditorUiState m_ui;
 	};
-
-	void init_editor(
-		Editor* editor,
-		engine::Engine* engine,
-		const platform::Configuration& config
-	);
-
-	void update_editor(
-		Editor* editor,
-		const platform::Input& input,
-		const platform::Configuration& config,
-		engine::Engine* engine,
-		platform::PlatformAPI* platform
-
-	);
-
-	void render_editor(
-		const Editor& editor,
-		const engine::Engine& engine,
-		platform::Renderer* renderer
-	);
 
 } // namespace editor

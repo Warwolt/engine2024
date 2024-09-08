@@ -12,13 +12,13 @@
 
 namespace editor {
 
-	static const platform::FileExplorerDialog g_load_project_dialog = {
+	static const platform::FileExplorerDialog LOAD_PROJECT_DIALOG = {
 		.title = "Load project",
 		.description = "(PAK *.pak)",
 		.extension = "pak",
 	};
 
-	static const platform::FileExplorerDialog g_save_project_dialog = {
+	static const platform::FileExplorerDialog SAVE_PROJECT_DIALOG = {
 		.title = "Save project",
 		.description = "PAK (*.pak)",
 		.extension = "pak",
@@ -30,8 +30,8 @@ namespace editor {
 		const platform::Configuration& config
 	) {
 		LOG_INFO("Opened new project");
-		// engine->reset();
-		init_editor(editor, engine, config);
+		engine->systems().reset();
+		*editor = Editor(engine, config);
 	}
 
 	static void open_project(
@@ -40,7 +40,7 @@ namespace editor {
 		platform::PlatformAPI* platform
 	) {
 		// TODO: re-implement load project so that it works with SceneGraph stuff
-		platform->load_file_with_dialog(g_load_project_dialog, [=](std::vector<uint8_t> /*data*/, std::filesystem::path /*path*/) {
+		platform->load_file_with_dialog(LOAD_PROJECT_DIALOG, [=](std::vector<uint8_t> /*data*/, std::filesystem::path /*path*/) {
 			LOG_INFO("Opened project is not implemented!");
 		});
 	}
@@ -52,7 +52,7 @@ namespace editor {
 		std::function<void()> on_file_saved = []() {}
 	) {
 		const std::vector<uint8_t> bytes;
-		platform->save_file_with_dialog(bytes, g_save_project_dialog, [=](std::filesystem::path path) {
+		platform->save_file_with_dialog(bytes, SAVE_PROJECT_DIALOG, [=](std::filesystem::path path) {
 			LOG_ERROR("save_project_as is unimplemented!");
 			on_file_saved();
 		});
@@ -106,17 +106,15 @@ namespace editor {
 		LOG_INFO("Editor quit");
 	}
 
-	void init_editor(
-		Editor* editor,
+	Editor::Editor(
 		engine::Engine* engine,
 		const platform::Configuration& config
 	) {
 		const bool reset_docking = !config.window.docking_initialized;
-		init_editor_ui(&editor->ui, &engine->systems().text, engine->project(), reset_docking);
+		init_editor_ui(&m_ui, &engine->systems().text, engine->project(), reset_docking);
 	}
 
-	void update_editor(
-		Editor* editor,
+	void Editor::update(
 		const platform::Input& input,
 		const platform::Configuration& config,
 		engine::Engine* engine,
@@ -125,16 +123,16 @@ namespace editor {
 		const size_t current_project_hash = std::hash<engine::ProjectState>()(engine->project());
 		const bool is_new_file = engine->project().path.empty();
 		const bool game_is_running = input.mode == platform::RunMode::Game;
-		editor->project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
+		const bool project_has_unsaved_changes = m_ui.cached_project_hash != current_project_hash;
 
 		/* Run UI */
 		std::vector<EditorCommand> commands;
 		if (!game_is_running) {
 			commands = update_editor_ui(
-				&editor->ui,
+				&m_ui,
 				engine,
 				input,
-				editor->project_has_unsaved_changes
+				project_has_unsaved_changes
 			);
 		}
 
@@ -181,35 +179,35 @@ namespace editor {
 		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
 				case EditorCommand::NewProject:
-					if (editor->project_has_unsaved_changes) {
-						show_unsaved_project_changes_dialog(editor, &engine->project(), platform, [=]() {
-							new_project(editor, engine, config);
+					if (project_has_unsaved_changes) {
+						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
+							new_project(this, engine, config);
 						});
 					}
 					else {
-						new_project(editor, engine, config);
+						new_project(this, engine, config);
 					}
 					break;
 
 				case EditorCommand::OpenProject:
-					if (editor->project_has_unsaved_changes) {
-						show_unsaved_project_changes_dialog(editor, &engine->project(), platform, [=]() {
-							open_project(editor, engine, platform);
+					if (project_has_unsaved_changes) {
+						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
+							open_project(this, engine, platform);
 						});
 					}
 					else {
-						open_project(editor, engine, platform);
+						open_project(this, engine, platform);
 					}
 					break;
 
 				case EditorCommand::SaveProject:
-					if (editor->project_has_unsaved_changes || is_new_file) {
-						save_project(editor, &engine->project(), platform);
+					if (project_has_unsaved_changes || is_new_file) {
+						save_project(this, &engine->project(), platform);
 					}
 					break;
 
 				case EditorCommand::SaveProjectAs:
-					save_project_as(editor, &engine->project(), platform);
+					save_project_as(this, &engine->project(), platform);
 					break;
 
 				case EditorCommand::SetCursorToSizeAll:
@@ -226,7 +224,7 @@ namespace editor {
 
 				case EditorCommand::RunGame:
 					platform->set_run_mode(platform::RunMode::Game);
-					platform->set_window_mode(editor->ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
+					platform->set_window_mode(m_ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
 					break;
 
 				case EditorCommand::ClearLog:
@@ -234,8 +232,8 @@ namespace editor {
 					break;
 
 				case EditorCommand::Quit:
-					if (editor->project_has_unsaved_changes) {
-						show_unsaved_project_changes_dialog(editor, &engine->project(), platform, [=]() {
+					if (project_has_unsaved_changes) {
+						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
 							quit_editor(platform);
 						});
 					}
@@ -247,12 +245,8 @@ namespace editor {
 		}
 	}
 
-	void render_editor(
-		const Editor& editor,
-		const engine::Engine& engine,
-		platform::Renderer* renderer
-	) {
-		render_editor_ui(editor.ui, engine, renderer);
+	void Editor::render(const engine::Engine& engine, platform::Renderer* renderer) const {
+		render_editor_ui(m_ui, engine, renderer);
 	}
 
 } // namespace editor
