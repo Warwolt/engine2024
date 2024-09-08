@@ -51,9 +51,7 @@ namespace library {
 	}
 
 	editor::Editor* initialize_editor(engine::Engine* engine, const platform::Configuration& config) {
-		editor::Editor* editor = new editor::Editor();
-		editor::init_editor(editor, engine, config);
-		return editor;
+		return new editor::Editor(engine, config);
 	}
 
 	void shutdown_editor(editor::Editor* editor) {
@@ -61,11 +59,11 @@ namespace library {
 	}
 
 	void update_editor(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform) {
-		editor::update_editor(editor, input, config, engine, platform);
+		editor->update(input, config, engine, platform);
 	}
 
 	void render_editor(const editor::Editor& editor, const engine::Engine& engine, platform::Renderer* renderer) {
-		editor::render_editor(editor, engine, renderer);
+		editor.render(engine, renderer);
 	}
 
 } // namespace library
