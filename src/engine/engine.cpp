@@ -61,7 +61,7 @@ namespace engine {
 		}
 	}
 
-	Engine::Engine(const platform::Configuration* config) {
+	Engine::Engine(const platform::Configuration& config) {
 		/* Initialize */
 		//const bool reset_docking = !config->window.docking_initialized;
 		//init_editor(&m_editor, &m_systems, m_project, reset_docking);

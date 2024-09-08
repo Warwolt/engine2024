@@ -43,7 +43,7 @@ namespace engine {
 	class Engine {
 	public:
 		Engine() = default;
-		explicit Engine(const platform::Configuration* config);
+		explicit Engine(const platform::Configuration& config);
 
 		void load_data(const char* path);
 		void update(const platform::Input& input, platform::PlatformAPI* platform);

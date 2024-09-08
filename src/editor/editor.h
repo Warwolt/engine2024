@@ -24,6 +24,8 @@ namespace editor {
 		bool game_is_running = false;
 	};
 
+	// Editor::Editor(engine::Engine* engine, const platform::Configuration& config);
+
 	void init_editor(
 		Editor* editor,
 		engine::Systems* systems,

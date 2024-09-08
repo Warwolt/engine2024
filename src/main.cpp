@@ -324,7 +324,7 @@ int main(int argc, char** argv) {
 	{
 		platform::Timer init_timer;
 		start_imgui_frame(); // this allows engine to initialize imgui state
-		engine = library.initialize_engine(&config);
+		engine = library.initialize_engine(config);
 		ImGui::EndFrame();
 		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
 	}
@@ -448,6 +448,11 @@ int main(int argc, char** argv) {
 			SDL_GetCurrentDisplayMode(0, &display_mode);
 			input.monitor_size.x = (float)display_mode.w;
 			input.monitor_size.y = (float)display_mode.h;
+		}
+
+		// DONT MERGE TO MAIN
+		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {
+			quit = true; // <--- need this while disabling editor
 		}
 
 		/* Update */
