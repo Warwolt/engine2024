@@ -10,6 +10,7 @@
 
 #include <glm/vec2.hpp>
 
+#include <set>
 #include <stdint.h>
 #include <string>
 #include <unordered_map>
@@ -28,16 +29,6 @@ namespace engine {
 
 namespace editor {
 
-	struct UiGraphNode {
-		bool is_open = false;
-	};
-
-	struct SceneGraphUiState {
-		engine::GraphNodeID selected_node = engine::GraphNodeID(0);
-		engine::GraphNodeID next_id = engine::GraphNodeID(1);
-		std::unordered_map<engine::GraphNodeID, UiGraphNode> nodes = { { engine::GraphNodeID(0), { .is_open = true } } };
-	};
-
 	struct EditorUiState {
 		size_t cached_project_hash; // for "unsaved changes" prompts
 		std::string project_name_buf;
@@ -48,7 +39,8 @@ namespace editor {
 		EditorFonts editor_fonts;
 		SceneWindowState scene_window;
 
-		SceneGraphUiState scene_graph_ui; // Rename to "ui_scene_data" or something?
+		std::set<engine::GraphNodeID> selected_nodes = { engine::GraphNodeID(0) };
+		std::set<engine::GraphNodeID> open_nodes;
 	};
 
 	void init_editor_ui(
