@@ -30,8 +30,7 @@ namespace engine {
 namespace editor {
 
 	struct EditorUiState {
-		size_t cached_project_hash; // for "unsaved changes" prompts
-		std::string project_name_buf;
+		size_t project_hash; // for "unsaved changes" prompts
 		bool show_imgui_demo = false;
 		core::Signal<size_t> last_num_seen_log_entries = 0;
 
