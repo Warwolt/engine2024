@@ -9,10 +9,14 @@
 
 namespace editor {
 
+	struct LogWindow {
+		core::Signal<size_t> num_log_entries = 0;
+	};
+
 	void update_log_window(
+		LogWindow* log_window,
 		const std::vector<platform::LogEntry>& log,
-		std::vector<EditorCommand>* commands,
-		core::Signal<size_t>* last_num_seen_log_entries
+		std::vector<EditorCommand>* commands
 	);
 
 } // namespace editor

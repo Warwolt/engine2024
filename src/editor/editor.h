@@ -32,6 +32,7 @@ namespace editor {
 		void render(const engine::Engine& engine, platform::Renderer* renderer) const;
 
 	private:
+		size_t m_project_hash; // for "unsaved changes" prompts
 		EditorUiState m_ui;
 	};
 

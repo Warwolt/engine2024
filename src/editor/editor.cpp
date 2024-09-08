@@ -111,7 +111,8 @@ namespace editor {
 		const platform::Configuration& config
 	) {
 		const bool reset_docking = !config.window.docking_initialized;
-		init_editor_ui(&m_ui, &engine->systems().text, engine->project(), reset_docking);
+		init_editor_ui(&m_ui, &engine->systems().text, reset_docking);
+		m_project_hash = std::hash<engine::ProjectState>()(engine->project());
 	}
 
 	void Editor::update(
@@ -123,7 +124,7 @@ namespace editor {
 		const size_t current_project_hash = std::hash<engine::ProjectState>()(engine->project());
 		const bool is_new_file = engine->project().path.empty();
 		const bool game_is_running = input.mode == platform::RunMode::Game;
-		const bool project_has_unsaved_changes = m_ui.project_hash != current_project_hash;
+		const bool project_has_unsaved_changes = m_project_hash != current_project_hash;
 
 		/* Run UI */
 		std::vector<EditorCommand> commands;

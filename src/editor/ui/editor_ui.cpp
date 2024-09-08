@@ -1,7 +1,6 @@
 #include <editor/ui/editor_ui.h>
 
 #include <core/container.h>
-#include <editor/ui/log_window.h>
 #include <editor/ui/main_menu_bar.h>
 #include <engine/engine.h>
 #include <engine/state/project_state.h>
@@ -19,7 +18,7 @@ namespace editor {
 
 	constexpr char LOG_WINDOW[] = "Log";
 	constexpr char SCENE_WINDOW[] = "Scene";
-	constexpr char PROJECT_WINDOW[] = "Project";
+	constexpr char SCENE_GRAPH_WINDOW[] = "Scene Graph";
 	constexpr char GAME_WINDOW[] = "Game";
 
 	static void setup_docking_space(ImGuiID dockspace) {
@@ -67,7 +66,7 @@ namespace editor {
 		/* Add windows to docks */
 		ImGui::DockBuilderDockWindow(LOG_WINDOW, dock1);
 		ImGui::DockBuilderDockWindow(SCENE_WINDOW, dock2);
-		ImGui::DockBuilderDockWindow(PROJECT_WINDOW, dock3);
+		ImGui::DockBuilderDockWindow(SCENE_GRAPH_WINDOW, dock3);
 		ImGui::DockBuilderDockWindow(GAME_WINDOW, dock4);
 		ImGui::DockBuilderFinish(dockspace);
 	}
@@ -81,13 +80,11 @@ namespace editor {
 	void init_editor_ui(
 		EditorUiState* ui,
 		engine::TextSystem* text_system,
-		const engine::ProjectState& project,
 		bool reset_docking
 	) {
 		init_scene_window(&ui->scene_window);
 
 		ui->system_font_id = add_font(text_system, "C:/windows/Fonts/tahoma.ttf", 13);
-		ui->project_hash = std::hash<engine::ProjectState>()(project);
 
 		/* Setup docking */
 		if (reset_docking) {
@@ -113,7 +110,7 @@ namespace editor {
 		return std::format("{}##{}", name, node.id.value);
 	}
 
-	static void render_scene_graph_sub_tree(SceneGraphView* view, const kpeeters::tree<engine::GraphNode>::tree_node* node_it) {
+	static void render_scene_graph_sub_tree(SceneGraphWindow* view, const kpeeters::tree<engine::GraphNode>::tree_node* node_it) {
 		const engine::GraphNode& node = node_it->data;
 
 		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
@@ -146,17 +143,19 @@ namespace editor {
 		}
 	}
 
-	static void render_scene_graph(SceneGraphView* view, const engine::SceneGraph& scene_graph) {
+	static void render_scene_graph(SceneGraphWindow* view, const engine::SceneGraph& scene_graph) {
 		const kpeeters::tree<engine::GraphNode>::tree_node* root_node = scene_graph.tree().begin().node;
 		render_scene_graph_sub_tree(view, root_node);
 	}
 
 	static void update_project_window(
-		SceneGraphView* view,
-		engine::FontID system_font_id,
-		engine::TextSystem* text_system,
-		engine::SceneGraph* scene_graph
+		SceneGraphWindow* view,
+		engine::Systems* systems,
+		engine::SceneGraph* scene_graph,
+		engine::FontID system_font_id
 	) {
+		engine::TextSystem* text_system = &systems->text;
+
 		/* Scene Graph */
 		{
 			/* Scene graph buttons */
@@ -261,7 +260,7 @@ namespace editor {
 		/* Log Window */
 		if (ImGui::Begin(LOG_WINDOW)) {
 			if (input.log) {
-				update_log_window(*input.log, &commands, &ui->last_num_seen_log_entries);
+				update_log_window(&ui->log_window, *input.log, &commands);
 			}
 			else {
 				ImGui::Text("Log not available!");
@@ -270,8 +269,8 @@ namespace editor {
 		ImGui::End();
 
 		/* Project Window */
-		if (ImGui::Begin(PROJECT_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_project_window(&ui->scene_graph_view, ui->system_font_id, &engine->systems().text, &engine->scene_graph());
+		if (ImGui::Begin(SCENE_GRAPH_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
+			update_project_window(&ui->scene_graph_window, &engine->systems(), &engine->scene_graph(), ui->system_font_id);
 		}
 		ImGui::End();
 

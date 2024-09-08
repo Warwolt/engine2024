@@ -31,9 +31,9 @@ namespace editor {
 	}
 
 	void update_log_window(
+		LogWindow* log_window,
 		const std::vector<platform::LogEntry>& log,
-		std::vector<EditorCommand>* commands,
-		core::Signal<size_t>* last_num_seen_log_entries
+		std::vector<EditorCommand>* commands
 	) {
 		if (ImGui::Button("Clear")) {
 			commands->push_back(EditorCommand::ClearLog);
@@ -52,13 +52,13 @@ namespace editor {
 			}
 
 			// Auto-scroll on new messages unless scroll position is set by user
-			*last_num_seen_log_entries = log.size();
+			log_window->num_log_entries = log.size();
 			const float scroll_y = ImGui::GetScrollY();
 			const float scroll_max = ImGui::GetScrollMaxY();
 			const float text_height = ImGui::GetTextLineHeightWithSpacing();
 			const int lines_to_count = 5;
 			const bool scrolled_up = scroll_y <= scroll_max - lines_to_count * text_height;
-			if (last_num_seen_log_entries->just_changed() && !scrolled_up) {
+			if (log_window->num_log_entries.just_changed() && !scrolled_up) {
 				ImGui::SetScrollHereY();
 			}
 		}

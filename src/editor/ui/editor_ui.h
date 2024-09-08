@@ -2,6 +2,7 @@
 
 #include <core/signal.h>
 #include <editor/editor_command.h>
+#include <editor/ui/log_window.h>
 #include <editor/ui/scene_window.h>
 #include <engine/state/scene_graph.h>
 #include <engine/system/text_system.h>
@@ -28,27 +29,24 @@ namespace engine {
 
 namespace editor {
 
-	struct SceneGraphView {
+	struct SceneGraphWindow {
 		std::unordered_map<engine::GraphNodeID, bool> node_is_selected = { { engine::GraphNodeID(0), true } };
 		std::unordered_map<engine::GraphNodeID, bool> node_is_open;
 	};
 
 	struct EditorUiState {
-		size_t project_hash; // for "unsaved changes" prompts
 		bool show_imgui_demo = false;
 		engine::FontID system_font_id;
 
-		core::Signal<size_t> last_num_seen_log_entries = 0;
-
 		// components
-		SceneGraphView scene_graph_view;
+		LogWindow log_window;
+		SceneGraphWindow scene_graph_window;
 		SceneWindowState scene_window;
 	};
 
 	void init_editor_ui(
 		EditorUiState* ui,
 		engine::TextSystem* text_system,
-		const engine::ProjectState& project,
 		bool reset_docking
 	);
 
