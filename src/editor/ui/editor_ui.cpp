@@ -82,8 +82,6 @@ namespace editor {
 		engine::TextSystem* text_system,
 		bool reset_docking
 	) {
-		init_scene_window(&ui->scene_window);
-
 		ui->system_font_id = add_font(text_system, "C:/windows/Fonts/tahoma.ttf", 13);
 
 		/* Setup docking */
@@ -94,7 +92,6 @@ namespace editor {
 	}
 
 	void shutdown_editor_ui(const EditorUiState& ui) {
-		shutdown_scene_window(ui.scene_window);
 	}
 
 	static void update_edit_window(
@@ -177,10 +174,8 @@ namespace editor {
 		ImGui::End();
 
 		/* Scene Window */
-		ui->scene_window.is_visible = false;
 		if (ImGui::Begin(SCENE_WINDOW)) {
-			ui->scene_window.is_visible = true;
-			update_scene_window(&ui->scene_window, &engine->scene_graph(), input, &commands);
+			ui->scene_window.update(&engine->scene_graph(), input, &commands);
 		}
 		ImGui::End();
 
@@ -192,7 +187,7 @@ namespace editor {
 		const engine::Engine& engine,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, engine.systems().text, ui.system_font_id, renderer);
+		ui.scene_window.render(engine.systems().text, ui.system_font_id, renderer);
 	}
 
 } // namespace editor

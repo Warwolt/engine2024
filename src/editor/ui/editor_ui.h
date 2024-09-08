@@ -37,7 +37,7 @@ namespace editor {
 		// components
 		LogWindow log_window;
 		SceneGraphWindow scene_graph_window;
-		SceneWindowState scene_window;
+		SceneWindow scene_window;
 	};
 
 	void init_editor_ui(
