@@ -27,6 +27,12 @@ namespace platform {
 		void (*update_engine)(engine::Engine*, const platform::Input&, platform::PlatformAPI*);
 		void (*render_engine)(const engine::Engine&, platform::Renderer*);
 		void (*load_engine_data)(engine::Engine*, const char* path);
+
+		// editor interface
+		editor::Editor* (*initialize_editor)(engine::Engine* engine, const platform::Configuration& config);
+		void (*shutdown_editor)(editor::Editor* editor);
+		void (*update_editor)(editor::Editor* editor, engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform);
+		void (*render_editor)(const editor::Editor& editor, const engine::Engine& engine, platform::Renderer* renderer);
 	};
 
 	enum class LoadLibraryError {

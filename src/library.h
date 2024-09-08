@@ -30,5 +30,8 @@ namespace library {
 
 	// editor interface
 	extern "C" __declspec(dllexport) editor::Editor* initialize_editor(engine::Engine* engine, const platform::Configuration& config);
+	extern "C" __declspec(dllexport) void shutdown_editor(editor::Editor* editor);
+	extern "C" __declspec(dllexport) void update_editor(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform);
+	extern "C" __declspec(dllexport) void render_editor(const editor::Editor& editor, const engine::Engine& engine, platform::Renderer* renderer);
 
 } // namespace library

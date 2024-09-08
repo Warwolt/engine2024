@@ -248,10 +248,10 @@ namespace editor {
 
 	void render_editor(
 		const Editor& editor,
-		const engine::Systems& systems,
+		const engine::Engine& engine,
 		platform::Renderer* renderer
 	) {
-		render_editor_ui(editor.ui, systems, renderer);
+		render_editor_ui(editor.ui, engine, renderer);
 	}
 
 } // namespace editor

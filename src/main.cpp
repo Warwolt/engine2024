@@ -320,13 +320,21 @@ int main(int argc, char** argv) {
 	platform::Timer frame_timer;
 	platform::Input input;
 	platform::PlatformAPI platform;
-	engine::Engine* engine;
+
+	/* Initialize engine */
+	engine::Engine* engine = nullptr;
 	{
 		platform::Timer init_timer;
 		start_imgui_frame(); // this allows engine to initialize imgui state
 		engine = library.initialize_engine(config);
 		ImGui::EndFrame();
 		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
+	}
+
+	/* Initialize editor */
+	editor::Editor* editor = nullptr;
+	if (is_editor_mode) {
+		editor = library.initialize_editor(engine, config);
 	}
 
 	bool quit = false;
@@ -462,6 +470,9 @@ int main(int argc, char** argv) {
 
 			/* Engine update */
 			start_imgui_frame();
+			if (editor) {
+				library.update_editor(editor, engine, input, &platform);
+			}
 			library.update_engine(engine, input, &platform);
 
 			/* Platform update */
@@ -613,6 +624,7 @@ int main(int argc, char** argv) {
 	/* Deinitialize */
 	ImWin32::DestroyContext();
 	deinit_imgui();
+	library.shutdown_editor(editor);
 	library.shutdown_engine(engine);
 	platform::free_shader_program(shader_program);
 	platform::shutdown(gl_context);

@@ -297,10 +297,10 @@ namespace editor {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
-		const engine::Systems& systems,
+		const engine::Engine& engine,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, ui.editor_fonts, systems.text, renderer);
+		render_scene_window(ui.scene_window, ui.editor_fonts, engine.systems().text, renderer);
 	}
 
 } // namespace editor

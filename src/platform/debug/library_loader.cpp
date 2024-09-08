@@ -10,11 +10,11 @@
 
 #include <imgui/imgui.h>
 
-#define LOAD_FUNCTION(hmodule, engine_library, function_name)                                                                                \
+#define LOAD_FUNCTION(hmodule, library, function_name)                                                                                       \
 	do {                                                                                                                                     \
-		decltype(engine_library.function_name) fn = (decltype(engine_library.function_name))(GetProcAddress(hmodule, #function_name));       \
+		decltype(library.function_name) fn = (decltype(library.function_name))(GetProcAddress(hmodule, #function_name));                     \
 		ASSERT(fn != nullptr, "GetProcAddress(\"" #function_name "\") returned null. Is the function name \"" #function_name "\" correct?"); \
-		engine_library.function_name = fn;                                                                                                   \
+		library.function_name = fn;                                                                                                          \
 	} while (0)
 
 namespace platform {
@@ -75,15 +75,15 @@ namespace platform {
 
 	std::expected<EngineLibrary, LoadLibraryError> EngineLibraryLoader::load_library(const char* library_name) {
 		/* Load library */
-		HMODULE library = LoadLibrary(library_name);
-		if (!library) {
+		HMODULE hmodule = LoadLibrary(library_name);
+		if (!hmodule) {
 			std::string error = get_win32_error();
 			LOG_ERROR("LoadLibrary(\"%s\") failed: %s", library_name, error.c_str());
 			return std::unexpected(LoadLibraryError::FileDoesNotExist);
 		}
 
 		/* Get full path of library */
-		m_library_path = get_dll_full_path(library).value_or(std::string());
+		m_library_path = get_dll_full_path(hmodule).value_or(std::string());
 		if (m_library_path.empty()) {
 			return std::unexpected(LoadLibraryError::FailedToGetLibraryFullPath);
 		}
@@ -114,22 +114,29 @@ namespace platform {
 			return std::unexpected(LoadLibraryError::FailedToReadLastModifiedTime);
 		}
 		m_last_library_write = timestamp.value();
-		FreeLibrary(library); // done with original DLL, free it now
+		FreeLibrary(hmodule); // done with original DLL, free it now
 
 		/* Read functions */
-		EngineLibrary engine_library;
-		LOAD_FUNCTION(m_copied_library, engine_library, set_logger);
-		LOAD_FUNCTION(m_copied_library, engine_library, set_imgui_context);
-		LOAD_FUNCTION(m_copied_library, engine_library, set_imwin32_context);
-		LOAD_FUNCTION(m_copied_library, engine_library, set_freetype_library);
+		EngineLibrary library;
+		LOAD_FUNCTION(m_copied_library, library, set_logger);
+		LOAD_FUNCTION(m_copied_library, library, set_imgui_context);
+		LOAD_FUNCTION(m_copied_library, library, set_imwin32_context);
+		LOAD_FUNCTION(m_copied_library, library, set_freetype_library);
 
-		LOAD_FUNCTION(m_copied_library, engine_library, initialize_engine);
-		LOAD_FUNCTION(m_copied_library, engine_library, shutdown_engine);
-		LOAD_FUNCTION(m_copied_library, engine_library, update_engine);
-		LOAD_FUNCTION(m_copied_library, engine_library, render_engine);
-		LOAD_FUNCTION(m_copied_library, engine_library, load_engine_data);
+		// engine interface
+		LOAD_FUNCTION(m_copied_library, library, initialize_engine);
+		LOAD_FUNCTION(m_copied_library, library, shutdown_engine);
+		LOAD_FUNCTION(m_copied_library, library, update_engine);
+		LOAD_FUNCTION(m_copied_library, library, render_engine);
+		LOAD_FUNCTION(m_copied_library, library, load_engine_data);
 
-		return engine_library;
+		// editor interface
+		LOAD_FUNCTION(m_copied_library, library, initialize_editor);
+		LOAD_FUNCTION(m_copied_library, library, shutdown_editor);
+		LOAD_FUNCTION(m_copied_library, library, update_editor);
+		LOAD_FUNCTION(m_copied_library, library, render_editor);
+
+		return library;
 	}
 
 	bool EngineLibraryLoader::library_file_has_been_modified() const {
@@ -158,17 +165,17 @@ namespace platform {
 		, m_library_name(library_name) {
 	}
 
-	void EngineLibraryHotReloader::update(EngineLibrary* engine_library) {
+	void EngineLibraryHotReloader::update(EngineLibrary* library) {
 		/* Check if library has been reloaded on disk */
 		if (m_hot_reload_timer.elapsed_ms() >= 1000) {
 			m_hot_reload_timer.reset();
 
 			if (m_library_loader->library_file_has_been_modified()) {
 				m_library_loader->unload_library();
-				*engine_library = core::container::unwrap(m_library_loader->load_library(m_library_name.c_str()), [&](LoadLibraryError error) {
+				*library = core::container::unwrap(m_library_loader->load_library(m_library_name.c_str()), [&](LoadLibraryError error) {
 					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", m_library_name.c_str(), core::util::enum_to_string(error));
 				});
-				on_engine_library_loaded(engine_library);
+				on_engine_library_loaded(library);
 				LOG_INFO("Engine library reloaded");
 			}
 		}
@@ -204,11 +211,11 @@ namespace platform {
 		return m_last_exit_code;
 	}
 
-	void on_engine_library_loaded(EngineLibrary* engine_library) {
-		engine_library->set_logger(plog::verbose, plog::get());
-		engine_library->set_imgui_context(ImGui::GetCurrentContext());
-		engine_library->set_imwin32_context(ImWin32::GetCurrentContext());
-		engine_library->set_freetype_library(platform::get_ft());
+	void on_engine_library_loaded(EngineLibrary* library) {
+		library->set_logger(plog::verbose, plog::get());
+		library->set_imgui_context(ImGui::GetCurrentContext());
+		library->set_imwin32_context(ImWin32::GetCurrentContext());
+		library->set_freetype_library(platform::get_ft());
 	}
 
 } // namespace platform

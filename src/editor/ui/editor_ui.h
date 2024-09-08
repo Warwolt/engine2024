@@ -70,7 +70,7 @@ namespace editor {
 
 	void render_editor_ui(
 		const EditorUiState& ui,
-		const engine::Systems& text_system,
+		const engine::Engine& engine,
 		platform::Renderer* renderer
 	);
 
