@@ -28,16 +28,21 @@ namespace engine {
 
 namespace editor {
 
+	struct SceneGraphView {
+		std::unordered_map<engine::GraphNodeID, bool> node_is_selected = { { engine::GraphNodeID(0), true } };
+		std::unordered_map<engine::GraphNodeID, bool> node_is_open;
+	};
+
 	struct EditorUiState {
 		size_t project_hash; // for "unsaved changes" prompts
 		bool show_imgui_demo = false;
+		engine::FontID system_font_id;
+
 		core::Signal<size_t> last_num_seen_log_entries = 0;
 
-		engine::FontID system_font_id;
+		// components
+		SceneGraphView scene_graph_view;
 		SceneWindowState scene_window;
-
-		std::unordered_map<engine::GraphNodeID, bool> node_is_selected = { { engine::GraphNodeID(0), true } };
-		std::unordered_map<engine::GraphNodeID, bool> node_is_open;
 	};
 
 	void init_editor_ui(
