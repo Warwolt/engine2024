@@ -4,16 +4,16 @@
 #include <platform/platform_api.h>
 
 namespace platform {
-	struct Input;
 	class Renderer;
+	struct Configuration;
+	struct Input;
 }
 
 namespace engine {
-
+	class Engine;
 	struct GameState;
 	struct ProjectState;
 	struct Systems;
-
 }
 
 namespace editor {
@@ -28,19 +28,17 @@ namespace editor {
 
 	void init_editor(
 		Editor* editor,
-		engine::Systems* systems,
-		const engine::ProjectState& project,
-		bool reset_docking
+		engine::Engine* engine,
+		const platform::Configuration& config
 	);
 
 	void update_editor(
 		Editor* editor,
-		engine::GameState* game,
-		engine::ProjectState* project,
-		engine::Systems* systems,
-		engine::SceneGraph* scene_graph,
 		const platform::Input& input,
+		const platform::Configuration& config,
+		engine::Engine* engine,
 		platform::PlatformAPI* platform
+
 	);
 
 	void render_editor(

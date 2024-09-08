@@ -84,7 +84,6 @@ namespace engine {
 			m_project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
 				ABORT("Could not parse json file \"%s\": %s", path_str, error.c_str());
 			});
-			init_game_state(&m_game, m_project);
 			LOG_INFO("Game data loaded from \"%s\"", path_str);
 		}
 		else {
@@ -113,15 +112,6 @@ namespace engine {
 						platform->quit();
 					}
 				}
-			}
-		}
-
-		/* Update game */
-		if (m_game_is_running) {
-			m_game.time_ms += input.delta_ms;
-			if (m_game.time_ms >= 1000) {
-				m_game.time_ms -= 1000;
-				m_game.counter += 1;
 			}
 		}
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core/container/ring_buffer.h>
-#include <engine/state/game_state.h>
 #include <engine/state/project_state.h>
 #include <engine/state/scene_graph.h>
 #include <engine/system/animation.h>
@@ -49,6 +48,15 @@ namespace engine {
 		void update(const platform::Input& input, platform::PlatformAPI* platform);
 		void render(platform::Renderer* renderer) const;
 
+		SceneGraph& scene_graph() { return m_scene_graph; }
+		const SceneGraph& scene_graph() const { return m_scene_graph; }
+
+		Systems& systems() { return m_systems; }
+		const Systems& systems() const { return m_systems; }
+
+		ProjectState& project() { return m_project; }
+		const ProjectState& project() const { return m_project; }
+
 	private:
 		void _render_game(platform::Renderer* renderer) const;
 
@@ -59,7 +67,6 @@ namespace engine {
 		DebugUiState m_debug_ui;
 		HotReloadingState m_hot_reloading;
 		ProjectState m_project;
-		GameState m_game;
 	};
 
 } // namespace engine
