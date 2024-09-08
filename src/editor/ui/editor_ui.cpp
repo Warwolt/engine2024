@@ -166,7 +166,7 @@ namespace editor {
 
 		/* Project Window */
 		if (ImGui::Begin(SCENE_GRAPH_WINDOW, nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) {
-			update_scene_graph_window(&ui->scene_graph_window, &engine->systems(), &engine->scene_graph(), ui->system_font_id);
+			ui->scene_graph_window.update(&engine->systems(), &engine->scene_graph(), ui->system_font_id);
 		}
 		ImGui::End();
 

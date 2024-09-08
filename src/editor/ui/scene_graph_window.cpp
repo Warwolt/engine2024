@@ -21,46 +21,7 @@ namespace editor {
 		return std::format("{}##{}", name, node.id.value);
 	}
 
-	static void render_scene_graph_sub_tree(SceneGraphWindow* view, const kpeeters::tree<engine::GraphNode>::tree_node* node_it) {
-		const engine::GraphNode& node = node_it->data;
-
-		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-		if (view->node_is_selected[node.id]) {
-			flags |= ImGuiTreeNodeFlags_Selected;
-		}
-		if (node_it->is_leaf()) {
-			flags |= ImGuiTreeNodeFlags_Bullet;
-		}
-		if (node.type == engine::GraphNodeType::Root) {
-			flags |= ImGuiTreeNodeFlags_DefaultOpen;
-		}
-
-		std::string label = get_graph_node_label(node);
-		if (view->node_is_open[node.id]) {
-			ImGui::SetNextItemOpen(true);
-		}
-		bool node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
-		view->node_is_open[node.id] = node_is_open;
-
-		if (ImGui::IsItemClicked()) {
-			view->node_is_selected = { { node.id, true } };
-		}
-
-		if (node_is_open) {
-			for (auto* child = node_it->first_child; child != nullptr; child = child->next_sibling) {
-				render_scene_graph_sub_tree(view, child);
-			}
-			ImGui::TreePop();
-		}
-	}
-
-	static void render_scene_graph(SceneGraphWindow* view, const engine::SceneGraph& scene_graph) {
-		const kpeeters::tree<engine::GraphNode>::tree_node* root_node = scene_graph.tree().begin().node;
-		render_scene_graph_sub_tree(view, root_node);
-	}
-
-	void update_scene_graph_window(
-		SceneGraphWindow* view,
+	void SceneGraphWindow::update(
 		engine::Systems* systems,
 		engine::SceneGraph* scene_graph,
 		engine::FontID system_font_id
@@ -70,7 +31,7 @@ namespace editor {
 		/* Scene Graph */
 		{
 			/* Scene graph buttons */
-			const auto is_node_selected = [&](const engine::GraphNode& node) { return view->node_is_selected[node.id]; };
+			const auto is_node_selected = [&](const engine::GraphNode& node) { return m_node_is_selected[node.id]; };
 			ImGui::Text("Scene graph:");
 			if (ImGui::Button("Add node")) {
 				const engine::SceneGraph::Tree& tree = scene_graph->tree();
@@ -78,8 +39,8 @@ namespace editor {
 					auto root = scene_graph->root();
 					engine::TextID text_id = text_system->add_text_node(system_font_id);
 					engine::GraphNodeID child_id = scene_graph->add_text_node(node, text_id);
-					view->node_is_open[node->id] = true;
-					view->node_is_open[child_id] = false;
+					m_node_is_open[node->id] = true;
+					m_node_is_open[child_id] = false;
 				}
 			}
 			ImGui::SameLine();
@@ -95,7 +56,7 @@ namespace editor {
 							break;
 					}
 					auto next_node = scene_graph->remove_node(node);
-					view->node_is_selected = { { next_node->id, true } };
+					m_node_is_selected = { { next_node->id, true } };
 				}
 			}
 
@@ -104,11 +65,49 @@ namespace editor {
 				ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(255, 255, 255, 255));
 				ImGui::BeginChild("SceneGraph", ImVec2(0, 0), ImGuiChildFlags_Border);
 
-				render_scene_graph(view, *scene_graph);
+				_render_scene_graph(*scene_graph);
 
 				ImGui::EndChild();
 				ImGui::PopStyleColor();
 			}
+		}
+	}
+
+	void SceneGraphWindow::_render_scene_graph(const engine::SceneGraph& scene_graph) {
+		const kpeeters::tree<engine::GraphNode>::tree_node* root_node = scene_graph.tree().begin().node;
+		_render_scene_graph_sub_tree(root_node);
+	}
+
+	void SceneGraphWindow::_render_scene_graph_sub_tree(const kpeeters::tree<engine::GraphNode>::tree_node* node_it) {
+		const engine::GraphNode& node = node_it->data;
+
+		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+		if (m_node_is_selected[node.id]) {
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+		if (node_it->is_leaf()) {
+			flags |= ImGuiTreeNodeFlags_Bullet;
+		}
+		if (node.type == engine::GraphNodeType::Root) {
+			flags |= ImGuiTreeNodeFlags_DefaultOpen;
+		}
+
+		std::string label = get_graph_node_label(node);
+		if (m_node_is_open[node.id]) {
+			ImGui::SetNextItemOpen(true);
+		}
+		bool node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
+		m_node_is_open[node.id] = node_is_open;
+
+		if (ImGui::IsItemClicked()) {
+			m_node_is_selected = { { node.id, true } };
+		}
+
+		if (node_is_open) {
+			for (auto* child = node_it->first_child; child != nullptr; child = child->next_sibling) {
+				_render_scene_graph_sub_tree(child);
+			}
+			ImGui::TreePop();
 		}
 	}
 
