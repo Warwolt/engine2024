@@ -39,8 +39,8 @@ namespace editor {
 		EditorFonts editor_fonts;
 		SceneWindowState scene_window;
 
-		std::set<engine::GraphNodeID> selected_nodes = { engine::GraphNodeID(0) };
-		std::set<engine::GraphNodeID> open_nodes;
+		std::unordered_map<engine::GraphNodeID, bool> node_is_selected = { { engine::GraphNodeID(0), true } };
+		std::unordered_map<engine::GraphNodeID, bool> node_is_open;
 	};
 
 	void init_editor_ui(

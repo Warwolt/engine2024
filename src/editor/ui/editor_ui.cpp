@@ -118,7 +118,7 @@ namespace editor {
 		const engine::GraphNode& node = node_it->data;
 
 		int flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-		if (ui->selected_nodes.contains(node.id)) {
+		if (ui->node_is_selected[node.id]) {
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
 		if (node_it->is_leaf()) {
@@ -129,19 +129,14 @@ namespace editor {
 		}
 
 		std::string label = get_graph_node_label(node);
-		if (ui->open_nodes.contains(node.id)) {
+		if (ui->node_is_open[node.id]) {
 			ImGui::SetNextItemOpen(true);
 		}
 		bool node_is_open = ImGui::TreeNodeEx(label.c_str(), flags);
-		if (node_is_open) {
-			ui->open_nodes.insert(node.id);
-		}
-		else {
-			ui->open_nodes.erase(node.id);
-		}
+		ui->node_is_open[node.id] = node_is_open;
 
 		if (ImGui::IsItemClicked()) {
-			ui->selected_nodes = { node.id };
+			ui->node_is_selected = { { node.id, true } };
 		}
 
 		if (node_is_open) {
@@ -165,7 +160,7 @@ namespace editor {
 		/* Scene Graph */
 		{
 			/* Scene graph buttons */
-			const auto is_node_selected = [&](const engine::GraphNode& node) { return ui->selected_nodes.contains(node.id); };
+			const auto is_node_selected = [&](const engine::GraphNode& node) { return ui->node_is_selected[node.id]; };
 			ImGui::Text("Scene graph:");
 			if (ImGui::Button("Add node")) {
 				const engine::SceneGraph::Tree& tree = scene_graph->tree();
@@ -173,8 +168,8 @@ namespace editor {
 					auto root = scene_graph->root();
 					engine::TextID text_id = text_system->add_text_node(ui->editor_fonts.system_font_id);
 					engine::GraphNodeID child_id = scene_graph->add_text_node(node, text_id);
-					ui->open_nodes.insert(node->id);
-					ui->open_nodes.erase(child_id);
+					ui->node_is_open[node->id] = true;
+					ui->node_is_open[child_id] = false;
 				}
 			}
 			ImGui::SameLine();
@@ -190,7 +185,7 @@ namespace editor {
 							break;
 					}
 					auto next_node = scene_graph->remove_node(node);
-					ui->selected_nodes = { next_node->id };
+					ui->node_is_selected = { { next_node->id, true } };
 				}
 			}
 
