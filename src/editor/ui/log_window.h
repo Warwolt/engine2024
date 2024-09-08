@@ -9,10 +9,15 @@
 
 namespace editor {
 
-	void update_log_window(
-		const std::vector<platform::LogEntry>& log,
-		std::vector<EditorCommand>* commands,
-		core::Signal<size_t>* last_num_seen_log_entries
-	);
+	class LogWindow {
+	public:
+		void update(
+			const std::vector<platform::LogEntry>& log,
+			std::vector<EditorCommand>* commands
+		);
+
+	private:
+		core::Signal<size_t> m_num_log_entries = 0;
+	};
 
 } // namespace editor

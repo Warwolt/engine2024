@@ -1,8 +1,8 @@
 #pragma once
 
 #include <editor/editor_command.h>
-#include <editor/ui/editor_fonts.h>
 #include <engine/state/scene_graph.h>
+#include <platform/graphics/font.h>
 #include <platform/graphics/renderer.h>
 
 #include <glm/vec2.hpp>
@@ -13,7 +13,7 @@ namespace platform {
 
 namespace editor {
 
-	struct SceneViewState {
+	struct EditorScene {
 		int zoom_index = 0;
 		bool is_being_dragging = false;
 		glm::vec2 canvas_size = { 0.0f, 0.0f };
@@ -22,28 +22,27 @@ namespace editor {
 		platform::Canvas grid_canvas; // used to render grid
 	};
 
-	struct SceneWindowState {
-		bool is_visible = false;
-		bool position_initialized = false; // used to center scene view once we know ImGui window size
-		platform::Canvas canvas; // used to render ImGui::Image
-		SceneViewState scene_view; // the content of the scene window, the scene itself
+	class SceneWindow {
+	public:
+		SceneWindow();
+		~SceneWindow();
+
+		void update(
+			engine::SceneGraph* scene_graph,
+			const platform::Input& input,
+			std::vector<EditorCommand>* commands
+		);
+
+		void render(
+			const engine::TextSystem& text_system,
+			engine::FontID system_font_id,
+			platform::Renderer* renderer
+		) const;
+
+	private:
+		EditorScene m_scene; // the content of the scene window, the scene itself
+		platform::Canvas m_canvas; // used to render ImGui::Image
+		bool m_position_initialized = false; // used to center scene view once we know ImGui window size
 	};
-
-	void init_scene_window(SceneWindowState* scene_window);
-	void shutdown_scene_window(const SceneWindowState& scene_window);
-
-	void update_scene_window(
-		SceneWindowState* scene_window,
-		engine::SceneGraph* scene_graph,
-		const platform::Input& input,
-		std::vector<EditorCommand>* commands
-	);
-
-	void render_scene_window(
-		const SceneWindowState& scene_window,
-		const EditorFonts& editor_fonts,
-		const engine::TextSystem& text_system,
-		platform::Renderer* renderer
-	);
 
 } // namespace editor
