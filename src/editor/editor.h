@@ -18,9 +18,12 @@ namespace engine {
 
 namespace editor {
 
-	struct Editor {
-		EditorUiState ui;
-		bool project_has_unsaved_changes = false;
+	class Editor {
+	public:
+		EditorUiState m_ui;
+		bool m_project_has_unsaved_changes = false;
+
+	private:
 	};
 
 	void init_editor(

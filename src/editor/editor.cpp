@@ -112,7 +112,7 @@ namespace editor {
 		const platform::Configuration& config
 	) {
 		const bool reset_docking = !config.window.docking_initialized;
-		init_editor_ui(&editor->ui, &engine->systems().text, engine->project(), reset_docking);
+		init_editor_ui(&editor->m_ui, &engine->systems().text, engine->project(), reset_docking);
 	}
 
 	void update_editor(
@@ -125,16 +125,16 @@ namespace editor {
 		const size_t current_project_hash = std::hash<engine::ProjectState>()(engine->project());
 		const bool is_new_file = engine->project().path.empty();
 		const bool game_is_running = input.mode == platform::RunMode::Game;
-		editor->project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
+		editor->m_project_has_unsaved_changes = editor->m_ui.cached_project_hash != current_project_hash;
 
 		/* Run UI */
 		std::vector<EditorCommand> commands;
 		if (!game_is_running) {
 			commands = update_editor_ui(
-				&editor->ui,
+				&editor->m_ui,
 				engine,
 				input,
-				editor->project_has_unsaved_changes
+				editor->m_project_has_unsaved_changes
 			);
 		}
 
@@ -181,7 +181,7 @@ namespace editor {
 		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
 				case EditorCommand::NewProject:
-					if (editor->project_has_unsaved_changes) {
+					if (editor->m_project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, &engine->project(), platform, [=]() {
 							new_project(editor, engine, config);
 						});
@@ -192,7 +192,7 @@ namespace editor {
 					break;
 
 				case EditorCommand::OpenProject:
-					if (editor->project_has_unsaved_changes) {
+					if (editor->m_project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, &engine->project(), platform, [=]() {
 							open_project(editor, engine, platform);
 						});
@@ -203,7 +203,7 @@ namespace editor {
 					break;
 
 				case EditorCommand::SaveProject:
-					if (editor->project_has_unsaved_changes || is_new_file) {
+					if (editor->m_project_has_unsaved_changes || is_new_file) {
 						save_project(editor, &engine->project(), platform);
 					}
 					break;
@@ -226,7 +226,7 @@ namespace editor {
 
 				case EditorCommand::RunGame:
 					platform->set_run_mode(platform::RunMode::Game);
-					platform->set_window_mode(editor->ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
+					platform->set_window_mode(editor->m_ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
 					break;
 
 				case EditorCommand::ClearLog:
@@ -234,7 +234,7 @@ namespace editor {
 					break;
 
 				case EditorCommand::Quit:
-					if (editor->project_has_unsaved_changes) {
+					if (editor->m_project_has_unsaved_changes) {
 						show_unsaved_project_changes_dialog(editor, &engine->project(), platform, [=]() {
 							quit_editor(platform);
 						});
@@ -252,7 +252,7 @@ namespace editor {
 		const engine::Engine& engine,
 		platform::Renderer* renderer
 	) {
-		render_editor_ui(editor.ui, engine, renderer);
+		render_editor_ui(editor.m_ui, engine, renderer);
 	}
 
 } // namespace editor
