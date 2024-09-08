@@ -279,8 +279,8 @@ namespace editor {
 
 	void render_scene_window(
 		const SceneWindowState& scene_window,
-		const EditorFonts& editor_fonts,
 		const engine::TextSystem& text_system,
+		engine::FontID system_font_id,
 		platform::Renderer* renderer
 	) {
 		// Only render scene if ImGui scene window open
@@ -316,7 +316,7 @@ namespace editor {
 				}
 
 				// Print zoom
-				const platform::Font& system_font = text_system.fonts().at(editor_fonts.system_font_id);
+				const platform::Font& system_font = text_system.fonts().at(system_font_id);
 				std::string zoom_text = std::format("{:.1f}%", 100 * zoom_index_to_scale(scene_window.scene_view.zoom_index));
 				renderer->draw_text(system_font, zoom_text.c_str(), { 5, 20 }, { 1.0f, 1.0f, 1.0f, 0.75f });
 			}

@@ -2,7 +2,6 @@
 
 #include <core/signal.h>
 #include <editor/editor_command.h>
-#include <editor/ui/editor_fonts.h>
 #include <editor/ui/scene_window.h>
 #include <engine/state/scene_graph.h>
 #include <engine/system/text_system.h>
@@ -34,7 +33,7 @@ namespace editor {
 		bool show_imgui_demo = false;
 		core::Signal<size_t> last_num_seen_log_entries = 0;
 
-		EditorFonts editor_fonts;
+		engine::FontID system_font_id;
 		SceneWindowState scene_window;
 
 		std::unordered_map<engine::GraphNodeID, bool> node_is_selected = { { engine::GraphNodeID(0), true } };

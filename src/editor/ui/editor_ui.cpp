@@ -86,7 +86,7 @@ namespace editor {
 	) {
 		init_scene_window(&ui->scene_window);
 
-		ui->editor_fonts.system_font_id = add_font(text_system, "C:/windows/Fonts/tahoma.ttf", 13);
+		ui->system_font_id = add_font(text_system, "C:/windows/Fonts/tahoma.ttf", 13);
 		ui->project_hash = std::hash<engine::ProjectState>()(project);
 
 		/* Setup docking */
@@ -165,7 +165,7 @@ namespace editor {
 				const engine::SceneGraph::Tree& tree = scene_graph->tree();
 				if (auto node = std::find_if(tree.begin(), tree.end(), is_node_selected); node != tree.end()) {
 					auto root = scene_graph->root();
-					engine::TextID text_id = text_system->add_text_node(ui->editor_fonts.system_font_id);
+					engine::TextID text_id = text_system->add_text_node(ui->system_font_id);
 					engine::GraphNodeID child_id = scene_graph->add_text_node(node, text_id);
 					ui->node_is_open[node->id] = true;
 					ui->node_is_open[child_id] = false;
@@ -296,7 +296,7 @@ namespace editor {
 		const engine::Engine& engine,
 		platform::Renderer* renderer
 	) {
-		render_scene_window(ui.scene_window, ui.editor_fonts, engine.systems().text, renderer);
+		render_scene_window(ui.scene_window, engine.systems().text, ui.system_font_id, renderer);
 	}
 
 } // namespace editor
