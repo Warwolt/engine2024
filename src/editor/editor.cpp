@@ -221,15 +221,15 @@ namespace editor {
 		const size_t current_project_hash = std::hash<engine::ProjectState>()(engine->project());
 		const bool is_new_file = engine->project().path.empty();
 		const bool game_is_running = input.mode == platform::RunMode::Game;
-		const bool project_has_unsaved_changes = m_project_hash != current_project_hash;
+		const bool unsaved_changes = m_project_hash != current_project_hash;
 
 		/* Run UI */
 		std::vector<EditorCommand> commands;
 		if (!game_is_running) {
 			commands = _update_ui(
-				engine,
 				input,
-				project_has_unsaved_changes
+				unsaved_changes,
+				engine
 			);
 		}
 
@@ -276,7 +276,7 @@ namespace editor {
 		for (const EditorCommand& cmd : commands) {
 			switch (cmd) {
 				case EditorCommand::NewProject:
-					if (project_has_unsaved_changes) {
+					if (unsaved_changes) {
 						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
 							new_project(this, engine, config);
 						});
@@ -287,7 +287,7 @@ namespace editor {
 					break;
 
 				case EditorCommand::OpenProject:
-					if (project_has_unsaved_changes) {
+					if (unsaved_changes) {
 						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
 							open_project(this, engine, platform);
 						});
@@ -298,7 +298,7 @@ namespace editor {
 					break;
 
 				case EditorCommand::SaveProject:
-					if (project_has_unsaved_changes || is_new_file) {
+					if (unsaved_changes || is_new_file) {
 						save_project(this, &engine->project(), platform);
 					}
 					break;
@@ -329,7 +329,7 @@ namespace editor {
 					break;
 
 				case EditorCommand::Quit:
-					if (project_has_unsaved_changes) {
+					if (unsaved_changes) {
 						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
 							quit_editor(platform);
 						});
@@ -343,12 +343,12 @@ namespace editor {
 	}
 
 	std::vector<editor::EditorCommand> Editor::_update_ui(
-		engine::Engine* engine,
 		const platform::Input& input,
-		bool unsaved_changes
+		bool unsaved_changes,
+		engine::Engine* engine
 	) {
-		bool game_is_running = input.mode == platform::RunMode::Game;
 		std::vector<editor::EditorCommand> commands;
+		const bool game_is_running = input.mode == platform::RunMode::Game;
 
 		/* Quit */
 		if (input.quit_signal_received || input.keyboard.key_pressed_now(SDLK_ESCAPE)) {

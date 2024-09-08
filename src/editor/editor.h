@@ -42,9 +42,9 @@ namespace editor {
 
 	private:
 		std::vector<editor::EditorCommand> _update_ui(
-			engine::Engine* engine,
 			const platform::Input& input,
-			bool unsaved_changes
+			bool unsaved_changes,
+			engine::Engine* engine
 		);
 
 		size_t m_project_hash; // for "unsaved changes" prompts
