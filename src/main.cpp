@@ -579,7 +579,13 @@ int main(int argc, char** argv) {
 
 			/* Render to canvas */
 			{
-				library.render_engine(*engine, &renderer);
+				if (editor && run_mode == platform::RunMode::Editor) {
+					library.render_editor(*editor, *engine, &renderer);
+				}
+				else {
+					library.render_engine(*engine, &renderer);
+				}
+
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
 				renderer.reset_render_canvas();

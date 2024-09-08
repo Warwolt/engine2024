@@ -37,6 +37,11 @@ namespace engine {
 	struct Systems {
 		AnimationSystem animation;
 		TextSystem text;
+
+		void reset() {
+			// placeholder, right now no system has state that needs resetting
+			// when starting/stopping game but we want this in place anyway
+		}
 	};
 
 	class Engine {
@@ -58,8 +63,6 @@ namespace engine {
 		const ProjectState& project() const { return m_project; }
 
 	private:
-		void _render_game(platform::Renderer* renderer) const;
-
 		Systems m_systems;
 		SceneGraph m_scene_graph; // <-- at some point this should be a stack
 		bool m_game_is_running;

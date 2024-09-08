@@ -21,7 +21,6 @@ namespace editor {
 	struct Editor {
 		EditorUiState ui;
 		bool project_has_unsaved_changes = false;
-		bool game_is_running = false;
 	};
 
 	void init_editor(

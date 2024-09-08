@@ -233,9 +233,9 @@ namespace editor {
 		EditorUiState* ui,
 		engine::Engine* engine,
 		const platform::Input& input,
-		bool unsaved_changes,
-		bool game_is_running
+		bool unsaved_changes
 	) {
+		bool game_is_running = input.mode == platform::RunMode::Game;
 		std::vector<editor::EditorCommand> commands;
 
 		/* Quit */

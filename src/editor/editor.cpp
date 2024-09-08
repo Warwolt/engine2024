@@ -124,16 +124,19 @@ namespace editor {
 	) {
 		const size_t current_project_hash = std::hash<engine::ProjectState>()(engine->project());
 		const bool is_new_file = engine->project().path.empty();
+		const bool game_is_running = input.mode == platform::RunMode::Game;
 		editor->project_has_unsaved_changes = editor->ui.cached_project_hash != current_project_hash;
 
 		/* Run UI */
-		std::vector<EditorCommand> commands = update_editor_ui(
-			&editor->ui,
-			engine,
-			input,
-			editor->project_has_unsaved_changes,
-			editor->game_is_running
-		);
+		std::vector<EditorCommand> commands;
+		if (!game_is_running) {
+			commands = update_editor_ui(
+				&editor->ui,
+				engine,
+				input,
+				editor->project_has_unsaved_changes
+			);
+		}
 
 		/* Project keyboard shortcuts */
 		{
@@ -158,7 +161,7 @@ namespace editor {
 		{
 			/* Run */
 			if (input.keyboard.key_pressed_now(SDLK_F5)) {
-				if (editor->game_is_running) {
+				if (game_is_running) {
 					commands.push_back(EditorCommand::RunGame);
 				}
 				else {
@@ -218,12 +221,10 @@ namespace editor {
 					break;
 
 				case EditorCommand::ResetGameState:
-					editor->game_is_running = false;
-					LOG_ERROR("EditorCommand::ResetGameState is unimplemented!");
+					engine->systems().reset();
 					break;
 
 				case EditorCommand::RunGame:
-					editor->game_is_running = true;
 					platform->set_run_mode(platform::RunMode::Game);
 					platform->set_window_mode(editor->ui.run_game_windowed ? platform::WindowMode::Windowed : platform::WindowMode::FullScreen);
 					break;

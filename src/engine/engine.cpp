@@ -138,12 +138,6 @@ namespace engine {
 	}
 
 	void Engine::render(platform::Renderer* renderer) const {
-		if (m_game_is_running) {
-			_render_game(renderer);
-		}
-	}
-
-	void Engine::_render_game(platform::Renderer* renderer) const {
 		// clear
 		renderer->draw_rect_fill({ { 0.0f, 0.0f }, m_window_resolution }, platform::Color::black);
 

@@ -64,8 +64,7 @@ namespace editor {
 		EditorUiState* ui,
 		engine::Engine* engine,
 		const platform::Input& input,
-		bool unsaved_changes,
-		bool game_is_running
+		bool unsaved_changes
 	);
 
 	void render_editor_ui(
