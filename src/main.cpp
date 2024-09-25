@@ -391,7 +391,6 @@ int main(int argc, char** argv) {
 				LOG_DEBUG("archive.read_from_archive(\"data.json\") failed with %s", core::util::enum_to_string(error));
 			});
 			payload_json = nlohmann::json::parse(payload_bytes);
-			LOG_DEBUG("parsed json: %s", payload_json.dump().c_str());
 		}
 
 		/* Update */
@@ -421,6 +420,12 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
+
+	platform::Image arturo_img = platform::read_image("arturo.png").value();
+	platform::Image rodrigo_img = platform::read_image("rodrigo.png").value();
+	platform::Image blanket_img = platform::read_image("blanket.png").value();
+
+	platform::Texture arturo_tex = platform::add_texture(arturo_img.data.get(), arturo_img.width, arturo_img.height);
 
 	/* Main loop */
 	while (!quit) {
@@ -658,7 +663,10 @@ int main(int argc, char** argv) {
 			{
 				// PROTOTYPE RENDERING
 				{
-					// TODO
+					glm::vec2 window_center = input.window_resolution / 2.0f;
+					glm::vec2 image_size = arturo_tex.size * 2.0f;
+					core::Rect texture_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
+					renderer.draw_texture(arturo_tex, texture_quad);
 				}
 
 				// if (editor && run_mode == platform::RunMode::Editor) {
