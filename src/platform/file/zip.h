@@ -35,9 +35,9 @@ namespace platform {
 
 		bool is_valid() const;
 		const std::vector<std::string>& file_names() const;
-		std::expected<std::vector<uint8_t>, FileArchiveError> read_from_archive(const std::string& file_name);
 		void write_to_archive(std::string file_name, uint8_t* data, size_t num_bytes);
-		std::expected<void, FileArchiveError> write_archive_to_disk(const std::filesystem::path& path);
+		[[nodiscard]] std::expected<std::vector<uint8_t>, FileArchiveError> read_from_archive(const std::string& file_name);
+		[[nodiscard]] std::expected<void, FileArchiveError> write_archive_to_disk(const std::filesystem::path& path);
 		void close();
 
 	private:

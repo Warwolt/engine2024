@@ -36,7 +36,8 @@
 
 #include <fstream>
 
-// debugging
+// prototyping
+#include <nlohmann/json.hpp>
 #include <platform/file/zip.h>
 
 const char* LIBRARY_NAME = "GameEngine2024Library";
@@ -355,9 +356,8 @@ int main(int argc, char** argv) {
 
 	// prototype loading a data blob, lazy deserializing the blob, updating data, serializing, writing to disk
 	{
-		// open file from disk
-		// parse as zip
-		platform::FileArchive archive = core::container::unwrap(platform::FileArchive::open_from_file("test.zip"), [](std::string error) {
+		// open zip from disk
+		platform::FileArchive archive = core::unwrap(platform::FileArchive::open_from_file("test.zip"), [](std::string error) {
 			ABORT("FileArchive::open_from_file(\"test.zip\") failed with: %s", error.c_str());
 		});
 
@@ -368,10 +368,36 @@ int main(int argc, char** argv) {
 		}
 
 		// read data from zip
-		// std::expected<std::vector<uint8_t>, FileArchiveError> read_from_archive
+		std::vector<uint8_t> payload_bytes = core::unwrap(archive.read_from_archive("data.json"), [](platform::FileArchiveError error) {
+			LOG_DEBUG("archive.read_from_archive(\"data.json\") failed with %s", core::util::enum_to_string(error));
+		});
+		LOG_DEBUG("read %zu bytes", payload_bytes.size());
+		nlohmann::json payload_json = nlohmann::json::parse(payload_bytes);
+
+		LOG_DEBUG("parsed json: %s", payload_json.dump().c_str());
+
+		struct Payload {
+			int counter;
+		};
+		Payload payload = Payload {
+			.counter = payload_json["counter"],
+		};
+
 		// update data
+		payload.counter += 1;
+
 		// write data back to zip
+		nlohmann::json payload_json2;
+		payload_json2["counter"] = payload.counter;
+		std::string payload_string2 = payload_json2.dump();
+		std::vector<uint8_t> payload_bytes2 = std::vector<uint8_t>(payload_string2.begin(), payload_string2.end());
+		archive.write_to_archive("data.json", payload_bytes2.data(), payload_bytes2.size());
+
 		// write zip to disk
+		std::expected<void, platform::FileArchiveError> result = archive.write_archive_to_disk("test.zip");
+		if (!result.has_value()) {
+			LOG_DEBUG("write to archive failed with %s", core::util::enum_to_string(result.error()));
+		}
 	}
 
 	quit = true;
