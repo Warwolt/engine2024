@@ -1,7 +1,7 @@
 #include <GL/glew.h>
 #include <ft2build.h>
 
-#include <core/container.h>
+#include <core/unwrap.h>
 #include <core/util.h>
 #include <library.h>
 #include <platform/debug/assert.h>
@@ -214,7 +214,7 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 
 int main(int argc, char** argv) {
 	/* Parse args */
-	platform::CommandLineArgs cmd_args = core::container::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
+	platform::CommandLineArgs cmd_args = core::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
 		fprintf(stderr, "parse error: %s\n", error.c_str());
 		printf("%s\n", platform::usage_string().c_str());
 		exit(1);
@@ -260,7 +260,7 @@ int main(int argc, char** argv) {
 	if (window_should_be_maximized) {
 		window_flags |= SDL_WINDOW_MAXIMIZED;
 	}
-	platform::Window window = core::container::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, window_flags, "Untitled Project"), [] {
+	platform::Window window = core::unwrap(platform::Window::create(initial_window_size.x, initial_window_size.y, window_flags, "Untitled Project"), [] {
 		ABORT("platform::create_window failed");
 	});
 	if (window_should_be_fullscreen) {
@@ -272,7 +272,7 @@ int main(int argc, char** argv) {
 	}
 
 	/* Create OpenGL context */
-	SDL_GLContext gl_context = core::container::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
+	SDL_GLContext gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
 		ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
 	});
 
@@ -294,23 +294,23 @@ int main(int argc, char** argv) {
 	/* Read shader sources */
 	const char* vertex_shader_path = "resources/shaders/shader.vert";
 	const char* fragment_shader_path = "resources/shaders/shader.frag";
-	std::string vertex_shader_src = core::container::unwrap(platform::read_file_to_string(vertex_shader_path), [&] {
+	std::string vertex_shader_src = core::unwrap(platform::read_file_to_string(vertex_shader_path), [&] {
 		ABORT("Failed to open vertex shader \"%s\"", vertex_shader_path);
 	});
-	std::string fragment_shader_src = core::container::unwrap(platform::read_file_to_string(fragment_shader_path), [&] {
+	std::string fragment_shader_src = core::unwrap(platform::read_file_to_string(fragment_shader_path), [&] {
 		ABORT("Failed to open fragment shader \"%s\"", fragment_shader_path);
 	});
 
 	/* Initialize Renderer */
 	platform::Renderer renderer = platform::Renderer(gl_context);
-	platform::ShaderProgram shader_program = core::container::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](platform::ShaderProgramError error) {
+	platform::ShaderProgram shader_program = core::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](platform::ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", core::util::enum_to_string(error));
 	});
 
 	/* Load engine DLL */
 	platform::EngineLibraryLoader library_loader;
 	platform::EngineLibraryHotReloader hot_reloader = platform::EngineLibraryHotReloader(&library_loader, LIBRARY_NAME);
-	platform::EngineLibrary library = core::container::unwrap(library_loader.load_library(LIBRARY_NAME), [](platform::LoadLibraryError error) {
+	platform::EngineLibrary library = core::unwrap(library_loader.load_library(LIBRARY_NAME), [](platform::LoadLibraryError error) {
 		ABORT("EngineLibraryLoader::load_library(%s) failed with: %s", LIBRARY_NAME, core::util::enum_to_string(error));
 	});
 	platform::on_engine_library_loaded(&library);
