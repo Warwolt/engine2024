@@ -354,53 +354,73 @@ int main(int argc, char** argv) {
 		library.load_engine_data(engine, path.string().c_str());
 	}
 
-	// prototype loading a data blob, lazy deserializing the blob, updating data, serializing, writing to disk
+	// Prototype loading a data blob, lazy deserializing the blob, updating
+	// data, serializing, writing to disk
+	//
+	// In a real project file, we should assume that we might have an unbounded
+	// number of assets, some which may be Very Large (meaning, they will take
+	// time to load).
+	//
+	// From an engine perspective and a script perspective we just want to be
+	// able to ask for some data, and then later getting it (thus allowing the
+	// loading to be async).
+	//
+	// If we never ask for particular data, we should never pay the cost of
+	// loading it. Hence, the loading has to be lazy.
+	//
+	// So we have two requirements:
+	// - Lazily load data
+	// - Separate _accessing_ data from _loading_ it
+	// 		-> if data exists, get it from cache
+	//      -> if not exists, load it
+	//
+	// Test scenario: lazily load images
+	// - 3 images in zip file
+	// - render image in window
+	// - switch image with left/right keys on keboard
+	// - if image hasn't been loaded yet, load it into resource manager
 	{
-		// open zip from disk
-		platform::FileArchive archive = core::unwrap(platform::FileArchive::open_from_file("test.zip"), [](std::string error) {
-			ABORT("FileArchive::open_from_file(\"test.zip\") failed with: %s", error.c_str());
-		});
-
-		LOG_DEBUG("archive.is_valid() = %s", archive.is_valid() ? "true" : "false");
-		LOG_DEBUG("archive.file_names():");
-		for (const std::string& name : archive.file_names()) {
-			LOG_DEBUG("  %s", name.c_str());
+		/* Read */
+		platform::FileArchive archive;
+		nlohmann::json payload_json;
+		{
+			archive = core::unwrap(platform::FileArchive::open_from_file("test.zip"), [](std::string error) {
+				ABORT("FileArchive::open_from_file(\"test.zip\") failed with: %s", error.c_str());
+			});
+			std::vector<uint8_t> payload_bytes = core::unwrap(archive.read_from_archive("data.json"), [](platform::FileArchiveError error) {
+				LOG_DEBUG("archive.read_from_archive(\"data.json\") failed with %s", core::util::enum_to_string(error));
+			});
+			payload_json = nlohmann::json::parse(payload_bytes);
+			LOG_DEBUG("parsed json: %s", payload_json.dump().c_str());
 		}
 
-		// read data from zip
-		std::vector<uint8_t> payload_bytes = core::unwrap(archive.read_from_archive("data.json"), [](platform::FileArchiveError error) {
-			LOG_DEBUG("archive.read_from_archive(\"data.json\") failed with %s", core::util::enum_to_string(error));
-		});
-		LOG_DEBUG("read %zu bytes", payload_bytes.size());
-		nlohmann::json payload_json = nlohmann::json::parse(payload_bytes);
-
-		LOG_DEBUG("parsed json: %s", payload_json.dump().c_str());
-
+		/* Update */
 		struct Payload {
 			int counter;
 		};
-		Payload payload = Payload {
-			.counter = payload_json["counter"],
-		};
+		Payload payload;
+		{
+			payload = Payload {
+				.counter = payload_json["counter"],
+			};
 
-		// update data
-		payload.counter += 1;
+			payload.counter += 1;
+		}
 
-		// write data back to zip
-		nlohmann::json payload_json2;
-		payload_json2["counter"] = payload.counter;
-		std::string payload_string2 = payload_json2.dump();
-		std::vector<uint8_t> payload_bytes2 = std::vector<uint8_t>(payload_string2.begin(), payload_string2.end());
-		archive.write_to_archive("data.json", payload_bytes2.data(), payload_bytes2.size());
+		/* Write */
+		{
+			nlohmann::json payload_json2;
+			payload_json2["counter"] = payload.counter;
+			std::string payload_string2 = payload_json2.dump();
+			std::vector<uint8_t> payload_bytes2 = std::vector<uint8_t>(payload_string2.begin(), payload_string2.end());
+			archive.write_to_archive("data.json", payload_bytes2.data(), payload_bytes2.size());
 
-		// write zip to disk
-		std::expected<void, platform::FileArchiveError> result = archive.write_archive_to_disk("test.zip");
-		if (!result.has_value()) {
-			LOG_DEBUG("write to archive failed with %s", core::util::enum_to_string(result.error()));
+			std::expected<void, platform::FileArchiveError> result = archive.write_archive_to_disk("test.zip");
+			if (!result.has_value()) {
+				LOG_DEBUG("write to archive failed with %s", core::util::enum_to_string(result.error()));
+			}
 		}
 	}
-
-	quit = true;
 
 	/* Main loop */
 	while (!quit) {
@@ -520,9 +540,14 @@ int main(int argc, char** argv) {
 			/* Engine update */
 			start_imgui_frame();
 			if (editor) {
-				library.update_editor(editor, config, input, engine, &platform, &gl_context);
+				// DISABLED WHILE PROTOTYPING
+				// library.update_editor(editor, config, input, engine, &platform, &gl_context);
 			}
 			library.update_engine(engine, input, &platform, &gl_context);
+
+			if (input.keyboard.key_pressed(SDLK_ESCAPE)) {
+				quit = true;
+			}
 
 			/* Platform update */
 			while (platform.has_commands()) {
@@ -631,12 +656,17 @@ int main(int argc, char** argv) {
 
 			/* Render to canvas */
 			{
-				if (editor && run_mode == platform::RunMode::Editor) {
-					library.render_editor(*editor, *engine, &gl_context, &renderer);
+				// PROTOTYPE RENDERING
+				{
+					// TODO
 				}
-				else {
-					library.render_engine(*engine, &renderer);
-				}
+
+				// if (editor && run_mode == platform::RunMode::Editor) {
+				// 	library.render_editor(*editor, *engine, &gl_context, &renderer);
+				// }
+				// else {
+				// 	library.render_engine(*engine, &renderer);
+				// }
 
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
