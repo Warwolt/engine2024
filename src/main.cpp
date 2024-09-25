@@ -350,6 +350,20 @@ int main(int argc, char** argv) {
 		library.load_engine_data(engine, path.string().c_str());
 	}
 
+	// prototype loading a data blob, lazy deserializing the blob, updating data, serializing, writing to disk
+	{
+		// open file from disk
+		std::vector<uint8_t> data = platform::read_bytes_from_file("test.zip").value();
+		LOG_DEBUG("data.size() = %zu", data.size());
+		// parse as zip
+		// read data from zip
+		// update data
+		// write data back to zip
+		// write zip to disk
+	}
+
+	quit = true;
+
 	/* Main loop */
 	while (!quit) {
 		/* Input */
