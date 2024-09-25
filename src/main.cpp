@@ -421,11 +421,30 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
+	platform::Font arial_font_16 = core::unwrap(platform::add_ttf_font(arial_font_path, 16), [&] {
+		ABORT("Failed to load font \"%s\"", arial_font_path);
+	});
+
 	platform::Image arturo_img = platform::read_image("arturo.png").value();
 	platform::Image rodrigo_img = platform::read_image("rodrigo.png").value();
 	platform::Image blanket_img = platform::read_image("blanket.png").value();
 
 	platform::Texture arturo_tex = platform::add_texture(arturo_img.data.get(), arturo_img.width, arturo_img.height);
+	platform::Texture rodrigo_tex = platform::add_texture(rodrigo_img.data.get(), rodrigo_img.width, rodrigo_img.height);
+	platform::Texture blanket_tex = platform::add_texture(blanket_img.data.get(), blanket_img.width, blanket_img.height);
+
+	struct CatData {
+		platform::Texture texture;
+		std::string caption;
+	};
+
+	CatData cats[3] = {
+		{ arturo_tex, "Arturo" },
+		{ rodrigo_tex, "Rodrigo" },
+		{ blanket_tex, "Blanket" },
+	};
+	int cat_index = 0;
 
 	/* Main loop */
 	while (!quit) {
@@ -550,7 +569,7 @@ int main(int argc, char** argv) {
 			}
 			library.update_engine(engine, input, &platform, &gl_context);
 
-			if (input.keyboard.key_pressed(SDLK_ESCAPE)) {
+			if (input.keyboard.key_pressed(SDLK_ESCAPE) || input.quit_signal_received) {
 				quit = true;
 			}
 
@@ -655,6 +674,16 @@ int main(int argc, char** argv) {
 			SDL_SetCursor(cursor);
 		}
 
+		// PROTOYPE UPDATE
+		{
+			if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
+				cat_index = std::clamp(cat_index - 1, 0, 2);
+			}
+			if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
+				cat_index = std::clamp(cat_index + 1, 0, 2);
+			}
+		}
+
 		/* Render */
 		{
 			clear_screen();
@@ -663,10 +692,21 @@ int main(int argc, char** argv) {
 			{
 				// PROTOTYPE RENDERING
 				{
-					glm::vec2 window_center = input.window_resolution / 2.0f;
-					glm::vec2 image_size = arturo_tex.size * 2.0f;
-					core::Rect texture_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
-					renderer.draw_texture(arturo_tex, texture_quad);
+					// clear
+					renderer.draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::black);
+
+					// render cat
+					{
+						const CatData& cat = cats[cat_index];
+
+						glm::vec2 window_center = input.window_resolution / 2.0f;
+						glm::vec2 image_size = cat.texture.size * 2.0f;
+						glm::vec2 text_pos = window_center + glm::vec2 { 0.0f, image_size.y / 2.0f + 16.0f + 30.0f };
+						core::Rect texture_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
+
+						renderer.draw_texture(cat.texture, texture_quad);
+						renderer.draw_text_centered(arial_font_16, cat.caption, text_pos, platform::Color::white);
+					}
 				}
 
 				// if (editor && run_mode == platform::RunMode::Editor) {
