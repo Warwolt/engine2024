@@ -1,7 +1,7 @@
 #include <platform/debug/library_loader.h>
 
-#include <core/container.h>
 #include <core/future.h>
+#include <core/unwrap.h>
 #include <core/util.h>
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
@@ -172,7 +172,7 @@ namespace platform {
 
 			if (m_library_loader->library_file_has_been_modified()) {
 				m_library_loader->unload_library();
-				*library = core::container::unwrap(m_library_loader->load_library(m_library_name.c_str()), [&](LoadLibraryError error) {
+				*library = core::unwrap(m_library_loader->load_library(m_library_name.c_str()), [&](LoadLibraryError error) {
 					ABORT("Failed to reload engine library, EngineLibraryLoader::load_library(%s) failed with: %s", m_library_name.c_str(), core::util::enum_to_string(error));
 				});
 				on_engine_library_loaded(library);

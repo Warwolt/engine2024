@@ -1,6 +1,6 @@
 #include <engine/engine.h>
 
-#include <core/container.h>
+#include <core/unwrap.h>
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
 #include <platform/file/config.h>
@@ -9,6 +9,7 @@
 #include <imgui/imgui.h>
 
 #include <filesystem>
+#include <numeric>
 #include <vector>
 
 namespace engine {
@@ -64,7 +65,7 @@ namespace engine {
 	Engine::Engine() {
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-		FontID arial_font_16 = core::container::unwrap(m_systems.text.add_ttf_font(arial_font_path, 16), [&] {
+		FontID arial_font_16 = core::unwrap(m_systems.text.add_ttf_font(arial_font_path, 16), [&] {
 			ABORT("Failed to load font \"%s\"", arial_font_path);
 		});
 		TextID hello = m_systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
@@ -77,7 +78,7 @@ namespace engine {
 		std::filesystem::path path = std::filesystem::path(path_str);
 		if (std::filesystem::is_regular_file(path)) {
 			std::vector<uint8_t> data = platform::read_file_bytes(path).value();
-			m_project = core::container::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
+			m_project = core::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
 				ABORT("Could not parse json file \"%s\": %s", path_str, error.c_str());
 			});
 			LOG_INFO("Game data loaded from \"%s\"", path_str);

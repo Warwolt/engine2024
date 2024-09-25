@@ -1,7 +1,7 @@
 #include <editor/editor.h>
 
-#include <core/container.h>
 #include <core/future.h>
+#include <core/unwrap.h>
 #include <editor/editor_command.h>
 #include <editor/ui/main_menu_bar.h>
 #include <engine/engine.h>
@@ -193,7 +193,7 @@ namespace editor {
 	}
 
 	static engine::FontID add_font(engine::TextSystem* text_system, const char* path, uint8_t font_size) {
-		return core::container::unwrap(text_system->add_ttf_font(path, font_size), [&] {
+		return core::unwrap(text_system->add_ttf_font(path, font_size), [&] {
 			ABORT("Failed to load font \"%s\"", path);
 		});
 	}
