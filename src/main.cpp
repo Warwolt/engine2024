@@ -36,6 +36,9 @@
 
 #include <fstream>
 
+// debugging
+#include <platform/file/zip.h>
+
 const char* LIBRARY_NAME = "GameEngine2024Library";
 
 static void set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
@@ -353,10 +356,19 @@ int main(int argc, char** argv) {
 	// prototype loading a data blob, lazy deserializing the blob, updating data, serializing, writing to disk
 	{
 		// open file from disk
-		std::vector<uint8_t> data = platform::read_bytes_from_file("test.zip").value();
-		LOG_DEBUG("data.size() = %zu", data.size());
 		// parse as zip
+		platform::FileArchive archive = core::container::unwrap(platform::FileArchive::open_from_file("test.zip"), [](std::string error) {
+			ABORT("FileArchive::open_from_file(\"test.zip\") failed with: %s", error.c_str());
+		});
+
+		LOG_DEBUG("archive.is_valid() = %s", archive.is_valid() ? "true" : "false");
+		LOG_DEBUG("archive.file_names():");
+		for (const std::string& name : archive.file_names()) {
+			LOG_DEBUG("  %s", name.c_str());
+		}
+
 		// read data from zip
+		// std::expected<std::vector<uint8_t>, FileArchiveError> read_from_archive
 		// update data
 		// write data back to zip
 		// write zip to disk
