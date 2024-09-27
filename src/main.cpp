@@ -426,6 +426,42 @@ int main(int argc, char** argv) {
 		ABORT("Failed to load font \"%s\"", arial_font_path);
 	});
 
+	// We want to be able to store scenes on disk
+	// Many scenes will probably _share_ resources they need
+	// So, no single scene can _own_ the resources
+	//
+	// Resources are:
+	// - Image files
+	// - Audio files
+	//
+	// The scenes should just _declare_ what resources it needs
+	// Some kind of loading mechanism then loads any resources needed
+	//
+	// Trying to run a scene without loaded resources should fail
+	// (it's a programmer error, loading should happen before running)
+	//
+	// ResourceManager.load_dependencies: ResourceManifest -> Expected<Progress, Error>
+	//
+	// To load a scene
+	// 1. Pass manifest to resource manager
+	// 2. Resource manager starts load job
+	// 3. Wait for load job
+	// 4. When job done, start scene
+	//
+	// Loading resources should be async to get around blocking I/O
+	//
+	// To support progress bars etc. the `load` method should return some data
+	// structure representing the progress of the job.
+	//
+	// Probably some promise-looking data structure that is shared on the heap
+	// but read only for the recipient?
+	//
+	// Protype TODO:
+	// - Scene with 3 cat images as manifest
+	// - While loading cat images, show a "progress bar"
+	// 		- (Add a 1 sec sleep per image in the async loading so it takes some time)
+	// - Once loading done, start rendering scene
+
 	platform::Image arturo_img = platform::read_image("arturo.png").value();
 	platform::Image rodrigo_img = platform::read_image("rodrigo.png").value();
 	platform::Image blanket_img = platform::read_image("blanket.png").value();
@@ -434,12 +470,12 @@ int main(int argc, char** argv) {
 	platform::Texture rodrigo_tex = platform::add_texture(rodrigo_img.data.get(), rodrigo_img.width, rodrigo_img.height);
 	platform::Texture blanket_tex = platform::add_texture(blanket_img.data.get(), blanket_img.width, blanket_img.height);
 
-	struct CatData {
+	struct CaptionedImage {
 		platform::Texture texture;
 		std::string caption;
 	};
 
-	CatData cats[3] = {
+	CaptionedImage cats[3] = {
 		{ arturo_tex, "Arturo" },
 		{ rodrigo_tex, "Rodrigo" },
 		{ blanket_tex, "Blanket" },
@@ -697,7 +733,7 @@ int main(int argc, char** argv) {
 
 					// render cat
 					{
-						const CatData& cat = cats[cat_index];
+						const CaptionedImage& cat = cats[cat_index];
 
 						glm::vec2 window_center = input.window_resolution / 2.0f;
 						glm::vec2 image_size = cat.texture.size * 2.0f;
