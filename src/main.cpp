@@ -510,7 +510,7 @@ int main(int argc, char** argv) {
 	struct FontDeclaration {
 		std::string name;
 		std::filesystem::path path;
-		size_t size;
+		uint8_t size;
 	};
 
 	struct ResourceManifest {
@@ -531,6 +531,7 @@ int main(int argc, char** argv) {
 
 	core::VecMap<std::string, platform::Font> fonts;
 	core::VecMap<std::string, platform::Texture> textures;
+	bool scene_has_loaded = false;
 
 	// load manifest
 	// TODO: make this an async operation
@@ -559,6 +560,8 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
+
+	float load_progress = 0.0f;
 
 	/* Main loop */
 	while (!quit) {
@@ -791,6 +794,11 @@ int main(int argc, char** argv) {
 		// PROTOYPE UPDATE
 		run_script(input);
 
+		load_progress = std::min(load_progress + 0.005f, 1.0f);
+		if (load_progress == 1.0f) {
+			scene_has_loaded = true;
+		}
+
 		/* Render */
 		{
 			clear_screen();
@@ -798,7 +806,28 @@ int main(int argc, char** argv) {
 			/* Render to canvas */
 			{
 				// PROTOTYPE RENDERING
-				render_script(&renderer, input, fonts, textures);
+				if (scene_has_loaded) {
+					render_script(&renderer, input, fonts, textures);
+				}
+				else {
+					// loading bar
+					const glm::vec2 window_center = input.window_resolution / 2.0f;
+					const float loading_bar_max_width = 100.0f;
+					const float loading_bar_width = load_progress * loading_bar_max_width;
+					const float loading_bar_height = 10.0f;
+					const glm::vec2 loading_bar_max_size = { loading_bar_max_width, loading_bar_height };
+					const glm::vec2 loading_bar_size = { loading_bar_width, loading_bar_height };
+					const core::Rect fill_rect = core::Rect::with_pos_and_size(
+						window_center - loading_bar_max_size / 2.0f,
+						loading_bar_size
+					);
+					const core::Rect outline = core::Rect::with_pos_and_size(
+						fill_rect.position() - glm::vec2 { 1.0f, 1.0f },
+						glm::vec2 { loading_bar_max_width, loading_bar_height } + glm::vec2 { 3.0f, 3.0f }
+					);
+					renderer.draw_rect_fill(fill_rect, platform::Color::white);
+					renderer.draw_rect(outline, platform::Color::white);
+				}
 
 				// if (editor && run_mode == platform::RunMode::Editor) {
 				// 	library.render_editor(*editor, *engine, &gl_context, &renderer);
