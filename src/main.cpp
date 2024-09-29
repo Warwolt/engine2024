@@ -37,6 +37,7 @@
 #include <fstream>
 
 // prototyping
+#include <core/container/vec_map.h>
 #include <nlohmann/json.hpp>
 #include <platform/file/zip.h>
 
@@ -215,6 +216,49 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	file.read((char*)buffer.data(), length);
 	file.close();
 	return buffer;
+}
+
+// local vars
+std::string g_texture_ids[3] = {
+	"arturo",
+	"rodrigo",
+	"blanket",
+};
+std::string g_captions[3] = {
+	"Arturo",
+	"Rodrigo",
+	"Blanket",
+};
+int g_index = 0;
+
+static void run_script(const platform::Input& input) {
+	// update image based on keyboard input
+	if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
+		g_index = std::clamp(g_index - 1, 0, 2);
+	}
+	if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
+		g_index = std::clamp(g_index + 1, 0, 2);
+	}
+}
+
+static void render_script(
+	platform::Renderer* renderer,
+	const platform::Input& input,
+	const core::VecMap<std::string, platform::Font>& fonts,
+	const core::VecMap<std::string, platform::Texture>& textures
+) {
+	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::black); // clear
+
+	const platform::Texture& texture = textures.at(g_texture_ids[g_index]);
+	const std::string& caption = g_captions[g_index];
+
+	glm::vec2 window_center = input.window_resolution / 2.0f;
+	glm::vec2 image_size = texture.size * 2.0f;
+	glm::vec2 text_pos = window_center + glm::vec2 { 0.0f, image_size.y / 2.0f + 16.0f + 30.0f };
+	core::Rect texture_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
+
+	renderer->draw_texture(texture, texture_quad);
+	renderer->draw_text_centered(fonts.at("arial16"), caption, text_pos, platform::Color::white);
 }
 
 int main(int argc, char** argv) {
@@ -421,11 +465,6 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-	platform::Font arial_font_16 = core::unwrap(platform::add_ttf_font(arial_font_path, 16), [&] {
-		ABORT("Failed to load font \"%s\"", arial_font_path);
-	});
-
 	// We want to be able to store scenes on disk
 	// Many scenes will probably _share_ resources they need
 	// So, no single scene can _own_ the resources
@@ -433,6 +472,7 @@ int main(int argc, char** argv) {
 	// Resources are:
 	// - Image files
 	// - Audio files
+	// - Font files
 	//
 	// The scenes should just _declare_ what resources it needs
 	// Some kind of loading mechanism then loads any resources needed
@@ -462,25 +502,63 @@ int main(int argc, char** argv) {
 	// 		- (Add a 1 sec sleep per image in the async loading so it takes some time)
 	// - Once loading done, start rendering scene
 
-	platform::Image arturo_img = platform::read_image("arturo.png").value();
-	platform::Image rodrigo_img = platform::read_image("rodrigo.png").value();
-	platform::Image blanket_img = platform::read_image("blanket.png").value();
-
-	platform::Texture arturo_tex = platform::add_texture(arturo_img.data.get(), arturo_img.width, arturo_img.height);
-	platform::Texture rodrigo_tex = platform::add_texture(rodrigo_img.data.get(), rodrigo_img.width, rodrigo_img.height);
-	platform::Texture blanket_tex = platform::add_texture(blanket_img.data.get(), blanket_img.width, blanket_img.height);
-
-	struct CaptionedImage {
-		platform::Texture texture;
-		std::string caption;
+	struct ImageDeclaration {
+		std::string name;
+		std::filesystem::path path;
 	};
 
-	CaptionedImage cats[3] = {
-		{ arturo_tex, "Arturo" },
-		{ rodrigo_tex, "Rodrigo" },
-		{ blanket_tex, "Blanket" },
+	struct FontDeclaration {
+		std::string name;
+		std::filesystem::path path;
+		size_t size;
 	};
-	int cat_index = 0;
+
+	struct ResourceManifest {
+		std::vector<FontDeclaration> fonts;
+		std::vector<ImageDeclaration> images;
+	};
+
+	ResourceManifest manifest = {
+		.fonts = {
+			{ "arial16", "C:/windows/Fonts/Arial.ttf", 16 },
+		},
+		.images = {
+			{ "arturo", "arturo.png" },
+			{ "rodrigo", "rodrigo.png" },
+			{ "blanket", "blanket.png" },
+		}
+	};
+
+	core::VecMap<std::string, platform::Font> fonts;
+	core::VecMap<std::string, platform::Texture> textures;
+
+	// load manifest
+	// TODO: make this an async operation
+	{
+		// load fonts
+		for (const auto& [name, path, size] : manifest.fonts) {
+			std::string path_str = path.string();
+			std::optional<platform::Font> font = platform::add_ttf_font(path_str.c_str(), size);
+			if (font.has_value()) {
+				fonts.insert({ name, font.value() });
+			}
+			else {
+				LOG_ERROR("Couldn't load font in manifest! name = %s, path = %s, size = %s", name.c_str(), path_str.c_str(), size);
+			}
+		}
+
+		// load images
+		for (const auto& [name, path] : manifest.images) {
+			std::string path_str = path.string();
+			std::optional<platform::Image> image = platform::read_image(path_str.c_str());
+			if (image.has_value()) {
+				textures.insert({ name, platform::add_texture(image->data.get(), image->width, image->height) });
+			}
+			else {
+				LOG_ERROR("Couldn't load image in manifest! name = %s, path = %s", name.c_str(), path_str.c_str());
+			}
+		}
+	}
 
 	/* Main loop */
 	while (!quit) {
@@ -711,14 +789,7 @@ int main(int argc, char** argv) {
 		}
 
 		// PROTOYPE UPDATE
-		{
-			if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
-				cat_index = std::clamp(cat_index - 1, 0, 2);
-			}
-			if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
-				cat_index = std::clamp(cat_index + 1, 0, 2);
-			}
-		}
+		run_script(input);
 
 		/* Render */
 		{
@@ -727,23 +798,7 @@ int main(int argc, char** argv) {
 			/* Render to canvas */
 			{
 				// PROTOTYPE RENDERING
-				{
-					// clear
-					renderer.draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::black);
-
-					// render cat
-					{
-						const CaptionedImage& cat = cats[cat_index];
-
-						glm::vec2 window_center = input.window_resolution / 2.0f;
-						glm::vec2 image_size = cat.texture.size * 2.0f;
-						glm::vec2 text_pos = window_center + glm::vec2 { 0.0f, image_size.y / 2.0f + 16.0f + 30.0f };
-						core::Rect texture_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
-
-						renderer.draw_texture(cat.texture, texture_quad);
-						renderer.draw_text_centered(arial_font_16, cat.caption, text_pos, platform::Color::white);
-					}
-				}
+				render_script(&renderer, input, fonts, textures);
 
 				// if (editor && run_mode == platform::RunMode::Editor) {
 				// 	library.render_editor(*editor, *engine, &gl_context, &renderer);
