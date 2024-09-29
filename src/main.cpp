@@ -533,18 +533,37 @@ int main(int argc, char** argv) {
 	core::VecMap<std::string, platform::Texture> textures;
 	bool scene_has_loaded = false;
 
-	// load manifest
-	// TODO: make this an async operation
+	// load manifest TODO: make this an async operation
+	//
+	// How should this work as an async operation? What should be done, what's
+	// the result of its completion?
+	//
+	// From some kind of thread safety perspective, we probably shouldn't write
+	// directly to the vec maps. Maybe we can just load into vectors, and then
+	// move the content of the vectors into the vec maps on completion?
+	//
+	// (Notably, we can't add textures in a background thread because it doesn't
+	// have access to the open gl context, so we really can only do the file IO
+	// operations in the background thread.)
+	//
+	// Background thread:
+	// 1. Load font file and generate atlas data in background thread
+	// 2. Load image files
+	// 		=> put font atlas data in vector
+	// 		=> put image data in vector
+	// Main thread:
+	// 3. Create Font-instances from atlas data
+	// 4. Create Texture-instances from image data
 	{
 		// load fonts
 		for (const auto& [name, path, size] : manifest.fonts) {
 			std::string path_str = path.string();
-			std::optional<platform::Font> font = platform::add_ttf_font(path_str.c_str(), size);
+			std::expected<platform::Font, std::string> font = platform::add_font(&gl_context, path_str.c_str(), size);
 			if (font.has_value()) {
 				fonts.insert({ name, font.value() });
 			}
 			else {
-				LOG_ERROR("Couldn't load font in manifest! name = %s, path = %s, size = %s", name.c_str(), path_str.c_str(), size);
+				LOG_ERROR("Couldn't load font in manifest! name = %s, path = %s, size = %s, error = %s", name.c_str(), path_str.c_str(), size, font.error().c_str());
 			}
 		}
 
@@ -553,7 +572,7 @@ int main(int argc, char** argv) {
 			std::string path_str = path.string();
 			std::optional<platform::Image> image = platform::read_image(path_str.c_str());
 			if (image.has_value()) {
-				textures.insert({ name, platform::add_texture(image->data.get(), image->width, image->height) });
+				textures.insert({ name, gl_context.add_texture(image->data.get(), image->width, image->height) });
 			}
 			else {
 				LOG_ERROR("Couldn't load image in manifest! name = %s, path = %s", name.c_str(), path_str.c_str());
