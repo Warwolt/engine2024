@@ -11,6 +11,8 @@
 #include <platform/file/file.h>
 #include <platform/file/zip.h>
 #include <platform/graphics/font.h>
+#include <platform/graphics/graphics_api.h>
+#include <platform/graphics/graphics_context.h>
 #include <platform/graphics/image.h>
 #include <platform/graphics/renderer.h>
 #include <platform/graphics/window.h>
@@ -275,6 +277,8 @@ int main(int argc, char** argv) {
 	SDL_GLContext gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
 		ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
 	});
+	platform::GraphicsContext graphics_context = platform::GraphicsContext(gl_context);
+	platform::GraphicsAPI graphics;
 
 	/* Initialize ImGui and ImWin32 */
 	init_imgui(window.sdl_window(), gl_context);
@@ -562,6 +566,20 @@ int main(int argc, char** argv) {
 							auto& [on_dialog_choice, document_name] = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
 							platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(document_name);
 							on_dialog_choice(choice);
+						} break;
+					}
+				}
+			}
+
+			/* Graphics update */
+			while (graphics.has_commands()) {
+				for (platform::GraphicsCommand& cmd : graphics.drain_commands()) {
+					using GraphicsCommandType = platform::GraphicsCommandType;
+					switch (cmd.tag()) {
+						case GraphicsCommandType::AddTexture: {
+							auto& [data, width, height, wrapping, filter, on_texture_created] = std::get<platform::graphics_cmd::AddTexture>(cmd);
+							platform::Texture texture = graphics_context.add_texture(data, width, height, wrapping, filter);
+							on_texture_created(texture);
 						} break;
 					}
 				}
