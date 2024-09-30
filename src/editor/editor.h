@@ -6,6 +6,7 @@
 #include <editor/ui/scene_window.h>
 #include <engine/system/text_system.h>
 #include <platform/platform_api.h>
+#include <platform/graphics/graphics_api.h>
 
 #include <vector>
 
@@ -32,7 +33,8 @@ namespace editor {
 			const platform::Input& input,
 			const platform::Configuration& config,
 			engine::Engine* engine,
-			platform::PlatformAPI* platform
+			platform::PlatformAPI* platform,
+			platform::GraphicsAPI* graphics
 		);
 
 		void render(

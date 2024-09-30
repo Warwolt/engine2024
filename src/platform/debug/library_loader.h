@@ -24,14 +24,14 @@ namespace platform {
 		// engine interface
 		engine::Engine* (*initialize_engine)();
 		void (*shutdown_engine)(engine::Engine*);
-		void (*update_engine)(engine::Engine*, const platform::Input&, platform::PlatformAPI*);
+		void (*update_engine)(engine::Engine*, const platform::Input&, platform::PlatformAPI*, platform::GraphicsAPI*);
 		void (*render_engine)(const engine::Engine&, platform::Renderer*);
 		void (*load_engine_data)(engine::Engine*, const char* path);
 
 		// editor interface
 		editor::Editor* (*initialize_editor)(engine::Engine* engine, const platform::Configuration& config);
 		void (*shutdown_editor)(editor::Editor* editor);
-		void (*update_editor)(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform);
+		void (*update_editor)(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform, platform::GraphicsAPI* graphics);
 		void (*render_editor)(const editor::Editor& editor, const engine::Engine& engine, platform::Renderer* renderer);
 	};
 

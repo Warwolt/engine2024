@@ -4,6 +4,7 @@
 #include <engine/engine.h>
 #include <platform/debug/logging.h>
 #include <platform/file/config.h>
+#include <platform/graphics/graphics_api.h>
 #include <platform/graphics/renderer.h>
 #include <platform/platform_api.h>
 
@@ -24,14 +25,14 @@ namespace library {
 	// engine interface
 	extern "C" __declspec(dllexport) engine::Engine* initialize_engine();
 	extern "C" __declspec(dllexport) void shutdown_engine(engine::Engine* engine);
-	extern "C" __declspec(dllexport) void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform);
+	extern "C" __declspec(dllexport) void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform, platform::GraphicsAPI* graphics);
 	extern "C" __declspec(dllexport) void render_engine(const engine::Engine& engine, platform::Renderer* renderer);
 	extern "C" __declspec(dllexport) void load_engine_data(engine::Engine* engine, const char* path);
 
 	// editor interface
 	extern "C" __declspec(dllexport) editor::Editor* initialize_editor(engine::Engine* engine, const platform::Configuration& config);
 	extern "C" __declspec(dllexport) void shutdown_editor(editor::Editor* editor);
-	extern "C" __declspec(dllexport) void update_editor(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform);
+	extern "C" __declspec(dllexport) void update_editor(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform, platform::GraphicsAPI* graphics);
 	extern "C" __declspec(dllexport) void render_editor(const editor::Editor& editor, const engine::Engine& engine, platform::Renderer* renderer);
 
 } // namespace library

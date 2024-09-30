@@ -470,9 +470,9 @@ int main(int argc, char** argv) {
 			/* Engine update */
 			start_imgui_frame();
 			if (editor) {
-				library.update_editor(editor, config, input, engine, &platform);
+				library.update_editor(editor, config, input, engine, &platform, &graphics);
 			}
-			library.update_engine(engine, input, &platform);
+			library.update_engine(engine, input, &platform, &graphics);
 
 			/* Platform update */
 			while (platform.has_commands()) {

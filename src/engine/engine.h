@@ -18,6 +18,7 @@
 namespace platform {
 	struct Input;
 	struct Configuration;
+	class GraphicsAPI;
 	class PlatformAPI;
 	class Renderer;
 }
@@ -33,7 +34,7 @@ namespace engine {
 		core::RingBuffer<float, 60> frame_render_deltas;
 		float render_delta_avg_ms = 0.0f;
 	};
-	
+
 	// TODO: move this out into its own header
 	struct Systems {
 		AnimationSystem animation;
@@ -50,7 +51,7 @@ namespace engine {
 		Engine();
 
 		void load_data(const char* path);
-		void update(const platform::Input& input, platform::PlatformAPI* platform);
+		void update(const platform::Input& input, platform::PlatformAPI* platform, platform::GraphicsAPI* graphics);
 		void render(platform::Renderer* renderer) const;
 
 		SceneGraph& scene_graph() { return m_scene_graph; }
