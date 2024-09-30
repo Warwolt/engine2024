@@ -9,11 +9,10 @@
 namespace platform {
 
 	enum class GraphicsCommandType {
-		// texture
 		AddTexture,
 		// SetTextureWrapping,
 		// SetTextureFilter,
-		// FreeTexture,
+		FreeTexture,
 	};
 
 	namespace graphics_cmd {
@@ -28,11 +27,17 @@ namespace platform {
 			std::function<void(Texture)> on_texture_created;
 		};
 
+		struct FreeTexture {
+			static constexpr auto TAG = GraphicsCommandType::FreeTexture;
+			Texture texture;
+		};
+
 	}
 
 	using GraphicsCommand = core::TaggedVariant<
 		GraphicsCommandType,
-		graphics_cmd::AddTexture>;
+		graphics_cmd::AddTexture,
+		graphics_cmd::FreeTexture>;
 
 	class GraphicsAPI {
 	public:
@@ -49,7 +54,7 @@ namespace platform {
 		);
 		// void set_texture_wrapping(Texture texture, TextureWrapping wrapping);
 		// void set_texture_filter(Texture texture, TextureFilter filter);
-		// void free_texture(Texture texture);
+		void free_texture(Texture texture);
 
 	private:
 		std::vector<GraphicsCommand> m_commands;

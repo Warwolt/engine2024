@@ -575,11 +575,17 @@ int main(int argc, char** argv) {
 			while (graphics.has_commands()) {
 				for (platform::GraphicsCommand& cmd : graphics.drain_commands()) {
 					using GraphicsCommandType = platform::GraphicsCommandType;
+					namespace graphics_cmd = platform::graphics_cmd;
 					switch (cmd.tag()) {
 						case GraphicsCommandType::AddTexture: {
-							auto& [data, width, height, wrapping, filter, on_texture_created] = std::get<platform::graphics_cmd::AddTexture>(cmd);
+							auto& [data, width, height, wrapping, filter, on_texture_created] = std::get<graphics_cmd::AddTexture>(cmd);
 							platform::Texture texture = graphics_context.add_texture(data, width, height, wrapping, filter);
 							on_texture_created(texture);
+						} break;
+
+						case GraphicsCommandType::FreeTexture: {
+							auto& [texture] = std::get<graphics_cmd::FreeTexture>(cmd);
+							graphics_context.free_texture(texture);
 						} break;
 					}
 				}

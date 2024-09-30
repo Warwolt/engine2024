@@ -18,13 +18,19 @@ namespace platform {
 		TextureFilter filter,
 		std::function<void(Texture)> on_texture_created
 	) {
-		m_commands.push_back(cmd::texture::AddTexture {
+		m_commands.push_back(graphics_cmd::AddTexture {
 			data,
 			width,
 			height,
 			wrapping,
 			filter,
 			on_texture_created,
+		});
+	}
+
+	void GraphicsAPI::free_texture(Texture texture) {
+		m_commands.push_back(graphics_cmd::FreeTexture {
+			texture,
 		});
 	}
 
