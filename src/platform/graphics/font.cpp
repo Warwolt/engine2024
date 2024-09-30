@@ -7,13 +7,6 @@ namespace platform {
 
 	static FT_Library g_ft;
 
-	struct RGBA {
-		uint8_t r;
-		uint8_t g;
-		uint8_t b;
-		uint8_t a;
-	};
-
 	void set_ft(FT_Library ft) {
 		g_ft = ft;
 	}
@@ -35,6 +28,102 @@ namespace platform {
 		FT_Done_FreeType(g_ft);
 	}
 
+	std::expected<FontFace, std::string> load_font_face(std::filesystem::path path) {
+		FT_Face face;
+		std::string path_str = path.string();
+
+		if (FT_Error error = FT_New_Face(get_ft(), path_str.c_str(), 0, &face); error != FT_Err_Ok) {
+			return std::unexpected(FT_Error_String(error));
+		}
+
+		return FontFace(face);
+	}
+
+	FontAtlas generate_font_atlas(const FontFace& face, uint8_t size) {
+		FontAtlas atlas;
+
+		/* Set font size */
+		int pixels_per_point = 64;
+		FT_Set_Char_Size(face.get(), 0, size * pixels_per_point, 96, 96);
+
+		/* Calculate atlas dimensions to be a square */
+		uint32_t glyph_height = (1 + (face->size->metrics.height / pixels_per_point));
+		uint32_t glyph_width = glyph_height / 2; // assume 2:1 ratio
+		uint32_t columns = (uint32_t)roundf(sqrtf((float)Font::NUM_GLYPHS * (float)glyph_height / (float)glyph_width));
+		uint32_t rows = (uint32_t)roundf((float)Font::NUM_GLYPHS / (float)columns);
+		atlas.width = columns * glyph_width;
+		atlas.height = rows * glyph_height;
+
+		/* Save line spacing */
+		atlas.line_height = (face->size->metrics.ascender - face->size->metrics.descender) / pixels_per_point;
+
+		/* Compute glyphs */
+		std::vector<uint8_t> monochrome_pixels = std::vector<uint8_t>(atlas.width * atlas.height);
+		glm::ivec2 pen = { 0, 1 };
+		for (int i = ' '; i < Font::NUM_GLYPHS; i++) {
+			// load character
+			FT_Load_Char(face.get(), i, FT_LOAD_RENDER);
+			FT_Bitmap* bmp = &face->glyph->bitmap;
+
+			// render current glyph
+			for (uint32_t row = 0; row < bmp->rows; row++) {
+				for (uint32_t col = 0; col < bmp->width; col++) {
+					uint32_t x = pen.x + col;
+					uint32_t y = pen.y + row;
+					monochrome_pixels[y * atlas.width + x] = bmp->buffer[row * bmp->pitch + col];
+				}
+			}
+
+			// save glyph info
+			atlas.glyphs[i].atlas_pos = pen;
+			atlas.glyphs[i].size = { bmp->width, bmp->rows };
+			atlas.glyphs[i].bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top };
+			atlas.glyphs[i].advance = face->glyph->advance.x / pixels_per_point;
+
+			// move pen
+			pen.x += bmp->width + 1;
+			if (pen.x + bmp->width >= atlas.width) {
+				pen.x = 0;
+				pen.y += face->size->metrics.height / pixels_per_point + 2;
+			}
+		}
+
+		/* Generate pixel data */
+		atlas.pixels = std::vector<RGBA>(atlas.width * atlas.height);
+		for (size_t y = 0; y < atlas.height; y++) {
+			size_t inv_y = (atlas.height - 1) - y;
+			for (size_t x = 0; x < atlas.width; x++) {
+				// Multiply alpha by some amount to match how the reference font arial.ttf renders in MS Paint
+				// Without this it seems like we end up rendering the font too dark.
+				uint8_t alpha = (uint8_t)std::min(std::roundf(monochrome_pixels[y * atlas.width + x] * 1.3f), 255.0f);
+				atlas.pixels[inv_y * atlas.width + x].r = 0xFF;
+				atlas.pixels[inv_y * atlas.width + x].g = 0xFF;
+				atlas.pixels[inv_y * atlas.width + x].b = 0xFF;
+				atlas.pixels[inv_y * atlas.width + x].a = alpha;
+			}
+		}
+
+		return atlas;
+	}
+
+	// TODO:
+	// This function is doing several things!
+	// 1. It opens a file from a path (platform operation, but done by FT_New_Face so maybe nothing we can extract)
+	// 2. It computes the font atlas image
+	// 3. It generates a OpenLG texture (graphics operation)
+	//
+	// The only way to be able to split out the graphics stuff from this is to
+	// probably split the atlas image generation and the font texture stuff into
+	// parts, since adding a texture will via GraphicsAPI will now be deferred:
+	//
+	// std::expected<FT_Face, std::string> load_font(std::filesystem::path path, uint8_t size);
+	// ImageData generate_font_atlas(FT_Face face, uint8_t font_size);
+	// void add_font_texture(ImageData font_atlas, std::function<void(Texture)> on_texture_created);
+	//
+	// To then make it a little easier for the for the client code we could
+	// compose them in the GraphicsAPI:
+	//
+	// void GraphicsAPI::add_font_from_path(const char* font_path, uint8_t font_size, std::function<void(Font)> on_font_created);
 	std::optional<Font> add_ttf_font(const char* font_path, uint8_t font_size) {
 		Font font;
 		font.size = font_size;

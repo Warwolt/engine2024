@@ -69,7 +69,7 @@ namespace core {
 			return m_resource.has_value() && m_deleter;
 		}
 
-	private:
+	protected:
 		std::optional<Resource> m_resource;
 		std::function<Result(Args...)> m_deleter;
 	};
