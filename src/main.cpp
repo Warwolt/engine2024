@@ -476,9 +476,7 @@ int main(int argc, char** argv) {
 					using PlatformCommandType = platform::PlatformCommandType;
 					switch (cmd.tag()) {
 						case PlatformCommandType::ChangeResolution: {
-							auto& change_resolution = std::get<platform::cmd::window::ChangeResolution>(cmd);
-							const int width = change_resolution.width;
-							const int height = change_resolution.height;
+							auto& [width, height] = std::get<platform::cmd::window::ChangeResolution>(cmd);
 							platform::free_canvas(window_canvas);
 							window_canvas = platform::add_canvas(width, height);
 						} break;
@@ -496,9 +494,9 @@ int main(int argc, char** argv) {
 							break;
 
 						case PlatformCommandType::SetCursor: {
-							auto& set_cursor = std::get<platform::cmd::cursor::SetCursor>(cmd);
+							auto& [new_cursor] = std::get<platform::cmd::cursor::SetCursor>(cmd);
 							SDL_FreeCursor(cursor);
-							switch (set_cursor.cursor) {
+							switch (new_cursor) {
 								case platform::Cursor::Arrow:
 									cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 									break;
@@ -510,18 +508,18 @@ int main(int argc, char** argv) {
 						} break;
 
 						case PlatformCommandType::SetRunMode: {
-							auto& set_run_mode = std::get<platform::cmd::app::SetRunMode>(cmd);
-							run_mode = set_run_mode.mode;
+							auto& [new_run_mode] = std::get<platform::cmd::app::SetRunMode>(cmd);
+							run_mode = new_run_mode;
 						} break;
 
 						case PlatformCommandType::SetWindowMode: {
-							auto& set_window_mode = std::get<platform::cmd::window::SetWindowMode>(cmd);
-							window.set_window_mode(set_window_mode.mode);
+							auto& [new_window_mode] = std::get<platform::cmd::window::SetWindowMode>(cmd);
+							window.set_window_mode(new_window_mode);
 						} break;
 
 						case PlatformCommandType::SetWindowTitle: {
-							auto& set_window_title = std::get<platform::cmd::window::SetWindowTitle>(cmd);
-							SDL_SetWindowTitle(window.sdl_window(), set_window_title.title.c_str());
+							auto& [window_title] = std::get<platform::cmd::window::SetWindowTitle>(cmd);
+							SDL_SetWindowTitle(window.sdl_window(), window_title.c_str());
 						} break;
 
 						case PlatformCommandType::ToggleFullscreen:
@@ -529,41 +527,41 @@ int main(int argc, char** argv) {
 							break;
 
 						case PlatformCommandType::LoadFileWithDialog: {
-							auto& load_file_with_dialog = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
+							auto& [on_file_loaded, dialog] = std::get<platform::cmd::file::LoadFileWithDialog>(cmd);
 							HWND hwnd = get_window_handle(window.sdl_window());
-							if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &load_file_with_dialog.dialog)) {
+							if (std::optional<std::filesystem::path> path = platform::show_load_dialog(hwnd, &dialog)) {
 								std::vector<uint8_t> data = read_file_to_string(path.value());
-								load_file_with_dialog.on_file_loaded(data, path.value());
+								on_file_loaded(data, path.value());
 							}
 						} break;
 
 						case PlatformCommandType::SaveFile: {
-							auto& save_file = std::get<platform::cmd::file::SaveFile>(cmd);
+							auto& [on_file_saved, path, data] = std::get<platform::cmd::file::SaveFile>(cmd);
 							std::ofstream file;
-							file.open(save_file.path);
+							file.open(path);
 							if (file.is_open()) {
-								file.write((char*)save_file.data.data(), save_file.data.size());
-								save_file.on_file_saved();
+								file.write((char*)data.data(), data.size());
+								on_file_saved();
 							}
 						} break;
 
 						case PlatformCommandType::SaveFileWithDialog: {
-							auto& save_file_with_dialog = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
+							auto& [on_file_saved, data, dialog] = std::get<platform::cmd::file::SaveFileWithDialog>(cmd);
 							HWND hwnd = get_window_handle(window.sdl_window());
-							if (std::optional<std::filesystem::path> path = platform::show_save_dialog(hwnd, &save_file_with_dialog.dialog)) {
+							if (std::optional<std::filesystem::path> path = platform::show_save_dialog(hwnd, &dialog)) {
 								std::ofstream file;
 								file.open(path.value().string().c_str());
 								if (file.is_open()) {
-									file.write((char*)save_file_with_dialog.data.data(), save_file_with_dialog.data.size());
-									save_file_with_dialog.on_file_saved(path.value());
+									file.write((char*)data.data(), data.size());
+									on_file_saved(path.value());
 								}
 							}
 						} break;
 
 						case PlatformCommandType::ShowUnsavedChangesDialog: {
-							auto& show_unsaved_changes_dialog = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
-							platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(show_unsaved_changes_dialog.document_name);
-							show_unsaved_changes_dialog.on_dialog_choice(choice);
+							auto& [on_dialog_choice, document_name] = std::get<platform::cmd::file::ShowUnsavedChangesDialog>(cmd);
+							platform::UnsavedChangesDialogChoice choice = platform::show_unsaved_changes_dialog(document_name);
+							on_dialog_choice(choice);
 						} break;
 					}
 				}
