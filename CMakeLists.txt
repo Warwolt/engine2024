@@ -88,7 +88,6 @@ set(PLATFORM_SRC
     src/platform/graphics/gl_context.cpp
     src/platform/graphics/image.cpp
     src/platform/graphics/renderer.cpp
-    src/platform/graphics/texture.cpp
     src/platform/graphics/window.cpp
     src/platform/input/cli.cpp
     src/platform/input/keyboard.cpp
