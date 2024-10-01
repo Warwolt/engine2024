@@ -532,6 +532,13 @@ int main(int argc, char** argv) {
 	};
 
 	/* PROTOTYPING: Load manifest */
+	enum class ResourceLoadingState {
+		Idle,
+		Started,
+		Done
+	};
+	ResourceLoadingState font_loading_state = ResourceLoadingState::Idle;
+
 	bool scene_has_loaded = false;
 	float load_progress = 0.0f;
 	core::VecMap<std::string, platform::Font> fonts;
@@ -543,28 +550,6 @@ int main(int argc, char** argv) {
 	using FontAtlasResult = std::expected<NamedFontAtlas, std::string>;
 	std::vector<std::future<FontAtlasResult>> load_atlas_futures;
 	{
-		// async load font data
-		for (const auto& [name, path, size] : manifest.fonts) {
-			auto try_load_font = [name, path, size]() -> FontAtlasResult {
-				// SLEEP TO SIMULATE HIGH WORK LOAD
-				{
-					using namespace std::chrono_literals;
-					std::this_thread::sleep_for(2000ms);
-				}
-
-				std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(path);
-				if (font_face.has_value()) {
-					platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), size);
-					return NamedFontAtlas { name, atlas };
-				}
-				else {
-					std::string error = std::format("Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}", name.c_str(), path.string(), size, font_face.error().c_str());
-					return std::unexpected(error);
-				}
-			};
-			load_atlas_futures.push_back(std::async(std::launch::async, try_load_font));
-		}
-
 		// load image data
 		std::vector<std::pair<std::string, platform::Image>> image_data;
 		for (const auto& [name, path] : manifest.images) {
@@ -712,31 +697,58 @@ int main(int argc, char** argv) {
 
 			/* PROTOYPE CODE */
 			{
-				// process loading
-				for (auto it = load_atlas_futures.begin(); it != load_atlas_futures.end();) {
-					if (core::future::has_value(*it)) {
-						const FontAtlasResult& result = it->get();
-						if (result.has_value()) {
-							const auto& [name, atlas] = result.value();
-							fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
-						}
-						else {
-							LOG_ERROR("%s", result.error().c_str());
-						}
-						it = load_atlas_futures.erase(it);
+				// proces font loading
+				switch (font_loading_state) {
+					case ResourceLoadingState::Idle: {
+						font_loading_state = ResourceLoadingState::Started;
 
-						// TEMPORARY HACK:
-						// track if loading is done, but we need a more general
-						// way of composing async work (since the STL is missing
-						// that _basic_ ass functionality).
-						if (load_atlas_futures.empty()) {
-							scene_has_loaded = true;
+						for (const auto& [name, path, size] : manifest.fonts) {
+							auto try_load_font = [name, path, size]() -> FontAtlasResult {
+								using namespace std::chrono_literals;
+								std::this_thread::sleep_for(2000ms); // SLEEP TO SIMULATE HIGH WORK LOAD
+
+								std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(path);
+								if (font_face.has_value()) {
+									platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), size);
+									return NamedFontAtlas { name, atlas };
+								}
+								else {
+									std::string error = std::format("Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}", name.c_str(), path.string(), size, font_face.error().c_str());
+									return std::unexpected(error);
+								}
+							};
+							load_atlas_futures.push_back(std::async(std::launch::async, try_load_font));
 						}
-					}
-					else {
-						it++;
-					}
+					} break;
+
+					case ResourceLoadingState::Started: {
+						for (auto it = load_atlas_futures.begin(); it != load_atlas_futures.end();) {
+							if (core::future::has_value(*it)) {
+								const FontAtlasResult& result = it->get();
+								if (result.has_value()) {
+									const auto& [name, atlas] = result.value();
+									fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
+								}
+								else {
+									LOG_ERROR("%s", result.error().c_str());
+								}
+								it = load_atlas_futures.erase(it);
+							}
+							else {
+								it++;
+							}
+						}
+
+						if (load_atlas_futures.empty()) {
+							font_loading_state = ResourceLoadingState::Done;
+						}
+					} break;
+
+					case ResourceLoadingState::Done: {
+					} break;
 				}
+
+				scene_has_loaded = font_loading_state == ResourceLoadingState::Done;
 
 				if (scene_has_loaded) {
 					run_script(input);
