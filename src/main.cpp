@@ -305,7 +305,7 @@ int main(int argc, char** argv) {
 
 	/* Initialize Renderer */
 	platform::Renderer renderer = platform::Renderer(&graphics);
-	platform::ShaderProgram shader_program = core::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](platform::ShaderProgramError error) {
+	platform::ShaderProgram shader_program = core::unwrap(graphics.add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](platform::ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", core::util::enum_to_string(error));
 	});
 
@@ -627,7 +627,7 @@ int main(int argc, char** argv) {
 	deinit_imgui();
 	library.shutdown_editor(editor);
 	library.shutdown_engine(engine, &graphics);
-	platform::free_shader_program(shader_program);
+	graphics.free_shader_program(shader_program);
 	platform::shutdown(gl_context);
 	window.destroy();
 
