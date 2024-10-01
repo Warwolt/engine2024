@@ -91,6 +91,8 @@ namespace platform {
 
 	std::expected<FontFace, std::string> load_font_face(std::filesystem::path path);
 	FontAtlas generate_font_atlas(const FontFace& face, uint8_t size);
+	Font create_font_from_atlas(OpenGLContext* gl_context, const FontAtlas& atlas);
+
 	std::expected<Font, std::string> add_font(OpenGLContext* gl_context, const char* font_path, uint8_t font_size);
 	void free_font(OpenGLContext* gl_context, const Font& font);
 

@@ -555,19 +555,28 @@ int main(int argc, char** argv) {
 	// 3. Create Font-instances from atlas data
 	// 4. Create Texture-instances from image data
 	{
-		// load fonts
+		// load font atlases
+		std::vector<std::pair<std::string, platform::FontAtlas>> font_atlases;
 		for (const auto& [name, path, size] : manifest.fonts) {
 			std::string path_str = path.string();
-			std::expected<platform::Font, std::string> font = platform::add_font(&gl_context, path_str.c_str(), size);
-			if (font.has_value()) {
-				fonts.insert({ name, font.value() });
+			std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(path);
+			if (font_face.has_value()) {
+				platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), size);
+				font_atlases.push_back({ name, atlas });
 			}
 			else {
-				LOG_ERROR("Couldn't load font in manifest! name = %s, path = %s, size = %s, error = %s", name.c_str(), path_str.c_str(), size, font.error().c_str());
+				LOG_ERROR("Couldn't load font in manifest! name = %s, path = %s, size = %s, error = %s", name.c_str(), path_str.c_str(), size, font_face.error().c_str());
 			}
 		}
 
-		// load images
+		// generate fonts
+		for (const auto& [name, atlas] : font_atlases) {
+			fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
+		}
+
+		// generate images
+
+		// load image data
 		for (const auto& [name, path] : manifest.images) {
 			std::string path_str = path.string();
 			std::optional<platform::Image> image = platform::read_image(path_str.c_str());
