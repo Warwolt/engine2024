@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp> // glm::ortho
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <platform/debug/logging.h>
-#include <platform/graphics/graphics_context.h>
+#include <platform/graphics/gl_context.h>
 #include <platform/input/timing.h>
 #include <stb_image/stb_image.h>
 
@@ -46,9 +46,9 @@ namespace platform {
 		return quadrant_points;
 	}
 
-	Renderer::Renderer(GraphicsContext* graphics) {
+	Renderer::Renderer(OpenGLContext* gl_context) {
 		unsigned char data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
-		m_white_texture = graphics->add_texture(data, 1, 1);
+		m_white_texture = gl_context->add_texture(data, 1, 1);
 	}
 
 	void Renderer::set_projection(const ShaderProgram& shader_program, glm::mat4 projection) {

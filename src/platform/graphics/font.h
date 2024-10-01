@@ -4,7 +4,7 @@
 
 #include <core/rect.h>
 #include <core/resource_handle.h>
-#include <platform/graphics/graphics_context.h>
+#include <platform/graphics/gl_context.h>
 #include <platform/graphics/texture.h>
 
 #include <freetype/freetype.h>
@@ -91,8 +91,8 @@ namespace platform {
 
 	std::expected<FontFace, std::string> load_font_face(std::filesystem::path path);
 	FontAtlas generate_font_atlas(const FontFace& face, uint8_t size);
-	std::expected<Font, std::string> add_font(GraphicsContext* graphics, const char* font_path, uint8_t font_size);
-	void free_font(GraphicsContext* graphics, const Font& font);
+	std::expected<Font, std::string> add_font(OpenGLContext* gl_context, const char* font_path, uint8_t font_size);
+	void free_font(OpenGLContext* gl_context, const Font& font);
 
 	core::Rect get_text_bounding_box(const Font& font, const std::string& text);
 }

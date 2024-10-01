@@ -3,7 +3,7 @@
 #include <cstring>
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
-#include <platform/graphics/graphics_context.h>
+#include <platform/graphics/gl_context.h>
 
 namespace platform {
 
@@ -109,13 +109,13 @@ namespace platform {
 		return atlas;
 	}
 
-	std::expected<Font, std::string> add_font(GraphicsContext* graphics, const char* font_path, uint8_t font_size) {
+	std::expected<Font, std::string> add_font(OpenGLContext* gl_context, const char* font_path, uint8_t font_size) {
 		std::expected<FontFace, std::string> face = load_font_face(font_path);
 		if (!face.has_value()) {
 			return std::unexpected(face.error());
 		}
 		FontAtlas atlas = generate_font_atlas(face.value(), font_size);
-		Texture texture = graphics->add_texture((uint8_t*)atlas.pixels.data(), atlas.width, atlas.height);
+		Texture texture = gl_context->add_texture((uint8_t*)atlas.pixels.data(), atlas.width, atlas.height);
 		Font font;
 		std::memcpy(font.glyphs, atlas.glyphs, sizeof(Glyph) * Font::NUM_GLYPHS);
 		font.atlas = texture;
@@ -124,8 +124,8 @@ namespace platform {
 		return font;
 	}
 
-	void free_font(GraphicsContext* graphics, const Font& font) {
-		graphics->free_texture(font.atlas);
+	void free_font(OpenGLContext* gl_context, const Font& font) {
+		gl_context->free_texture(font.atlas);
 	}
 
 	core::Rect get_text_bounding_box(const Font& font, const std::string& text) {

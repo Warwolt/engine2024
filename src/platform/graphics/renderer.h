@@ -18,11 +18,11 @@
 
 namespace platform {
 
-	class GraphicsContext;
+	class OpenGLContext;
 
 	class Renderer {
 	public:
-		Renderer(GraphicsContext* graphics);
+		Renderer(OpenGLContext* gl_context);
 
 		void set_projection(const ShaderProgram& shader_program, glm::mat4 projection);
 

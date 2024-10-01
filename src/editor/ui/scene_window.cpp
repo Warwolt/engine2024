@@ -43,23 +43,23 @@ namespace editor {
 		return zoom_index < 0 ? scale_down_factors[-zoom_index - 1] : scale_up_factors[zoom_index];
 	}
 
-	SceneWindow::SceneWindow(platform::GraphicsContext* graphics) {
+	SceneWindow::SceneWindow(platform::OpenGLContext* gl_context) {
 		m_position_initialized = false;
-		m_canvas = graphics->add_canvas(1, 1);
-		m_scene.grid_canvas = graphics->add_canvas(GRID_SIZE * 2, GRID_SIZE * 2, platform::TextureWrapping::Repeat);
+		m_canvas = gl_context->add_canvas(1, 1);
+		m_scene.grid_canvas = gl_context->add_canvas(GRID_SIZE * 2, GRID_SIZE * 2, platform::TextureWrapping::Repeat);
 
 		constexpr int canvas_width = 640;
 		constexpr int canvas_height = 480;
 		m_scene.canvas_size = { canvas_width, canvas_height };
 		m_scene.scaled_canvas_rect = core::Rect { { 0, 0 }, { canvas_width, canvas_height } };
-		m_scene.canvas = graphics->add_canvas(canvas_width, canvas_height);
+		m_scene.canvas = gl_context->add_canvas(canvas_width, canvas_height);
 		m_scene.zoom_index = 0;
 	}
 
-	void SceneWindow::shutdown(platform::GraphicsContext* graphics) {
-		graphics->free_canvas(m_canvas);
-		graphics->free_canvas(m_scene.canvas);
-		graphics->free_canvas(m_scene.grid_canvas);
+	void SceneWindow::shutdown(platform::OpenGLContext* gl_context) {
+		gl_context->free_canvas(m_canvas);
+		gl_context->free_canvas(m_scene.canvas);
+		gl_context->free_canvas(m_scene.grid_canvas);
 	}
 
 	static float clamp_coordinate_to_fit_window(float coordinate, float window_size, float canvas_size) {
@@ -150,7 +150,7 @@ namespace editor {
 
 	void SceneWindow::update(
 		engine::SceneGraph* /* scene_graph */,
-		platform::GraphicsContext* graphics,
+		platform::OpenGLContext* gl_context,
 		const platform::Input& input,
 		std::vector<EditorCommand>* commands
 	) {
@@ -166,8 +166,8 @@ namespace editor {
 		{
 			// Size
 			if (m_canvas.texture.size != input.monitor_size) {
-				graphics->free_canvas(m_canvas);
-				m_canvas = graphics->add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
+				gl_context->free_canvas(m_canvas);
+				m_canvas = gl_context->add_canvas((int)input.monitor_size.x, (int)input.monitor_size.y);
 			}
 
 			// Position
@@ -207,7 +207,7 @@ namespace editor {
 	// Render the scene itself, which is inside the scene window
 	static void render_scene_view(
 		const EditorScene& editor_scene,
-		platform::GraphicsContext* graphics,
+		platform::OpenGLContext* gl_context,
 		const engine::TextSystem& text_system,
 		platform::Renderer* renderer
 	) {
@@ -219,7 +219,7 @@ namespace editor {
 		/* Render grid */
 		{
 			// Blur when zoomed out
-			graphics->set_texture_filter(editor_scene.grid_canvas.texture, editor_scene.zoom_index < 0 ? platform::TextureFilter::Linear : platform::TextureFilter::Nearest);
+			gl_context->set_texture_filter(editor_scene.grid_canvas.texture, editor_scene.zoom_index < 0 ? platform::TextureFilter::Linear : platform::TextureFilter::Nearest);
 
 			renderer->push_draw_canvas(editor_scene.grid_canvas);
 			{
@@ -257,14 +257,14 @@ namespace editor {
 	}
 
 	void SceneWindow::render(
-		platform::GraphicsContext* graphics,
+		platform::OpenGLContext* gl_context,
 		const engine::TextSystem& text_system,
 		engine::FontID system_font_id,
 		platform::Renderer* renderer
 	) const {
 		/* Render scene canvas */
 		renderer->push_draw_canvas(m_scene.canvas);
-		render_scene_view(m_scene, graphics, text_system, renderer);
+		render_scene_view(m_scene, gl_context, text_system, renderer);
 		renderer->pop_draw_canvas();
 
 		/* Render scene canvas to imgui canvas */

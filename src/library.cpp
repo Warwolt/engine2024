@@ -30,17 +30,17 @@ namespace library {
 		platform::set_ft(ft);
 	}
 
-	engine::Engine* initialize_engine(platform::GraphicsContext* graphics) {
-		return new engine::Engine(graphics);
+	engine::Engine* initialize_engine(platform::OpenGLContext* gl_context) {
+		return new engine::Engine(gl_context);
 	}
 
-	void shutdown_engine(engine::Engine* engine, platform::GraphicsContext* graphics) {
-		engine->shutdown(graphics);
+	void shutdown_engine(engine::Engine* engine, platform::OpenGLContext* gl_context) {
+		engine->shutdown(gl_context);
 		delete engine;
 	}
 
-	void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform, platform::GraphicsContext* graphics) {
-		engine->update(input, platform, graphics);
+	void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform, platform::OpenGLContext* gl_context) {
+		engine->update(input, platform, gl_context);
 	}
 
 	void render_engine(const engine::Engine& engine, platform::Renderer* renderer) {
@@ -51,20 +51,20 @@ namespace library {
 		engine->load_data(path);
 	}
 
-	editor::Editor* initialize_editor(engine::Engine* engine, platform::GraphicsContext* graphics, const platform::Configuration& config) {
-		return new editor::Editor(engine, graphics, config);
+	editor::Editor* initialize_editor(engine::Engine* engine, platform::OpenGLContext* gl_context, const platform::Configuration& config) {
+		return new editor::Editor(engine, gl_context, config);
 	}
 
 	void shutdown_editor(editor::Editor* editor) {
 		delete editor;
 	}
 
-	void update_editor(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform, platform::GraphicsContext* graphics) {
-		editor->update(input, config, engine, platform, graphics);
+	void update_editor(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform, platform::OpenGLContext* gl_context) {
+		editor->update(input, config, engine, platform, gl_context);
 	}
 
-	void render_editor(const editor::Editor& editor, const engine::Engine& engine, platform::GraphicsContext* graphics, platform::Renderer* renderer) {
-		editor.render(engine, graphics, renderer);
+	void render_editor(const editor::Editor& editor, const engine::Engine& engine, platform::OpenGLContext* gl_context, platform::Renderer* renderer) {
+		editor.render(engine, gl_context, renderer);
 	}
 
 } // namespace library

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <platform/graphics/canvas.h>
-#include <platform/graphics/texture.h>
 #include <platform/graphics/shader_program.h>
+#include <platform/graphics/texture.h>
 
 #include <expected>
 
@@ -18,9 +18,9 @@ namespace platform {
 
 	// Wrapper around OpenGL functions, to make it easier to track what has a
 	// dependency on the OpenGL context and avoid e.g. using from wrong thread.
-	class GraphicsContext {
+	class OpenGLContext {
 	public:
-		explicit GraphicsContext(SDL_GLContext) {}
+		explicit OpenGLContext(SDL_GLContext) {}
 
 		Texture add_texture(
 			const unsigned char* data,

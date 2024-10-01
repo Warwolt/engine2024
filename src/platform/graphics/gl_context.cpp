@@ -2,7 +2,7 @@
 
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
-#include <platform/graphics/graphics_context.h>
+#include <platform/graphics/gl_context.h>
 #include <platform/graphics/vertex.h>
 
 namespace platform {
@@ -35,7 +35,7 @@ namespace platform {
 		return 0;
 	}
 
-	Texture GraphicsContext::add_texture(
+	Texture OpenGLContext::add_texture(
 		const unsigned char* data,
 		int width,
 		int height,
@@ -57,25 +57,25 @@ namespace platform {
 		return texture;
 	}
 
-	void GraphicsContext::set_texture_wrapping(Texture texture, TextureWrapping wrapping) {
+	void OpenGLContext::set_texture_wrapping(Texture texture, TextureWrapping wrapping) {
 		const int wrapping_int = _wrapping_mode_to_gl_int(wrapping);
 		glBindTexture(GL_TEXTURE_2D, texture.id);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapping_int);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapping_int);
 	}
 
-	void GraphicsContext::set_texture_filter(Texture texture, TextureFilter filter) {
+	void OpenGLContext::set_texture_filter(Texture texture, TextureFilter filter) {
 		const int filter_int = _filter_mode_to_gl_int(filter);
 		glBindTexture(GL_TEXTURE_2D, texture.id);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter_int);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter_int);
 	}
 
-	void GraphicsContext::free_texture(Texture texture) {
+	void OpenGLContext::free_texture(Texture texture) {
 		glDeleteTextures(1, &texture.id);
 	}
 
-	Canvas GraphicsContext::add_canvas(int width, int height, TextureWrapping wrapping, TextureFilter filter) {
+	Canvas OpenGLContext::add_canvas(int width, int height, TextureWrapping wrapping, TextureFilter filter) {
 		// create texture
 		GLuint texture_id;
 		glGenTextures(1, &texture_id);
@@ -111,12 +111,12 @@ namespace platform {
 		return Canvas { framebuffer, texture };
 	}
 
-	void GraphicsContext::free_canvas(Canvas canvas) {
+	void OpenGLContext::free_canvas(Canvas canvas) {
 		glDeleteFramebuffers(1, &canvas.framebuffer);
 		glDeleteTextures(1, &canvas.texture.id);
 	}
 
-	std::expected<ShaderProgram, ShaderProgramError> GraphicsContext::add_shader_program(const char* vertex_src, const char* fragment_src) {
+	std::expected<ShaderProgram, ShaderProgramError> OpenGLContext::add_shader_program(const char* vertex_src, const char* fragment_src) {
 		GLuint shader_program_id = glCreateProgram();
 		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -220,7 +220,7 @@ namespace platform {
 		};
 	}
 
-	void GraphicsContext::free_shader_program(const ShaderProgram& shader_program) {
+	void OpenGLContext::free_shader_program(const ShaderProgram& shader_program) {
 		glDeleteVertexArrays(1, &shader_program.vao);
 		glDeleteBuffers(1, &shader_program.vbo);
 		glDeleteProgram(shader_program.id);

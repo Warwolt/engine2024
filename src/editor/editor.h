@@ -5,7 +5,7 @@
 #include <editor/ui/scene_graph_window.h>
 #include <editor/ui/scene_window.h>
 #include <engine/system/text_system.h>
-#include <platform/graphics/graphics_context.h>
+#include <platform/graphics/gl_context.h>
 #include <platform/platform_api.h>
 
 #include <vector>
@@ -27,26 +27,26 @@ namespace editor {
 
 	class Editor {
 	public:
-		Editor(engine::Engine* engine, platform::GraphicsContext* graphics, const platform::Configuration& config);
+		Editor(engine::Engine* engine, platform::OpenGLContext* gl_context, const platform::Configuration& config);
 
 		void update(
 			const platform::Input& input,
 			const platform::Configuration& config,
 			engine::Engine* engine,
 			platform::PlatformAPI* platform,
-			platform::GraphicsContext* graphics
+			platform::OpenGLContext* gl_context
 		);
 
 		void render(
 			const engine::Engine& engine,
-			platform::GraphicsContext* graphics,
+			platform::OpenGLContext* gl_context,
 			platform::Renderer* renderer
 		) const;
 
 	private:
 		std::vector<editor::EditorCommand> _update_ui(
 			const platform::Input& input,
-			platform::GraphicsContext* graphics,
+			platform::OpenGLContext* gl_context,
 			bool unsaved_changes,
 			engine::Engine* engine
 		);

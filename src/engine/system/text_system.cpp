@@ -4,14 +4,14 @@
 
 namespace engine {
 
-	void TextSystem::shutdown(platform::GraphicsContext* graphics) {
+	void TextSystem::shutdown(platform::OpenGLContext* gl_context) {
 		for (const auto& [id, font] : m_fonts) {
-			platform::free_font(graphics, font);
+			platform::free_font(gl_context, font);
 		}
 	}
 
-	std::expected<FontID, std::string> TextSystem::add_font(platform::GraphicsContext* graphics, const char* font_path, uint8_t font_size) {
-		std::expected<platform::Font, std::string> font = platform::add_font(graphics, font_path, font_size);
+	std::expected<FontID, std::string> TextSystem::add_font(platform::OpenGLContext* gl_context, const char* font_path, uint8_t font_size) {
+		std::expected<platform::Font, std::string> font = platform::add_font(gl_context, font_path, font_size);
 		if (!font.has_value()) {
 			return std::unexpected(font.error());
 		}
