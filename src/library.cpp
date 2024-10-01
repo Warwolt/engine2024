@@ -38,7 +38,7 @@ namespace library {
 		delete engine;
 	}
 
-	void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform, platform::GraphicsAPI* graphics) {
+	void update_engine(engine::Engine* engine, const platform::Input& input, platform::PlatformAPI* platform, platform::GraphicsContext* graphics) {
 		engine->update(input, platform, graphics);
 	}
 
@@ -58,7 +58,7 @@ namespace library {
 		delete editor;
 	}
 
-	void update_editor(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform, platform::GraphicsAPI* graphics) {
+	void update_editor(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform, platform::GraphicsContext* graphics) {
 		editor->update(input, config, engine, platform, graphics);
 	}
 

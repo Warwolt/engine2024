@@ -85,7 +85,6 @@ set(PLATFORM_SRC
     src/platform/file/file.cpp
     src/platform/file/zip.cpp
     src/platform/graphics/font.cpp
-    src/platform/graphics/graphics_api.cpp
     src/platform/graphics/graphics_context.cpp
     src/platform/graphics/image.cpp
     src/platform/graphics/renderer.cpp

@@ -217,7 +217,7 @@ namespace editor {
 		const platform::Configuration& config,
 		engine::Engine* engine,
 		platform::PlatformAPI* platform,
-		platform::GraphicsAPI* graphics
+		platform::GraphicsContext* graphics
 	) {
 		const size_t current_project_hash = std::hash<engine::ProjectState>()(engine->project());
 		const bool is_new_file = engine->project().path.empty();

@@ -18,7 +18,7 @@
 namespace platform {
 	struct Input;
 	struct Configuration;
-	class GraphicsAPI;
+	class GraphicsContext;
 	class PlatformAPI;
 	class Renderer;
 }
@@ -51,7 +51,7 @@ namespace engine {
 		Engine();
 
 		void load_data(const char* path);
-		void update(const platform::Input& input, platform::PlatformAPI* platform, platform::GraphicsAPI* graphics);
+		void update(const platform::Input& input, platform::PlatformAPI* platform, platform::GraphicsContext* graphics);
 		void render(platform::Renderer* renderer) const;
 
 		SceneGraph& scene_graph() { return m_scene_graph; }

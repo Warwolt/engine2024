@@ -3,7 +3,7 @@
 #include <cstring>
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
-#include <platform/graphics/graphics_api.h>
+#include <platform/graphics/graphics_context.h>
 
 namespace platform {
 
@@ -132,16 +132,16 @@ namespace platform {
 	//
 	// The only way to be able to split out the graphics stuff from this is to
 	// probably split the atlas image generation and the font texture stuff into
-	// parts, since adding a texture will via GraphicsAPI will now be deferred:
+	// parts, since adding a texture will via GraphicsContext will now be deferred:
 	//
 	// std::expected<FT_Face, std::string> load_font(std::filesystem::path path, uint8_t size);
 	// ImageData generate_font_atlas(FT_Face face, uint8_t font_size);
 	// void add_font_texture(ImageData font_atlas, std::function<void(Texture)> on_texture_created);
 	//
 	// To then make it a little easier for the for the client code we could
-	// compose them in the GraphicsAPI:
+	// compose them in the GraphicsContext:
 	//
-	// void GraphicsAPI::add_font_from_path(const char* font_path, uint8_t font_size, std::function<void(Font)> on_font_created);
+	// void GraphicsContext::add_font_from_path(const char* font_path, uint8_t font_size, std::function<void(Font)> on_font_created);
 	std::optional<Font> add_ttf_font_DEPRECATED(const char* font_path, uint8_t font_size) {
 		Font font;
 		font.size = font_size;

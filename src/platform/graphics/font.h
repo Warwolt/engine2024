@@ -19,8 +19,6 @@
 
 namespace platform {
 
-	class GraphicsAPI;
-
 	class FontFace : public core::ResourceHandle<FT_Face, FT_Error(FT_Face)> {
 	public:
 		FontFace() = default;

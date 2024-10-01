@@ -5,8 +5,8 @@
 #include <editor/ui/scene_graph_window.h>
 #include <editor/ui/scene_window.h>
 #include <engine/system/text_system.h>
+#include <platform/graphics/graphics_context.h>
 #include <platform/platform_api.h>
-#include <platform/graphics/graphics_api.h>
 
 #include <vector>
 
@@ -34,7 +34,7 @@ namespace editor {
 			const platform::Configuration& config,
 			engine::Engine* engine,
 			platform::PlatformAPI* platform,
-			platform::GraphicsAPI* graphics
+			platform::GraphicsContext* graphics
 		);
 
 		void render(
