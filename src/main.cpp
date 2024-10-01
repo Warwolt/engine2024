@@ -38,6 +38,7 @@
 #include <fstream>
 
 // prototyping
+#include <core/async_batch.h>
 #include <core/container/vec_map.h>
 #include <core/future.h>
 #include <nlohmann/json.hpp>
@@ -465,6 +466,22 @@ int main(int argc, char** argv) {
 			if (!result.has_value()) {
 				LOG_DEBUG("write to archive failed with %s", core::util::enum_to_string(result.error()));
 			}
+		}
+	}
+
+	// QUICK TEST OF ASYNC BATCH
+	{
+		std::vector<int> numbers = { 1, 2, 3 };
+		core::AsyncBatch<int(int)> batch(numbers, [](int x) {
+			return x + 1;
+		});
+
+		while (!batch.is_done()) {
+			batch.update();
+		}
+
+		for (int value : batch.values()) {
+			LOG_DEBUG("%d", value);
 		}
 	}
 
