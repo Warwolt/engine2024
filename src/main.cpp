@@ -569,9 +569,7 @@ int main(int argc, char** argv) {
 	using LoadImageResult = std::expected<NamedImage, std::string>;
 
 	core::AsyncBatch<LoadFontResult(FontDeclaration)> load_font_batch;
-	// core::AsyncBatch<LoadImageResult> load_image_batch;
-
-	std::vector<std::future<LoadImageResult>> load_image_futures;
+	core::AsyncBatch<LoadImageResult(ImageDeclaration)> load_image_batch;
 
 	/* Main loop */
 	while (!quit) {
@@ -690,11 +688,11 @@ int main(int argc, char** argv) {
 
 			/* Engine update */
 			start_imgui_frame();
-			if (editor) {
-				// DISABLED WHILE PROTOTYPING
-				// library.update_editor(editor, config, input, engine, &platform, &gl_context);
-			}
-			library.update_engine(engine, input, &platform, &gl_context);
+			// DISABLED WHILE PROTOTYPING
+			// if (editor) {
+			// library.update_editor(editor, config, input, engine, &platform, &gl_context);
+			// }
+			// library.update_engine(engine, input, &platform, &gl_context);
 
 			if (input.keyboard.key_pressed(SDLK_ESCAPE) || input.quit_signal_received) {
 				quit = true;
@@ -707,14 +705,20 @@ int main(int argc, char** argv) {
 					case ResourceLoadingState::Idle: {
 						LOG_DEBUG("Font loading started");
 
-						auto load_font = [](const FontDeclaration& font) -> LoadFontResult {
-							std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font.path);
+						auto load_font = [](const FontDeclaration& font_decl) -> LoadFontResult {
+							std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
 							if (font_face.has_value()) {
-								platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font.size);
-								return NamedFontAtlas { font.name, atlas };
+								platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
+								return NamedFontAtlas { font_decl.name, atlas };
 							}
 							else {
-								std::string error = std::format("Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}", font.name, font.path.string(), font.size, font_face.error());
+								std::string error = std::format(
+									"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
+									font_decl.name,
+									font_decl.path.string(),
+									font_decl.size,
+									font_face.error()
+								);
 								return std::unexpected(error);
 							}
 						};
@@ -751,45 +755,44 @@ int main(int argc, char** argv) {
 				switch (image_loading_state) {
 					case ResourceLoadingState::Idle: {
 						LOG_DEBUG("Image loading started");
-						image_loading_state = ResourceLoadingState::Started;
-						for (const auto& [name, path] : manifest.images) {
-							auto try_load_image = [name, path]() -> LoadImageResult {
-								int sleep_ms = core::random_int(1, 3) * 500;
-								LOG_DEBUG("Sleeping for %d ms", sleep_ms);
-								std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
 
-								if (std::optional<platform::Image> image = platform::read_image(path)) {
-									return NamedImage { name, std::move(image.value()) };
-								}
-								else {
-									std::string error = std::format("Couldn't load image in manifest! name = {}, path = {}", name.c_str(), path.string());
-									return std::unexpected(error);
-								}
-							};
-							load_image_futures.push_back(std::async(std::launch::async, try_load_image));
-						}
+						auto load_image = [](const ImageDeclaration& image_decl) -> LoadImageResult {
+							int sleep_ms = core::random_int(1, 3) * 500;
+							std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
+
+							if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
+								return NamedImage { image_decl.name, std::move(image.value()) };
+							}
+							else {
+								std::string error = std::format(
+									"Couldn't load image in manifest! name = {}, path = {}",
+									image_decl.name.c_str(),
+									image_decl.path.string()
+								);
+								return std::unexpected(error);
+							}
+						};
+
+						load_image_batch = { manifest.images, load_image };
+						image_loading_state = ResourceLoadingState::Started;
 					} break;
 
 					case ResourceLoadingState::Started: {
-						for (auto it = load_image_futures.begin(); it != load_image_futures.end();) {
-							if (core::future::has_value(*it)) {
-								const LoadImageResult& result = it->get();
-								if (result.has_value()) {
-									const auto& [name, image] = result.value();
-									textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
-								}
-								else {
-									LOG_ERROR("%s", result.error().c_str());
-								}
-								it = load_image_futures.erase(it);
+						load_image_batch.update();
+
+						std::vector<LoadImageResult> results = std::exchange(load_image_batch.values(), {});
+						for (const LoadImageResult& result : results) {
+							if (result.has_value()) {
+								const auto& [name, image] = result.value();
+								textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
 							}
 							else {
-								it++;
+								LOG_ERROR("%s", result.error().c_str());
 							}
 						}
 
-						if (load_image_futures.empty()) {
-							LOG_DEBUG("Image loading done");
+						if (load_image_batch.is_done()) {
+							LOG_DEBUG("Font loading done");
 							image_loading_state = ResourceLoadingState::Done;
 						}
 					} break;
