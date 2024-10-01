@@ -425,7 +425,7 @@ int main(int argc, char** argv) {
 	// - render image in window
 	// - switch image with left/right keys on keboard
 	// - if image hasn't been loaded yet, load it into resource manager
-	{
+	if (0) {
 		/* Read */
 		platform::FileArchive archive;
 		nlohmann::json payload_json;
