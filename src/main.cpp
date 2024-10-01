@@ -529,10 +529,6 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	core::VecMap<std::string, platform::Font> fonts;
-	core::VecMap<std::string, platform::Texture> textures;
-	bool scene_has_loaded = false;
-
 	// load manifest TODO: make this an async operation
 	//
 	// How should this work as an async operation? What should be done, what's
@@ -554,8 +550,11 @@ int main(int argc, char** argv) {
 	// Main thread:
 	// 3. Create Font-instances from atlas data
 	// 4. Create Texture-instances from image data
+	bool scene_has_loaded = false;
+	core::VecMap<std::string, platform::Font> fonts;
+	core::VecMap<std::string, platform::Texture> textures;
 	{
-		// load font atlases
+		// load font data
 		std::vector<std::pair<std::string, platform::FontAtlas>> font_atlases;
 		for (const auto& [name, path, size] : manifest.fonts) {
 			std::string path_str = path.string();
@@ -569,23 +568,26 @@ int main(int argc, char** argv) {
 			}
 		}
 
+		// load image data
+		std::vector<std::pair<std::string, platform::Image>> image_data;
+		for (const auto& [name, path] : manifest.images) {
+			std::string path_str = path.string();
+			if (std::optional<platform::Image> image = platform::read_image(path_str.c_str())) {
+				image_data.push_back({ name, std::move(image.value()) });
+			}
+			else {
+				LOG_ERROR("Couldn't load image in manifest! name = %s, path = %s", name.c_str(), path_str.c_str());
+			}
+		}
+
 		// generate fonts
 		for (const auto& [name, atlas] : font_atlases) {
 			fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
 		}
 
 		// generate images
-
-		// load image data
-		for (const auto& [name, path] : manifest.images) {
-			std::string path_str = path.string();
-			std::optional<platform::Image> image = platform::read_image(path_str.c_str());
-			if (image.has_value()) {
-				textures.insert({ name, gl_context.add_texture(image->data.get(), image->width, image->height) });
-			}
-			else {
-				LOG_ERROR("Couldn't load image in manifest! name = %s, path = %s", name.c_str(), path_str.c_str());
-			}
+		for (const auto& [name, image] : image_data) {
+			textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
 		}
 	}
 
