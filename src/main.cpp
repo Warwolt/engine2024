@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <ft2build.h>
 
+#include <core/random.h>
 #include <core/unwrap.h>
 #include <core/util.h>
 #include <library.h>
@@ -261,14 +262,6 @@ static void render_script(
 
 	renderer->draw_texture(texture, texture_quad);
 	renderer->draw_text_centered(fonts.at("arial16"), caption, text_pos, platform::Color::white);
-}
-
-#include <random>
-static int random_int(int low, int high) {
-	std::random_device dev;
-	std::mt19937 rng(dev());
-	std::uniform_int_distribution<std::mt19937::result_type> dist(low, high);
-	return dist(rng);
 }
 
 int main(int argc, char** argv) {
@@ -750,7 +743,7 @@ int main(int argc, char** argv) {
 						image_loading_state = ResourceLoadingState::Started;
 						for (const auto& [name, path] : manifest.images) {
 							auto try_load_image = [name, path]() -> LoadImageResult {
-								int sleep_ms = random_int(1, 3) * 500;
+								int sleep_ms = core::random_int(1, 3) * 500;
 								LOG_DEBUG("Sleeping for %d ms", sleep_ms);
 								std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
 

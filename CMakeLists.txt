@@ -58,6 +58,7 @@ add_compile_definitions(PLOG_CHAR_IS_UTF8)
 set(CORE_SRC
     src/core/parse.cpp
     src/core/string.cpp
+    src/core/random.cpp
     src/core/rect.cpp
 )
 
