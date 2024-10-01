@@ -568,7 +568,9 @@ int main(int argc, char** argv) {
 	using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
 	using LoadImageResult = std::expected<NamedImage, std::string>;
 
-	std::vector<std::future<LoadFontResult>> load_font_futures;
+	core::AsyncBatch<LoadFontResult(FontDeclaration)> load_font_batch;
+	// core::AsyncBatch<LoadImageResult> load_image_batch;
+
 	std::vector<std::future<LoadImageResult>> load_image_futures;
 
 	/* Main loop */
@@ -704,46 +706,38 @@ int main(int argc, char** argv) {
 				switch (font_loading_state) {
 					case ResourceLoadingState::Idle: {
 						LOG_DEBUG("Font loading started");
+
+						auto load_font = [](const FontDeclaration& font) -> LoadFontResult {
+							std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font.path);
+							if (font_face.has_value()) {
+								platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font.size);
+								return NamedFontAtlas { font.name, atlas };
+							}
+							else {
+								std::string error = std::format("Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}", font.name, font.path.string(), font.size, font_face.error());
+								return std::unexpected(error);
+							}
+						};
+
+						load_font_batch = { manifest.fonts, load_font };
 						font_loading_state = ResourceLoadingState::Started;
-
-						for (const auto& [name, path, size] : manifest.fonts) {
-							auto try_load_font = [name, path, size]() -> LoadFontResult {
-								using namespace std::chrono_literals;
-								std::this_thread::sleep_for(2000ms); // SLEEP TO SIMULATE HIGH WORK LOAD
-
-								std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(path);
-								if (font_face.has_value()) {
-									platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), size);
-									return NamedFontAtlas { name, atlas };
-								}
-								else {
-									std::string error = std::format("Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}", name.c_str(), path.string(), size, font_face.error().c_str());
-									return std::unexpected(error);
-								}
-							};
-							load_font_futures.push_back(std::async(std::launch::async, try_load_font));
-						}
 					} break;
 
 					case ResourceLoadingState::Started: {
-						for (auto it = load_font_futures.begin(); it != load_font_futures.end();) {
-							if (core::future::has_value(*it)) {
-								const LoadFontResult& result = it->get();
-								if (result.has_value()) {
-									const auto& [name, atlas] = result.value();
-									fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
-								}
-								else {
-									LOG_ERROR("%s", result.error().c_str());
-								}
-								it = load_font_futures.erase(it);
+						load_font_batch.update();
+
+						std::vector<LoadFontResult> results = std::exchange(load_font_batch.values(), {});
+						for (const LoadFontResult& result : results) {
+							if (result.has_value()) {
+								const auto& [name, atlas] = result.value();
+								fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
 							}
 							else {
-								it++;
+								LOG_ERROR("%s", result.error().c_str());
 							}
 						}
 
-						if (load_font_futures.empty()) {
+						if (load_font_batch.is_done()) {
 							LOG_DEBUG("Font loading done");
 							font_loading_state = ResourceLoadingState::Done;
 						}
