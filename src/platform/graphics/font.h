@@ -4,11 +4,11 @@
 
 #include <core/rect.h>
 #include <core/resource_handle.h>
-
-#include <glm/glm.hpp>
+#include <platform/graphics/graphics_context.h>
 #include <platform/graphics/texture.h>
 
 #include <freetype/freetype.h>
+#include <glm/glm.hpp>
 
 #include <expected>
 #include <filesystem>
@@ -18,6 +18,8 @@
 #include <string>
 
 namespace platform {
+
+	class GraphicsAPI;
 
 	class FontFace : public core::ResourceHandle<FT_Face, FT_Error(FT_Face)> {
 	public:
@@ -58,14 +60,6 @@ namespace platform {
 		int advance;
 	};
 
-	struct Font {
-		static constexpr size_t NUM_GLYPHS = 127;
-		Glyph glyphs[NUM_GLYPHS]; // indexed using ascii values
-		platform::Texture atlas;
-		size_t size;
-		int line_height; // measured from baseline
-	};
-
 	struct RGBA {
 		uint8_t r;
 		uint8_t g;
@@ -77,9 +71,18 @@ namespace platform {
 		static constexpr size_t NUM_GLYPHS = 127;
 		Glyph glyphs[NUM_GLYPHS]; // indexed using ascii values
 		std::vector<RGBA> pixels;
-		size_t width;
-		size_t height;
-		size_t line_height;
+		size_t size;
+		unsigned int width;
+		unsigned int height;
+		int line_height; // measured from baseline
+	};
+
+	struct Font {
+		static constexpr size_t NUM_GLYPHS = 127;
+		Glyph glyphs[NUM_GLYPHS]; // indexed using ascii values
+		platform::Texture atlas;
+		size_t size;
+		int line_height; // measured from baseline
 	};
 
 	void set_ft(FT_Library ft);
@@ -90,8 +93,9 @@ namespace platform {
 
 	std::expected<FontFace, std::string> load_font_face(std::filesystem::path path);
 	FontAtlas generate_font_atlas(const FontFace& face, uint8_t size);
+	std::expected<Font, std::string> add_font(GraphicsContext* graphics, const char* font_path, uint8_t font_size);
 
-	std::optional<Font> add_ttf_font(const char* font_path, uint8_t font_size);
+	std::optional<Font> add_ttf_font_DEPRECATED(const char* font_path, uint8_t font_size);
 	void free_font(const Font& font);
 
 	core::Rect get_text_bounding_box(const Font& font, const std::string& text);

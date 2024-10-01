@@ -65,7 +65,7 @@ namespace engine {
 	Engine::Engine() {
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-		FontID arial_font_16 = core::unwrap(m_systems.text.add_ttf_font(arial_font_path, 16), [&] {
+		FontID arial_font_16 = core::unwrap(m_systems.text.add_ttf_font_DEPRECATED(arial_font_path, 16), [&] {
 			ABORT("Failed to load font \"%s\"", arial_font_path);
 		});
 		TextID hello = m_systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });

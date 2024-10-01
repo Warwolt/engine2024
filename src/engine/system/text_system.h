@@ -33,7 +33,7 @@ namespace engine {
 		TextSystem(const TextSystem&) = delete;
 		TextSystem& operator=(const TextSystem&) = delete;
 
-		std::optional<FontID> add_ttf_font(const char* font_path, uint8_t font_size);
+		std::optional<FontID> add_ttf_font_DEPRECATED(const char* font_path, uint8_t font_size);
 		TextID add_text_node(FontID font, const std::string& text = "", glm::vec2 position = { 0.0f, 0.0f });
 		void remove_text_node(TextID text_id);
 

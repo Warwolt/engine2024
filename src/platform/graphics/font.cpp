@@ -1,7 +1,9 @@
 #include <platform/graphics/font.h>
 
+#include <cstring>
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
+#include <platform/graphics/graphics_api.h>
 
 namespace platform {
 
@@ -41,6 +43,7 @@ namespace platform {
 
 	FontAtlas generate_font_atlas(const FontFace& face, uint8_t size) {
 		FontAtlas atlas;
+		atlas.size = size;
 
 		/* Set font size */
 		int pixels_per_point = 64;
@@ -106,6 +109,21 @@ namespace platform {
 		return atlas;
 	}
 
+	std::expected<Font, std::string> add_font(GraphicsContext* graphics, const char* font_path, uint8_t font_size) {
+		std::expected<FontFace, std::string> face = load_font_face(font_path);
+		if (!face.has_value()) {
+			return std::unexpected(face.error());
+		}
+		FontAtlas atlas = generate_font_atlas(face.value(), font_size);
+		Texture texture = graphics->add_texture((uint8_t*)atlas.pixels.data(), atlas.width, atlas.height);
+		Font font;
+		std::memcpy(font.glyphs, atlas.glyphs, sizeof(Glyph) * Font::NUM_GLYPHS);
+		font.atlas = texture;
+		font.size = atlas.size;
+		font.line_height = atlas.line_height;
+		return font;
+	}
+
 	// TODO:
 	// This function is doing several things!
 	// 1. It opens a file from a path (platform operation, but done by FT_New_Face so maybe nothing we can extract)
@@ -124,7 +142,7 @@ namespace platform {
 	// compose them in the GraphicsAPI:
 	//
 	// void GraphicsAPI::add_font_from_path(const char* font_path, uint8_t font_size, std::function<void(Font)> on_font_created);
-	std::optional<Font> add_ttf_font(const char* font_path, uint8_t font_size) {
+	std::optional<Font> add_ttf_font_DEPRECATED(const char* font_path, uint8_t font_size) {
 		Font font;
 		font.size = font_size;
 

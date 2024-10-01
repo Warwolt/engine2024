@@ -10,8 +10,8 @@ namespace engine {
 		}
 	}
 
-	std::optional<FontID> TextSystem::add_ttf_font(const char* font_path, uint8_t font_size) {
-		std::optional<platform::Font> font = platform::add_ttf_font(font_path, font_size);
+	std::optional<FontID> TextSystem::add_ttf_font_DEPRECATED(const char* font_path, uint8_t font_size) {
+		std::optional<platform::Font> font = platform::add_ttf_font_DEPRECATED(font_path, font_size);
 		if (font.has_value()) {
 			const FontID id = FontID(m_next_font_id++);
 			m_fonts.insert({ id, font.value() });

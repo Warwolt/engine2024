@@ -193,7 +193,7 @@ namespace editor {
 	}
 
 	static engine::FontID add_font(engine::TextSystem* text_system, const char* path, uint8_t font_size) {
-		return core::unwrap(text_system->add_ttf_font(path, font_size), [&] {
+		return core::unwrap(text_system->add_ttf_font_DEPRECATED(path, font_size), [&] {
 			ABORT("Failed to load font \"%s\"", path);
 		});
 	}
