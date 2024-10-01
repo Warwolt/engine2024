@@ -88,7 +88,7 @@ namespace engine {
 		}
 	}
 
-	void Engine::update(const platform::Input& input, platform::PlatformAPI* platform, platform::OpenGLContext* gl_context) {
+	void Engine::update(const platform::Input& input, platform::PlatformAPI* platform, platform::OpenGLContext* /*gl_context*/) {
 		m_window_resolution = input.window_resolution;
 		m_game_is_running = input.mode == platform::RunMode::Game;
 

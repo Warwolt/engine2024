@@ -30,7 +30,7 @@ namespace platform {
 
 		// editor interface
 		editor::Editor* (*initialize_editor)(engine::Engine* engine, platform::OpenGLContext* gl_context, const platform::Configuration& config);
-		void (*shutdown_editor)(editor::Editor* editor);
+		void (*shutdown_editor)(editor::Editor* editor, platform::OpenGLContext* gl_context);
 		void (*update_editor)(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform, platform::OpenGLContext* gl_context);
 		void (*render_editor)(const editor::Editor& editor, const engine::Engine& engine, platform::OpenGLContext* gl_context, platform::Renderer* renderer);
 	};

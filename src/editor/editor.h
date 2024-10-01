@@ -29,6 +29,8 @@ namespace editor {
 	public:
 		Editor(engine::Engine* engine, platform::OpenGLContext* gl_context, const platform::Configuration& config);
 
+		void shutdown(platform::OpenGLContext* gl_context);
+
 		void update(
 			const platform::Input& input,
 			const platform::Configuration& config,

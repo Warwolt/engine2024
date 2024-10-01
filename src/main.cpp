@@ -625,7 +625,7 @@ int main(int argc, char** argv) {
 	/* Deinitialize */
 	ImWin32::DestroyContext();
 	deinit_imgui();
-	library.shutdown_editor(editor);
+	library.shutdown_editor(editor, &gl_context);
 	library.shutdown_engine(engine, &gl_context);
 	gl_context.free_shader_program(shader_program);
 	platform::shutdown(sdl_gl_context);

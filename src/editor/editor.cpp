@@ -215,6 +215,10 @@ namespace editor {
 		}
 	}
 
+	void Editor::shutdown(platform::OpenGLContext* gl_context) {
+		m_scene_window.shutdown(gl_context);
+	}
+
 	void Editor::update(
 		const platform::Input& input,
 		const platform::Configuration& config,

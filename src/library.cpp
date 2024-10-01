@@ -55,7 +55,8 @@ namespace library {
 		return new editor::Editor(engine, gl_context, config);
 	}
 
-	void shutdown_editor(editor::Editor* editor) {
+	void shutdown_editor(editor::Editor* editor, platform::OpenGLContext* gl_context) {
+		editor->shutdown(gl_context);
 		delete editor;
 	}
 
