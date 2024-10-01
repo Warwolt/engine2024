@@ -92,8 +92,6 @@ namespace platform {
 	std::expected<FontFace, std::string> load_font_face(std::filesystem::path path);
 	FontAtlas generate_font_atlas(const FontFace& face, uint8_t size);
 	std::expected<Font, std::string> add_font(GraphicsContext* graphics, const char* font_path, uint8_t font_size);
-
-	std::optional<Font> add_ttf_font_DEPRECATED(const char* font_path, uint8_t font_size);
 	void free_font(const Font& font);
 
 	core::Rect get_text_bounding_box(const Font& font, const std::string& text);

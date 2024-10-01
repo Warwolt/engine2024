@@ -62,11 +62,11 @@ namespace engine {
 		}
 	}
 
-	Engine::Engine() {
+	Engine::Engine(platform::GraphicsContext* graphics) {
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-		FontID arial_font_16 = core::unwrap(m_systems.text.add_ttf_font_DEPRECATED(arial_font_path, 16), [&] {
-			ABORT("Failed to load font \"%s\"", arial_font_path);
+		FontID arial_font_16 = core::unwrap(m_systems.text.add_font(graphics, arial_font_path, 16), [&](std::string error) {
+			ABORT("Failed to load font \"%s\": %s", arial_font_path, error.c_str());
 		});
 		TextID hello = m_systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
 		TextID world = m_systems.text.add_text_node(arial_font_16, "World", { 0.0f, 18.0f });

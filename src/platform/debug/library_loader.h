@@ -22,14 +22,14 @@ namespace platform {
 		void (*set_freetype_library)(FT_Library ft);
 
 		// engine interface
-		engine::Engine* (*initialize_engine)();
+		engine::Engine* (*initialize_engine)(platform::GraphicsContext*);
 		void (*shutdown_engine)(engine::Engine*);
 		void (*update_engine)(engine::Engine*, const platform::Input&, platform::PlatformAPI*, platform::GraphicsContext*);
 		void (*render_engine)(const engine::Engine&, platform::Renderer*);
 		void (*load_engine_data)(engine::Engine*, const char* path);
 
 		// editor interface
-		editor::Editor* (*initialize_editor)(engine::Engine* engine, const platform::Configuration& config);
+		editor::Editor* (*initialize_editor)(engine::Engine* engine, platform::GraphicsContext* graphics, const platform::Configuration& config);
 		void (*shutdown_editor)(editor::Editor* editor);
 		void (*update_editor)(editor::Editor* editor, const platform::Configuration& config, const platform::Input& input, engine::Engine* engine, platform::PlatformAPI* platform, platform::GraphicsContext* graphics);
 		void (*render_editor)(const editor::Editor& editor, const engine::Engine& engine, platform::Renderer* renderer);

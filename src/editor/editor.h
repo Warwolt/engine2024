@@ -27,7 +27,7 @@ namespace editor {
 
 	class Editor {
 	public:
-		Editor(engine::Engine* engine, const platform::Configuration& config);
+		Editor(engine::Engine* engine, platform::GraphicsContext* graphics, const platform::Configuration& config);
 
 		void update(
 			const platform::Input& input,

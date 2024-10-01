@@ -10,14 +10,14 @@ namespace engine {
 		}
 	}
 
-	std::optional<FontID> TextSystem::add_ttf_font_DEPRECATED(const char* font_path, uint8_t font_size) {
-		std::optional<platform::Font> font = platform::add_ttf_font_DEPRECATED(font_path, font_size);
-		if (font.has_value()) {
-			const FontID id = FontID(m_next_font_id++);
-			m_fonts.insert({ id, font.value() });
-			return id;
+	std::expected<FontID, std::string> TextSystem::add_font(platform::GraphicsContext* graphics, const char* font_path, uint8_t font_size) {
+		std::expected<platform::Font, std::string> font = platform::add_font(graphics, font_path, font_size);
+		if (!font.has_value()) {
+			return std::unexpected(font.error());
 		}
-		return std::nullopt;
+		const FontID id = FontID(m_next_font_id++);
+		m_fonts.insert({ id, font.value() });
+		return id;
 	}
 
 	TextID TextSystem::add_text_node(FontID font, const std::string& text, glm::vec2 position) {

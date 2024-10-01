@@ -30,8 +30,8 @@ namespace library {
 		platform::set_ft(ft);
 	}
 
-	engine::Engine* initialize_engine() {
-		return new engine::Engine();
+	engine::Engine* initialize_engine(platform::GraphicsContext* graphics) {
+		return new engine::Engine(graphics);
 	}
 
 	void shutdown_engine(engine::Engine* engine) {
@@ -50,8 +50,8 @@ namespace library {
 		engine->load_data(path);
 	}
 
-	editor::Editor* initialize_editor(engine::Engine* engine, const platform::Configuration& config) {
-		return new editor::Editor(engine, config);
+	editor::Editor* initialize_editor(engine::Engine* engine, platform::GraphicsContext* graphics, const platform::Configuration& config) {
+		return new editor::Editor(engine, graphics, config);
 	}
 
 	void shutdown_editor(editor::Editor* editor) {

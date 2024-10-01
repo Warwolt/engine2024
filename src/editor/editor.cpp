@@ -89,11 +89,12 @@ namespace editor {
 	static void new_project(
 		Editor* editor,
 		engine::Engine* engine,
+		platform::GraphicsContext* graphics,
 		const platform::Configuration& config
 	) {
 		LOG_INFO("Opened new project");
 		engine->systems().reset();
-		*editor = Editor(engine, config);
+		*editor = Editor(engine, graphics, config);
 	}
 
 	static void open_project(
@@ -192,18 +193,19 @@ namespace editor {
 		}
 	}
 
-	static engine::FontID add_font(engine::TextSystem* text_system, const char* path, uint8_t font_size) {
-		return core::unwrap(text_system->add_ttf_font_DEPRECATED(path, font_size), [&] {
-			ABORT("Failed to load font \"%s\"", path);
+	static engine::FontID add_font(platform::GraphicsContext* graphics, engine::TextSystem* text_system, const char* path, uint8_t font_size) {
+		return core::unwrap(text_system->add_font(graphics, path, font_size), [&](std::string error) {
+			ABORT("Failed to load font \"%s\": %s", path, error.c_str());
 		});
 	}
 
 	Editor::Editor(
 		engine::Engine* engine,
+		platform::GraphicsContext* graphics,
 		const platform::Configuration& config
 	) {
 		m_project_hash = std::hash<engine::ProjectState>()(engine->project());
-		m_system_font_id = add_font(&engine->systems().text, "C:/windows/Fonts/tahoma.ttf", 13);
+		m_system_font_id = add_font(graphics, &engine->systems().text, "C:/windows/Fonts/tahoma.ttf", 13);
 
 		/* Setup docking */
 		if (!config.window.docking_initialized) {
@@ -279,11 +281,11 @@ namespace editor {
 				case EditorCommand::NewProject:
 					if (unsaved_changes) {
 						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
-							new_project(this, engine, config);
+							new_project(this, engine, graphics, config);
 						});
 					}
 					else {
-						new_project(this, engine, config);
+						new_project(this, engine, graphics, config);
 					}
 					break;
 

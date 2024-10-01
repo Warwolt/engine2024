@@ -48,7 +48,7 @@ namespace engine {
 
 	class Engine {
 	public:
-		Engine();
+		Engine(platform::GraphicsContext* graphics);
 
 		void load_data(const char* path);
 		void update(const platform::Input& input, platform::PlatformAPI* platform, platform::GraphicsContext* graphics);

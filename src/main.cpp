@@ -328,7 +328,7 @@ int main(int argc, char** argv) {
 	{
 		platform::Timer init_timer;
 		start_imgui_frame(); // this allows engine to initialize imgui state
-		engine = library.initialize_engine();
+		engine = library.initialize_engine(&graphics);
 		ImGui::EndFrame();
 		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
 	}
@@ -336,7 +336,7 @@ int main(int argc, char** argv) {
 	/* Initialize editor */
 	editor::Editor* editor = nullptr;
 	if (is_editor_mode) {
-		editor = library.initialize_editor(engine, config);
+		editor = library.initialize_editor(engine, &graphics, config);
 	}
 
 	bool quit = false;
