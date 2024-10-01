@@ -37,3 +37,12 @@ TEST(AsyncBatchTests, Batch_CanBeAssigned) {
 
 	EXPECT_FALSE(batch.is_done());
 }
+
+TEST(AsyncBatchTests, BatchSizeIsFixed) {
+	std::vector<int> items = { 1, 2, 3 };
+	core::AsyncBatch<int(int)> empty_batch;
+	core::AsyncBatch<int(int)> nonempty_batch = core::AsyncBatch<int(int)>(items, [](int x) { return x + 1; });
+
+	EXPECT_EQ(empty_batch.size(), 0);
+	EXPECT_EQ(nonempty_batch.size(), items.size());
+}

@@ -48,7 +48,7 @@ namespace core {
 		}
 
 	private:
-		size_t m_size;
+		size_t m_size = 0;
 		std::vector<Result> m_values;
 		std::vector<std::future<Result>> m_futures;
 	};
