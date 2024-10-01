@@ -30,22 +30,6 @@ namespace platform {
 		return 0;
 	}
 
-	Texture add_texture(const unsigned char* data, int width, int height, TextureWrapping wrapping, TextureFilter filter) {
-		GLuint texture_id;
-		glGenTextures(1, &texture_id);
-
-		Texture texture = Texture { texture_id, glm::vec2 { width, height } };
-		glBindTexture(GL_TEXTURE_2D, texture_id);
-
-		set_texture_filter(texture, filter);
-		set_texture_wrapping(texture, wrapping);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-		glBindTexture(GL_TEXTURE_2D, NULL);
-		return texture;
-	}
-
 	void set_texture_wrapping(Texture texture, TextureWrapping wrapping) {
 		int wrapping_int = wrapping_mode_to_gl_int(wrapping);
 		glBindTexture(GL_TEXTURE_2D, texture.id);

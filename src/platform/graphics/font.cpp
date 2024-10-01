@@ -124,8 +124,8 @@ namespace platform {
 		return font;
 	}
 
-	void free_font(const Font& font) {
-		free_texture(font.atlas);
+	void free_font(GraphicsContext* graphics, const Font& font) {
+		graphics->free_texture(font.atlas);
 	}
 
 	core::Rect get_text_bounding_box(const Font& font, const std::string& text) {

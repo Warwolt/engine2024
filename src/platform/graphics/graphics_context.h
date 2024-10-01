@@ -1,6 +1,7 @@
 #pragma once
 
 #include <platform/graphics/texture.h>
+#include <platform/graphics/canvas.h>
 
 typedef void* SDL_GLContext; // from SDL_video.h
 
@@ -22,6 +23,9 @@ namespace platform {
 		void set_texture_wrapping(Texture texture, TextureWrapping wrapping);
 		void set_texture_filter(Texture texture, TextureFilter filter);
 		void free_texture(Texture texture);
+
+		Canvas add_canvas(int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge, TextureFilter filter = TextureFilter::Nearest);
+		void free_canvas(Canvas canvas);
 	};
 
 } // namespace platform

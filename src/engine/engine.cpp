@@ -150,4 +150,8 @@ namespace engine {
 		}
 	}
 
+	void Engine::shutdown(platform::GraphicsContext* graphics) {
+		m_systems.text.shutdown(graphics);
+	}
+
 } // namespace engine

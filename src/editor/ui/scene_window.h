@@ -9,6 +9,7 @@
 
 namespace platform {
 	struct Input;
+	class GraphicsContext;
 }
 
 namespace editor {
@@ -24,16 +25,18 @@ namespace editor {
 
 	class SceneWindow {
 	public:
-		SceneWindow();
-		~SceneWindow();
+		SceneWindow(platform::GraphicsContext* graphics);
+		void shutdown(platform::GraphicsContext* graphics);
 
 		void update(
 			engine::SceneGraph* scene_graph,
+			platform::GraphicsContext* graphics,
 			const platform::Input& input,
 			std::vector<EditorCommand>* commands
 		);
 
 		void render(
+			platform::GraphicsContext* graphics,
 			const engine::TextSystem& text_system,
 			engine::FontID system_font_id,
 			platform::Renderer* renderer

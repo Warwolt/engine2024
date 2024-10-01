@@ -304,7 +304,7 @@ int main(int argc, char** argv) {
 	});
 
 	/* Initialize Renderer */
-	platform::Renderer renderer = platform::Renderer(gl_context);
+	platform::Renderer renderer = platform::Renderer(&graphics);
 	platform::ShaderProgram shader_program = core::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](platform::ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", core::util::enum_to_string(error));
 	});
@@ -340,7 +340,7 @@ int main(int argc, char** argv) {
 	}
 
 	bool quit = false;
-	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
+	platform::Canvas window_canvas = graphics.add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
 	/* Initialize engine */
@@ -479,8 +479,8 @@ int main(int argc, char** argv) {
 					switch (cmd.tag()) {
 						case PlatformCommandType::ChangeResolution: {
 							auto& [width, height] = std::get<platform::cmd::window::ChangeResolution>(cmd);
-							platform::free_canvas(window_canvas);
-							window_canvas = platform::add_canvas(width, height);
+							graphics.free_canvas(window_canvas);
+							window_canvas = graphics.add_canvas(width, height);
 						} break;
 
 						case PlatformCommandType::Quit:
@@ -580,7 +580,7 @@ int main(int argc, char** argv) {
 			/* Render to canvas */
 			{
 				if (editor && run_mode == platform::RunMode::Editor) {
-					library.render_editor(*editor, *engine, &renderer);
+					library.render_editor(*editor, *engine, &graphics, &renderer);
 				}
 				else {
 					library.render_engine(*engine, &renderer);
@@ -626,7 +626,7 @@ int main(int argc, char** argv) {
 	ImWin32::DestroyContext();
 	deinit_imgui();
 	library.shutdown_editor(editor);
-	library.shutdown_engine(engine);
+	library.shutdown_engine(engine, &graphics);
 	platform::free_shader_program(shader_program);
 	platform::shutdown(gl_context);
 	window.destroy();

@@ -203,7 +203,8 @@ namespace editor {
 		engine::Engine* engine,
 		platform::GraphicsContext* graphics,
 		const platform::Configuration& config
-	) {
+	)
+		: m_scene_window(graphics) {
 		m_project_hash = std::hash<engine::ProjectState>()(engine->project());
 		m_system_font_id = add_font(graphics, &engine->systems().text, "C:/windows/Fonts/tahoma.ttf", 13);
 
@@ -231,6 +232,7 @@ namespace editor {
 		if (!game_is_running) {
 			commands = _update_ui(
 				input,
+				graphics,
 				unsaved_changes,
 				engine
 			);
@@ -347,6 +349,7 @@ namespace editor {
 
 	std::vector<editor::EditorCommand> Editor::_update_ui(
 		const platform::Input& input,
+		platform::GraphicsContext* graphics,
 		bool unsaved_changes,
 		engine::Engine* engine
 	) {
@@ -401,15 +404,15 @@ namespace editor {
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
-			m_scene_window.update(&engine->scene_graph(), input, &commands);
+			m_scene_window.update(&engine->scene_graph(), graphics, input, &commands);
 		}
 		ImGui::End();
 
 		return commands;
 	}
 
-	void Editor::render(const engine::Engine& engine, platform::Renderer* renderer) const {
-		m_scene_window.render(engine.systems().text, m_system_font_id, renderer);
+	void Editor::render(const engine::Engine& engine, platform::GraphicsContext* graphics, platform::Renderer* renderer) const {
+		m_scene_window.render(graphics, engine.systems().text, m_system_font_id, renderer);
 	}
 
 } // namespace editor

@@ -4,9 +4,9 @@
 
 namespace engine {
 
-	TextSystem::~TextSystem() {
+	void TextSystem::shutdown(platform::GraphicsContext* graphics) {
 		for (const auto& [id, font] : m_fonts) {
-			platform::free_font(font);
+			platform::free_font(graphics, font);
 		}
 	}
 

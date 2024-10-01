@@ -1,3 +1,5 @@
+#include <GL/glew.h> // must be included before <SDL2/SDL_opengl.h>
+
 #include <platform/graphics/graphics_context.h>
 
 namespace platform {
@@ -68,6 +70,47 @@ namespace platform {
 
 	void GraphicsContext::free_texture(Texture texture) {
 		glDeleteTextures(1, &texture.id);
+	}
+
+	Canvas GraphicsContext::add_canvas(int width, int height, TextureWrapping wrapping, TextureFilter filter) {
+		// create texture
+		GLuint texture_id;
+		glGenTextures(1, &texture_id);
+		Texture texture = Texture { texture_id, glm::vec2 { width, height } };
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+
+		// create buffer
+		GLuint framebuffer;
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+		set_texture_filter(texture, filter);
+		set_texture_wrapping(texture, wrapping);
+
+		// attach texture to buffer and draw buffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
+
+		GLuint render_buffer;
+		glGenRenderbuffers(1, &render_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
+		glRenderbufferStorage(
+			GL_RENDERBUFFER,
+			GL_DEPTH24_STENCIL8,
+			width,
+			height
+		);
+
+		glBindTexture(GL_TEXTURE_2D, NULL);
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+
+		return Canvas { framebuffer, texture };
+	}
+
+	void GraphicsContext::free_canvas(Canvas canvas) {
+		glDeleteFramebuffers(1, &canvas.framebuffer);
+		glDeleteTextures(1, &canvas.texture.id);
 	}
 
 } // namespace platform

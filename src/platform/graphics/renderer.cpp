@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp> // glm::ortho
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <platform/debug/logging.h>
+#include <platform/graphics/graphics_context.h>
 #include <platform/input/timing.h>
 #include <stb_image/stb_image.h>
 
@@ -155,50 +156,9 @@ namespace platform {
 		glDeleteProgram(shader_program.id);
 	}
 
-	Canvas add_canvas(int width, int height, TextureWrapping wrapping, TextureFilter filter) {
-		// create texture
-		GLuint texture_id;
-		glGenTextures(1, &texture_id);
-		Texture texture = Texture { texture_id, glm::vec2 { width, height } };
-		glBindTexture(GL_TEXTURE_2D, texture_id);
-
-		// create buffer
-		GLuint framebuffer;
-		glGenFramebuffers(1, &framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-		set_texture_filter(texture, filter);
-		set_texture_wrapping(texture, wrapping);
-
-		// attach texture to buffer and draw buffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
-
-		GLuint render_buffer;
-		glGenRenderbuffers(1, &render_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
-		glRenderbufferStorage(
-			GL_RENDERBUFFER,
-			GL_DEPTH24_STENCIL8,
-			width,
-			height
-		);
-
-		glBindTexture(GL_TEXTURE_2D, NULL);
-		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-
-		return Canvas { framebuffer, texture };
-	}
-
-	void free_canvas(Canvas canvas) {
-		glDeleteFramebuffers(1, &canvas.framebuffer);
-		glDeleteTextures(1, &canvas.texture.id);
-	}
-
-	Renderer::Renderer(SDL_GLContext /* gl_context */) {
+	Renderer::Renderer(GraphicsContext* graphics) {
 		unsigned char data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
-		m_white_texture = add_texture(data, 1, 1);
+		m_white_texture = graphics->add_texture(data, 1, 1);
 	}
 
 	void Renderer::set_projection(const ShaderProgram& shader_program, glm::mat4 projection) {

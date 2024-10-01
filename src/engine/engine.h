@@ -53,6 +53,7 @@ namespace engine {
 		void load_data(const char* path);
 		void update(const platform::Input& input, platform::PlatformAPI* platform, platform::GraphicsContext* graphics);
 		void render(platform::Renderer* renderer) const;
+		void shutdown(platform::GraphicsContext* graphics);
 
 		SceneGraph& scene_graph() { return m_scene_graph; }
 		const SceneGraph& scene_graph() const { return m_scene_graph; }

@@ -39,12 +39,14 @@ namespace editor {
 
 		void render(
 			const engine::Engine& engine,
+			platform::GraphicsContext* graphics,
 			platform::Renderer* renderer
 		) const;
 
 	private:
 		std::vector<editor::EditorCommand> _update_ui(
 			const platform::Input& input,
+			platform::GraphicsContext* graphics,
 			bool unsaved_changes,
 			engine::Engine* engine
 		);

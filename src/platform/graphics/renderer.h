@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/rect.h>
+#include <platform/graphics/canvas.h>
 #include <platform/graphics/font.h>
 #include <platform/graphics/image.h>
 #include <platform/graphics/renderer_debug.h>
@@ -17,6 +18,8 @@
 #include <vector>
 
 namespace platform {
+
+	class GraphicsContext;
 
 	namespace Color {
 		constexpr glm::vec4 rgba(int r, int g, int b, int a) {
@@ -46,11 +49,6 @@ namespace platform {
 		glm::vec2 uv;
 	};
 
-	struct Canvas {
-		GLuint framebuffer;
-		Texture texture;
-	};
-
 	struct VertexSection {
 		GLenum mode;
 		GLsizei length;
@@ -76,12 +74,9 @@ namespace platform {
 	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
 	void free_shader_program(const ShaderProgram& shader_program);
 
-	Canvas add_canvas(int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge, TextureFilter filter = TextureFilter::Nearest);
-	void free_canvas(Canvas canvas);
-
 	class Renderer {
 	public:
-		Renderer(SDL_GLContext gl_context);
+		Renderer(GraphicsContext* graphics);
 
 		void set_projection(const ShaderProgram& shader_program, glm::mat4 projection);
 

@@ -34,7 +34,8 @@ namespace library {
 		return new engine::Engine(graphics);
 	}
 
-	void shutdown_engine(engine::Engine* engine) {
+	void shutdown_engine(engine::Engine* engine, platform::GraphicsContext* graphics) {
+		engine->shutdown(graphics);
 		delete engine;
 	}
 
@@ -62,8 +63,8 @@ namespace library {
 		editor->update(input, config, engine, platform, graphics);
 	}
 
-	void render_editor(const editor::Editor& editor, const engine::Engine& engine, platform::Renderer* renderer) {
-		editor.render(engine, renderer);
+	void render_editor(const editor::Editor& editor, const engine::Engine& engine, platform::GraphicsContext* graphics, platform::Renderer* renderer) {
+		editor.render(engine, graphics, renderer);
 	}
 
 } // namespace library

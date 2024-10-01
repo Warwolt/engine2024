@@ -35,10 +35,11 @@ namespace engine {
 	class TextSystem {
 	public:
 		TextSystem() = default;
-		~TextSystem();
 
 		TextSystem(const TextSystem&) = delete;
 		TextSystem& operator=(const TextSystem&) = delete;
+		
+		void shutdown(platform::GraphicsContext* graphics);
 
 		std::expected<FontID, std::string> add_font(platform::GraphicsContext* graphics, const char* font_path, uint8_t font_size);
 		TextID add_text_node(FontID font, const std::string& text = "", glm::vec2 position = { 0.0f, 0.0f });
