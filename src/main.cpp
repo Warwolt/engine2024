@@ -803,10 +803,8 @@ int main(int argc, char** argv) {
 
 				scene_has_loaded = font_loading_state == ResourceLoadingState::Done && image_loading_state == ResourceLoadingState::Done;
 
-				// HACK: some quick code to calculate the progress, doesn't take
-				// into account that stuff might already be loaded etc. etc.
-				const size_t num_fonts_to_load = manifest.fonts.size();
-				const size_t num_images_to_load = manifest.images.size();
+				const size_t num_fonts_to_load = load_font_batch.size();
+				const size_t num_images_to_load = load_image_batch.size();
 				const size_t num_loaded_fonts = fonts.size();
 				const size_t num_loaded_images = textures.size();
 				load_progress = (float)(num_loaded_fonts + num_loaded_images) / (float)(num_fonts_to_load + num_images_to_load);

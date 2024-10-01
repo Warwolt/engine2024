@@ -20,6 +20,11 @@ namespace core {
 			for (const auto& x : xs) {
 				m_futures.push_back(std::async(std::launch::async, std::forward<F>(f), x));
 			}
+			m_size = m_futures.size();
+		}
+
+		size_t size() const {
+			return m_size;
 		}
 
 		void update() {
@@ -43,6 +48,7 @@ namespace core {
 		}
 
 	private:
+		size_t m_size;
 		std::vector<Result> m_values;
 		std::vector<std::future<Result>> m_futures;
 	};
