@@ -29,3 +29,11 @@ TEST(AsyncBatchTests, BatchWithItems_UpdatedUntilDone_HasValues) {
 	EXPECT_TRUE(batch.is_done());
 	EXPECT_EQ(batch.values(), expected_values);
 }
+
+TEST(AsyncBatchTests, Batch_CanBeAssigned) {
+	std::vector<int> items = { 1, 2, 3 };
+	core::AsyncBatch<int(int)> batch;
+	batch = core::AsyncBatch<int(int)>(items, [](int x) { return x + 1; });
+
+	EXPECT_FALSE(batch.is_done());
+}
