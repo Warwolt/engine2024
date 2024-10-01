@@ -531,42 +531,27 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	/* PROTOTYPING: Load manifest */
+	core::VecMap<std::string, platform::Font> fonts;
+	core::VecMap<std::string, platform::Texture> textures;
+
 	enum class ResourceLoadingState {
 		Idle,
 		Started,
 		Done
 	};
 	ResourceLoadingState font_loading_state = ResourceLoadingState::Idle;
+	ResourceLoadingState image_loading_state = ResourceLoadingState::Idle;
 
 	bool scene_has_loaded = false;
 	float load_progress = 0.0f;
-	core::VecMap<std::string, platform::Font> fonts;
-	core::VecMap<std::string, platform::Texture> textures;
-	// ResourceManager internal stuff:
-	// Probably we want some kind of "parallel resource loader" helper class
-	// that can handle async loading files and report progress?
-	using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
-	using FontAtlasResult = std::expected<NamedFontAtlas, std::string>;
-	std::vector<std::future<FontAtlasResult>> load_atlas_futures;
-	{
-		// load image data
-		std::vector<std::pair<std::string, platform::Image>> image_data;
-		for (const auto& [name, path] : manifest.images) {
-			std::string path_str = path.string();
-			if (std::optional<platform::Image> image = platform::read_image(path_str.c_str())) {
-				image_data.push_back({ name, std::move(image.value()) });
-			}
-			else {
-				LOG_ERROR("Couldn't load image in manifest! name = %s, path = %s", name.c_str(), path_str.c_str());
-			}
-		}
 
-		// generate images
-		for (const auto& [name, image] : image_data) {
-			textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
-		}
-	}
+	using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
+	using NamedImage = std::pair<std::string, platform::Image>;
+	using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
+	using LoadImageResult = std::expected<NamedImage, std::string>;
+
+	std::vector<std::future<LoadFontResult>> load_font_futures;
+	std::vector<std::future<LoadImageResult>> load_image_futures;
 
 	/* Main loop */
 	while (!quit) {
@@ -697,13 +682,13 @@ int main(int argc, char** argv) {
 
 			/* PROTOYPE CODE */
 			{
-				// proces font loading
+				/* Font loading */
 				switch (font_loading_state) {
 					case ResourceLoadingState::Idle: {
 						font_loading_state = ResourceLoadingState::Started;
 
 						for (const auto& [name, path, size] : manifest.fonts) {
-							auto try_load_font = [name, path, size]() -> FontAtlasResult {
+							auto try_load_font = [name, path, size]() -> LoadFontResult {
 								using namespace std::chrono_literals;
 								std::this_thread::sleep_for(2000ms); // SLEEP TO SIMULATE HIGH WORK LOAD
 
@@ -717,14 +702,14 @@ int main(int argc, char** argv) {
 									return std::unexpected(error);
 								}
 							};
-							load_atlas_futures.push_back(std::async(std::launch::async, try_load_font));
+							load_font_futures.push_back(std::async(std::launch::async, try_load_font));
 						}
 					} break;
 
 					case ResourceLoadingState::Started: {
-						for (auto it = load_atlas_futures.begin(); it != load_atlas_futures.end();) {
+						for (auto it = load_font_futures.begin(); it != load_font_futures.end();) {
 							if (core::future::has_value(*it)) {
-								const FontAtlasResult& result = it->get();
+								const LoadFontResult& result = it->get();
 								if (result.has_value()) {
 									const auto& [name, atlas] = result.value();
 									fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
@@ -732,14 +717,63 @@ int main(int argc, char** argv) {
 								else {
 									LOG_ERROR("%s", result.error().c_str());
 								}
-								it = load_atlas_futures.erase(it);
+								it = load_font_futures.erase(it);
 							}
 							else {
 								it++;
 							}
 						}
 
-						if (load_atlas_futures.empty()) {
+						if (load_font_futures.empty()) {
+							font_loading_state = ResourceLoadingState::Done;
+						}
+					} break;
+
+					case ResourceLoadingState::Done: {
+					} break;
+				}
+
+				/* Image loading */
+				switch (image_loading_state) {
+					case ResourceLoadingState::Idle: {
+						image_loading_state = ResourceLoadingState::Started;
+
+						for (const auto& [name, path] : manifest.images) {
+							auto try_load_image = [name, path]() -> LoadImageResult {
+								using namespace std::chrono_literals;
+								std::this_thread::sleep_for(2000ms); // SLEEP TO SIMULATE HIGH WORK LOAD
+
+								if (std::optional<platform::Image> image = platform::read_image(path)) {
+									return NamedImage { name, std::move(image.value()) };
+								}
+								else {
+									std::string error = std::format("Couldn't load image in manifest! name = {}, path = {}", name.c_str(), path.string());
+									return std::unexpected(error);
+								}
+							};
+							load_image_futures.push_back(std::async(std::launch::async, try_load_image));
+						}
+					} break;
+
+					case ResourceLoadingState::Started: {
+						for (auto it = load_image_futures.begin(); it != load_image_futures.end();) {
+							if (core::future::has_value(*it)) {
+								const LoadImageResult& result = it->get();
+								if (result.has_value()) {
+									const auto& [name, image] = result.value();
+									textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
+								}
+								else {
+									LOG_ERROR("%s", result.error().c_str());
+								}
+								it = load_image_futures.erase(it);
+							}
+							else {
+								it++;
+							}
+						}
+
+						if (load_image_futures.empty()) {
 							font_loading_state = ResourceLoadingState::Done;
 						}
 					} break;
