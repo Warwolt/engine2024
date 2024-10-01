@@ -41,6 +41,7 @@
 #include <core/future.h>
 #include <nlohmann/json.hpp>
 #include <platform/file/zip.h>
+#include <thread>
 
 const char* LIBRARY_NAME = "GameEngine2024Library";
 
@@ -535,14 +536,22 @@ int main(int argc, char** argv) {
 	float load_progress = 0.0f;
 	core::VecMap<std::string, platform::Font> fonts;
 	core::VecMap<std::string, platform::Texture> textures;
+	// ResourceManager internal stuff:
+	// Probably we want some kind of "parallel resource loader" helper class
+	// that can handle async loading files and report progress?
+	using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
+	using FontAtlasResult = std::expected<NamedFontAtlas, std::string>;
+	std::vector<std::future<FontAtlasResult>> load_atlas_futures;
 	{
-		using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
-		using FontAtlasResult = std::expected<NamedFontAtlas, std::string>;
-
 		// async load font data
-		std::vector<std::future<FontAtlasResult>> load_atlas_futures;
 		for (const auto& [name, path, size] : manifest.fonts) {
 			auto try_load_font = [name, path, size]() -> FontAtlasResult {
+				// SLEEP TO SIMULATE HIGH WORK LOAD
+				{
+					using namespace std::chrono_literals;
+					std::this_thread::sleep_for(2000ms);
+				}
+
 				std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(path);
 				if (font_face.has_value()) {
 					platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), size);
@@ -556,26 +565,6 @@ int main(int argc, char** argv) {
 			load_atlas_futures.push_back(std::async(std::launch::async, try_load_font));
 		}
 
-		// temporary blocking loop
-		std::vector<NamedFontAtlas> font_atlases;
-		while (!load_atlas_futures.empty()) {
-			for (auto it = load_atlas_futures.begin(); it != load_atlas_futures.end();) {
-				if (core::future::has_value(*it)) {
-					const FontAtlasResult& result = it->get();
-					if (result.has_value()) {
-						font_atlases.push_back(result.value());
-					}
-					else {
-						LOG_ERROR("%s", result.error().c_str());
-					}
-					it = load_atlas_futures.erase(it);
-				}
-				else {
-					it++;
-				}
-			}
-		}
-
 		// load image data
 		std::vector<std::pair<std::string, platform::Image>> image_data;
 		for (const auto& [name, path] : manifest.images) {
@@ -586,11 +575,6 @@ int main(int argc, char** argv) {
 			else {
 				LOG_ERROR("Couldn't load image in manifest! name = %s, path = %s", name.c_str(), path_str.c_str());
 			}
-		}
-
-		// generate fonts
-		for (const auto& [name, atlas] : font_atlases) {
-			fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
 		}
 
 		// generate images
@@ -726,6 +710,39 @@ int main(int argc, char** argv) {
 				quit = true;
 			}
 
+			/* PROTOYPE CODE */
+			{
+				// process loading
+				for (auto it = load_atlas_futures.begin(); it != load_atlas_futures.end();) {
+					if (core::future::has_value(*it)) {
+						const FontAtlasResult& result = it->get();
+						if (result.has_value()) {
+							const auto& [name, atlas] = result.value();
+							fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
+						}
+						else {
+							LOG_ERROR("%s", result.error().c_str());
+						}
+						it = load_atlas_futures.erase(it);
+
+						// TEMPORARY HACK:
+						// track if loading is done, but we need a more general
+						// way of composing async work (since the STL is missing
+						// that _basic_ ass functionality).
+						if (load_atlas_futures.empty()) {
+							scene_has_loaded = true;
+						}
+					}
+					else {
+						it++;
+					}
+				}
+
+				if (scene_has_loaded) {
+					run_script(input);
+				}
+			}
+
 			/* Platform update */
 			while (platform.has_commands()) {
 				for (platform::PlatformCommand& cmd : platform.drain_commands()) {
@@ -825,11 +842,6 @@ int main(int argc, char** argv) {
 
 			/* Set Cursor */
 			SDL_SetCursor(cursor);
-		}
-
-		// PROTOYPE UPDATE
-		if (scene_has_loaded) {
-			run_script(input);
 		}
 
 		/* Render */
