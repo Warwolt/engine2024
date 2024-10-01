@@ -38,6 +38,7 @@
 
 // prototyping
 #include <core/container/vec_map.h>
+#include <core/future.h>
 #include <nlohmann/json.hpp>
 #include <platform/file/zip.h>
 
@@ -529,27 +530,7 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	// load manifest TODO: make this an async operation
-	//
-	// How should this work as an async operation? What should be done, what's
-	// the result of its completion?
-	//
-	// From some kind of thread safety perspective, we probably shouldn't write
-	// directly to the vec maps. Maybe we can just load into vectors, and then
-	// move the content of the vectors into the vec maps on completion?
-	//
-	// (Notably, we can't add textures in a background thread because it doesn't
-	// have access to the open gl context, so we really can only do the file IO
-	// operations in the background thread.)
-	//
-	// Background thread:
-	// 1. Load font file and generate atlas data in background thread
-	// 2. Load image files
-	// 		=> put font atlas data in vector
-	// 		=> put image data in vector
-	// Main thread:
-	// 3. Create Font-instances from atlas data
-	// 4. Create Texture-instances from image data
+	/* PROTOTYPING: Load manifest */
 	bool scene_has_loaded = false;
 	float load_progress = 0.0f;
 	core::VecMap<std::string, platform::Font> fonts;
@@ -558,28 +539,40 @@ int main(int argc, char** argv) {
 		using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
 		using FontAtlasResult = std::expected<NamedFontAtlas, std::string>;
 
-		// load font data
-		std::vector<FontAtlasResult> load_atlas_results;
+		// async load font data
+		std::vector<std::future<FontAtlasResult>> load_atlas_futures;
 		for (const auto& [name, path, size] : manifest.fonts) {
-			std::string path_str = path.string();
-			std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(path);
-			if (font_face.has_value()) {
-				platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), size);
-				load_atlas_results.push_back(NamedFontAtlas { name, atlas });
-			}
-			else {
-				std::string error = std::format("Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}", name.c_str(), path_str.c_str(), size, font_face.error().c_str());
-				load_atlas_results.push_back(std::unexpected(error));
-			}
+			auto try_load_font = [name, path, size]() -> FontAtlasResult {
+				std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(path);
+				if (font_face.has_value()) {
+					platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), size);
+					return NamedFontAtlas { name, atlas };
+				}
+				else {
+					std::string error = std::format("Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}", name.c_str(), path.string(), size, font_face.error().c_str());
+					return std::unexpected(error);
+				}
+			};
+			load_atlas_futures.push_back(std::async(std::launch::async, try_load_font));
 		}
 
+		// temporary blocking loop
 		std::vector<NamedFontAtlas> font_atlases;
-		for (const auto& load_atlas_result : load_atlas_results) {
-			if (load_atlas_result.has_value()) {
-				font_atlases.push_back(load_atlas_result.value());
-			}
-			else {
-				LOG_ERROR("%s", load_atlas_result.error().c_str());
+		while (!load_atlas_futures.empty()) {
+			for (auto it = load_atlas_futures.begin(); it != load_atlas_futures.end();) {
+				if (core::future::has_value(*it)) {
+					const FontAtlasResult& result = it->get();
+					if (result.has_value()) {
+						font_atlases.push_back(result.value());
+					}
+					else {
+						LOG_ERROR("%s", result.error().c_str());
+					}
+					it = load_atlas_futures.erase(it);
+				}
+				else {
+					it++;
+				}
 			}
 		}
 
@@ -835,11 +828,8 @@ int main(int argc, char** argv) {
 		}
 
 		// PROTOYPE UPDATE
-		run_script(input);
-
-		load_progress = std::min(load_progress + 0.005f, 1.0f);
-		if (load_progress == 1.0f) {
-			scene_has_loaded = true;
+		if (scene_has_loaded) {
+			run_script(input);
 		}
 
 		/* Render */
