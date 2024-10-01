@@ -551,20 +551,35 @@ int main(int argc, char** argv) {
 	// 3. Create Font-instances from atlas data
 	// 4. Create Texture-instances from image data
 	bool scene_has_loaded = false;
+	float load_progress = 0.0f;
 	core::VecMap<std::string, platform::Font> fonts;
 	core::VecMap<std::string, platform::Texture> textures;
 	{
+		using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
+		using FontAtlasResult = std::expected<NamedFontAtlas, std::string>;
+
 		// load font data
-		std::vector<std::pair<std::string, platform::FontAtlas>> font_atlases;
+		std::vector<FontAtlasResult> load_atlas_results;
 		for (const auto& [name, path, size] : manifest.fonts) {
 			std::string path_str = path.string();
 			std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(path);
 			if (font_face.has_value()) {
 				platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), size);
-				font_atlases.push_back({ name, atlas });
+				load_atlas_results.push_back(NamedFontAtlas { name, atlas });
 			}
 			else {
-				LOG_ERROR("Couldn't load font in manifest! name = %s, path = %s, size = %s, error = %s", name.c_str(), path_str.c_str(), size, font_face.error().c_str());
+				std::string error = std::format("Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}", name.c_str(), path_str.c_str(), size, font_face.error().c_str());
+				load_atlas_results.push_back(std::unexpected(error));
+			}
+		}
+
+		std::vector<NamedFontAtlas> font_atlases;
+		for (const auto& load_atlas_result : load_atlas_results) {
+			if (load_atlas_result.has_value()) {
+				font_atlases.push_back(load_atlas_result.value());
+			}
+			else {
+				LOG_ERROR("%s", load_atlas_result.error().c_str());
 			}
 		}
 
@@ -590,8 +605,6 @@ int main(int argc, char** argv) {
 			textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
 		}
 	}
-
-	float load_progress = 0.0f;
 
 	/* Main loop */
 	while (!quit) {
