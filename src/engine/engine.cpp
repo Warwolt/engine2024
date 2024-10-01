@@ -62,11 +62,11 @@ namespace engine {
 		}
 	}
 
-	Engine::Engine() {
+	Engine::Engine(platform::OpenGLContext* gl_context) {
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-		FontID arial_font_16 = core::unwrap(m_systems.text.add_ttf_font(arial_font_path, 16), [&] {
-			ABORT("Failed to load font \"%s\"", arial_font_path);
+		FontID arial_font_16 = core::unwrap(m_systems.text.add_font(gl_context, arial_font_path, 16), [&](std::string error) {
+			ABORT("Failed to load font \"%s\": %s", arial_font_path, error.c_str());
 		});
 		TextID hello = m_systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
 		TextID world = m_systems.text.add_text_node(arial_font_16, "World", { 0.0f, 18.0f });
@@ -88,7 +88,7 @@ namespace engine {
 		}
 	}
 
-	void Engine::update(const platform::Input& input, platform::PlatformAPI* platform) {
+	void Engine::update(const platform::Input& input, platform::PlatformAPI* platform, platform::OpenGLContext* /*gl_context*/) {
 		m_window_resolution = input.window_resolution;
 		m_game_is_running = input.mode == platform::RunMode::Game;
 
@@ -148,6 +148,10 @@ namespace engine {
 			const platform::Font& font = m_systems.text.fonts().at(text_node.font_id);
 			renderer->draw_text(font, text_node.text, window_center + text_node.position, platform::Color::white);
 		}
+	}
+
+	void Engine::shutdown(platform::OpenGLContext* gl_context) {
+		m_systems.text.shutdown(gl_context);
 	}
 
 } // namespace engine

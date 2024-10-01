@@ -7,6 +7,7 @@
 
 #include <glm/vec2.hpp>
 
+#include <expected>
 #include <string>
 
 namespace engine {
@@ -15,6 +16,12 @@ namespace engine {
 } // namespace engine
 DEFINE_NEWTYPE_HASH_IMPL(engine::FontID, int);
 DEFINE_NEWTYPE_HASH_IMPL(engine::TextID, int);
+
+namespace platform {
+
+	class OpenGLContext;
+
+}
 
 namespace engine {
 
@@ -28,12 +35,13 @@ namespace engine {
 	class TextSystem {
 	public:
 		TextSystem() = default;
-		~TextSystem();
 
 		TextSystem(const TextSystem&) = delete;
 		TextSystem& operator=(const TextSystem&) = delete;
 
-		std::optional<FontID> add_ttf_font(const char* font_path, uint8_t font_size);
+		void shutdown(platform::OpenGLContext* gl_context);
+
+		std::expected<FontID, std::string> add_font(platform::OpenGLContext* gl_context, const char* font_path, uint8_t font_size);
 		TextID add_text_node(FontID font, const std::string& text = "", glm::vec2 position = { 0.0f, 0.0f });
 		void remove_text_node(TextID text_id);
 

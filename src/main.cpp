@@ -11,6 +11,7 @@
 #include <platform/file/file.h>
 #include <platform/file/zip.h>
 #include <platform/graphics/font.h>
+#include <platform/graphics/gl_context.h>
 #include <platform/graphics/image.h>
 #include <platform/graphics/renderer.h>
 #include <platform/graphics/window.h>
@@ -272,12 +273,13 @@ int main(int argc, char** argv) {
 	}
 
 	/* Create OpenGL context */
-	SDL_GLContext gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
+	SDL_GLContext sdl_gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
 		ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
 	});
+	platform::OpenGLContext gl_context = platform::OpenGLContext(sdl_gl_context);
 
 	/* Initialize ImGui and ImWin32 */
-	init_imgui(window.sdl_window(), gl_context);
+	init_imgui(window.sdl_window(), sdl_gl_context);
 	ImWin32::CreateContext(window.sdl_window());
 	std::vector<ImWin32::WindowMessage> win32_window_messages;
 	auto on_window_message = [](void* userdata, void* hwnd, unsigned int message, Uint64 w_param, Sint64 l_param) {
@@ -302,8 +304,8 @@ int main(int argc, char** argv) {
 	});
 
 	/* Initialize Renderer */
-	platform::Renderer renderer = platform::Renderer(gl_context);
-	platform::ShaderProgram shader_program = core::unwrap(platform::add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](platform::ShaderProgramError error) {
+	platform::Renderer renderer = platform::Renderer(&gl_context);
+	platform::ShaderProgram shader_program = core::unwrap(gl_context.add_shader_program(vertex_shader_src.c_str(), fragment_shader_src.c_str()), [](platform::ShaderProgramError error) {
 		ABORT("Renderer::add_program() returned %s", core::util::enum_to_string(error));
 	});
 
@@ -326,7 +328,7 @@ int main(int argc, char** argv) {
 	{
 		platform::Timer init_timer;
 		start_imgui_frame(); // this allows engine to initialize imgui state
-		engine = library.initialize_engine();
+		engine = library.initialize_engine(&gl_context);
 		ImGui::EndFrame();
 		LOG_INFO("Engine initialized (after %zu milliseconds)", init_timer.elapsed_ms());
 	}
@@ -334,11 +336,11 @@ int main(int argc, char** argv) {
 	/* Initialize editor */
 	editor::Editor* editor = nullptr;
 	if (is_editor_mode) {
-		editor = library.initialize_editor(engine, config);
+		editor = library.initialize_editor(engine, &gl_context, config);
 	}
 
 	bool quit = false;
-	platform::Canvas window_canvas = platform::add_canvas(initial_window_size.x, initial_window_size.y);
+	platform::Canvas window_canvas = gl_context.add_canvas(initial_window_size.x, initial_window_size.y);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
 	/* Initialize engine */
@@ -466,9 +468,9 @@ int main(int argc, char** argv) {
 			/* Engine update */
 			start_imgui_frame();
 			if (editor) {
-				library.update_editor(editor, config, input, engine, &platform);
+				library.update_editor(editor, config, input, engine, &platform, &gl_context);
 			}
-			library.update_engine(engine, input, &platform);
+			library.update_engine(engine, input, &platform, &gl_context);
 
 			/* Platform update */
 			while (platform.has_commands()) {
@@ -477,8 +479,8 @@ int main(int argc, char** argv) {
 					switch (cmd.tag()) {
 						case PlatformCommandType::ChangeResolution: {
 							auto& [width, height] = std::get<platform::cmd::window::ChangeResolution>(cmd);
-							platform::free_canvas(window_canvas);
-							window_canvas = platform::add_canvas(width, height);
+							gl_context.free_canvas(window_canvas);
+							window_canvas = gl_context.add_canvas(width, height);
 						} break;
 
 						case PlatformCommandType::Quit:
@@ -578,7 +580,7 @@ int main(int argc, char** argv) {
 			/* Render to canvas */
 			{
 				if (editor && run_mode == platform::RunMode::Editor) {
-					library.render_editor(*editor, *engine, &renderer);
+					library.render_editor(*editor, *engine, &gl_context, &renderer);
 				}
 				else {
 					library.render_engine(*engine, &renderer);
@@ -623,10 +625,10 @@ int main(int argc, char** argv) {
 	/* Deinitialize */
 	ImWin32::DestroyContext();
 	deinit_imgui();
-	library.shutdown_editor(editor);
-	library.shutdown_engine(engine);
-	platform::free_shader_program(shader_program);
-	platform::shutdown(gl_context);
+	library.shutdown_editor(editor, &gl_context);
+	library.shutdown_engine(engine, &gl_context);
+	gl_context.free_shader_program(shader_program);
+	platform::shutdown(sdl_gl_context);
 	window.destroy();
 
 	return 0;

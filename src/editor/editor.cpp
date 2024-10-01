@@ -89,11 +89,12 @@ namespace editor {
 	static void new_project(
 		Editor* editor,
 		engine::Engine* engine,
+		platform::OpenGLContext* gl_context,
 		const platform::Configuration& config
 	) {
 		LOG_INFO("Opened new project");
 		engine->systems().reset();
-		*editor = Editor(engine, config);
+		*editor = Editor(engine, gl_context, config);
 	}
 
 	static void open_project(
@@ -192,18 +193,20 @@ namespace editor {
 		}
 	}
 
-	static engine::FontID add_font(engine::TextSystem* text_system, const char* path, uint8_t font_size) {
-		return core::unwrap(text_system->add_ttf_font(path, font_size), [&] {
-			ABORT("Failed to load font \"%s\"", path);
+	static engine::FontID add_font(platform::OpenGLContext* gl_context, engine::TextSystem* text_system, const char* path, uint8_t font_size) {
+		return core::unwrap(text_system->add_font(gl_context, path, font_size), [&](std::string error) {
+			ABORT("Failed to load font \"%s\": %s", path, error.c_str());
 		});
 	}
 
 	Editor::Editor(
 		engine::Engine* engine,
+		platform::OpenGLContext* gl_context,
 		const platform::Configuration& config
-	) {
+	)
+		: m_scene_window(gl_context) {
 		m_project_hash = std::hash<engine::ProjectState>()(engine->project());
-		m_system_font_id = add_font(&engine->systems().text, "C:/windows/Fonts/tahoma.ttf", 13);
+		m_system_font_id = add_font(gl_context, &engine->systems().text, "C:/windows/Fonts/tahoma.ttf", 13);
 
 		/* Setup docking */
 		if (!config.window.docking_initialized) {
@@ -212,11 +215,16 @@ namespace editor {
 		}
 	}
 
+	void Editor::shutdown(platform::OpenGLContext* gl_context) {
+		m_scene_window.shutdown(gl_context);
+	}
+
 	void Editor::update(
 		const platform::Input& input,
 		const platform::Configuration& config,
 		engine::Engine* engine,
-		platform::PlatformAPI* platform
+		platform::PlatformAPI* platform,
+		platform::OpenGLContext* gl_context
 	) {
 		const size_t current_project_hash = std::hash<engine::ProjectState>()(engine->project());
 		const bool is_new_file = engine->project().path.empty();
@@ -228,6 +236,7 @@ namespace editor {
 		if (!game_is_running) {
 			commands = _update_ui(
 				input,
+				gl_context,
 				unsaved_changes,
 				engine
 			);
@@ -278,11 +287,11 @@ namespace editor {
 				case EditorCommand::NewProject:
 					if (unsaved_changes) {
 						show_unsaved_project_changes_dialog(this, &engine->project(), platform, [=]() {
-							new_project(this, engine, config);
+							new_project(this, engine, gl_context, config);
 						});
 					}
 					else {
-						new_project(this, engine, config);
+						new_project(this, engine, gl_context, config);
 					}
 					break;
 
@@ -344,6 +353,7 @@ namespace editor {
 
 	std::vector<editor::EditorCommand> Editor::_update_ui(
 		const platform::Input& input,
+		platform::OpenGLContext* gl_context,
 		bool unsaved_changes,
 		engine::Engine* engine
 	) {
@@ -398,15 +408,15 @@ namespace editor {
 
 		/* Scene Window */
 		if (ImGui::Begin(SCENE_WINDOW)) {
-			m_scene_window.update(&engine->scene_graph(), input, &commands);
+			m_scene_window.update(&engine->scene_graph(), gl_context, input, &commands);
 		}
 		ImGui::End();
 
 		return commands;
 	}
 
-	void Editor::render(const engine::Engine& engine, platform::Renderer* renderer) const {
-		m_scene_window.render(engine.systems().text, m_system_font_id, renderer);
+	void Editor::render(const engine::Engine& engine, platform::OpenGLContext* gl_context, platform::Renderer* renderer) const {
+		m_scene_window.render(gl_context, engine.systems().text, m_system_font_id, renderer);
 	}
 
 } // namespace editor

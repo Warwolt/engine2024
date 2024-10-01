@@ -4,20 +4,20 @@
 
 namespace engine {
 
-	TextSystem::~TextSystem() {
+	void TextSystem::shutdown(platform::OpenGLContext* gl_context) {
 		for (const auto& [id, font] : m_fonts) {
-			platform::free_font(font);
+			platform::free_font(gl_context, font);
 		}
 	}
 
-	std::optional<FontID> TextSystem::add_ttf_font(const char* font_path, uint8_t font_size) {
-		std::optional<platform::Font> font = platform::add_ttf_font(font_path, font_size);
-		if (font.has_value()) {
-			const FontID id = FontID(m_next_font_id++);
-			m_fonts.insert({ id, font.value() });
-			return id;
+	std::expected<FontID, std::string> TextSystem::add_font(platform::OpenGLContext* gl_context, const char* font_path, uint8_t font_size) {
+		std::expected<platform::Font, std::string> font = platform::add_font(gl_context, font_path, font_size);
+		if (!font.has_value()) {
+			return std::unexpected(font.error());
 		}
-		return std::nullopt;
+		const FontID id = FontID(m_next_font_id++);
+		m_fonts.insert({ id, font.value() });
+		return id;
 	}
 
 	TextID TextSystem::add_text_node(FontID font, const std::string& text, glm::vec2 position) {

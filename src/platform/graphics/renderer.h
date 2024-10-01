@@ -1,87 +1,28 @@
 #pragma once
 
 #include <core/rect.h>
+#include <platform/graphics/canvas.h>
+#include <platform/graphics/color.h>
 #include <platform/graphics/font.h>
 #include <platform/graphics/image.h>
 #include <platform/graphics/renderer_debug.h>
+#include <platform/graphics/shader_program.h>
 #include <platform/graphics/texture.h>
+#include <platform/graphics/vertex.h>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 
-#include <algorithm>
-#include <expected>
 #include <optional>
 #include <string>
 #include <vector>
 
 namespace platform {
 
-	namespace Color {
-		constexpr glm::vec4 rgba(int r, int g, int b, int a) {
-			return glm::vec4 {
-				(float)std::clamp(r, 0, 255) / 255.0f,
-				(float)std::clamp(g, 0, 255) / 255.0f,
-				(float)std::clamp(b, 0, 255) / 255.0f,
-				(float)std::clamp(a, 0, 255) / 255.0f,
-			};
-		}
-
-		// clang-format off
-		constexpr glm::vec4 white      { 1.0f, 1.0f, 1.0f, 1.0f };
-		constexpr glm::vec4 red        { 1.0f, 0.0f, 0.0f, 1.0f };
-		constexpr glm::vec4 green      { 0.0f, 1.0f, 0.0f, 1.0f };
-		constexpr glm::vec4 blue       { 0.0f, 0.0f, 1.0f, 1.0f };
-		constexpr glm::vec4 black      { 0.0f, 0.0f, 0.0f, 1.0f };
-		constexpr glm::vec4 light_grey { 0.75f, 0.75f, 0.75f, 1.0f };
-		constexpr glm::vec4 dark_grey  { 0.50f, 0.50f, 0.50f, 1.0f };
-
-		// clang-format on
-	}
-
-	struct Vertex {
-		glm::vec2 pos;
-		glm::vec4 color;
-		glm::vec2 uv;
-	};
-
-	struct Canvas {
-		GLuint framebuffer;
-		Texture texture;
-	};
-
-	struct VertexSection {
-		GLenum mode;
-		GLsizei length;
-		Texture texture;
-		std::optional<Canvas> canvas;
-	};
-
-	struct ShaderProgram {
-		GLuint id;
-		GLuint vao;
-		GLuint vbo;
-		struct {
-			GLint projection;
-		} uniforms;
-	};
-
-	enum class ShaderProgramError {
-		VertexShaderFailedToCompile,
-		FragmentShaderFailedToCompile,
-		ShaderProgramFailedToLink,
-	};
-
-	std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
-	void free_shader_program(const ShaderProgram& shader_program);
-
-	Canvas add_canvas(int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge, TextureFilter filter = TextureFilter::Nearest);
-	void free_canvas(Canvas canvas);
+	class OpenGLContext;
 
 	class Renderer {
 	public:
-		Renderer(SDL_GLContext gl_context);
+		Renderer(OpenGLContext* gl_context);
 
 		void set_projection(const ShaderProgram& shader_program, glm::mat4 projection);
 
@@ -111,6 +52,13 @@ namespace platform {
 		RenderDebugData debug_data() const;
 
 	private:
+		struct VertexSection {
+			GLenum mode;
+			GLsizei length;
+			Texture texture;
+			std::optional<Canvas> canvas;
+		};
+
 		std::optional<Canvas> _current_draw_canvas();
 
 		std::vector<Vertex> m_vertices;
