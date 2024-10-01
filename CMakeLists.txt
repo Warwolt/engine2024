@@ -99,6 +99,7 @@ set(PLATFORM_SRC
 )
 
 set(TEST_SRC
+    test/core/async_batch_tests.cpp
     test/core/container/ring_buffer_tests.cpp
     test/core/container/vec_map_tests.cpp
     test/core/rect_tests.cpp
