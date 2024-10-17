@@ -45,6 +45,14 @@
 #include <platform/file/zip.h>
 #include <thread>
 
+class ResourceManager {
+public:
+	core::VecMap<std::string, platform::Font> m_fonts;
+	core::VecMap<std::string, platform::Texture> m_textures;
+
+private:
+};
+
 const char* LIBRARY_NAME = "GameEngine2024Library";
 
 static void set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
@@ -469,43 +477,6 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// We want to be able to store scenes on disk
-	// Many scenes will probably _share_ resources they need
-	// So, no single scene can _own_ the resources
-	//
-	// Resources are:
-	// - Image files
-	// - Audio files
-	// - Font files
-	//
-	// The scenes should just _declare_ what resources it needs
-	// Some kind of loading mechanism then loads any resources needed
-	//
-	// Trying to run a scene without loaded resources should fail
-	// (it's a programmer error, loading should happen before running)
-	//
-	// ResourceManager.load_dependencies: ResourceManifest -> Expected<Progress, Error>
-	//
-	// To load a scene
-	// 1. Pass manifest to resource manager
-	// 2. Resource manager starts load job
-	// 3. Wait for load job
-	// 4. When job done, start scene
-	//
-	// Loading resources should be async to get around blocking I/O
-	//
-	// To support progress bars etc. the `load` method should return some data
-	// structure representing the progress of the job.
-	//
-	// Probably some promise-looking data structure that is shared on the heap
-	// but read only for the recipient?
-	//
-	// Protype TODO:
-	// - Scene with 3 cat images as manifest
-	// - While loading cat images, show a "progress bar"
-	// 		- (Add a 1 sec sleep per image in the async loading so it takes some time)
-	// - Once loading done, start rendering scene
-
 	struct ImageDeclaration {
 		std::string name;
 		std::filesystem::path path;
@@ -533,8 +504,7 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	core::VecMap<std::string, platform::Font> fonts;
-	core::VecMap<std::string, platform::Texture> textures;
+	ResourceManager resources;
 
 	bool scene_has_loaded = false;
 	float load_progress = 0.0f;
@@ -705,7 +675,7 @@ int main(int argc, char** argv) {
 					for (const LoadFontResult& result : font_results) {
 						if (result.has_value()) {
 							const auto& [name, atlas] = result.value();
-							fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
+							resources.m_fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
 						}
 						else {
 							LOG_ERROR("%s", result.error().c_str());
@@ -741,7 +711,7 @@ int main(int argc, char** argv) {
 					for (const LoadImageResult& result : image_results) {
 						if (result.has_value()) {
 							const auto& [name, image] = result.value();
-							textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
+							resources.m_textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
 						}
 						else {
 							LOG_ERROR("%s", result.error().c_str());
@@ -752,8 +722,8 @@ int main(int argc, char** argv) {
 				/* Check if done */
 				const size_t num_fonts_to_load = load_font_batch.size();
 				const size_t num_images_to_load = load_image_batch.size();
-				const size_t num_loaded_fonts = fonts.size();
-				const size_t num_loaded_images = textures.size();
+				const size_t num_loaded_fonts = resources.m_fonts.size();
+				const size_t num_loaded_images = resources.m_textures.size();
 				load_progress = (float)(num_loaded_fonts + num_loaded_images) / (float)(num_fonts_to_load + num_images_to_load);
 				scene_has_loaded = num_loaded_fonts == num_fonts_to_load && num_loaded_images == num_images_to_load;
 			}
@@ -873,7 +843,7 @@ int main(int argc, char** argv) {
 				// PROTOTYPE RENDERING
 				{
 					if (scene_has_loaded) {
-						render_script(&renderer, input, fonts, textures);
+						render_script(&renderer, input, resources.m_fonts, resources.m_textures);
 					}
 					else {
 						// loading bar
