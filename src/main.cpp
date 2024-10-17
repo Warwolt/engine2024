@@ -697,7 +697,7 @@ int main(int argc, char** argv) {
 								return std::unexpected(error);
 							}
 						};
-						load_font_batch = core::batch_async(std::launch::async, manifest.fonts.begin(), manifest.fonts.end(), try_load_font);
+						load_font_batch = core::batch_async(std::launch::async, manifest.fonts, try_load_font);
 					}
 
 					std::vector<LoadFontResult> font_results;
@@ -733,7 +733,7 @@ int main(int argc, char** argv) {
 								return std::unexpected(error);
 							}
 						};
-						load_image_batch = core::batch_async(std::launch::async, manifest.images.begin(), manifest.images.end(), try_load_image);
+						load_image_batch = core::batch_async(std::launch::async, manifest.images, try_load_image);
 					}
 
 					std::vector<LoadImageResult> image_results;

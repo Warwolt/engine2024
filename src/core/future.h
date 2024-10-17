@@ -1,6 +1,8 @@
 #pragma once
 
 #include <future>
+#include <ranges>
+#include <type_traits>
 #include <vector>
 
 namespace core {
@@ -23,6 +25,11 @@ namespace core {
 		}
 
 		return batch;
+	}
+
+	template <std::ranges::range R, typename F>
+	auto batch_async(std::launch policy, R&& range, F&& fn) {
+		return batch_async(policy, std::begin(range), std::end(range), fn);
 	}
 
 	template <typename T, typename OutputIt>
