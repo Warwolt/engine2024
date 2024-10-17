@@ -536,13 +536,6 @@ int main(int argc, char** argv) {
 	core::VecMap<std::string, platform::Font> fonts;
 	core::VecMap<std::string, platform::Texture> textures;
 
-	enum class ResourceLoadingState {
-		Idle,
-		Started,
-		Done
-	};
-	ResourceLoadingState image_loading_state = ResourceLoadingState::Idle;
-
 	bool scene_has_loaded = false;
 	float load_progress = 0.0f;
 
@@ -552,8 +545,7 @@ int main(int argc, char** argv) {
 	using LoadImageResult = std::expected<NamedImage, std::string>;
 
 	std::vector<std::future<LoadFontResult>> load_font_batch;
-	core::AsyncBatch<LoadFontResult(FontDeclaration)> load_font_batch_OLD;
-	core::AsyncBatch<LoadImageResult(ImageDeclaration)> load_image_batch;
+	std::vector<std::future<LoadImageResult>> load_image_batch;
 
 	/* Main loop */
 	while (!quit) {
@@ -682,54 +674,50 @@ int main(int argc, char** argv) {
 				quit = true;
 			}
 
-			/* PROTOYPE CODE */
+			/* PROTOYPE LOADING CODE */
 			{
 				/* Font loading */
-				if (load_font_batch.empty()) {
-					LOG_DEBUG("Loading fonts");
-					auto try_load_font = [](const FontDeclaration& font_decl) -> LoadFontResult {
-						std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
-						if (font_face.has_value()) {
-							platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
-							return NamedFontAtlas { font_decl.name, atlas };
+				{
+					if (load_font_batch.empty()) {
+						LOG_DEBUG("Loading fonts");
+						auto try_load_font = [](const FontDeclaration& font_decl) -> LoadFontResult {
+							std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
+							if (font_face.has_value()) {
+								platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
+								return NamedFontAtlas { font_decl.name, atlas };
+							}
+							else {
+								std::string error = std::format(
+									"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
+									font_decl.name,
+									font_decl.path.string(),
+									font_decl.size,
+									font_face.error()
+								);
+								return std::unexpected(error);
+							}
+						};
+						load_font_batch = core::batch_async(std::launch::async, manifest.fonts.begin(), manifest.fonts.end(), try_load_font);
+					}
+
+					std::vector<LoadFontResult> font_results;
+					core::get_ready_batch_values(load_font_batch, std::back_inserter(font_results));
+					for (const LoadFontResult& result : font_results) {
+						if (result.has_value()) {
+							const auto& [name, atlas] = result.value();
+							fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
 						}
 						else {
-							std::string error = std::format(
-								"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
-								font_decl.name,
-								font_decl.path.string(),
-								font_decl.size,
-								font_face.error()
-							);
-							return std::unexpected(error);
+							LOG_ERROR("%s", result.error().c_str());
 						}
-					};
-					load_font_batch = core::batch_async(std::launch::async, manifest.fonts.begin(), manifest.fonts.end(), try_load_font);
-				}
-
-				std::vector<LoadFontResult> font_results;
-				core::get_ready_batch_values(load_font_batch, std::back_inserter(font_results));
-				for (const LoadFontResult& result : font_results) {
-					if (result.has_value()) {
-						const auto& [name, atlas] = result.value();
-						fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
-					}
-					else {
-						LOG_ERROR("%s", result.error().c_str());
 					}
 				}
 
 				/* Image loading */
-				//
-				// TODO: It would be much if this code wouldn't need an explicit
-				// state machine, but rather just worked on querying the state
-				// of the batch itself.
-				//
-				switch (image_loading_state) {
-					case ResourceLoadingState::Idle: {
-						LOG_DEBUG("Image loading started");
-
-						auto load_image = [](const ImageDeclaration& image_decl) -> LoadImageResult {
+				{
+					if (load_image_batch.empty()) {
+						LOG_DEBUG("Loading images");
+						auto try_load_image = [](const ImageDeclaration& image_decl) -> LoadImageResult {
 							int sleep_ms = core::random_int(1, 3) * 500;
 							std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
 
@@ -745,45 +733,34 @@ int main(int argc, char** argv) {
 								return std::unexpected(error);
 							}
 						};
+						load_image_batch = core::batch_async(std::launch::async, manifest.images.begin(), manifest.images.end(), try_load_image);
+					}
 
-						load_image_batch = { manifest.images, load_image };
-						image_loading_state = ResourceLoadingState::Started;
-					} break;
-
-					case ResourceLoadingState::Started: {
-						load_image_batch.update();
-
-						std::vector<LoadImageResult> results = std::exchange(load_image_batch.values(), {});
-						for (const LoadImageResult& result : results) {
-							if (result.has_value()) {
-								const auto& [name, image] = result.value();
-								textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
-							}
-							else {
-								LOG_ERROR("%s", result.error().c_str());
-							}
+					std::vector<LoadImageResult> image_results;
+					core::get_ready_batch_values(load_image_batch, std::back_inserter(image_results));
+					for (const LoadImageResult& result : image_results) {
+						if (result.has_value()) {
+							const auto& [name, image] = result.value();
+							textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
 						}
-
-						if (load_image_batch.is_done()) {
-							LOG_DEBUG("Image loading done");
-							image_loading_state = ResourceLoadingState::Done;
+						else {
+							LOG_ERROR("%s", result.error().c_str());
 						}
-					} break;
-
-					case ResourceLoadingState::Done: {
-					} break;
+					}
 				}
 
+				/* Check if done */
 				const size_t num_fonts_to_load = load_font_batch.size();
 				const size_t num_images_to_load = load_image_batch.size();
 				const size_t num_loaded_fonts = fonts.size();
 				const size_t num_loaded_images = textures.size();
 				load_progress = (float)(num_loaded_fonts + num_loaded_images) / (float)(num_fonts_to_load + num_images_to_load);
-				scene_has_loaded = num_loaded_fonts == num_fonts_to_load && image_loading_state == ResourceLoadingState::Done;
+				scene_has_loaded = num_loaded_fonts == num_fonts_to_load && num_loaded_images == num_images_to_load;
+			}
 
-				if (scene_has_loaded) {
-					run_script(input);
-				}
+			/* PROTOTYPE SCRIPT CODE */
+			if (scene_has_loaded) {
+				run_script(input);
 			}
 
 			/* Platform update */
