@@ -224,14 +224,14 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 
 // local vars
 std::string g_texture_ids[3] = {
-	"arturo",
-	"rodrigo",
-	"blanket",
+	"alice",
+	"bob",
+	"charlie",
 };
 std::string g_captions[3] = {
-	"Arturo",
-	"Rodrigo",
-	"Blanket",
+	"Alice",
+	"Bob",
+	"Charlie",
 };
 int g_index = 0;
 
@@ -543,9 +543,9 @@ int main(int argc, char** argv) {
 			{ "arial16", "C:/windows/Fonts/Arial.ttf", 16 },
 		},
 		.images = {
-			{ "arturo", "arturo.png" },
-			{ "rodrigo", "rodrigo.png" },
-			{ "blanket", "blanket.png" },
+			{ "alice", "alice.png" },
+			{ "bob", "bob.png" },
+			{ "charlie", "charlie.png" },
 		}
 	};
 
