@@ -37,7 +37,7 @@ TEST(CoreFutureTests, AsyncBatch_CollectValues) {
 
 	std::vector<std::future<int>> futures = core::batch_async(std::launch::async, input.begin(), input.end(), [](int x) { return x + 1; });
 	std::vector<int> results;
-	core::get_from_batch(futures, std::back_inserter(results));
+	core::get_all_batch_values(futures, std::back_inserter(results));
 
 	const std::vector<int> expected_results = { 2, 3, 4 };
 	EXPECT_EQ(results, expected_results);
@@ -54,13 +54,13 @@ TEST(CoreFutureTests, AsyncBatch_CollectReadyValues) {
 	/* Make first and last future ready */
 	promises[0].set_value(10);
 	promises[2].set_value(12);
-	core::get_ready_from_batch(futures, std::back_inserter(ready_values));
+	core::get_ready_batch_values(futures, std::back_inserter(ready_values));
 	const std::vector<int> expected_ready_values = { 10, 12 };
 	EXPECT_EQ(ready_values, expected_ready_values);
 
 	/* Make remaining future ready */
 	promises[1].set_value(11);
-	core::get_ready_from_batch(futures, std::back_inserter(ready_values));
+	core::get_ready_batch_values(futures, std::back_inserter(ready_values));
 	const std::vector<int> expected_ready_values2 = { 10, 12, 11 };
 	EXPECT_EQ(ready_values, expected_ready_values2);
 }

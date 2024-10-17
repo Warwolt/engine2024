@@ -26,7 +26,7 @@ namespace core {
 	}
 
 	template <typename T, typename OutputIt>
-	void get_from_batch(std::vector<std::future<T>>& batch, OutputIt out_first) {
+	void get_all_batch_values(std::vector<std::future<T>>& batch, OutputIt out_first) {
 		for (std::future<T>& future : batch) {
 			*out_first = future.get();
 			++out_first;
@@ -34,7 +34,7 @@ namespace core {
 	}
 
 	template <typename T, typename OutputIt>
-	void get_ready_from_batch(std::vector<std::future<T>>& batch, OutputIt out_first) {
+	void get_ready_batch_values(std::vector<std::future<T>>& batch, OutputIt out_first) {
 		for (std::future<T>& future : batch) {
 			if (future_is_ready(future)) {
 				*out_first = future.get();

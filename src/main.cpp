@@ -541,7 +541,6 @@ int main(int argc, char** argv) {
 		Started,
 		Done
 	};
-	ResourceLoadingState font_loading_state = ResourceLoadingState::Idle;
 	ResourceLoadingState image_loading_state = ResourceLoadingState::Idle;
 
 	bool scene_has_loaded = false;
@@ -552,7 +551,8 @@ int main(int argc, char** argv) {
 	using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
 	using LoadImageResult = std::expected<NamedImage, std::string>;
 
-	core::AsyncBatch<LoadFontResult(FontDeclaration)> load_font_batch;
+	std::vector<std::future<LoadFontResult>> load_font_batch;
+	core::AsyncBatch<LoadFontResult(FontDeclaration)> load_font_batch_OLD;
 	core::AsyncBatch<LoadImageResult(ImageDeclaration)> load_image_batch;
 
 	/* Main loop */
@@ -685,54 +685,38 @@ int main(int argc, char** argv) {
 			/* PROTOYPE CODE */
 			{
 				/* Font loading */
-				switch (font_loading_state) {
-					case ResourceLoadingState::Idle: {
-						LOG_DEBUG("Font loading started");
-
-						auto load_font = [](const FontDeclaration& font_decl) -> LoadFontResult {
-							std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
-							if (font_face.has_value()) {
-								platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
-								return NamedFontAtlas { font_decl.name, atlas };
-							}
-							else {
-								std::string error = std::format(
-									"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
-									font_decl.name,
-									font_decl.path.string(),
-									font_decl.size,
-									font_face.error()
-								);
-								return std::unexpected(error);
-							}
-						};
-
-						load_font_batch = { manifest.fonts, load_font };
-						font_loading_state = ResourceLoadingState::Started;
-					} break;
-
-					case ResourceLoadingState::Started: {
-						load_font_batch.update();
-
-						std::vector<LoadFontResult> results = std::exchange(load_font_batch.values(), {});
-						for (const LoadFontResult& result : results) {
-							if (result.has_value()) {
-								const auto& [name, atlas] = result.value();
-								fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
-							}
-							else {
-								LOG_ERROR("%s", result.error().c_str());
-							}
+				if (load_font_batch.empty()) {
+					LOG_DEBUG("Loading fonts");
+					auto try_load_font = [](const FontDeclaration& font_decl) -> LoadFontResult {
+						std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
+						if (font_face.has_value()) {
+							platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
+							return NamedFontAtlas { font_decl.name, atlas };
 						}
-
-						if (load_font_batch.is_done()) {
-							LOG_DEBUG("Font loading done");
-							font_loading_state = ResourceLoadingState::Done;
+						else {
+							std::string error = std::format(
+								"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
+								font_decl.name,
+								font_decl.path.string(),
+								font_decl.size,
+								font_face.error()
+							);
+							return std::unexpected(error);
 						}
-					} break;
+					};
+					load_font_batch = core::batch_async(std::launch::async, manifest.fonts.begin(), manifest.fonts.end(), try_load_font);
+				}
 
-					case ResourceLoadingState::Done: {
-					} break;
+				std::vector<LoadFontResult> font_results;
+				core::get_ready_batch_values(load_font_batch, std::back_inserter(font_results));
+				for (const LoadFontResult& result : font_results) {
+					if (result.has_value()) {
+						const auto& [name, atlas] = result.value();
+						fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
+					}
+					else {
+						LOG_ERROR("%s", result.error().c_str());
+					}
 				}
 
 				/* Image loading */
@@ -781,7 +765,7 @@ int main(int argc, char** argv) {
 						}
 
 						if (load_image_batch.is_done()) {
-							LOG_DEBUG("Font loading done");
+							LOG_DEBUG("Image loading done");
 							image_loading_state = ResourceLoadingState::Done;
 						}
 					} break;
@@ -795,7 +779,7 @@ int main(int argc, char** argv) {
 				const size_t num_loaded_fonts = fonts.size();
 				const size_t num_loaded_images = textures.size();
 				load_progress = (float)(num_loaded_fonts + num_loaded_images) / (float)(num_fonts_to_load + num_images_to_load);
-				scene_has_loaded = font_loading_state == ResourceLoadingState::Done && image_loading_state == ResourceLoadingState::Done;
+				scene_has_loaded = num_loaded_fonts == num_fonts_to_load && image_loading_state == ResourceLoadingState::Done;
 
 				if (scene_has_loaded) {
 					run_script(input);
@@ -910,27 +894,29 @@ int main(int argc, char** argv) {
 			/* Render to canvas */
 			{
 				// PROTOTYPE RENDERING
-				if (scene_has_loaded) {
-					render_script(&renderer, input, fonts, textures);
-				}
-				else {
-					// loading bar
-					const glm::vec2 window_center = input.window_resolution / 2.0f;
-					const float loading_bar_max_width = 100.0f;
-					const float loading_bar_width = load_progress * loading_bar_max_width;
-					const float loading_bar_height = 10.0f;
-					const glm::vec2 loading_bar_max_size = { loading_bar_max_width, loading_bar_height };
-					const glm::vec2 loading_bar_size = { loading_bar_width, loading_bar_height };
-					const core::Rect fill_rect = core::Rect::with_pos_and_size(
-						window_center - loading_bar_max_size / 2.0f,
-						loading_bar_size
-					);
-					const core::Rect outline = core::Rect::with_pos_and_size(
-						fill_rect.position() - glm::vec2 { 1.0f, 1.0f },
-						glm::vec2 { loading_bar_max_width, loading_bar_height } + glm::vec2 { 3.0f, 3.0f }
-					);
-					renderer.draw_rect_fill(fill_rect, platform::Color::white);
-					renderer.draw_rect(outline, platform::Color::white);
+				{
+					if (scene_has_loaded) {
+						render_script(&renderer, input, fonts, textures);
+					}
+					else {
+						// loading bar
+						const glm::vec2 window_center = input.window_resolution / 2.0f;
+						const float loading_bar_max_width = 100.0f;
+						const float loading_bar_width = load_progress * loading_bar_max_width;
+						const float loading_bar_height = 10.0f;
+						const glm::vec2 loading_bar_max_size = { loading_bar_max_width, loading_bar_height };
+						const glm::vec2 loading_bar_size = { loading_bar_width, loading_bar_height };
+						const core::Rect fill_rect = core::Rect::with_pos_and_size(
+							window_center - loading_bar_max_size / 2.0f,
+							loading_bar_size
+						);
+						const core::Rect outline = core::Rect::with_pos_and_size(
+							fill_rect.position() - glm::vec2 { 1.0f, 1.0f },
+							glm::vec2 { loading_bar_max_width, loading_bar_height } + glm::vec2 { 3.0f, 3.0f }
+						);
+						renderer.draw_rect_fill(fill_rect, platform::Color::white);
+						renderer.draw_rect(outline, platform::Color::white);
+					}
 				}
 
 				// if (editor && run_mode == platform::RunMode::Editor) {
