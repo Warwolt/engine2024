@@ -31,7 +31,7 @@ namespace core {
 
 		void update() {
 			for (auto it = m_futures.begin(); it != m_futures.end();) {
-				if (core::future_has_value(*it)) {
+				if (core::future_is_ready(*it)) {
 					m_values.push_back(it->get());
 					it = m_futures.erase(it);
 				}
