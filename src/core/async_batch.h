@@ -7,6 +7,8 @@
 
 namespace core {
 
+	// Can we try to get rid of this in favor of functions on std::vector?
+
 	template <typename F>
 	class AsyncBatch;
 
@@ -29,7 +31,7 @@ namespace core {
 
 		void update() {
 			for (auto it = m_futures.begin(); it != m_futures.end();) {
-				if (core::future::has_value(*it)) {
+				if (core::future_has_value(*it)) {
 					m_values.push_back(it->get());
 					it = m_futures.erase(it);
 				}

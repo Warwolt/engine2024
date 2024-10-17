@@ -752,6 +752,11 @@ int main(int argc, char** argv) {
 				}
 
 				/* Image loading */
+				//
+				// TODO: It would be much if this code wouldn't need an explicit
+				// state machine, but rather just worked on querying the state
+				// of the batch itself.
+				//
 				switch (image_loading_state) {
 					case ResourceLoadingState::Idle: {
 						LOG_DEBUG("Image loading started");
@@ -801,13 +806,12 @@ int main(int argc, char** argv) {
 					} break;
 				}
 
-				scene_has_loaded = font_loading_state == ResourceLoadingState::Done && image_loading_state == ResourceLoadingState::Done;
-
 				const size_t num_fonts_to_load = load_font_batch.size();
 				const size_t num_images_to_load = load_image_batch.size();
 				const size_t num_loaded_fonts = fonts.size();
 				const size_t num_loaded_images = textures.size();
 				load_progress = (float)(num_loaded_fonts + num_loaded_images) / (float)(num_fonts_to_load + num_images_to_load);
+				scene_has_loaded = font_loading_state == ResourceLoadingState::Done && image_loading_state == ResourceLoadingState::Done;
 
 				if (scene_has_loaded) {
 					run_script(input);
