@@ -469,22 +469,6 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// QUICK TEST OF ASYNC BATCH
-	{
-		std::vector<int> numbers = { 1, 2, 3 };
-		core::AsyncBatch<int(int)> batch(numbers, [](int x) {
-			return x + 1;
-		});
-
-		while (!batch.is_done()) {
-			batch.update();
-		}
-
-		for (int value : batch.values()) {
-			LOG_DEBUG("%d", value);
-		}
-	}
-
 	// We want to be able to store scenes on disk
 	// Many scenes will probably _share_ resources they need
 	// So, no single scene can _own_ the resources
