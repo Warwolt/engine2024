@@ -50,6 +50,14 @@ public:
 	core::VecMap<std::string, platform::Font> m_fonts;
 	core::VecMap<std::string, platform::Texture> m_textures;
 
+	const core::VecMap<std::string, platform::Font>& fonts() const {
+		return m_fonts;
+	}
+
+	const core::VecMap<std::string, platform::Texture>& textures() const {
+		return m_textures;
+	}
+
 private:
 };
 
@@ -256,12 +264,11 @@ static void run_script(const platform::Input& input) {
 static void render_script(
 	platform::Renderer* renderer,
 	const platform::Input& input,
-	const core::VecMap<std::string, platform::Font>& fonts,
-	const core::VecMap<std::string, platform::Texture>& textures
+	const ResourceManager& resources
 ) {
 	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::black); // clear
 
-	const platform::Texture& texture = textures.at(g_texture_ids[g_index]);
+	const platform::Texture& texture = resources.textures().at(g_texture_ids[g_index]);
 	const std::string& caption = g_captions[g_index];
 
 	glm::vec2 window_center = input.window_resolution / 2.0f;
@@ -270,7 +277,7 @@ static void render_script(
 	core::Rect texture_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
 
 	renderer->draw_texture(texture, texture_quad);
-	renderer->draw_text_centered(fonts.at("arial16"), caption, text_pos, platform::Color::white);
+	renderer->draw_text_centered(resources.fonts().at("arial16"), caption, text_pos, platform::Color::white);
 }
 
 int main(int argc, char** argv) {
@@ -843,7 +850,7 @@ int main(int argc, char** argv) {
 				// PROTOTYPE RENDERING
 				{
 					if (scene_has_loaded) {
-						render_script(&renderer, input, resources.m_fonts, resources.m_textures);
+						render_script(&renderer, input, resources);
 					}
 					else {
 						// loading bar
