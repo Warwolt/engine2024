@@ -44,6 +44,11 @@
 #include <platform/file/zip.h>
 #include <thread>
 
+using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
+using NamedImage = std::pair<std::string, platform::Image>;
+using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
+using LoadImageResult = std::expected<NamedImage, std::string>;
+
 struct ImageDeclaration {
 	std::string name;
 	std::filesystem::path path;
@@ -55,49 +60,9 @@ struct FontDeclaration {
 	uint8_t size;
 };
 
-using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
-using NamedImage = std::pair<std::string, platform::Image>;
-using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
-using LoadImageResult = std::expected<NamedImage, std::string>;
-
 struct LoadResourceInterface {
 	LoadFontResult (*load_font)(const FontDeclaration& font_decl);
 	LoadImageResult (*load_image)(const ImageDeclaration& image_decl);
-};
-
-LoadFontResult load_font(const FontDeclaration& font_decl) {
-	std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
-	if (font_face.has_value()) {
-		platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
-		return NamedFontAtlas { font_decl.name, atlas };
-	}
-	else {
-		std::string error = std::format(
-			"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
-			font_decl.name,
-			font_decl.path.string(),
-			font_decl.size,
-			font_face.error()
-		);
-		return std::unexpected(error);
-	}
-};
-
-LoadImageResult load_image(const ImageDeclaration& image_decl) {
-	int sleep_ms = core::random_int(1, 3) * 500;
-	std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
-
-	if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
-		return NamedImage { image_decl.name, std::move(image.value()) };
-	}
-	else {
-		std::string error = std::format(
-			"Couldn't load image in manifest! name = {}, path = {}",
-			image_decl.name.c_str(),
-			image_decl.path.string()
-		);
-		return std::unexpected(error);
-	}
 };
 
 struct ResourceManifest {
@@ -190,6 +155,41 @@ private:
 	std::vector<ResourceLoadJob> m_jobs;
 	core::VecMap<std::string, platform::Font> m_fonts;
 	core::VecMap<std::string, platform::Texture> m_textures;
+};
+
+LoadFontResult load_font(const FontDeclaration& font_decl) {
+	std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
+	if (font_face.has_value()) {
+		platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
+		return NamedFontAtlas { font_decl.name, atlas };
+	}
+	else {
+		std::string error = std::format(
+			"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
+			font_decl.name,
+			font_decl.path.string(),
+			font_decl.size,
+			font_face.error()
+		);
+		return std::unexpected(error);
+	}
+};
+
+LoadImageResult load_image(const ImageDeclaration& image_decl) {
+	int sleep_ms = core::random_int(1, 3) * 500;
+	std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
+
+	if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
+		return NamedImage { image_decl.name, std::move(image.value()) };
+	}
+	else {
+		std::string error = std::format(
+			"Couldn't load image in manifest! name = {}, path = {}",
+			image_decl.name.c_str(),
+			image_decl.path.string()
+		);
+		return std::unexpected(error);
+	}
 };
 
 const char* LIBRARY_NAME = "GameEngine2024Library";
