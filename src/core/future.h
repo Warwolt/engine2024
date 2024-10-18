@@ -50,4 +50,14 @@ namespace core {
 		}
 	}
 
+	template <typename T>
+	std::vector<T> get_ready_batch_values(std::vector<std::future<T>>& batch) {
+		std::vector<T> values;
+		for (std::future<T>& future : batch) {
+			if (future_is_ready(future)) {
+				values.push_back(future.get());
+			}
+		}
+	}
+
 } // namespace
