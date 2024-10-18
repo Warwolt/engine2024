@@ -80,8 +80,8 @@ struct ResourceLoadProgress {
 
 class ResourceManager {
 public:
-	ResourceManager(LoadResourceInterface load_resource)
-		: m_load_resource(load_resource) {
+	ResourceManager(LoadResourceInterface interface)
+		: m_interface(interface) {
 	}
 
 	std::shared_ptr<const ResourceLoadProgress> load_manifest(const ResourceManifest& manifest) {
@@ -90,8 +90,8 @@ public:
 		progress->total_num_images_to_load = manifest.images.size();
 
 		m_jobs.push_back(ResourceLoadJob {
-			.font_batch = core::batch_async(std::launch::async, manifest.fonts, m_load_resource.load_font),
-			.image_batch = core::batch_async(std::launch::async, manifest.images, m_load_resource.load_image),
+			.font_batch = core::batch_async(std::launch::async, manifest.fonts, m_interface.load_font),
+			.image_batch = core::batch_async(std::launch::async, manifest.images, m_interface.load_image),
 			.progress = progress,
 		});
 
@@ -140,18 +140,13 @@ public:
 	}
 
 private:
-	using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
-	using NamedImage = std::pair<std::string, platform::Image>;
-	using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
-	using LoadImageResult = std::expected<NamedImage, std::string>;
-
 	struct ResourceLoadJob {
 		std::vector<std::future<LoadFontResult>> font_batch;
 		std::vector<std::future<LoadImageResult>> image_batch;
 		std::shared_ptr<ResourceLoadProgress> progress;
 	};
 
-	LoadResourceInterface m_load_resource;
+	LoadResourceInterface m_interface;
 	std::vector<ResourceLoadJob> m_jobs;
 	core::VecMap<std::string, platform::Font> m_fonts;
 	core::VecMap<std::string, platform::Texture> m_textures;
