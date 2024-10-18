@@ -619,9 +619,6 @@ int main(int argc, char** argv) {
 
 	std::shared_ptr<const ResourceLoadProgress> load_scene_progress = resources.load_manifest(manifest);
 
-	bool scene_has_loaded = false;
-	float load_progress = 0.0f;
-
 	using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
 	using NamedImage = std::pair<std::string, platform::Image>;
 	using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
@@ -741,6 +738,7 @@ int main(int argc, char** argv) {
 		}
 
 		/* Update */
+		bool scene_has_loaded = false;
 		{
 			/* Hot reloading */
 			hot_reloader.update(&library);
@@ -753,20 +751,18 @@ int main(int argc, char** argv) {
 			// }
 			// library.update_engine(engine, input, &platform, &gl_context);
 
-			if (input.keyboard.key_pressed(SDLK_ESCAPE) || input.quit_signal_received) {
-				quit = true;
-			}
-
-			/* PROTOYPE LOADING CODE */
+			/* PROTOTYPE CODE */
 			{
-				resources.update(&gl_context);
-				load_progress = (float)(load_scene_progress->num_loaded_fonts + load_scene_progress->num_loaded_images) / (float)(load_scene_progress->total_num_fonts_to_load + load_scene_progress->total_num_images_to_load);
-				scene_has_loaded = load_scene_progress->is_done;
-			}
+				if (input.keyboard.key_pressed(SDLK_ESCAPE) || input.quit_signal_received) {
+					quit = true;
+				}
 
-			/* PROTOTYPE SCRIPT CODE */
-			if (scene_has_loaded) {
-				run_script(input);
+				resources.update(&gl_context);
+				scene_has_loaded = load_scene_progress->is_done;
+
+				if (scene_has_loaded) {
+					run_script(input);
+				}
 			}
 
 			/* Platform update */
@@ -883,17 +879,21 @@ int main(int argc, char** argv) {
 					}
 					else {
 						// loading bar
-						const glm::vec2 window_center = input.window_resolution / 2.0f;
-						const float loading_bar_max_width = 100.0f;
-						const float loading_bar_width = load_progress * loading_bar_max_width;
-						const float loading_bar_height = 10.0f;
-						const glm::vec2 loading_bar_max_size = { loading_bar_max_width, loading_bar_height };
-						const glm::vec2 loading_bar_size = { loading_bar_width, loading_bar_height };
-						const core::Rect fill_rect = core::Rect::with_pos_and_size(
+						size_t num_loaded_resources = load_scene_progress->num_loaded_fonts + load_scene_progress->num_loaded_images;
+						size_t total_num_resources = load_scene_progress->total_num_fonts_to_load + load_scene_progress->total_num_images_to_load;
+						float load_progress = (float)(num_loaded_resources) / (float)(total_num_resources);
+
+						glm::vec2 window_center = input.window_resolution / 2.0f;
+						float loading_bar_max_width = 100.0f;
+						float loading_bar_width = load_progress * loading_bar_max_width;
+						float loading_bar_height = 10.0f;
+						glm::vec2 loading_bar_max_size = { loading_bar_max_width, loading_bar_height };
+						glm::vec2 loading_bar_size = { loading_bar_width, loading_bar_height };
+						core::Rect fill_rect = core::Rect::with_pos_and_size(
 							window_center - loading_bar_max_size / 2.0f,
 							loading_bar_size
 						);
-						const core::Rect outline = core::Rect::with_pos_and_size(
+						core::Rect outline = core::Rect::with_pos_and_size(
 							fill_rect.position() - glm::vec2 { 1.0f, 1.0f },
 							glm::vec2 { loading_bar_max_width, loading_bar_height } + glm::vec2 { 3.0f, 3.0f }
 						);
