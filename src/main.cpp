@@ -38,7 +38,6 @@
 #include <fstream>
 
 // prototyping
-#include <core/async_batch.h>
 #include <core/container/vec_map.h>
 #include <core/future.h>
 #include <nlohmann/json.hpp>
@@ -56,6 +55,51 @@ struct FontDeclaration {
 	uint8_t size;
 };
 
+using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
+using NamedImage = std::pair<std::string, platform::Image>;
+using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
+using LoadImageResult = std::expected<NamedImage, std::string>;
+
+struct LoadResourceInterface {
+	LoadFontResult (*load_font)(const FontDeclaration& font_decl);
+	LoadImageResult (*load_image)(const ImageDeclaration& image_decl);
+};
+
+LoadFontResult load_font(const FontDeclaration& font_decl) {
+	std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
+	if (font_face.has_value()) {
+		platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
+		return NamedFontAtlas { font_decl.name, atlas };
+	}
+	else {
+		std::string error = std::format(
+			"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
+			font_decl.name,
+			font_decl.path.string(),
+			font_decl.size,
+			font_face.error()
+		);
+		return std::unexpected(error);
+	}
+};
+
+LoadImageResult load_image(const ImageDeclaration& image_decl) {
+	int sleep_ms = core::random_int(1, 3) * 500;
+	std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
+
+	if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
+		return NamedImage { image_decl.name, std::move(image.value()) };
+	}
+	else {
+		std::string error = std::format(
+			"Couldn't load image in manifest! name = {}, path = {}",
+			image_decl.name.c_str(),
+			image_decl.path.string()
+		);
+		return std::unexpected(error);
+	}
+};
+
 struct ResourceManifest {
 	std::vector<FontDeclaration> fonts;
 	std::vector<ImageDeclaration> images;
@@ -71,18 +115,21 @@ struct ResourceLoadProgress {
 
 class ResourceManager {
 public:
-	core::VecMap<std::string, platform::Font> m_fonts;
-	core::VecMap<std::string, platform::Texture> m_textures;
+	ResourceManager(LoadResourceInterface load_resource)
+		: m_load_resource(load_resource) {
+	}
 
 	std::shared_ptr<const ResourceLoadProgress> load_manifest(const ResourceManifest& manifest) {
 		std::shared_ptr<ResourceLoadProgress> progress = std::make_shared<ResourceLoadProgress>();
 		progress->total_num_fonts_to_load = manifest.fonts.size();
 		progress->total_num_images_to_load = manifest.images.size();
+
 		m_jobs.push_back(ResourceLoadJob {
-			.font_batch = core::batch_async(std::launch::async, manifest.fonts, _try_load_font),
-			.image_batch = core::batch_async(std::launch::async, manifest.images, _try_load_image),
+			.font_batch = core::batch_async(std::launch::async, manifest.fonts, m_load_resource.load_font),
+			.image_batch = core::batch_async(std::launch::async, manifest.images, m_load_resource.load_image),
 			.progress = progress,
 		});
+
 		return progress;
 	}
 
@@ -139,46 +186,10 @@ private:
 		std::shared_ptr<ResourceLoadProgress> progress;
 	};
 
-	// FIXME: this should probably be part of a `IResourceLoader` interface,
-	// since we're actually right on the IO-perimiter of the program, and
-	// probably want to test the ResourceManager, thus using mocking is
-	// justified.
-	static LoadFontResult _try_load_font(const FontDeclaration& font_decl) {
-		std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
-		if (font_face.has_value()) {
-			platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
-			return NamedFontAtlas { font_decl.name, atlas };
-		}
-		else {
-			std::string error = std::format(
-				"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
-				font_decl.name,
-				font_decl.path.string(),
-				font_decl.size,
-				font_face.error()
-			);
-			return std::unexpected(error);
-		}
-	};
-
-	static LoadImageResult _try_load_image(const ImageDeclaration& image_decl) {
-		int sleep_ms = core::random_int(1, 3) * 500;
-		std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
-
-		if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
-			return NamedImage { image_decl.name, std::move(image.value()) };
-		}
-		else {
-			std::string error = std::format(
-				"Couldn't load image in manifest! name = {}, path = {}",
-				image_decl.name.c_str(),
-				image_decl.path.string()
-			);
-			return std::unexpected(error);
-		}
-	};
-
+	LoadResourceInterface m_load_resource;
 	std::vector<ResourceLoadJob> m_jobs;
+	core::VecMap<std::string, platform::Font> m_fonts;
+	core::VecMap<std::string, platform::Texture> m_textures;
 };
 
 const char* LIBRARY_NAME = "GameEngine2024Library";
@@ -384,11 +395,11 @@ static void run_script(const platform::Input& input) {
 static void render_script(
 	platform::Renderer* renderer,
 	const platform::Input& input,
-	const ResourceManager& resources
+	const ResourceManager& resource_manager
 ) {
 	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::black); // clear
 
-	const platform::Texture& texture = resources.textures().at(g_texture_ids[g_index]);
+	const platform::Texture& texture = resource_manager.textures().at(g_texture_ids[g_index]);
 	const std::string& caption = g_captions[g_index];
 
 	glm::vec2 window_center = input.window_resolution / 2.0f;
@@ -397,7 +408,7 @@ static void render_script(
 	core::Rect texture_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
 
 	renderer->draw_texture(texture, texture_quad);
-	renderer->draw_text_centered(resources.fonts().at("arial16"), caption, text_pos, platform::Color::white);
+	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), caption, text_pos, platform::Color::white);
 }
 
 int main(int argc, char** argv) {
@@ -604,7 +615,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	ResourceManifest manifest = {
+	ResourceManifest scene_manifest = {
 		.fonts = {
 			{ "arial16", "C:/windows/Fonts/Arial.ttf", 16 },
 		},
@@ -614,18 +625,11 @@ int main(int argc, char** argv) {
 			{ "charlie", "charlie.png" },
 		}
 	};
-
-	ResourceManager resources;
-
-	std::shared_ptr<const ResourceLoadProgress> load_scene_progress = resources.load_manifest(manifest);
-
-	using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
-	using NamedImage = std::pair<std::string, platform::Image>;
-	using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
-	using LoadImageResult = std::expected<NamedImage, std::string>;
-
-	std::vector<std::future<LoadFontResult>> load_font_batch;
-	std::vector<std::future<LoadImageResult>> load_image_batch;
+	ResourceManager resource_manager(LoadResourceInterface {
+		.load_font = load_font,
+		.load_image = load_image,
+	});
+	std::shared_ptr<const ResourceLoadProgress> load_scene_progress = resource_manager.load_manifest(scene_manifest);
 
 	/* Main loop */
 	while (!quit) {
@@ -757,7 +761,7 @@ int main(int argc, char** argv) {
 					quit = true;
 				}
 
-				resources.update(&gl_context);
+				resource_manager.update(&gl_context);
 				scene_has_loaded = load_scene_progress->is_done;
 
 				if (scene_has_loaded) {
@@ -875,7 +879,7 @@ int main(int argc, char** argv) {
 				// PROTOTYPE RENDERING
 				{
 					if (scene_has_loaded) {
-						render_script(&renderer, input, resources);
+						render_script(&renderer, input, resource_manager);
 					}
 					else {
 						// loading bar
