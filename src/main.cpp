@@ -604,22 +604,6 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	struct ImageDeclaration {
-		std::string name;
-		std::filesystem::path path;
-	};
-
-	struct FontDeclaration {
-		std::string name;
-		std::filesystem::path path;
-		uint8_t size;
-	};
-
-	struct ResourceManifest {
-		std::vector<FontDeclaration> fonts;
-		std::vector<ImageDeclaration> images;
-	};
-
 	ResourceManifest manifest = {
 		.fonts = {
 			{ "arial16", "C:/windows/Fonts/Arial.ttf", 16 },
@@ -632,6 +616,8 @@ int main(int argc, char** argv) {
 	};
 
 	ResourceManager resources;
+
+	std::shared_ptr<const ResourceLoadProgress> load_scene_progress = resources.load_manifest(manifest);
 
 	bool scene_has_loaded = false;
 	float load_progress = 0.0f;
@@ -773,86 +759,9 @@ int main(int argc, char** argv) {
 
 			/* PROTOYPE LOADING CODE */
 			{
-				/* Font loading */
-				{
-					if (load_font_batch.empty()) {
-						LOG_DEBUG("Loading fonts");
-						auto try_load_font = [](const FontDeclaration& font_decl) -> LoadFontResult {
-							std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
-							if (font_face.has_value()) {
-								platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
-								return NamedFontAtlas { font_decl.name, atlas };
-							}
-							else {
-								std::string error = std::format(
-									"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
-									font_decl.name,
-									font_decl.path.string(),
-									font_decl.size,
-									font_face.error()
-								);
-								return std::unexpected(error);
-							}
-						};
-						load_font_batch = core::batch_async(std::launch::async, manifest.fonts, try_load_font);
-					}
-
-					std::vector<LoadFontResult> font_results;
-					core::get_ready_batch_values(load_font_batch, std::back_inserter(font_results));
-					for (const LoadFontResult& result : font_results) {
-						if (result.has_value()) {
-							const auto& [name, atlas] = result.value();
-							resources.m_fonts.insert({ name, platform::create_font_from_atlas(&gl_context, atlas) });
-						}
-						else {
-							LOG_ERROR("%s", result.error().c_str());
-						}
-					}
-				}
-
-				/* Image loading */
-				{
-					if (load_image_batch.empty()) {
-						LOG_DEBUG("Loading images");
-						auto try_load_image = [](const ImageDeclaration& image_decl) -> LoadImageResult {
-							int sleep_ms = core::random_int(1, 3) * 500;
-							std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
-
-							if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
-								return NamedImage { image_decl.name, std::move(image.value()) };
-							}
-							else {
-								std::string error = std::format(
-									"Couldn't load image in manifest! name = {}, path = {}",
-									image_decl.name.c_str(),
-									image_decl.path.string()
-								);
-								return std::unexpected(error);
-							}
-						};
-						load_image_batch = core::batch_async(std::launch::async, manifest.images, try_load_image);
-					}
-
-					std::vector<LoadImageResult> image_results;
-					core::get_ready_batch_values(load_image_batch, std::back_inserter(image_results));
-					for (const LoadImageResult& result : image_results) {
-						if (result.has_value()) {
-							const auto& [name, image] = result.value();
-							resources.m_textures.insert({ name, gl_context.add_texture(image.data.get(), image.width, image.height) });
-						}
-						else {
-							LOG_ERROR("%s", result.error().c_str());
-						}
-					}
-				}
-
-				/* Check if done */
-				const size_t num_fonts_to_load = load_font_batch.size();
-				const size_t num_images_to_load = load_image_batch.size();
-				const size_t num_loaded_fonts = resources.m_fonts.size();
-				const size_t num_loaded_images = resources.m_textures.size();
-				load_progress = (float)(num_loaded_fonts + num_loaded_images) / (float)(num_fonts_to_load + num_images_to_load);
-				scene_has_loaded = num_loaded_fonts == num_fonts_to_load && num_loaded_images == num_images_to_load;
+				resources.update(&gl_context);
+				load_progress = (float)(load_scene_progress->num_loaded_fonts + load_scene_progress->num_loaded_images) / (float)(load_scene_progress->total_num_fonts_to_load + load_scene_progress->total_num_images_to_load);
+				scene_has_loaded = load_scene_progress->is_done;
 			}
 
 			/* PROTOTYPE SCRIPT CODE */

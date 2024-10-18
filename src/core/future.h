@@ -58,6 +58,7 @@ namespace core {
 				values.push_back(future.get());
 			}
 		}
+		return values;
 	}
 
 } // namespace
