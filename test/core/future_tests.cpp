@@ -4,26 +4,26 @@
 
 #include <algorithm>
 
-TEST(CoreFutureTests, FutureIsReady_FutureFromNonResolvedPromise_NotReady) {
+TEST(FutureTests, FutureIsReady_FutureFromNonResolvedPromise_NotReady) {
 	std::promise<int> promise;
 	std::future<int> future = promise.get_future();
 	EXPECT_FALSE(core::future_is_ready(future));
 }
 
-TEST(CoreFutureTests, FutureIsReady_FutureFromResolvedPromise_IsReady) {
+TEST(FutureTests, FutureIsReady_FutureFromResolvedPromise_IsReady) {
 	std::promise<int> promise;
 	std::future<int> future = promise.get_future();
 	promise.set_value(123);
 	EXPECT_TRUE(core::future_is_ready(future));
 }
 
-TEST(CoreFutureTests, FutureIsReady_InvalidFuture_NotReady) {
+TEST(FutureTests, FutureIsReady_InvalidFuture_NotReady) {
 	std::future<int> future; // no corresponding promise, not valid
 	EXPECT_FALSE(future.valid());
 	EXPECT_FALSE(core::future_is_ready(future));
 }
 
-TEST(CoreFutureTests, AsyncBatch_LaunchedFutures_AreValid) {
+TEST(FutureTests, AsyncBatch_LaunchedFutures_AreValid) {
 	std::vector<int> input = { 1, 2, 3 };
 
 	std::vector<std::future<int>> futures = core::batch_async(std::launch::async, input.begin(), input.end(), [](int x) { return x + 1; });
@@ -32,7 +32,7 @@ TEST(CoreFutureTests, AsyncBatch_LaunchedFutures_AreValid) {
 	EXPECT_EQ(valid_futures, input.size());
 }
 
-TEST(CoreFutureTests, AsyncBatch_CollectValues) {
+TEST(FutureTests, AsyncBatch_CollectValues) {
 	std::vector<int> input = { 1, 2, 3 };
 
 	std::vector<std::future<int>> futures = core::batch_async(std::launch::async, input.begin(), input.end(), [](int x) { return x + 1; });
@@ -43,7 +43,40 @@ TEST(CoreFutureTests, AsyncBatch_CollectValues) {
 	EXPECT_EQ(results, expected_results);
 }
 
-TEST(CoreFutureTests, AsyncBatch_CollectReadyValues) {
+TEST(FutureTests, AsyncBatch_CollectValues_RethrowsFirstException) {
+	std::promise<int> promise1;
+	std::promise<int> promise2;
+	std::vector<std::future<int>> futures;
+	futures.push_back(promise1.get_future());
+	futures.push_back(promise2.get_future());
+
+	/* Set first exception */
+	try {
+		throw std::runtime_error("First");
+	}
+	catch (...) {
+		promise1.set_exception(std::current_exception());
+	}
+
+	/* Set second exception */
+	try {
+		throw std::runtime_error("Second");
+	}
+	catch (...) {
+		promise2.set_exception(std::current_exception());
+	}
+
+	/* Expect first exception to be rethrown */
+	try {
+		std::vector<int> results = core::get_all_batch_values(futures);
+		FAIL() << "Expected error to be thrown";
+	}
+	catch (const std::runtime_error& expected) {
+		EXPECT_STREQ(expected.what(), "First");
+	}
+}
+
+TEST(FutureTests, AsyncBatch_CollectReadyValues) {
 	std::promise<int> promises[3];
 	std::vector<std::future<int>> futures;
 	futures.push_back(promises[0].get_future());
