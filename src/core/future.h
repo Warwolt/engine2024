@@ -40,6 +40,13 @@ namespace core {
 		}
 	}
 
+	template <typename T>
+	std::vector<T> get_all_batch_values(std::vector<std::future<T>>& batch) {
+		std::vector<T> values;
+		get_all_batch_values(batch, std::back_inserter(values));
+		return values;
+	}
+
 	template <typename T, typename OutputIt>
 	void get_ready_batch_values(std::vector<std::future<T>>& batch, OutputIt out_first) {
 		for (std::future<T>& future : batch) {
@@ -61,4 +68,4 @@ namespace core {
 		return values;
 	}
 
-} // namespace
+} // namespace core
