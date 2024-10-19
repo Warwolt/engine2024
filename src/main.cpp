@@ -41,151 +41,9 @@
 #include <core/container/vec_map.h>
 #include <core/future.h>
 #include <nlohmann/json.hpp>
+#include <platform/file/resource_manager.h>
 #include <platform/file/zip.h>
 #include <thread>
-
-using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
-using NamedImage = std::pair<std::string, platform::Image>;
-using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
-using LoadImageResult = std::expected<NamedImage, std::string>;
-
-struct ImageDeclaration {
-	std::string name;
-	std::filesystem::path path;
-};
-
-struct FontDeclaration {
-	std::string name;
-	std::filesystem::path path;
-	uint8_t size;
-};
-
-struct LoadResourceInterface {
-	LoadFontResult (*load_font)(const FontDeclaration& font_decl);
-	LoadImageResult (*load_image)(const ImageDeclaration& image_decl);
-};
-
-struct ResourceManifest {
-	std::vector<FontDeclaration> fonts;
-	std::vector<ImageDeclaration> images;
-};
-
-struct ResourceLoadProgress {
-	size_t total_num_fonts_to_load = 0;
-	size_t total_num_images_to_load = 0;
-	size_t num_loaded_fonts = 0;
-	size_t num_loaded_images = 0;
-	bool is_done = false;
-};
-
-class ResourceManager {
-public:
-	ResourceManager(LoadResourceInterface interface)
-		: m_interface(interface) {
-	}
-
-	std::shared_ptr<const ResourceLoadProgress> load_manifest(const ResourceManifest& manifest) {
-		std::shared_ptr<ResourceLoadProgress> progress = std::make_shared<ResourceLoadProgress>();
-		progress->total_num_fonts_to_load = manifest.fonts.size();
-		progress->total_num_images_to_load = manifest.images.size();
-
-		m_jobs.push_back(ResourceLoadJob {
-			.font_batch = core::batch_async(std::launch::async, manifest.fonts, m_interface.load_font),
-			.image_batch = core::batch_async(std::launch::async, manifest.images, m_interface.load_image),
-			.progress = progress,
-		});
-
-		return progress;
-	}
-
-	void update(platform::OpenGLContext* gl_context) {
-		for (ResourceLoadJob& job : m_jobs) {
-			/* Process fonts */
-			for (const LoadFontResult& result : core::get_ready_batch_values(job.font_batch)) {
-				if (result.has_value()) {
-					const auto& [name, atlas] = result.value();
-					m_fonts.insert({ name, platform::create_font_from_atlas(gl_context, atlas) });
-					job.progress->num_loaded_fonts++;
-				}
-				else {
-					LOG_ERROR("%s", result.error().c_str());
-				}
-			}
-
-			/* Process images */
-			for (const LoadImageResult& result : core::get_ready_batch_values(job.image_batch)) {
-				if (result.has_value()) {
-					const auto& [name, image] = result.value();
-					m_textures.insert({ name, gl_context->add_texture(image.data.get(), image.width, image.height) });
-					job.progress->num_loaded_images++;
-				}
-				else {
-					LOG_ERROR("%s", result.error().c_str());
-				}
-			}
-
-			/* Check progress */
-			job.progress->is_done =
-				job.progress->num_loaded_fonts == job.progress->total_num_fonts_to_load &&
-				job.progress->num_loaded_images == job.progress->total_num_images_to_load;
-		}
-	}
-
-	const core::VecMap<std::string, platform::Font>& fonts() const {
-		return m_fonts;
-	}
-
-	const core::VecMap<std::string, platform::Texture>& textures() const {
-		return m_textures;
-	}
-
-private:
-	struct ResourceLoadJob {
-		std::vector<std::future<LoadFontResult>> font_batch;
-		std::vector<std::future<LoadImageResult>> image_batch;
-		std::shared_ptr<ResourceLoadProgress> progress;
-	};
-
-	LoadResourceInterface m_interface;
-	std::vector<ResourceLoadJob> m_jobs;
-	core::VecMap<std::string, platform::Font> m_fonts;
-	core::VecMap<std::string, platform::Texture> m_textures;
-};
-
-LoadFontResult load_font(const FontDeclaration& font_decl) {
-	std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
-	if (font_face.has_value()) {
-		platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
-		return NamedFontAtlas { font_decl.name, atlas };
-	}
-	else {
-		std::string error = std::format(
-			"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
-			font_decl.name,
-			font_decl.path.string(),
-			font_decl.size,
-			font_face.error()
-		);
-		return std::unexpected(error);
-	}
-};
-
-LoadImageResult load_image(const ImageDeclaration& image_decl) {
-	int sleep_ms = core::random_int(1, 3) * 500;
-	std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
-
-	if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
-		return NamedImage { image_decl.name, std::move(image.value()) };
-	}
-	else {
-		std::string error = std::format(
-			"Couldn't load image in manifest! name = {}, path = {}",
-			image_decl.name.c_str(),
-			image_decl.path.string()
-		);
-		return std::unexpected(error);
-	}
-};
 
 const char* LIBRARY_NAME = "GameEngine2024Library";
 
@@ -390,7 +248,7 @@ static void run_script(const platform::Input& input) {
 static void render_script(
 	platform::Renderer* renderer,
 	const platform::Input& input,
-	const ResourceManager& resource_manager
+	const platform::ResourceManager& resource_manager
 ) {
 	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::black); // clear
 
@@ -610,7 +468,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	ResourceManifest scene_manifest = {
+	platform::ResourceManifest scene_manifest = {
 		.fonts = {
 			{ "arial16", "C:/windows/Fonts/Arial.ttf", 16 },
 		},
@@ -620,11 +478,8 @@ int main(int argc, char** argv) {
 			{ "charlie", "charlie.png" },
 		}
 	};
-	ResourceManager resource_manager(LoadResourceInterface {
-		.load_font = load_font,
-		.load_image = load_image,
-	});
-	std::shared_ptr<const ResourceLoadProgress> load_scene_progress = resource_manager.load_manifest(scene_manifest);
+	platform::ResourceManager resource_manager;
+	std::shared_ptr<const platform::ResourceLoadProgress> load_scene_progress = resource_manager.load_manifest(scene_manifest);
 
 	/* Main loop */
 	while (!quit) {
@@ -757,7 +612,8 @@ int main(int argc, char** argv) {
 				}
 
 				resource_manager.update(&gl_context);
-				scene_has_loaded = load_scene_progress->is_done;
+				scene_has_loaded = load_scene_progress->num_loaded_fonts == load_scene_progress->total_num_fonts &&
+					load_scene_progress->num_loaded_images == load_scene_progress->total_num_images;
 
 				if (scene_has_loaded) {
 					run_script(input);
@@ -879,7 +735,7 @@ int main(int argc, char** argv) {
 					else {
 						// loading bar
 						size_t num_loaded_resources = load_scene_progress->num_loaded_fonts + load_scene_progress->num_loaded_images;
-						size_t total_num_resources = load_scene_progress->total_num_fonts_to_load + load_scene_progress->total_num_images_to_load;
+						size_t total_num_resources = load_scene_progress->total_num_fonts + load_scene_progress->total_num_images;
 						float load_progress = (float)(num_loaded_resources) / (float)(total_num_resources);
 
 						glm::vec2 window_center = input.window_resolution / 2.0f;
