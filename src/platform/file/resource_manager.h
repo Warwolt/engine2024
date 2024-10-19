@@ -47,8 +47,7 @@ namespace platform {
 		}
 
 		bool is_done() const {
-			// return num_loaded_resources() == total_num_resources();
-			return false;
+			return num_loaded_resources() == total_num_resources();
 		}
 	};
 

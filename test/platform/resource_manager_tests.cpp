@@ -8,7 +8,12 @@
 
 #include <chrono>
 
-#define WAIT_FOR(condition, timeout)
+#define WAIT_FOR(condition, wait_period)                                                                        \
+	for (std::chrono::steady_clock::time_point start = std::chrono::high_resolution_clock().now(); !condition;) \
+		if (std::chrono::high_resolution_clock().now() - start >= wait_period) {                                \
+			FAIL() << "WAIT_FOR timed out!";                                                                    \
+		}                                                                                                       \
+		else
 
 class ResourceManagerTests : public testing::Test {
 public:
@@ -50,15 +55,6 @@ TEST_F(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager
 
 		WAIT_FOR(progress->is_done(), std::chrono::seconds(1)) {
 			resource_manager.update(&gl_context);
-		}
-
-		std::chrono::high_resolution_clock timer;
-		std::chrono::steady_clock::time_point start = timer.now();
-		while (!progress->is_done()) {
-			resource_manager.update(&gl_context);
-			if (timer.now() - start >= std::chrono::seconds(1)) {
-				FAIL() << "Timeout!";
-			}
 		}
 
 		EXPECT_TRUE(resource_manager.textures().contains("TestImage"));
