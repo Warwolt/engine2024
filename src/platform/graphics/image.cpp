@@ -4,9 +4,10 @@
 
 namespace platform {
 
-	std::optional<Image> read_image(const char* path) {
+	std::optional<Image> read_image(std::filesystem::path path) {
 		int width, height, num_channels;
-		unsigned char* data = stbi_load(path, &width, &height, &num_channels, STBI_rgb_alpha);
+		stbi_set_flip_vertically_on_load(true);
+		unsigned char* data = stbi_load(path.string().c_str(), &width, &height, &num_channels, STBI_rgb_alpha);
 		if (!data) {
 			return {};
 		}

@@ -109,6 +109,16 @@ namespace platform {
 		return atlas;
 	}
 
+	Font create_font_from_atlas(OpenGLContext* gl_context, const FontAtlas& atlas) {
+		Texture texture = gl_context->add_texture((uint8_t*)atlas.pixels.data(), atlas.width, atlas.height);
+		Font font;
+		std::memcpy(font.glyphs, atlas.glyphs, sizeof(Glyph) * Font::NUM_GLYPHS);
+		font.atlas = texture;
+		font.size = atlas.size;
+		font.line_height = atlas.line_height;
+		return font;
+	}
+
 	std::expected<Font, std::string> add_font(OpenGLContext* gl_context, const char* font_path, uint8_t font_size) {
 		std::expected<FontFace, std::string> face = load_font_face(font_path);
 		if (!face.has_value()) {
