@@ -37,6 +37,18 @@ namespace platform {
 		size_t total_num_images = 0;
 		size_t num_loaded_fonts = 0;
 		size_t num_loaded_images = 0;
+
+		size_t total_num_resources() const {
+			return total_num_fonts + total_num_images;
+		}
+
+		size_t num_loaded_resources() const {
+			return num_loaded_fonts + num_loaded_images;
+		}
+
+		bool is_done() const {
+			return num_loaded_resources() == total_num_resources();
+		}
 	};
 
 	class ResourceManager {

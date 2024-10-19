@@ -3,6 +3,8 @@
 #include <core/future.h>
 #include <platform/debug/logging.h>
 
+#include <core/random.h>
+
 namespace platform {
 
 	std::shared_ptr<const ResourceLoadProgress> ResourceManager::load_manifest(const ResourceManifest& manifest) {
@@ -55,6 +57,11 @@ namespace platform {
 
 	ResourceManager::LoadImageResult ResourceManager::_load_image(const ImageDeclaration& image_decl) {
 		if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
+			// HACK
+			{
+				int millis = core::random_int(1000, 5000);
+				std::this_thread::sleep_for(std::chrono::milliseconds(millis));
+			}
 			return NamedImage { image_decl.name, std::move(image.value()) };
 		}
 		else {

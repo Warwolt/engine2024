@@ -612,8 +612,7 @@ int main(int argc, char** argv) {
 				}
 
 				resource_manager.update(&gl_context);
-				scene_has_loaded = load_scene_progress->num_loaded_fonts == load_scene_progress->total_num_fonts &&
-					load_scene_progress->num_loaded_images == load_scene_progress->total_num_images;
+				scene_has_loaded = load_scene_progress->is_done();
 
 				if (scene_has_loaded) {
 					run_script(input);
@@ -734,9 +733,7 @@ int main(int argc, char** argv) {
 					}
 					else {
 						// loading bar
-						size_t num_loaded_resources = load_scene_progress->num_loaded_fonts + load_scene_progress->num_loaded_images;
-						size_t total_num_resources = load_scene_progress->total_num_fonts + load_scene_progress->total_num_images;
-						float load_progress = (float)(num_loaded_resources) / (float)(total_num_resources);
+						float load_progress = (float)(load_scene_progress->num_loaded_resources()) / (float)(load_scene_progress->total_num_resources());
 
 						glm::vec2 window_center = input.window_resolution / 2.0f;
 						float loading_bar_max_width = 100.0f;
