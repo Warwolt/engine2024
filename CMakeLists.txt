@@ -110,6 +110,7 @@ set(TEST_SRC
     test/platform/imwin32_tests.cpp
     test/platform/keyboard_tests.cpp
     test/platform/zip_tests.cpp
+    test/platform/resource_manager_tests.cpp
 )
 
 set(EXTERNAL_LIBS
