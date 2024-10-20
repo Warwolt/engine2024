@@ -78,13 +78,13 @@ namespace platform {
 		printf("SDL_GL_MakeCurrent\n");
 		SDL_GL_MakeCurrent(window, gl_context);
 
-		// /* Initialize GLEW */
-		// printf("glewInit\n");
-		// const GLenum glewError = glewInit();
-		// if (glewError != GLEW_OK) {
-		// 	LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
-		// 	return std::unexpected(CreateGLContextError::FailedToInitializeGlew);
-		// }
+		/* Initialize GLEW */
+		printf("glewInit\n");
+		const GLenum glewError = glewInit();
+		if (glewError != GLEW_OK) {
+			LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
+			return std::unexpected(CreateGLContextError::FailedToInitializeGlew);
+		}
 
 		// /* Set OpenGL error callback */
 		// printf("glDebugMessageCallback\n");
