@@ -22,8 +22,8 @@ namespace platform {
 
 	void ResourceManager::update(platform::OpenGLContext* gl_context) {
 		for (ResourceLoadJob& job : m_jobs) {
-			job.progress->num_loaded_fonts += _process_fonts(&job.font_batch, gl_context);
-			job.progress->num_loaded_images += _process_images(&job.image_batch, gl_context);
+			_process_fonts(&job.font_batch, &m_fonts, gl_context, job.progress.get());
+			_process_images(&job.image_batch, &m_textures, gl_context, job.progress.get());
 		}
 	}
 
@@ -42,14 +42,14 @@ namespace platform {
 			return NamedFontAtlas { font_decl.name, atlas };
 		}
 		else {
-			std::string error = std::format(
+			std::string error_msg = std::format(
 				"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
 				font_decl.name,
 				font_decl.path.string(),
 				font_decl.size,
 				font_face.error()
 			);
-			return std::unexpected(error);
+			return std::unexpected(std::make_pair(error_msg, font_decl.path));
 		}
 	};
 
@@ -58,43 +58,53 @@ namespace platform {
 			return NamedImage { image_decl.name, std::move(image.value()) };
 		}
 		else {
-			std::string error = std::format(
+			std::string error_msg = std::format(
 				"Couldn't load image in manifest! name = {}, path = {}",
 				image_decl.name.c_str(),
 				image_decl.path.string()
 			);
-			return std::unexpected(error);
+			return std::unexpected(std::make_pair(error_msg, image_decl.path));
 		}
 	};
 
-	size_t ResourceManager::_process_fonts(std::vector<std::future<LoadFontResult>>* font_batch, platform::OpenGLContext* gl_context) {
-		size_t num_loaded_fonts = 0;
+	void ResourceManager::_process_fonts(
+		std::vector<std::future<LoadFontResult>>* font_batch,
+		core::VecMap<std::string, platform::Font>* fonts,
+		platform::OpenGLContext* gl_context,
+		ResourceLoadProgress* progress
+	) {
 		for (const LoadFontResult& result : core::get_ready_batch_values(*font_batch)) {
 			if (result.has_value()) {
 				const auto& [name, atlas] = result.value();
-				m_fonts.insert({ name, platform::create_font_from_atlas(gl_context, atlas) });
-				num_loaded_fonts++;
+				fonts->insert({ name, platform::create_font_from_atlas(gl_context, atlas) });
+				progress->num_loaded_fonts++;
 			}
 			else {
-				LOG_ERROR("%s", result.error().c_str());
+				auto& [error_msg, invalid_path] = result.error();
+				progress->invalid_paths.push_back(invalid_path);
+				LOG_ERROR("%s", error_msg.c_str());
 			}
 		}
-		return num_loaded_fonts;
 	}
 
-	size_t ResourceManager::_process_images(std::vector<std::future<LoadImageResult>>* image_batch, platform::OpenGLContext* gl_context) {
-		size_t num_loaded_images = 0;
+	void ResourceManager::_process_images(
+		std::vector<std::future<LoadImageResult>>* image_batch,
+		core::VecMap<std::string, platform::Texture>* textures,
+		platform::OpenGLContext* gl_context,
+		ResourceLoadProgress* progress
+	) {
 		for (const LoadImageResult& result : core::get_ready_batch_values(*image_batch)) {
 			if (result.has_value()) {
 				const auto& [name, image] = result.value();
-				m_textures.insert({ name, gl_context->add_texture(image.data.get(), image.width, image.height) });
-				num_loaded_images++;
+				textures->insert({ name, gl_context->add_texture(image.data.get(), image.width, image.height) });
+				progress->num_loaded_images++;
 			}
 			else {
-				LOG_ERROR("%s", result.error().c_str());
+				auto& [error_msg, invalid_path] = result.error();
+				progress->invalid_paths.push_back(invalid_path);
+				LOG_ERROR("%s", error_msg.c_str());
 			}
 		}
-		return num_loaded_images;
 	}
 
 } // namespace platform

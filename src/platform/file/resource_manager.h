@@ -37,6 +37,7 @@ namespace platform {
 		size_t total_num_images = 0;
 		size_t num_loaded_fonts = 0;
 		size_t num_loaded_images = 0;
+		std::vector<std::filesystem::path> invalid_paths;
 
 		size_t total_num_resources() const {
 			return total_num_fonts + total_num_images;
@@ -48,6 +49,10 @@ namespace platform {
 
 		bool is_done() const {
 			return num_loaded_resources() == total_num_resources();
+		}
+
+		bool has_errors() const {
+			return !invalid_paths.empty();
 		}
 	};
 
@@ -62,8 +67,9 @@ namespace platform {
 	private:
 		using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
 		using NamedImage = std::pair<std::string, platform::Image>;
-		using LoadFontResult = std::expected<NamedFontAtlas, std::string>;
-		using LoadImageResult = std::expected<NamedImage, std::string>;
+		using LoadError = std::pair<std::string, std::filesystem::path>;
+		using LoadFontResult = std::expected<NamedFontAtlas, LoadError>;
+		using LoadImageResult = std::expected<NamedImage, LoadError>;
 
 		struct ResourceLoadJob {
 			std::vector<std::future<LoadFontResult>> font_batch;
@@ -77,8 +83,18 @@ namespace platform {
 
 		static LoadFontResult _load_font(const FontDeclaration& font_decl);
 		static LoadImageResult _load_image(const ImageDeclaration& image_decl);
-		size_t _process_fonts(std::vector<std::future<LoadFontResult>>* font_batch, platform::OpenGLContext* gl_context);
-		size_t _process_images(std::vector<std::future<LoadImageResult>>* image_batch, platform::OpenGLContext* gl_context);
+		static void _process_fonts(
+			std::vector<std::future<LoadFontResult>>* font_batch,
+			core::VecMap<std::string, platform::Font>* fonts,
+			platform::OpenGLContext* gl_context,
+			ResourceLoadProgress* progress
+		);
+		static void _process_images(
+			std::vector<std::future<LoadImageResult>>* image_batch,
+			core::VecMap<std::string, platform::Texture>* textures,
+			platform::OpenGLContext* gl_context,
+			ResourceLoadProgress* progress
+		);
 	};
 
 } // namespace platform

@@ -1,7 +1,11 @@
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <test_helper.h>
 
 #include <platform/file/resource_manager.h>
+
+using namespace testing;
 
 TEST(ResourceManagerTests, InitiallyEmpty) {
 	platform::ResourceManager resource_manager;
@@ -31,12 +35,32 @@ TEST(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) 
 	}
 
 	ASSERT_TRUE(resource_manager.fonts().contains("test_font"));
-	EXPECT_EQ(resource_manager.fonts().at("test_font").size, 16);
-
 	ASSERT_TRUE(resource_manager.textures().contains("test_image"));
+	EXPECT_EQ(resource_manager.fonts().at("test_font").size, 16);
 	EXPECT_EQ(resource_manager.textures().at("test_image").size.x, 16);
 	EXPECT_EQ(resource_manager.textures().at("test_image").size.y, 16);
 }
 
-// TEST(ResourceManagerTests, LoadManifest_WithBadPaths_NotLoadedIntoManager) {
-// }
+TEST(ResourceManagerTests, LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
+	platform::ResourceManager resource_manager;
+	platform::ResourceManifest manifest = {
+		.fonts = { platform::FontDeclaration {
+			.name = "test_font",
+			.path = "bad_font_path.ttf",
+			.size = 16,
+		} },
+		.images = { platform::ImageDeclaration {
+			.name = "test_image",
+			.path = "bad_image_path.png",
+		} }
+	};
+
+	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_manager.load_manifest(manifest);
+	WAIT_FOR(progress->invalid_paths.size() == 2, std::chrono::seconds(1)) {
+		resource_manager.update(testing::gl_context());
+	}
+
+	EXPECT_THAT(progress->invalid_paths, UnorderedElementsAre("bad_font_path.ttf", "bad_image_path.png"));
+}
+
+// Loading resource already in manager should be available with NO WAITING
