@@ -18,6 +18,8 @@ namespace testing {
 int main(int argc, char** argv) {
 	::testing::InitGoogleTest(&argc, argv);
 
+	printf("DEBUG: Hello!\n");
+
 	platform::init_test_logging();
 	ASSERT(platform::initialize(), "platform::initialize failed");
 	platform::Window window = core::unwrap(platform::Window::create(0, 0, SDL_WINDOW_HIDDEN, "Unit Testing"), [] {
