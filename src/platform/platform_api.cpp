@@ -75,8 +75,8 @@ namespace platform {
 			LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
 			return std::unexpected(CreateGLContextError::FailedToCreateContext);
 		}
-		// printf("SDL_GL_MakeCurrent\n");
-		// SDL_GL_MakeCurrent(window, gl_context);
+		printf("SDL_GL_MakeCurrent\n");
+		SDL_GL_MakeCurrent(window, gl_context);
 
 		// /* Initialize GLEW */
 		// printf("glewInit\n");
