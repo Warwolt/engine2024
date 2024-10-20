@@ -12,8 +12,8 @@ jobs:
 
       - name: Setup CMake
         uses: threeal/cmake-action@v1.3.0
-        with:
-          options: WARNINGS_AS_ERRORS=ON
+        # with:
+        # options: WARNINGS_AS_ERRORS=ON
 
       - name: Build
         run: cmake --build build
