@@ -69,14 +69,17 @@ namespace platform {
 
 	std::expected<SDL_GLContext, CreateGLContextError> create_gl_context(SDL_Window* window) {
 		/* Create GL Context */
+		printf("SDL_GL_CreateContext\n");
 		SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 		if (!gl_context) {
 			LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
 			return std::unexpected(CreateGLContextError::FailedToCreateContext);
 		}
+		printf("SDL_GL_MakeCurrent\n");
 		SDL_GL_MakeCurrent(window, gl_context);
 
 		/* Initialize GLEW */
+		printf("glewInit\n");
 		const GLenum glewError = glewInit();
 		if (glewError != GLEW_OK) {
 			LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
@@ -84,16 +87,20 @@ namespace platform {
 		}
 
 		/* Set OpenGL error callback */
+		printf("glDebugMessageCallback\n");
 		glDebugMessageCallback(on_opengl_error, 0);
 
 		/* Enable v-sync */
+		printf("SDL_GL_SetSwapInterval\n");
 		if (SDL_GL_SetSwapInterval(1)) {
 			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
 			return std::unexpected(CreateGLContextError::FailedToSetVSync);
 		}
 
 		/* Enable alpha channel */
+		printf("glEnable(GL_BLEND)\n");
 		glEnable(GL_BLEND);
+		printf("glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)\n");
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		return gl_context;
