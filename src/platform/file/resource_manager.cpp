@@ -49,7 +49,7 @@ namespace platform {
 				font_decl.size,
 				font_face.error()
 			);
-			return std::unexpected(std::make_pair(error_msg, font_decl.path));
+			return std::unexpected(LoadError { error_msg, font_decl.path });
 		}
 	};
 
@@ -63,7 +63,7 @@ namespace platform {
 				image_decl.name.c_str(),
 				image_decl.path.string()
 			);
-			return std::unexpected(std::make_pair(error_msg, image_decl.path));
+			return std::unexpected(LoadError { error_msg, image_decl.path });
 		}
 	};
 

@@ -62,5 +62,3 @@ TEST(ResourceManagerTests, LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
 
 	EXPECT_THAT(progress->invalid_paths, UnorderedElementsAre("bad_font_path.ttf", "bad_image_path.png"));
 }
-
-// Loading resource already in manager should be available with NO WAITING

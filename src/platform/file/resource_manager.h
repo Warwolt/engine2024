@@ -65,9 +65,18 @@ namespace platform {
 		const core::VecMap<std::string, platform::Texture>& textures() const;
 
 	private:
-		using NamedFontAtlas = std::pair<std::string, platform::FontAtlas>;
-		using NamedImage = std::pair<std::string, platform::Image>;
-		using LoadError = std::pair<std::string, std::filesystem::path>;
+		struct NamedFontAtlas {
+			std::string name;
+			platform::FontAtlas atlas;
+		};
+		struct NamedImage {
+			std::string name;
+			platform::Image image;
+		};
+		struct LoadError {
+			std::string error_msg;
+			std::filesystem::path path;
+		};
 		using LoadFontResult = std::expected<NamedFontAtlas, LoadError>;
 		using LoadImageResult = std::expected<NamedImage, LoadError>;
 
