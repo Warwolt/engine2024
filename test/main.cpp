@@ -15,7 +15,7 @@ namespace testing {
 	}
 } // namespace testing
 
-int main(int argc, char** argv) {
+int main(int /*argc*/, char** /*argv*/) {
 	printf("Hello world!\n");
 	// ::testing::InitGoogleTest(&argc, argv);
 
