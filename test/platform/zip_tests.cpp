@@ -12,7 +12,7 @@ public:
 
 	static void SetUpTestSuite() {
 		m_work_directory = std::filesystem::current_path();
-		m_test_archive_path = m_work_directory / "test/platform/zip_tests.zip";
+		m_test_archive_path = m_work_directory / "test/platform/test_data/zip_tests.zip";
 		m_write_archive_path = m_work_directory / "write_test.zip";
 		ASSERT_TRUE(std::filesystem::is_regular_file(m_test_archive_path)) << "The test zip archive is missing, cannot run zip tests!";
 	}

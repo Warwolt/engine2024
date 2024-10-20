@@ -1,8 +1,9 @@
 #include <GL/glew.h> // must be included before <SDL2/SDL_opengl.h>
 
+#include <platform/graphics/gl_context.h>
+
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
-#include <platform/graphics/gl_context.h>
 #include <platform/graphics/vertex.h>
 
 namespace platform {
