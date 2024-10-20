@@ -32,6 +32,9 @@ int main(int argc, char** argv) {
 		ABORT("platform::create_window failed");
 	});
 
+	printf("platform::create_gl_context(window.sdl_window())\n");
+	platform::create_gl_context(window.sdl_window());
+
 	// SDL_GLContext sdl_gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
 	// 	ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
 	// });
