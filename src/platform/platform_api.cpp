@@ -87,21 +87,21 @@ namespace platform {
 		}
 
 		/* Set OpenGL error callback */
-		printf("glDebugMessageCallback\n");
-		glDebugMessageCallback(on_opengl_error, 0);
+		// printf("glDebugMessageCallback\n");
+		// glDebugMessageCallback(on_opengl_error, 0);
 
 		// /* Enable v-sync */
-		// printf("SDL_GL_SetSwapInterval\n");
-		// if (SDL_GL_SetSwapInterval(1)) {
-		// 	LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
-		// 	return std::unexpected(CreateGLContextError::FailedToSetVSync);
-		// }
+		printf("SDL_GL_SetSwapInterval\n");
+		if (SDL_GL_SetSwapInterval(1)) {
+			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
+			return std::unexpected(CreateGLContextError::FailedToSetVSync);
+		}
 
 		// /* Enable alpha channel */
-		// printf("glEnable(GL_BLEND)\n");
-		// glEnable(GL_BLEND);
-		// printf("glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)\n");
-		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		printf("glEnable(GL_BLEND)\n");
+		glEnable(GL_BLEND);
+		printf("glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)\n");
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		return gl_context;
 	}
