@@ -111,7 +111,6 @@ set(TEST_SRC
     test/platform/keyboard_tests.cpp
     test/platform/resource_manager_tests.cpp
     test/platform/zip_tests.cpp
-    test/test_helper.cpp
 )
 
 set(EXTERNAL_LIBS

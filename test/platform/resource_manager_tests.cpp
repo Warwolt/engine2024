@@ -1,6 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <mock_gl_context.h>
 #include <test_helper.h>
 
 #include <platform/file/resource_manager.h>
@@ -15,6 +16,7 @@ TEST(ResourceManagerTests, InitiallyEmpty) {
 }
 
 TEST(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) {
+	testing::MockOpenGLContext gl_context_mock;
 	std::filesystem::path working_directory = std::filesystem::current_path();
 	platform::ResourceManager resource_manager;
 	platform::ResourceManifest manifest = {
@@ -29,9 +31,10 @@ TEST(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) 
 		} }
 	};
 
+	EXPECT_CALL(gl_context_mock, add_texture).WillRepeatedly(Return(platform::Texture {}));
 	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_manager.load_manifest(manifest);
 	WAIT_FOR(progress->is_done(), std::chrono::seconds(1)) {
-		resource_manager.update(testing::gl_context());
+		resource_manager.update(&gl_context_mock);
 	}
 
 	ASSERT_TRUE(resource_manager.fonts().contains("test_font"));
@@ -39,7 +42,7 @@ TEST(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) 
 }
 
 TEST(ResourceManagerTests, LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
-	fprintf(stderr, "LoadManifest_WithInvalidPaths_NotLoadedIntoManager\n");
+	testing::MockOpenGLContext gl_context_mock;
 	platform::ResourceManager resource_manager;
 	platform::ResourceManifest manifest = {
 		.fonts = { platform::FontDeclaration {
@@ -53,13 +56,11 @@ TEST(ResourceManagerTests, LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
 		} }
 	};
 
-	fprintf(stderr, "load_manifest\n");
 	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_manager.load_manifest(manifest);
 	WAIT_FOR(progress->invalid_paths.size() == 2, std::chrono::seconds(1)) {
 		fprintf(stderr, "update\n");
-		resource_manager.update(testing::gl_context());
+		resource_manager.update(&gl_context_mock);
 	}
 
-	fprintf(stderr, "EXPECT_THAT\n");
 	EXPECT_THAT(progress->invalid_paths, UnorderedElementsAre("bad_font_path.ttf", "bad_image_path.png"));
 }

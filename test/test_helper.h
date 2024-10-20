@@ -20,11 +20,3 @@
 			FAIL() << "WAIT_FOR(" << #condition << ", " << #wait_period << ") timed out!";                        \
 		}                                                                                                         \
 		else
-
-namespace platform {
-	class OpenGLContext;
-} // namespace platform
-
-namespace testing {
-	platform::OpenGLContext* gl_context();
-} // namespace testing
