@@ -17,11 +17,10 @@ namespace testing {
 
 #undef main
 
-int main(int /*argc*/, char** /*argv*/) {
-	printf("Hello world!\n");
-	// ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+	::testing::InitGoogleTest(&argc, argv);
 
-	// printf("DEBUG: Hello!\n");
+	printf("DEBUG: Hello world!\n");
 
 	// platform::init_test_logging();
 	// ASSERT(platform::initialize(), "platform::initialize failed");
