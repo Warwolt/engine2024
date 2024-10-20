@@ -26,7 +26,6 @@ add_subdirectory(libs/stb_image)
 add_compile_definitions(JSON_DIAGNOSTICS=1)
 
 set(INC
-    .
     src
     libs/glm
     libs/json/include
@@ -110,8 +109,8 @@ set(TEST_SRC
     test/libs/kpeeters/tree_tests.cpp
     test/platform/imwin32_tests.cpp
     test/platform/keyboard_tests.cpp
-    test/platform/zip_tests.cpp
     test/platform/resource_manager_tests.cpp
+    test/platform/zip_tests.cpp
     test/test_helper.cpp
 )
 
