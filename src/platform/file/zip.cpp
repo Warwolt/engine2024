@@ -77,7 +77,7 @@ namespace platform {
 		return m_is_valid;
 	}
 
-	const std::vector<std::string> FileArchive::file_names() const {
+	const std::vector<std::string>& FileArchive::file_names() const {
 		return m_file_names;
 	}
 

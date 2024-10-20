@@ -77,7 +77,7 @@ namespace engine {
 	void Engine::load_data(const char* path_str) {
 		std::filesystem::path path = std::filesystem::path(path_str);
 		if (std::filesystem::is_regular_file(path)) {
-			std::vector<uint8_t> data = platform::read_file_bytes(path).value();
+			std::vector<uint8_t> data = platform::read_bytes_from_file(path).value();
 			m_project = core::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
 				ABORT("Could not parse json file \"%s\": %s", path_str, error.c_str());
 			});

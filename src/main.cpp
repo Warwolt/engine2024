@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <ft2build.h>
 
+#include <core/random.h>
 #include <core/unwrap.h>
 #include <core/util.h>
 #include <library.h>
@@ -35,6 +36,14 @@
 #include <imgui/imgui.h>
 
 #include <fstream>
+
+// prototyping
+#include <core/container/vec_map.h>
+#include <core/future.h>
+#include <nlohmann/json.hpp>
+#include <platform/file/resource_manager.h>
+#include <platform/file/zip.h>
+#include <thread>
 
 const char* LIBRARY_NAME = "GameEngine2024Library";
 
@@ -213,6 +222,48 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	return buffer;
 }
 
+// local vars
+std::string g_texture_ids[3] = {
+	"alice",
+	"bob",
+	"charlie",
+};
+std::string g_captions[3] = {
+	"Alice",
+	"Bob",
+	"Charlie",
+};
+int g_index = 0;
+
+static void run_script(const platform::Input& input) {
+	// update image based on keyboard input
+	if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
+		g_index = std::clamp(g_index - 1, 0, 2);
+	}
+	if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
+		g_index = std::clamp(g_index + 1, 0, 2);
+	}
+}
+
+static void render_script(
+	platform::Renderer* renderer,
+	const platform::Input& input,
+	const platform::ResourceManager& resource_manager
+) {
+	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::black); // clear
+
+	const platform::Texture& texture = resource_manager.textures().at(g_texture_ids[g_index]);
+	const std::string& caption = g_captions[g_index];
+
+	glm::vec2 window_center = input.window_resolution / 2.0f;
+	glm::vec2 image_size = texture.size * 2.0f;
+	glm::vec2 text_pos = window_center + glm::vec2 { 0.0f, image_size.y / 2.0f + 16.0f + 30.0f };
+	core::Rect texture_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
+
+	renderer->draw_texture(texture, texture_quad);
+	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), caption, text_pos, platform::Color::white);
+}
+
 int main(int argc, char** argv) {
 	/* Parse args */
 	platform::CommandLineArgs cmd_args = core::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
@@ -350,6 +401,86 @@ int main(int argc, char** argv) {
 		library.load_engine_data(engine, path.string().c_str());
 	}
 
+	// Prototype loading a data blob, lazy deserializing the blob, updating
+	// data, serializing, writing to disk
+	//
+	// In a real project file, we should assume that we might have an unbounded
+	// number of assets, some which may be Very Large (meaning, they will take
+	// time to load).
+	//
+	// From an engine perspective and a script perspective we just want to be
+	// able to ask for some data, and then later getting it (thus allowing the
+	// loading to be async).
+	//
+	// If we never ask for particular data, we should never pay the cost of
+	// loading it. Hence, the loading has to be lazy.
+	//
+	// So we have two requirements:
+	// - Lazily load data
+	// - Separate _accessing_ data from _loading_ it
+	// 		-> if data exists, get it from cache
+	//      -> if not exists, load it
+	//
+	// Test scenario: lazily load images
+	// - 3 images in zip file
+	// - render image in window
+	// - switch image with left/right keys on keboard
+	// - if image hasn't been loaded yet, load it into resource manager
+	if (0) {
+		/* Read */
+		platform::FileArchive archive;
+		nlohmann::json payload_json;
+		{
+			archive = core::unwrap(platform::FileArchive::open_from_file("test.zip"), [](std::string error) {
+				ABORT("FileArchive::open_from_file(\"test.zip\") failed with: %s", error.c_str());
+			});
+			std::vector<uint8_t> payload_bytes = core::unwrap(archive.read_from_archive("data.json"), [](platform::FileArchiveError error) {
+				LOG_DEBUG("archive.read_from_archive(\"data.json\") failed with %s", core::util::enum_to_string(error));
+			});
+			payload_json = nlohmann::json::parse(payload_bytes);
+		}
+
+		/* Update */
+		struct Payload {
+			int counter;
+		};
+		Payload payload;
+		{
+			payload = Payload {
+				.counter = payload_json["counter"],
+			};
+
+			payload.counter += 1;
+		}
+
+		/* Write */
+		{
+			nlohmann::json payload_json2;
+			payload_json2["counter"] = payload.counter;
+			std::string payload_string2 = payload_json2.dump();
+			std::vector<uint8_t> payload_bytes2 = std::vector<uint8_t>(payload_string2.begin(), payload_string2.end());
+			archive.write_to_archive("data.json", payload_bytes2.data(), payload_bytes2.size());
+
+			std::expected<void, platform::FileArchiveError> result = archive.write_archive_to_disk("test.zip");
+			if (!result.has_value()) {
+				LOG_DEBUG("write to archive failed with %s", core::util::enum_to_string(result.error()));
+			}
+		}
+	}
+
+	platform::ResourceManifest scene_manifest = {
+		.fonts = {
+			{ "arial16", "C:/windows/Fonts/Arial.ttf", 16 },
+		},
+		.images = {
+			{ "alice", "alice.png" },
+			{ "bob", "bob.png" },
+			{ "charlie", "charlie.png" },
+		}
+	};
+	platform::ResourceManager resource_manager;
+	std::shared_ptr<const platform::ResourceLoadProgress> load_scene_progress = resource_manager.load_manifest(scene_manifest);
+
 	/* Main loop */
 	while (!quit) {
 		/* Input */
@@ -461,16 +592,32 @@ int main(int argc, char** argv) {
 		}
 
 		/* Update */
+		bool scene_has_loaded = false;
 		{
 			/* Hot reloading */
 			hot_reloader.update(&library);
 
 			/* Engine update */
 			start_imgui_frame();
-			if (editor) {
-				library.update_editor(editor, config, input, engine, &platform, &gl_context);
+			// DISABLED WHILE PROTOTYPING
+			// if (editor) {
+			// library.update_editor(editor, config, input, engine, &platform, &gl_context);
+			// }
+			// library.update_engine(engine, input, &platform, &gl_context);
+
+			/* PROTOTYPE CODE */
+			{
+				if (input.keyboard.key_pressed(SDLK_ESCAPE) || input.quit_signal_received) {
+					quit = true;
+				}
+
+				resource_manager.update(&gl_context);
+				scene_has_loaded = load_scene_progress->is_done();
+
+				if (scene_has_loaded) {
+					run_script(input);
+				}
 			}
-			library.update_engine(engine, input, &platform, &gl_context);
 
 			/* Platform update */
 			while (platform.has_commands()) {
@@ -579,12 +726,40 @@ int main(int argc, char** argv) {
 
 			/* Render to canvas */
 			{
-				if (editor && run_mode == platform::RunMode::Editor) {
-					library.render_editor(*editor, *engine, &gl_context, &renderer);
+				// PROTOTYPE RENDERING
+				{
+					if (scene_has_loaded) {
+						render_script(&renderer, input, resource_manager);
+					}
+					else {
+						// loading bar
+						float load_progress = (float)(load_scene_progress->num_loaded_resources()) / (float)(load_scene_progress->total_num_resources());
+
+						glm::vec2 window_center = input.window_resolution / 2.0f;
+						float loading_bar_max_width = 100.0f;
+						float loading_bar_width = load_progress * loading_bar_max_width;
+						float loading_bar_height = 10.0f;
+						glm::vec2 loading_bar_max_size = { loading_bar_max_width, loading_bar_height };
+						glm::vec2 loading_bar_size = { loading_bar_width, loading_bar_height };
+						core::Rect fill_rect = core::Rect::with_pos_and_size(
+							window_center - loading_bar_max_size / 2.0f,
+							loading_bar_size
+						);
+						core::Rect outline = core::Rect::with_pos_and_size(
+							fill_rect.position() - glm::vec2 { 1.0f, 1.0f },
+							glm::vec2 { loading_bar_max_width, loading_bar_height } + glm::vec2 { 3.0f, 3.0f }
+						);
+						renderer.draw_rect_fill(fill_rect, platform::Color::white);
+						renderer.draw_rect(outline, platform::Color::white);
+					}
 				}
-				else {
-					library.render_engine(*engine, &renderer);
-				}
+
+				// if (editor && run_mode == platform::RunMode::Editor) {
+				// 	library.render_editor(*editor, *engine, &gl_context, &renderer);
+				// }
+				// else {
+				// 	library.render_engine(*engine, &renderer);
+				// }
 
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);
