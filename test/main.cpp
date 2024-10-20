@@ -1,4 +1,5 @@
 #include <core/unwrap.h>
+#include <core/util.h>
 #include <gtest/gtest.h>
 #include <platform/debug/assert.h>
 #include <platform/debug/logging.h>
@@ -18,9 +19,13 @@ int main(int argc, char** argv) {
 	::testing::InitGoogleTest(&argc, argv);
 
 	platform::init_test_logging();
-	platform::initialize();
-	platform::Window window = platform::Window::create(0, 0, SDL_WINDOW_HIDDEN, "Unit Testing").value();
-	SDL_GLContext sdl_gl_context = platform::create_gl_context(window.sdl_window()).value();
+	ASSERT(platform::initialize(), "platform::initialize failed");
+	platform::Window window = core::unwrap(platform::Window::create(0, 0, SDL_WINDOW_HIDDEN, "Unit Testing"), [] {
+		ABORT("platform::create_window failed");
+	});
+	SDL_GLContext sdl_gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
+		ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
+	});
 	platform::OpenGLContext gl_context = platform::OpenGLContext(sdl_gl_context);
 	g_gl_context_ptr = &gl_context;
 
