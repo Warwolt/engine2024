@@ -19,7 +19,7 @@ namespace platform {
 	struct FontDeclaration {
 		std::string name;
 		std::filesystem::path path;
-		uint8_t size;
+		uint8_t size = 1;
 	};
 
 	struct ImageDeclaration {

@@ -42,6 +42,7 @@ namespace platform {
 	}
 
 	FontAtlas generate_font_atlas(const FontFace& face, uint8_t size) {
+		ASSERT(size > 0, "Can't create a font with size zero!");
 		FontAtlas atlas;
 		atlas.size = size;
 

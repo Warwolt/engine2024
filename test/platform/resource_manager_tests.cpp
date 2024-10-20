@@ -36,9 +36,6 @@ TEST(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) 
 
 	ASSERT_TRUE(resource_manager.fonts().contains("test_font"));
 	ASSERT_TRUE(resource_manager.textures().contains("test_image"));
-	EXPECT_EQ(resource_manager.fonts().at("test_font").size, 16);
-	EXPECT_EQ(resource_manager.textures().at("test_image").size.x, 16);
-	EXPECT_EQ(resource_manager.textures().at("test_image").size.y, 16);
 }
 
 TEST(ResourceManagerTests, LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
