@@ -75,33 +75,33 @@ namespace platform {
 			LOG_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
 			return std::unexpected(CreateGLContextError::FailedToCreateContext);
 		}
-		printf("SDL_GL_MakeCurrent\n");
-		SDL_GL_MakeCurrent(window, gl_context);
+		// printf("SDL_GL_MakeCurrent\n");
+		// SDL_GL_MakeCurrent(window, gl_context);
 
-		/* Initialize GLEW */
-		printf("glewInit\n");
-		const GLenum glewError = glewInit();
-		if (glewError != GLEW_OK) {
-			LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
-			return std::unexpected(CreateGLContextError::FailedToInitializeGlew);
-		}
+		// /* Initialize GLEW */
+		// printf("glewInit\n");
+		// const GLenum glewError = glewInit();
+		// if (glewError != GLEW_OK) {
+		// 	LOG_ERROR("glewInit failed: %s", glewGetErrorString(glewError));
+		// 	return std::unexpected(CreateGLContextError::FailedToInitializeGlew);
+		// }
 
-		/* Set OpenGL error callback */
-		printf("glDebugMessageCallback\n");
-		glDebugMessageCallback(on_opengl_error, 0);
+		// /* Set OpenGL error callback */
+		// printf("glDebugMessageCallback\n");
+		// glDebugMessageCallback(on_opengl_error, 0);
 
-		/* Enable v-sync */
-		printf("SDL_GL_SetSwapInterval\n");
-		if (SDL_GL_SetSwapInterval(1)) {
-			LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
-			return std::unexpected(CreateGLContextError::FailedToSetVSync);
-		}
+		// /* Enable v-sync */
+		// printf("SDL_GL_SetSwapInterval\n");
+		// if (SDL_GL_SetSwapInterval(1)) {
+		// 	LOG_ERROR("SDL_GL_SetSwapInterval failed: %s", SDL_GetError());
+		// 	return std::unexpected(CreateGLContextError::FailedToSetVSync);
+		// }
 
-		/* Enable alpha channel */
-		printf("glEnable(GL_BLEND)\n");
-		glEnable(GL_BLEND);
-		printf("glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)\n");
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		// /* Enable alpha channel */
+		// printf("glEnable(GL_BLEND)\n");
+		// glEnable(GL_BLEND);
+		// printf("glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)\n");
+		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		return gl_context;
 	}
