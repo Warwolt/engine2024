@@ -4,6 +4,7 @@
 
 #include <stb_image/stb_image.h>
 
+#include <filesystem>
 #include <optional>
 
 namespace platform {
@@ -23,6 +24,6 @@ namespace platform {
 		int num_channels;
 	};
 
-	std::optional<Image> read_image(const char* path);
+	std::optional<Image> read_image(std::filesystem::path path);
 
 } // namespace platform

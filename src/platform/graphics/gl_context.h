@@ -22,22 +22,22 @@ namespace platform {
 	public:
 		explicit OpenGLContext(SDL_GLContext) {}
 
-		Texture add_texture(
+		virtual Texture add_texture(
 			const unsigned char* data,
 			int width,
 			int height,
 			TextureWrapping wrapping = TextureWrapping::ClampToEdge,
 			TextureFilter filter = TextureFilter::Nearest
 		);
-		void set_texture_wrapping(Texture texture, TextureWrapping wrapping);
-		void set_texture_filter(Texture texture, TextureFilter filter);
-		void free_texture(Texture texture);
+		virtual void set_texture_wrapping(Texture texture, TextureWrapping wrapping);
+		virtual void set_texture_filter(Texture texture, TextureFilter filter);
+		virtual void free_texture(Texture texture);
 
-		Canvas add_canvas(int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge, TextureFilter filter = TextureFilter::Nearest);
-		void free_canvas(Canvas canvas);
+		virtual Canvas add_canvas(int width, int height, TextureWrapping wrapping = TextureWrapping::ClampToEdge, TextureFilter filter = TextureFilter::Nearest);
+		virtual void free_canvas(Canvas canvas);
 
-		std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
-		void free_shader_program(const ShaderProgram& shader_program);
+		virtual std::expected<ShaderProgram, ShaderProgramError> add_shader_program(const char* vertex_src, const char* fragment_src);
+		virtual void free_shader_program(const ShaderProgram& shader_program);
 	};
 
 } // namespace platform
