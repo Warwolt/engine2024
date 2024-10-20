@@ -24,8 +24,8 @@ int main(int argc, char** argv) {
 	platform::OpenGLContext gl_context = platform::OpenGLContext(sdl_gl_context);
 	g_gl_context_ptr = &gl_context;
 
-	int result = RUN_ALL_TESTS();
+	int error_code = RUN_ALL_TESTS();
 
 	platform::shutdown(sdl_gl_context);
-	return result;
+	return error_code;
 }
