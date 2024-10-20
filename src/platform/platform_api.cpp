@@ -86,9 +86,9 @@ namespace platform {
 			return std::unexpected(CreateGLContextError::FailedToInitializeGlew);
 		}
 
-		// /* Set OpenGL error callback */
-		// printf("glDebugMessageCallback\n");
-		// glDebugMessageCallback(on_opengl_error, 0);
+		/* Set OpenGL error callback */
+		printf("glDebugMessageCallback\n");
+		glDebugMessageCallback(on_opengl_error, 0);
 
 		// /* Enable v-sync */
 		// printf("SDL_GL_SetSwapInterval\n");
