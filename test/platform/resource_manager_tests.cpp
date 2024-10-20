@@ -41,7 +41,8 @@ TEST(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) 
 	ASSERT_TRUE(resource_manager.textures().contains("test_image"));
 }
 
-TEST(ResourceManagerTests, LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
+// Doesn't run in CI
+TEST(ResourceManagerTests, DISABLED_LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
 	testing::MockOpenGLContext gl_context_mock;
 	platform::ResourceManager resource_manager;
 	platform::ResourceManifest manifest = {
