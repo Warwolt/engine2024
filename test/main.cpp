@@ -35,14 +35,14 @@ int main(int argc, char** argv) {
 	printf("platform::create_gl_context(window.sdl_window())\n");
 	platform::create_gl_context(window.sdl_window());
 
-	// SDL_GLContext sdl_gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
-	// 	ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
-	// });
-	// platform::OpenGLContext gl_context = platform::OpenGLContext(sdl_gl_context);
-	// g_gl_context_ptr = &gl_context;
+	SDL_GLContext sdl_gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
+		ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
+	});
+	platform::OpenGLContext gl_context = platform::OpenGLContext(sdl_gl_context);
+	g_gl_context_ptr = &gl_context;
 
-	// int error_code = RUN_ALL_TESTS();
+	int error_code = RUN_ALL_TESTS();
 
-	// platform::shutdown(sdl_gl_context);
-	// return error_code;
+	platform::shutdown(sdl_gl_context);
+	return error_code;
 }
