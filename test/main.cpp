@@ -25,9 +25,9 @@ int main(int argc, char** argv) {
 	platform::Window window = core::unwrap(platform::Window::create(0, 0, SDL_WINDOW_HIDDEN, "Unit Testing"), [] {
 		ABORT("platform::create_window failed");
 	});
-	// SDL_GLContext sdl_gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
-	// 	ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
-	// });
+	SDL_GLContext sdl_gl_context = core::unwrap(platform::create_gl_context(window.sdl_window()), [](platform::CreateGLContextError error) {
+		ABORT("platform::create_gl_context() returned %s", core::util::enum_to_string(error));
+	});
 	// platform::OpenGLContext gl_context = platform::OpenGLContext(sdl_gl_context);
 	// g_gl_context_ptr = &gl_context;
 
