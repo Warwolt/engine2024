@@ -39,7 +39,7 @@ TEST(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) 
 }
 
 TEST(ResourceManagerTests, LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
-	printf("LoadManifest_WithInvalidPaths_NotLoadedIntoManager\n");
+	fprintf(stderr, "LoadManifest_WithInvalidPaths_NotLoadedIntoManager\n");
 	platform::ResourceManager resource_manager;
 	platform::ResourceManifest manifest = {
 		.fonts = { platform::FontDeclaration {
@@ -53,13 +53,13 @@ TEST(ResourceManagerTests, LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
 		} }
 	};
 
-	printf("load_manifest\n");
+	fprintf(stderr, "load_manifest\n");
 	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_manager.load_manifest(manifest);
 	WAIT_FOR(progress->invalid_paths.size() == 2, std::chrono::seconds(1)) {
-		printf("update\n");
+		fprintf(stderr, "update\n");
 		resource_manager.update(testing::gl_context());
 	}
 
-	printf("EXPECT_THAT\n");
+	fprintf(stderr, "EXPECT_THAT\n");
 	EXPECT_THAT(progress->invalid_paths, UnorderedElementsAre("bad_font_path.ttf", "bad_image_path.png"));
 }
