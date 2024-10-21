@@ -11,16 +11,16 @@ namespace platform {
 
 namespace engine {
 
-	class AnimationSystem;
+	class TimelineSystem;
 	class Engine;
 
 	struct HotReloadingState {
-		AnimationID title_animation_id;
+		TimelineID title_animation_id;
 	};
 
 	void update_hot_reloading(
 		HotReloadingState* hot_reloading,
-		AnimationSystem* animation_system,
+		TimelineSystem* animation_system,
 		const platform::Input& input,
 		platform::PlatformAPI* platform,
 		std::string* window_title

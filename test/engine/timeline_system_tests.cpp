@@ -2,126 +2,126 @@
 
 #include <engine/system/timeline_system.h>
 
-constexpr const char ANIMATION_KEY[] = "animation-key";
+constexpr const char TIMELINE_KEY[] = "timeline-key";
 
-TEST(AnimationTests, AnimationSystem_Initially_HoldsZeroAnimations_ForGivenKey) {
-	engine::AnimationSystem animation_system;
-	EXPECT_TRUE(animation_system.animations(ANIMATION_KEY).empty());
+TEST(TimelineTests, TimelineSystem_Initially_HoldsZeroTimelines_ForGivenKey) {
+	engine::TimelineSystem timeline_system;
+	EXPECT_TRUE(timeline_system.timelines(TIMELINE_KEY).empty());
 }
 
-TEST(AnimationTests, StartedAnimation_CanLaterBeRetreived) {
-	engine::AnimationSystem animation_system;
-	const uint64_t animation_length = 10;
+TEST(TimelineTests, StartedTimeline_CanLaterBeRetreived) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
 	const uint64_t start_time = 1;
 
-	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
-	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+	engine::TimelineID id = timeline_system.start_timeline(TIMELINE_KEY, start_time, length);
+	engine::Timeline timeline = timeline_system.timelines(TIMELINE_KEY).back();
 
-	EXPECT_EQ(animation.id.value, id.value);
-	EXPECT_EQ(animation.id.key, id.key);
-	EXPECT_EQ(animation.start, start_time);
-	EXPECT_EQ(animation.length, animation_length);
-	EXPECT_EQ(animation.repeats, true);
+	EXPECT_EQ(timeline.id.value, id.value);
+	EXPECT_EQ(timeline.id.key, id.key);
+	EXPECT_EQ(timeline.start, start_time);
+	EXPECT_EQ(timeline.length, length);
+	EXPECT_EQ(timeline.repeats, true);
 }
 
-TEST(AnimationTests, StoppedAnimation_BecomesRemoved) {
-	engine::AnimationSystem animation_system;
-	const uint64_t animation_length = 10;
+TEST(TimelineTests, StoppedTimeline_BecomesRemoved) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
 	const uint64_t start_time = 1;
 
-	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
-	animation_system.stop_animation(id);
+	engine::TimelineID id = timeline_system.start_timeline(TIMELINE_KEY, start_time, length);
+	timeline_system.stop_timeline(id);
 
-	EXPECT_TRUE(animation_system.animations(ANIMATION_KEY).empty());
+	EXPECT_TRUE(timeline_system.timelines(TIMELINE_KEY).empty());
 }
 
-TEST(AnimationTests, StartedAnimation_GlobalTimeLessThanStartTime_AnimationNotPlaying) {
-	engine::AnimationSystem animation_system;
-	const uint64_t animation_length = 10;
+TEST(TimelineTests, StartedTimeline_GlobalTimeLessThanStartTime_TimelineNotActive) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
 	const uint64_t start_time = 3;
 	const uint64_t global_time = 2;
 
-	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
-	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+	engine::TimelineID id = timeline_system.start_timeline(TIMELINE_KEY, start_time, length);
+	engine::Timeline timeline = timeline_system.timelines(TIMELINE_KEY).back();
 
 	ASSERT_TRUE(global_time < start_time);
-	EXPECT_FALSE(animation.is_playing(global_time));
+	EXPECT_FALSE(timeline.is_active(global_time));
 }
 
-TEST(AnimationTests, StartedAnimation_AnimationHalfWayDone_LocalTime05) {
-	engine::AnimationSystem animation_system;
-	const uint64_t animation_length = 10;
+TEST(TimelineTests, StartedTimeline_TimelineHalfWayDone_LocalTime05) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
 	const uint64_t start_time = 0;
-	const uint64_t global_time = start_time + animation_length / 2;
+	const uint64_t global_time = start_time + length / 2;
 
-	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
-	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+	engine::TimelineID id = timeline_system.start_timeline(TIMELINE_KEY, start_time, length);
+	engine::Timeline timeline = timeline_system.timelines(TIMELINE_KEY).back();
 
-	EXPECT_EQ(animation.local_time(global_time), 0.5f);
+	EXPECT_EQ(timeline.local_time(global_time), 0.5f);
 }
 
-TEST(AnimationTests, RepeatingAnimation_GlobalTimeEqualsStartTime_AnimationIsPlaying) {
-	engine::AnimationSystem animation_system;
-	const uint64_t animation_length = 10;
+TEST(TimelineTests, RepeatingTimeline_GlobalTimeEqualsStartTime_TimelineIsActive) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
 	const uint64_t start_time = 3;
 	const uint64_t global_time = 3;
 
-	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
-	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+	engine::TimelineID id = timeline_system.start_timeline(TIMELINE_KEY, start_time, length);
+	engine::Timeline timeline = timeline_system.timelines(TIMELINE_KEY).back();
 
 	ASSERT_TRUE(global_time == start_time);
-	EXPECT_TRUE(animation.is_playing(global_time));
+	EXPECT_TRUE(timeline.is_active(global_time));
 }
 
-TEST(AnimationTests, RepeatingAnimation_GlobalTimePastEndTime_AnimationStillPlaying) {
-	engine::AnimationSystem animation_system;
-	const uint64_t animation_length = 10;
+TEST(TimelineTests, RepeatingTimeline_GlobalTimePastEndTime_TimelineStillActive) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
 	const uint64_t start_time = 3;
-	const uint64_t global_time = start_time + animation_length;
+	const uint64_t global_time = start_time + length;
 
-	engine::AnimationID id = animation_system.start_animation(ANIMATION_KEY, animation_length, start_time);
-	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+	engine::TimelineID id = timeline_system.start_timeline(TIMELINE_KEY, start_time, length);
+	engine::Timeline timeline = timeline_system.timelines(TIMELINE_KEY).back();
 
 	ASSERT_TRUE(global_time > start_time);
-	EXPECT_TRUE(animation.is_playing(global_time));
+	EXPECT_TRUE(timeline.is_active(global_time));
 }
 
-TEST(AnimationTests, SingleShotAnimation_GlobalTimeEqualsStartTime_AnimationIsPlaying) {
-	engine::AnimationSystem animation_system;
-	const uint64_t animation_length = 10;
+TEST(TimelineTests, OneShotTimeline_GlobalTimeEqualsStartTime_TimelineIsActive) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
 	const uint64_t start_time = 3;
 	const uint64_t global_time = 3;
 
-	engine::AnimationID id = animation_system.start_single_shot_animation(ANIMATION_KEY, animation_length, start_time);
-	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+	engine::TimelineID id = timeline_system.start_one_shot_timeline(TIMELINE_KEY, start_time, length);
+	engine::Timeline timeline = timeline_system.timelines(TIMELINE_KEY).back();
 
 	ASSERT_TRUE(global_time == start_time);
-	EXPECT_TRUE(animation.is_playing(global_time));
+	EXPECT_TRUE(timeline.is_active(global_time));
 }
 
-TEST(AnimationTests, SingleShotAnimation_GlobalTimePastEndTime_AnimationStopped) {
-	engine::AnimationSystem animation_system;
-	const uint64_t animation_length = 10;
+TEST(TimelineTests, OneShotTimeline_GlobalTimePastEndTime_TimelineStopped) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
 	const uint64_t start_time = 3;
-	const uint64_t global_time = start_time + animation_length;
+	const uint64_t global_time = start_time + length;
 
-	engine::AnimationID id = animation_system.start_single_shot_animation(ANIMATION_KEY, animation_length, start_time);
-	engine::Animation animation = animation_system.animations(ANIMATION_KEY).back();
+	engine::TimelineID id = timeline_system.start_one_shot_timeline(TIMELINE_KEY, start_time, length);
+	engine::Timeline timeline = timeline_system.timelines(TIMELINE_KEY).back();
 
 	ASSERT_TRUE(global_time > start_time);
-	EXPECT_FALSE(animation.is_playing(global_time));
+	EXPECT_FALSE(timeline.is_active(global_time));
 }
 
-TEST(AnimationTests, SingleShotAnimation_GlobalTimePastEndTime_CanBeClearedOut) {
-	engine::AnimationSystem animation_system;
-	const uint64_t animation_length = 10;
+TEST(TimelineTests, OneShotTimeline_GlobalTimePastEndTime_CanBeClearedOut) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
 	const uint64_t start_time = 3;
-	const uint64_t global_time = start_time + animation_length + 1;
+	const uint64_t global_time = start_time + length + 1;
 
-	engine::AnimationID id = animation_system.start_single_shot_animation(ANIMATION_KEY, animation_length, start_time);
-	animation_system.clear_old_animations(global_time);
-	std::optional<engine::Animation> animation = animation_system.most_recent_animation(ANIMATION_KEY);
+	engine::TimelineID id = timeline_system.start_one_shot_timeline(TIMELINE_KEY, start_time, length);
+	timeline_system.remove_expired_timelines(global_time);
+	std::optional<engine::Timeline> timeline = timeline_system.most_recent_timeline(TIMELINE_KEY);
 
-	ASSERT_TRUE(global_time > start_time + animation_length);
-	EXPECT_FALSE(animation.has_value());
+	ASSERT_TRUE(global_time > start_time + length);
+	EXPECT_FALSE(timeline.has_value());
 }
