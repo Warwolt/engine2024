@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <engine/system/animation.h>
+#include <engine/system/timeline_system.h>
 
 constexpr const char ANIMATION_KEY[] = "animation-key";
 

@@ -73,7 +73,7 @@ set(ENGINE_SRC
     src/engine/engine.cpp
     src/engine/state/scene_graph.cpp
     src/engine/state/project_state.cpp
-    src/engine/system/animation.cpp
+    src/engine/system/timeline_system.cpp
     src/engine/system/hot_reloading.cpp
     src/engine/system/text_system.cpp
 )
@@ -105,7 +105,7 @@ set(TEST_SRC
     test/core/rect_tests.cpp
     test/core/signal_tests.cpp
     test/core/tagged_variant_tests.cpp
-    test/engine/animation_tests.cpp
+    test/engine/timeline_system_tests.cpp
     test/libs/kpeeters/tree_tests.cpp
     test/platform/imwin32_tests.cpp
     test/platform/keyboard_tests.cpp
