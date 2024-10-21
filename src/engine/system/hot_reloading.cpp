@@ -34,7 +34,7 @@ namespace engine {
 		/* Update */
 		if (library_rebuild_just_started) {
 			constexpr uint64_t period_ms = 2000;
-			hot_reloading->animation_timeline_id = timeline_system->add_repeating_timeline("loading_window_title", period_ms, global_time_ms);
+			hot_reloading->animation_timeline_id = timeline_system->add_repeating_timeline("loading_window_title", global_time_ms, period_ms);
 		}
 
 		if (library_rebuild_just_stopped) {
