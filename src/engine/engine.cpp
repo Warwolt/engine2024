@@ -133,7 +133,7 @@ namespace engine {
 		/* Modules */
 		{
 			std::string window_title = m_project.name;
-			update_hot_reloading(&m_hot_reloading, &m_systems.animation, input, platform, &window_title);
+			update_hot_reloading(&m_hot_reloading, &m_systems.timeline, input, platform, &window_title);
 			platform->set_window_title(window_title.c_str());
 		}
 	}
