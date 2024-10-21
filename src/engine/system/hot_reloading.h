@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/system/animation.h>
+#include <engine/system/timeline_system.h>
 
 #include <string>
 
@@ -11,16 +11,16 @@ namespace platform {
 
 namespace engine {
 
-	class AnimationSystem;
+	class TimelineSystem;
 	class Engine;
 
 	struct HotReloadingState {
-		AnimationID title_animation_id;
+		TimelineID animation_timeline_id;
 	};
 
 	void update_hot_reloading(
 		HotReloadingState* hot_reloading,
-		AnimationSystem* animation_system,
+		TimelineSystem* timeline_system,
 		const platform::Input& input,
 		platform::PlatformAPI* platform,
 		std::string* window_title

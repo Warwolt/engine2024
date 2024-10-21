@@ -3,9 +3,9 @@
 #include <core/container/ring_buffer.h>
 #include <engine/state/project_state.h>
 #include <engine/state/scene_graph.h>
-#include <engine/system/animation.h>
 #include <engine/system/hot_reloading.h>
 #include <engine/system/text_system.h>
+#include <engine/system/timeline_system.h>
 #include <platform/graphics/font.h>
 #include <platform/graphics/renderer.h>
 #include <platform/input/input.h>
@@ -37,7 +37,7 @@ namespace engine {
 
 	// TODO: move this out into its own header
 	struct Systems {
-		AnimationSystem animation;
+		TimelineSystem timeline;
 		TextSystem text;
 
 		void reset() {
