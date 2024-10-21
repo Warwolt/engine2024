@@ -259,15 +259,16 @@ static void render_script(
 
 	glm::vec2 window_center = input.window_resolution / 2.0f;
 	glm::vec2 image_size = center_texture.size * 2.0f;
+	glm::vec2 small_image_size = image_size * 7.0f / 8.0f;
 	glm::vec2 text_pos = window_center + glm::vec2 { 0.0f, image_size.y / 2.0f + 16.0f + 30.0f };
 	core::Rect center_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
-	core::Rect top_left_quad = center_quad - glm::vec2 { image_size.x * 1.0 / 2.0f, image_size.y / 6.0f };
-	core::Rect top_right_quad = center_quad - glm::vec2 { -image_size.x * 1.0 / 2.0f, image_size.y / 6.0f };
+	core::Rect top_left_quad = core::Rect::with_center_and_size(window_center - glm::vec2 { image_size.x / 2.0f, 0.0f }, small_image_size);
+	core::Rect top_right_quad = core::Rect::with_center_and_size(window_center - glm::vec2 { -image_size.x / 2.0f, 0.0f }, small_image_size);
 
 	renderer->draw_texture_with_color(top_left_texture, top_left_quad, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f });
 	renderer->draw_texture_with_color(top_right_texture, top_right_quad, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f });
 	renderer->draw_texture_with_color(center_texture, center_quad, glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
-	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), center_caption, text_pos, { 1.0f, 1.0f, 1.0f, 0.5f });
+	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), center_caption, text_pos, { 1.0f, 1.0f, 1.0f, 1.0f });
 }
 
 int main(int argc, char** argv) {
