@@ -252,23 +252,39 @@ static void render_script(
 ) {
 	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::rgba(74, 57, 32, 255)); // clear
 
+	int left_index = (3 + g_index + 1) % 3;
+	int right_index = (3 + g_index - 1) % 3;
 	const platform::Texture& center_texture = resource_manager.textures().at(g_texture_ids[g_index]);
-	const platform::Texture& top_left_texture = resource_manager.textures().at(g_texture_ids[(3 + g_index + 1) % 3]);
-	const platform::Texture& top_right_texture = resource_manager.textures().at(g_texture_ids[(3 + g_index - 1) % 3]);
+	const platform::Texture& left_texture = resource_manager.textures().at(g_texture_ids[left_index]);
+	const platform::Texture& right_texture = resource_manager.textures().at(g_texture_ids[right_index]);
 	const std::string& center_caption = g_captions[g_index];
+	const std::string& left_caption = g_captions[left_index];
+	const std::string& right_caption = g_captions[right_index];
 
 	glm::vec2 window_center = input.window_resolution / 2.0f;
 	glm::vec2 image_size = center_texture.size * 2.0f;
 	glm::vec2 small_image_size = image_size * 7.0f / 8.0f;
-	glm::vec2 text_pos = window_center + glm::vec2 { 0.0f, image_size.y / 2.0f + 16.0f + 30.0f };
-	core::Rect center_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
-	core::Rect top_left_quad = core::Rect::with_center_and_size(window_center - glm::vec2 { image_size.x / 2.0f, 0.0f }, small_image_size);
-	core::Rect top_right_quad = core::Rect::with_center_and_size(window_center - glm::vec2 { -image_size.x / 2.0f, 0.0f }, small_image_size);
+	core::Rect center_quad = core::Rect::with_center_and_size(window_center, image_size);
+	core::Rect left_quad = core::Rect::with_center_and_size(window_center - glm::vec2 { image_size.x / 2.0f, 0.0f }, small_image_size);
+	core::Rect right_quad = core::Rect::with_center_and_size(window_center - glm::vec2 { -image_size.x / 2.0f, 0.0f }, small_image_size);
 
-	renderer->draw_texture_with_color(top_left_texture, top_left_quad, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f });
-	renderer->draw_texture_with_color(top_right_texture, top_right_quad, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f });
+	glm::vec2 relative_text_pos = glm::vec2 { 0.0f, image_size.y / 2.0f + 60.0f };
+	glm::vec2 small_relative_text_pos = glm::vec2 { 0.0f, small_image_size.y / 2.0f + 70.0f };
+	glm::vec2 center_text_pos = center_quad.center() + relative_text_pos;
+	glm::vec2 left_text_pos = left_quad.center() + small_relative_text_pos;
+	glm::vec2 right_text_pos = right_quad.center() + small_relative_text_pos;
+
+	glm::vec4 bg_text_color = { 1.0f, 1.0f, 1.0f, 0.6f };
+	glm::vec4 fg_text_color = { 1.0f, 1.0f, 1.0f, 0.9f };
+
+	renderer->draw_texture_with_color(left_texture, left_quad, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f });
+	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), left_caption, left_text_pos, bg_text_color);
+
+	renderer->draw_texture_with_color(right_texture, right_quad, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f });
+	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), right_caption, right_text_pos, bg_text_color);
+
 	renderer->draw_texture_with_color(center_texture, center_quad, glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
-	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), center_caption, text_pos, { 1.0f, 1.0f, 1.0f, 1.0f });
+	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), center_caption, center_text_pos, fg_text_color);
 }
 
 int main(int argc, char** argv) {

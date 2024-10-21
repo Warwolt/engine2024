@@ -21,6 +21,7 @@ namespace core {
 
 		glm::vec2 size() const;
 		glm::vec2 position() const;
+		glm::vec2 center() const;
 		glm::vec2 bottom_left() const;
 		glm::vec2 top_right() const;
 

@@ -35,6 +35,10 @@ namespace core {
 		return this->top_left;
 	}
 
+	glm::vec2 Rect::center() const {
+		return this->top_left + this->size() / 2.0f;
+	}
+
 	glm::vec2 Rect::bottom_left() const {
 		return glm::vec2 {
 			this->top_left.x,
