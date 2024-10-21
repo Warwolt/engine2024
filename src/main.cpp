@@ -401,31 +401,21 @@ int main(int argc, char** argv) {
 		library.load_engine_data(engine, path.string().c_str());
 	}
 
-	// Prototype loading a data blob, lazy deserializing the blob, updating
-	// data, serializing, writing to disk
+	// GOAL: Represent a scene on disk, so that we can then compose the game out
+	// of scenes and store the game on disk by storing its scenes.
 	//
-	// In a real project file, we should assume that we might have an unbounded
-	// number of assets, some which may be Very Large (meaning, they will take
-	// time to load).
+	// Each scene consists of a scene graph (node tree) and the resources that
+	// those nodes use.
 	//
-	// From an engine perspective and a script perspective we just want to be
-	// able to ask for some data, and then later getting it (thus allowing the
-	// loading to be async).
+	// To initialize a scene, we need all the resources loaded and to construct
+	// the scene graph.
 	//
-	// If we never ask for particular data, we should never pay the cost of
-	// loading it. Hence, the loading has to be lazy.
-	//
-	// So we have two requirements:
-	// - Lazily load data
-	// - Separate _accessing_ data from _loading_ it
-	// 		-> if data exists, get it from cache
-	//      -> if not exists, load it
-	//
-	// Test scenario: lazily load images
-	// - 3 images in zip file
-	// - render image in window
-	// - switch image with left/right keys on keboard
-	// - if image hasn't been loaded yet, load it into resource manager
+	// TODO:
+	// - [] Write a prototype scenario where resources are loaded from disk and a scene graph is construted.
+	// 		- [] Load the resources from disk
+	// 		- [] Load the resources from a .pak zip archive
+	// - [] Update a counter value, then serialize back to disk
+	// - (Probably some kind of scenario that includes resources stored both externally on disk and internally in the .pak)
 	if (0) {
 		/* Read */
 		platform::FileArchive archive;
