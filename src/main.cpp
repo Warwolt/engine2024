@@ -222,44 +222,54 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	return buffer;
 }
 
-// local vars
-std::string g_texture_ids[3] = {
-	"alice",
-	"bob",
-	"charlie",
+struct ScriptState {
+	std::string texture_ids[3];
+	std::string captions[3];
+	int index = 0;
 };
-std::string g_captions[3] = {
-	"Alice",
-	"Bob",
-	"Charlie",
-};
-int g_index = 0;
 
-static void run_script(const platform::Input& input) {
+static ScriptState init_script() {
+	return ScriptState {
+		.texture_ids = {
+			"alice",
+			"bob",
+			"charlie",
+		},
+		.captions = {
+			"Alice",
+			"Bob",
+			"Charlie",
+		},
+		.index = 0,
+	};
+}
+
+static void run_script(ScriptState* state, const platform::Input& input) {
 	// update image based on keyboard input
 	if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
-		g_index = (3 + g_index - 1) % 3;
+		state->index = (3 + state->index - 1) % 3;
 	}
 	if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
-		g_index = (3 + g_index + 1) % 3;
+		state->index = (3 + state->index + 1) % 3;
 	}
 }
 
 static void render_script(
 	platform::Renderer* renderer,
+	const ScriptState& state,
 	const platform::Input& input,
 	const platform::ResourceManager& resource_manager
 ) {
 	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::rgba(74, 57, 32, 255)); // clear
 
-	int left_index = (3 + g_index + 1) % 3;
-	int right_index = (3 + g_index - 1) % 3;
-	const platform::Texture& center_texture = resource_manager.textures().at(g_texture_ids[g_index]);
-	const platform::Texture& left_texture = resource_manager.textures().at(g_texture_ids[left_index]);
-	const platform::Texture& right_texture = resource_manager.textures().at(g_texture_ids[right_index]);
-	const std::string& center_caption = g_captions[g_index];
-	const std::string& left_caption = g_captions[left_index];
-	const std::string& right_caption = g_captions[right_index];
+	int left_index = (3 + state.index + 1) % 3;
+	int right_index = (3 + state.index - 1) % 3;
+	const platform::Texture& center_texture = resource_manager.textures().at(state.texture_ids[state.index]);
+	const platform::Texture& left_texture = resource_manager.textures().at(state.texture_ids[left_index]);
+	const platform::Texture& right_texture = resource_manager.textures().at(state.texture_ids[right_index]);
+	const std::string& center_caption = state.captions[state.index];
+	const std::string& left_caption = state.captions[left_index];
+	const std::string& right_caption = state.captions[right_index];
 
 	glm::vec2 window_center = input.window_resolution / 2.0f;
 	glm::vec2 image_size = center_texture.size * 2.0f;
@@ -439,6 +449,9 @@ int main(int argc, char** argv) {
 	// 		- [] Load the resources from a .pak zip archive
 	// - [] Update a counter value, then serialize back to disk
 	// - (Probably some kind of scenario that includes resources stored both externally on disk and internally in the .pak)
+
+	ScriptState script_state = init_script();
+
 	if (0) {
 		/* Read */
 		platform::FileArchive archive;
@@ -628,7 +641,7 @@ int main(int argc, char** argv) {
 				scene_has_loaded = load_scene_progress->is_done();
 
 				if (scene_has_loaded) {
-					run_script(input);
+					run_script(&script_state, input);
 				}
 			}
 
@@ -742,7 +755,7 @@ int main(int argc, char** argv) {
 				// PROTOTYPE RENDERING
 				{
 					if (scene_has_loaded) {
-						render_script(&renderer, input, resource_manager);
+						render_script(&renderer, script_state, input, resource_manager);
 					}
 					else {
 						// loading bar
