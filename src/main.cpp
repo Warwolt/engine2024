@@ -238,10 +238,10 @@ int g_index = 0;
 static void run_script(const platform::Input& input) {
 	// update image based on keyboard input
 	if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
-		g_index = std::clamp(g_index - 1, 0, 2);
+		g_index = (3 + g_index - 1) % 3;
 	}
 	if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
-		g_index = std::clamp(g_index + 1, 0, 2);
+		g_index = (3 + g_index + 1) % 3;
 	}
 }
 
@@ -254,15 +254,18 @@ static void render_script(
 
 	const platform::Texture& center_texture = resource_manager.textures().at(g_texture_ids[g_index]);
 	const platform::Texture& top_left_texture = resource_manager.textures().at(g_texture_ids[(3 + g_index + 1) % 3]);
+	const platform::Texture& top_right_texture = resource_manager.textures().at(g_texture_ids[(3 + g_index - 1) % 3]);
 	const std::string& center_caption = g_captions[g_index];
 
 	glm::vec2 window_center = input.window_resolution / 2.0f;
 	glm::vec2 image_size = center_texture.size * 2.0f;
 	glm::vec2 text_pos = window_center + glm::vec2 { 0.0f, image_size.y / 2.0f + 16.0f + 30.0f };
 	core::Rect center_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
-	core::Rect top_left_quad = center_quad - glm::vec2 { image_size.x * 2.0 / 3.0f, image_size.y / 6.0f };
+	core::Rect top_left_quad = center_quad - glm::vec2 { image_size.x * 1.0 / 2.0f, image_size.y / 6.0f };
+	core::Rect top_right_quad = center_quad - glm::vec2 { -image_size.x * 1.0 / 2.0f, image_size.y / 6.0f };
 
 	renderer->draw_texture_with_color(top_left_texture, top_left_quad, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f });
+	renderer->draw_texture_with_color(top_right_texture, top_right_quad, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f });
 	renderer->draw_texture_with_color(center_texture, center_quad, glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
 	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), center_caption, text_pos, { 1.0f, 1.0f, 1.0f, 0.5f });
 }
