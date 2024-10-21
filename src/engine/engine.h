@@ -37,7 +37,7 @@ namespace engine {
 
 	// TODO: move this out into its own header
 	struct Systems {
-		TimelineSystem animation;
+		TimelineSystem timeline;
 		TextSystem text;
 
 		void reset() {

@@ -15,12 +15,12 @@ namespace engine {
 	class Engine;
 
 	struct HotReloadingState {
-		TimelineID title_animation_id;
+		TimelineID animation_timeline_id;
 	};
 
 	void update_hot_reloading(
 		HotReloadingState* hot_reloading,
-		TimelineSystem* animation_system,
+		TimelineSystem* timeline_system,
 		const platform::Input& input,
 		platform::PlatformAPI* platform,
 		std::string* window_title

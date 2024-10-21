@@ -20,7 +20,7 @@ namespace engine {
 
 	void update_hot_reloading(
 		HotReloadingState* hot_reloading,
-		TimelineSystem* animation_system,
+		TimelineSystem* timeline_system,
 		const platform::Input& input,
 		platform::PlatformAPI* platform,
 		std::string* window_title
@@ -34,11 +34,11 @@ namespace engine {
 		/* Update */
 		if (library_rebuild_just_started) {
 			constexpr uint64_t period_ms = 2000;
-			hot_reloading->title_animation_id = animation_system->start_timeline("loading_window_title", period_ms, global_time_ms);
+			hot_reloading->animation_timeline_id = timeline_system->add_repeating_timeline("loading_window_title", period_ms, global_time_ms);
 		}
 
 		if (library_rebuild_just_stopped) {
-			animation_system->stop_timeline(hot_reloading->title_animation_id);
+			timeline_system->remove_timeline(hot_reloading->animation_timeline_id);
 		}
 
 		if (hot_reload_key_pressed) {
@@ -46,9 +46,9 @@ namespace engine {
 		}
 
 		/* Animate title while loading */
-		if (std::optional<Timeline> animation = animation_system->most_recent_timeline("loading_window_title")) {
-			if (animation->is_active(global_time_ms)) {
-				loading_window_title_animation(animation->local_time(global_time_ms), window_title);
+		if (std::optional<Timeline> timeline = timeline_system->most_recent_timeline("loading_window_title")) {
+			if (timeline->is_active(global_time_ms)) {
+				loading_window_title_animation(timeline->local_time(global_time_ms), window_title);
 			}
 		}
 

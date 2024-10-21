@@ -30,9 +30,9 @@ namespace engine {
 		const std::vector<Timeline>& timelines(TimelineKey key) const;
 		std::optional<Timeline> most_recent_timeline(TimelineKey key) const;
 
-		TimelineID start_timeline(TimelineKey key, uint64_t start_time, uint64_t length);
-		TimelineID start_one_shot_timeline(TimelineKey key, uint64_t start_time, uint64_t length);
-		void stop_timeline(TimelineID id);
+		TimelineID add_repeating_timeline(TimelineKey key, uint64_t start_time, uint64_t length);
+		TimelineID add_one_shot_timeline(TimelineKey key, uint64_t start_time, uint64_t length);
+		void remove_timeline(TimelineID id);
 		void remove_expired_timelines(uint64_t global_time);
 
 	private:

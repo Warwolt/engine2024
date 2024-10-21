@@ -24,18 +24,18 @@ namespace engine {
 		return timelines.empty() ? std::nullopt : std::make_optional(timelines.back());
 	}
 
-	TimelineID TimelineSystem::start_timeline(TimelineKey key, uint64_t start_time, uint64_t length) {
+	TimelineID TimelineSystem::add_repeating_timeline(TimelineKey key, uint64_t start_time, uint64_t length) {
 		return _start_timeline(key, length, start_time, true);
 	}
 
-	TimelineID TimelineSystem::start_one_shot_timeline(TimelineKey key, uint64_t start_time, uint64_t length) {
+	TimelineID TimelineSystem::add_one_shot_timeline(TimelineKey key, uint64_t start_time, uint64_t length) {
 		return _start_timeline(key, length, start_time, false);
 	}
 
 	void TimelineSystem::remove_expired_timelines(uint64_t global_time) {
 		for (auto& [key, timelines] : m_timelines) {
-			std::erase_if(timelines, [global_time](const Timeline& animation) {
-				return !animation.repeats && global_time > animation.start + animation.length;
+			std::erase_if(timelines, [global_time](const Timeline& timeline) {
+				return !timeline.repeats && global_time > timeline.start + timeline.length;
 			});
 		}
 	}
@@ -54,9 +54,9 @@ namespace engine {
 		return id;
 	}
 
-	void TimelineSystem::stop_timeline(TimelineID id) {
-		std::erase_if(m_timelines[id.key], [id_value = id.value](const Timeline& animation) {
-			return animation.id.value == id_value;
+	void TimelineSystem::remove_timeline(TimelineID id) {
+		std::erase_if(m_timelines[id.key], [id_value = id.value](const Timeline& timeline) {
+			return timeline.id.value == id_value;
 		});
 	}
 
