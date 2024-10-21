@@ -250,18 +250,21 @@ static void render_script(
 	const platform::Input& input,
 	const platform::ResourceManager& resource_manager
 ) {
-	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::black); // clear
+	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::rgba(74, 57, 32, 255)); // clear
 
-	const platform::Texture& texture = resource_manager.textures().at(g_texture_ids[g_index]);
-	const std::string& caption = g_captions[g_index];
+	const platform::Texture& center_texture = resource_manager.textures().at(g_texture_ids[g_index]);
+	const platform::Texture& top_left_texture = resource_manager.textures().at(g_texture_ids[(3 + g_index + 1) % 3]);
+	const std::string& center_caption = g_captions[g_index];
 
 	glm::vec2 window_center = input.window_resolution / 2.0f;
-	glm::vec2 image_size = texture.size * 2.0f;
+	glm::vec2 image_size = center_texture.size * 2.0f;
 	glm::vec2 text_pos = window_center + glm::vec2 { 0.0f, image_size.y / 2.0f + 16.0f + 30.0f };
-	core::Rect texture_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
+	core::Rect center_quad = core::Rect { { 0.0f, 0.0f }, image_size } + window_center - image_size / 2.0f;
+	core::Rect top_left_quad = center_quad - glm::vec2 { image_size.x * 2.0 / 3.0f, image_size.y / 6.0f };
 
-	renderer->draw_texture(texture, texture_quad);
-	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), caption, text_pos, platform::Color::white);
+	renderer->draw_texture_with_color(top_left_texture, top_left_quad, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f });
+	renderer->draw_texture_with_color(center_texture, center_quad, glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
+	renderer->draw_text_centered(resource_manager.fonts().at("arial16"), center_caption, text_pos, { 1.0f, 1.0f, 1.0f, 0.5f });
 }
 
 int main(int argc, char** argv) {
