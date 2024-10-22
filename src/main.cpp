@@ -40,6 +40,7 @@
 // prototyping
 #include <core/container/vector_map.h>
 #include <core/future.h>
+#include <core/lerp.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/compatibility.hpp> // lerp
 #include <nlohmann/json.hpp>
@@ -227,29 +228,10 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	return buffer;
 }
 
-template <typename T>
-struct Lerped {
-	T current;
-	T start;
-	T end;
-
-	Lerped() = default;
-	Lerped(const T& value)
-		: current(value)
-		, start(value)
-		, end(T()) {
-	}
-
-	void set_target(const T& target) {
-		this->start = this->current;
-		this->end = target;
-	}
-};
-
 struct ScriptState {
 	std::string texture_ids[3];
 	std::string captions[3];
-	Lerped<glm::vec2> positions[3]; // relative center of screen
+	core::Lerped<glm::vec2> positions[3]; // relative center of screen
 	glm::vec2 target_positions[3];
 	engine::TimelineID timelines[3];
 	int index = 0;
@@ -304,7 +286,8 @@ static void run_script(
 		state->timelines[1] = timeline_system->add_one_shot_timeline(input.global_time_ms, 500);
 	}
 
-	state->positions[1].current = glm::lerp(state->positions[1].start, state->positions[1].end, timeline_system->local_time(state->timelines[1], input.global_time_ms));
+	float local_time = timeline_system->local_time(state->timelines[1], input.global_time_ms);
+	state->positions[1].current = glm::lerp(state->positions[1].start, state->positions[1].end, local_time);
 }
 
 static void render_script(
