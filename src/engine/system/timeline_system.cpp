@@ -6,58 +6,70 @@ namespace engine {
 		if (this->repeats) {
 			return this->start <= global_time;
 		}
-		else {
-			return this->start <= global_time && global_time < (this->start + this->length);
+		return this->start <= global_time && global_time < (this->start + this->length);
+	}
+
+	bool Timeline::is_expired(uint64_t global_time) const {
+		if (this->repeats) {
+			return false;
 		}
+		return global_time >= (this->start + this->length);
 	}
 
 	float Timeline::local_time(uint64_t global_time) const {
-		return (float)((global_time - this->start) % this->length) / (float)this->length;
+		if (this->is_active(global_time)) {
+			// shift global time to local timeline origin, then normalize
+			return (float)((global_time - this->start) % this->length) / (float)this->length;
+		}
+		if (this->is_expired(global_time)) {
+			return 1.0f;
+		}
+		return 0.0f;
 	}
 
-	const std::vector<Timeline>& TimelineSystem::timelines(TimelineKey key) const {
-		return m_timelines.contains(key) ? m_timelines.at(key) : m_empty_timeline;
+	std::optional<Timeline> TimelineSystem::timeline(TimelineID id) const {
+		if (auto it = m_timelines.find(id); it != m_timelines.end()) {
+			return it->second;
+		}
+		return std::nullopt;
 	}
 
-	std::optional<Timeline> TimelineSystem::most_recent_timeline(TimelineKey key) const {
-		const std::vector<Timeline>& timelines = this->timelines(key);
-		return timelines.empty() ? std::nullopt : std::make_optional(timelines.back());
+	TimelineID TimelineSystem::add_repeating_timeline(uint64_t start_time, uint64_t length) {
+		return _start_timeline(length, start_time, true);
 	}
 
-	TimelineID TimelineSystem::add_repeating_timeline(TimelineKey key, uint64_t start_time, uint64_t length) {
-		return _start_timeline(key, length, start_time, true);
-	}
-
-	TimelineID TimelineSystem::add_one_shot_timeline(TimelineKey key, uint64_t start_time, uint64_t length) {
-		return _start_timeline(key, length, start_time, false);
+	TimelineID TimelineSystem::add_one_shot_timeline(uint64_t start_time, uint64_t length) {
+		return _start_timeline(length, start_time, false);
 	}
 
 	void TimelineSystem::remove_expired_timelines(uint64_t global_time) {
-		for (auto& [key, timelines] : m_timelines) {
-			std::erase_if(timelines, [global_time](const Timeline& timeline) {
-				return !timeline.repeats && global_time > timeline.start + timeline.length;
-			});
+		for (auto it = m_timelines.begin(); it != m_timelines.end();) {
+			auto& [id, timeline] = *it;
+			if (timeline.is_expired(global_time)) {
+				it = m_timelines.erase(it);
+			}
+			else {
+				it++;
+			}
 		}
 	}
 
-	TimelineID TimelineSystem::_start_timeline(TimelineKey key, uint64_t length, uint64_t start_time, bool repeats) {
-		static int id_value;
-		TimelineID id = { .key = key, .value = ++id_value };
-		m_timelines[key].push_back(
+	TimelineID TimelineSystem::_start_timeline(uint64_t length, uint64_t start_time, bool repeats) {
+		static int id_value = 0;
+		TimelineID id = TimelineID { ++id_value };
+		m_timelines.insert({
+			id,
 			Timeline {
-				.id = id,
 				.start = start_time,
 				.length = length,
 				.repeats = repeats,
-			}
-		);
+			},
+		});
 		return id;
 	}
 
 	void TimelineSystem::remove_timeline(TimelineID id) {
-		std::erase_if(m_timelines[id.key], [id_value = id.value](const Timeline& timeline) {
-			return timeline.id.value == id_value;
-		});
+		m_timelines.erase(id);
 	}
 
 } // namespace engine

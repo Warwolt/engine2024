@@ -34,7 +34,7 @@ namespace engine {
 		/* Update */
 		if (library_rebuild_just_started) {
 			constexpr uint64_t period_ms = 2000;
-			hot_reloading->animation_timeline_id = timeline_system->add_repeating_timeline("loading_window_title", global_time_ms, period_ms);
+			hot_reloading->animation_timeline_id = timeline_system->add_repeating_timeline(global_time_ms, period_ms);
 		}
 
 		if (library_rebuild_just_stopped) {
@@ -46,7 +46,7 @@ namespace engine {
 		}
 
 		/* Animate title while loading */
-		if (std::optional<Timeline> timeline = timeline_system->most_recent_timeline("loading_window_title")) {
+		if (std::optional<Timeline> timeline = timeline_system->timeline(hot_reloading->animation_timeline_id)) {
 			if (timeline->is_active(global_time_ms)) {
 				loading_window_title_animation(timeline->local_time(global_time_ms), window_title);
 			}
