@@ -38,7 +38,7 @@
 #include <fstream>
 
 // prototyping
-#include <core/container/vec_map.h>
+#include <core/container/vector_map.h>
 #include <core/future.h>
 #include <engine/system/timeline_system.h>
 #include <nlohmann/json.hpp>
@@ -228,6 +228,7 @@ struct ScriptState {
 	std::string captions[3];
 	glm::vec2 positions[3]; // relative center of screen
 	glm::vec2 target_positions[3];
+	engine::TimelineID timelines[3];
 	int index = 0;
 };
 

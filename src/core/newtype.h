@@ -8,7 +8,8 @@ namespace core {
 	struct NewType {
 		T value = T();
 
-		NewType() = default;
+		NewType()
+			: value {} {}
 
 		NewType(const NewType& other)
 			: value(other.value) {
@@ -40,7 +41,8 @@ namespace core {
 
 #define DEFINE_NEWTYPE(name, type)                 \
 	struct name : public core::NewType<type> {     \
-		name() = default;                          \
+		name()                                     \
+			: NewType() {}                         \
 		constexpr explicit name(const type& value) \
 			: NewType(value) {                     \
 		}                                          \

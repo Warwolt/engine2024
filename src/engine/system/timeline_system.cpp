@@ -55,8 +55,8 @@ namespace engine {
 	}
 
 	TimelineID TimelineSystem::_start_timeline(uint64_t length, uint64_t start_time, bool repeats) {
-		static int id_value = 0;
-		TimelineID id = TimelineID { ++id_value };
+		static int id_value = INVALID_TIMELINE_ID.value;
+		TimelineID id = TimelineID { id_value++ };
 		m_timelines.insert({
 			id,
 			Timeline {

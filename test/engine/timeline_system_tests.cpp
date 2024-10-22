@@ -2,6 +2,24 @@
 
 #include <engine/system/timeline_system.h>
 
+TEST(TimelineTests, InvalidID_HasNoCorrespondingTimeline) {
+	engine::TimelineSystem timeline_system;
+	engine::TimelineID id = engine::INVALID_TIMELINE_ID;
+
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
+
+	EXPECT_FALSE(timeline.has_value());
+}
+
+TEST(TimelineTests, DefaultID_HasNoCorrespondingTimeline) {
+	engine::TimelineSystem timeline_system;
+	engine::TimelineID id = engine::TimelineID();
+
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
+
+	EXPECT_FALSE(timeline.has_value());
+}
+
 TEST(TimelineTests, StartedTimeline_CanLaterBeRetreived) {
 	engine::TimelineSystem timeline_system;
 	const uint64_t length = 10;

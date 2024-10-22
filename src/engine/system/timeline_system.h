@@ -8,6 +8,7 @@
 
 namespace engine {
 	DEFINE_NEWTYPE(TimelineID, int);
+	constexpr TimelineID INVALID_TIMELINE_ID = TimelineID(0);
 } // namespace engine
 DEFINE_NEWTYPE_HASH_IMPL(engine::TimelineID, int);
 
