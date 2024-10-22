@@ -40,6 +40,7 @@
 // prototyping
 #include <core/container/vec_map.h>
 #include <core/future.h>
+#include <engine/system/timeline_system.h>
 #include <nlohmann/json.hpp>
 #include <platform/file/resource_manager.h>
 #include <platform/file/zip.h>
@@ -253,7 +254,11 @@ static ScriptState init_script() {
 	};
 }
 
-static void run_script(ScriptState* state, const platform::Input& input) {
+static void run_script(
+	ScriptState* state,
+	engine::TimelineSystem* timeline_system,
+	const platform::Input& input
+) {
 	// TODO:
 	// - When pressing left / right, slide image to new position by interpolating with the help of a timeline
 
@@ -261,6 +266,7 @@ static void run_script(ScriptState* state, const platform::Input& input) {
 	if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
 		state->index = (3 + state->index - 1) % 3;
 		state->positions[1] = state->target_positions[state->index];
+		// timeline_system->add_one_shot_timeline("image1");
 	}
 	if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
 		state->index = (3 + state->index + 1) % 3;
@@ -473,6 +479,7 @@ int main(int argc, char** argv) {
 	// - [] Update a counter value, then serialize back to disk
 	// - (Probably some kind of scenario that includes resources stored both externally on disk and internally in the .pak)
 
+	engine::TimelineSystem timeline_system;
 	ScriptState script_state = init_script();
 
 	if (0) {
@@ -664,7 +671,7 @@ int main(int argc, char** argv) {
 				scene_has_loaded = load_scene_progress->is_done();
 
 				if (scene_has_loaded) {
-					run_script(&script_state, input);
+					run_script(&script_state, &timeline_system, input);
 				}
 			}
 
