@@ -40,11 +40,11 @@ namespace engine {
 		m_nodes.erase(text_id);
 	}
 
-	const core::VecMap<TextID, TextNode>& TextSystem::text_nodes() const {
+	const core::vector_map<TextID, TextNode>& TextSystem::text_nodes() const {
 		return m_nodes;
 	}
 
-	const core::VecMap<FontID, platform::Font>& TextSystem::fonts() const {
+	const core::vector_map<FontID, platform::Font>& TextSystem::fonts() const {
 		return m_fonts;
 	}
 
