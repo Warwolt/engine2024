@@ -233,6 +233,13 @@ struct Lerped {
 	T start;
 	T end;
 
+	Lerped() = default;
+	Lerped(const T& value)
+		: current(value)
+		, start(value)
+		, end(T()) {
+	}
+
 	void set_target(const T& target) {
 		this->start = this->current;
 		this->end = target;
@@ -250,6 +257,11 @@ struct ScriptState {
 
 static ScriptState init_script() {
 	const glm::vec2 image_size = 2.0f * glm::vec2 { 128, 128 }; // hack variable
+	glm::vec2 target_positions[3] = {
+		glm::vec2 { -image_size.x / 2.0f, 0.0f },
+		glm::vec2 { 0.0f, 0.0f },
+		glm::vec2 { image_size.x / 2.0f, 0.0f },
+	};
 	return ScriptState {
 		.texture_ids = {
 			"alice",
@@ -261,11 +273,15 @@ static ScriptState init_script() {
 			"Bob",
 			"Charlie",
 		},
-		.positions = {},
+		.positions = {
+			target_positions[0],
+			target_positions[1],
+			target_positions[2],
+		},
 		.target_positions = {
-			glm::vec2 { -image_size.x / 2.0f, 0.0f },
-			glm::vec2 { 0.0f, 0.0f },
-			glm::vec2 { image_size.x / 2.0f, 0.0f },
+			target_positions[0],
+			target_positions[1],
+			target_positions[2],
 		},
 		.index = 1,
 	};
@@ -288,9 +304,7 @@ static void run_script(
 		state->timelines[1] = timeline_system->add_one_shot_timeline(input.global_time_ms, 500);
 	}
 
-	if (std::optional<engine::Timeline> timeline = timeline_system->timeline(state->timelines[1])) {
-		state->positions[1].current = glm::lerp(state->positions[1].start, state->positions[1].end, timeline->local_time(input.global_time_ms));
-	}
+	state->positions[1].current = glm::lerp(state->positions[1].start, state->positions[1].end, timeline_system->local_time(state->timelines[1], input.global_time_ms));
 }
 
 static void render_script(
