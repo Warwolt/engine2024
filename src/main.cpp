@@ -234,7 +234,7 @@ struct ScriptState {
 	glm::vec2 target_positions[3];
 	float target_scales[3];
 	engine::TimelineID timelines[3];
-	int index[3];
+	size_t index[3];
 };
 
 static ScriptState init_script() {
@@ -303,7 +303,7 @@ static void run_script(
 		if (any_pressed) {
 			state->positions[i].set_target(state->target_positions[state->index[i]]);
 			state->scales[i].set_target(state->target_scales[state->index[i]]);
-			state->timelines[i] = timeline_system->add_one_shot_timeline(input.global_time_ms, 500);
+			state->timelines[i] = timeline_system->add_one_shot_timeline(input.global_time_ms, 100);
 		}
 
 		float local_time = timeline_system->local_time(state->timelines[i], input.global_time_ms);
@@ -320,8 +320,13 @@ static void render_script(
 ) {
 	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::rgba(74, 57, 32, 255)); // clear
 
+	std::array<size_t, 3> sorted_indexes = { state.index[0], state.index[1], state.index[2] };
+	std::sort(sorted_indexes.begin(), sorted_indexes.end(), [&state](size_t i, size_t j) {
+		return state.scales[i].current < state.scales[j].current;
+	});
+
 	const glm::vec2 window_center = input.window_resolution / 2.0f;
-	for (size_t i = 0; i < 3; i++) {
+	for (size_t i : sorted_indexes) {
 		const platform::Texture& texture = resource_manager.textures().at(state.texture_ids[i]);
 		const glm::vec2 image_size = state.scales[i].current * texture.size * 2.0f;
 		core::Rect quad = core::Rect::with_center_and_size(window_center + state.positions[i].current, image_size);
