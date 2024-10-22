@@ -41,8 +41,6 @@
 #include <core/container/vector_map.h>
 #include <core/future.h>
 #include <core/lerp.h>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/compatibility.hpp> // lerp
 #include <nlohmann/json.hpp>
 #include <platform/file/resource_manager.h>
 #include <platform/file/zip.h>
@@ -287,7 +285,7 @@ static void run_script(
 	}
 
 	float local_time = timeline_system->local_time(state->timelines[1], input.global_time_ms);
-	state->positions[1].current = glm::lerp(state->positions[1].start, state->positions[1].end, local_time);
+	state->positions[1].current = core::lerp(state->positions[1].start, state->positions[1].end, local_time);
 }
 
 static void render_script(

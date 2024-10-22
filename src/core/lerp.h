@@ -22,4 +22,9 @@ namespace core {
 		}
 	};
 
+	template <typename T>
+	T lerp(T start, T end, float t) {
+		return start + (end - start) * t;
+	}
+
 } // namespace core
