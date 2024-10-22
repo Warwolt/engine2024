@@ -496,6 +496,7 @@ int main(int argc, char** argv) {
 	// the scene graph.
 	//
 	// TODO:
+	// - [] Implement the 3-image carousel as a scene graph and systems (Text and Image nodes + systems)
 	// - [] Write a prototype scenario where resources are loaded from disk and a scene graph is construted.
 	// 		- [] Load the resources from disk
 	// 		- [] Load the resources from a .pak zip archive
