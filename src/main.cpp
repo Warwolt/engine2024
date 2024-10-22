@@ -230,7 +230,9 @@ struct ScriptState {
 	std::string texture_ids[3];
 	std::string captions[3];
 	core::Lerped<glm::vec2> positions[3]; // relative center of screen
+	core::Lerped<float> scales[3];
 	glm::vec2 target_positions[3];
+	float target_scales[3];
 	engine::TimelineID timelines[3];
 	int index[3];
 };
@@ -241,6 +243,11 @@ static ScriptState init_script() {
 		glm::vec2 { -image_size.x / 2.0f, 0.0f },
 		glm::vec2 { 0.0f, 0.0f },
 		glm::vec2 { image_size.x / 2.0f, 0.0f },
+	};
+	float target_scales[3] = {
+		0.8f,
+		1.0f,
+		0.8f,
 	};
 	return ScriptState {
 		.texture_ids = {
@@ -258,10 +265,20 @@ static ScriptState init_script() {
 			target_positions[1],
 			target_positions[2],
 		},
+		.scales = {
+			target_scales[0],
+			target_scales[1],
+			target_scales[2],
+		},
 		.target_positions = {
 			target_positions[0],
 			target_positions[1],
 			target_positions[2],
+		},
+		.target_scales = {
+			target_scales[0],
+			target_scales[1],
+			target_scales[2],
 		},
 		.index = { 0, 1, 2 },
 	};
@@ -301,7 +318,7 @@ static void render_script(
 	const glm::vec2 window_center = input.window_resolution / 2.0f;
 	for (size_t i = 0; i < 3; i++) {
 		const platform::Texture& texture = resource_manager.textures().at(state.texture_ids[i]);
-		const glm::vec2 image_size = texture.size * 2.0f;
+		const glm::vec2 image_size = state.scales[i].current * texture.size * 2.0f;
 		core::Rect quad = core::Rect::with_center_and_size(window_center + state.positions[i].current, image_size);
 		renderer->draw_texture_with_color(texture, quad, glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
 	}
