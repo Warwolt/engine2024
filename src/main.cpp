@@ -226,29 +226,40 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	return buffer;
 }
 
+struct Image {
+	glm::vec2 position; // relative center of screen
+	float scale;
+};
+
 struct ScriptState {
 	std::string texture_ids[3];
 	std::string captions[3];
-	core::Lerped<glm::vec2> positions[3]; // relative center of screen
-	core::Lerped<float> scales[3];
-	glm::vec2 target_positions[3];
-	float target_scales[3];
+
+	core::Lerped<Image> images[3];
+	Image targets[3];
+
 	engine::TimelineID timelines[3];
 	size_t index[3];
 };
 
 static ScriptState init_script() {
 	const glm::vec2 image_size = 2.0f * glm::vec2 { 128, 128 }; // hack variable
-	glm::vec2 target_positions[3] = {
-		glm::vec2 { -image_size.x / 2.0f, 0.0f },
-		glm::vec2 { 0.0f, 0.0f },
-		glm::vec2 { image_size.x / 2.0f, 0.0f },
+
+	Image targets[3] = {
+		{
+			.position = glm::vec2 { -image_size.x / 2.0f, 0.0f },
+			.scale = 0.8f,
+		},
+		{
+			.position = glm::vec2 { 0.0f, 0.0f },
+			.scale = 1.0f,
+		},
+		{
+			.position = glm::vec2 { image_size.x / 2.0f, 0.0f },
+			.scale = 0.8f,
+		},
 	};
-	float target_scales[3] = {
-		0.8f,
-		1.0f,
-		0.8f,
-	};
+
 	return ScriptState {
 		.texture_ids = {
 			"alice",
@@ -260,25 +271,15 @@ static ScriptState init_script() {
 			"Bob",
 			"Charlie",
 		},
-		.positions = {
-			target_positions[0],
-			target_positions[1],
-			target_positions[2],
+		.images = {
+			targets[0],
+			targets[1],
+			targets[2],
 		},
-		.scales = {
-			target_scales[0],
-			target_scales[1],
-			target_scales[2],
-		},
-		.target_positions = {
-			target_positions[0],
-			target_positions[1],
-			target_positions[2],
-		},
-		.target_scales = {
-			target_scales[0],
-			target_scales[1],
-			target_scales[2],
+		.targets = {
+			targets[0],
+			targets[1],
+			targets[2],
 		},
 		.index = { 0, 1, 2 },
 	};
@@ -301,14 +302,16 @@ static void run_script(
 			state->index[i] = (3 + state->index[i] + 1) % 3;
 		}
 		if (any_pressed) {
-			state->positions[i].set_target(state->target_positions[state->index[i]]);
-			state->scales[i].set_target(state->target_scales[state->index[i]]);
+			state->images[i].set_target(Image {
+				.position = state->targets[state->index[i]].position,
+				.scale = state->targets[state->index[i]].scale,
+			});
 			state->timelines[i] = timeline_system->add_one_shot_timeline(input.global_time_ms, 250);
 		}
 
 		float local_time = timeline_system->local_time(state->timelines[i], input.global_time_ms);
-		state->positions[i].current = core::lerp(state->positions[i].start, state->positions[i].end, local_time);
-		state->scales[i].current = core::lerp(state->scales[i].start, state->scales[i].end, local_time);
+		state->images[i].current.position = core::lerp(state->images[i].start.position, state->images[i].end.position, local_time);
+		state->images[i].current.scale = core::lerp(state->images[i].start.scale, state->images[i].end.scale, local_time);
 	}
 }
 
@@ -322,15 +325,15 @@ static void render_script(
 
 	std::array<size_t, 3> sorted_indexes = { state.index[0], state.index[1], state.index[2] };
 	std::sort(sorted_indexes.begin(), sorted_indexes.end(), [&state](size_t i, size_t j) {
-		return state.scales[i].current < state.scales[j].current;
+		return state.images[i].current.scale < state.images[j].current.scale;
 	});
 
 	const glm::vec2 window_center = input.window_resolution / 2.0f;
 	for (size_t i : sorted_indexes) {
-		const float current_scale = state.scales[i].current;
+		const float current_scale = state.images[i].current.scale;
 		const platform::Texture& texture = resource_manager.textures().at(state.texture_ids[i]);
 		const glm::vec2 image_size = current_scale * texture.size * 2.0f;
-		core::Rect quad = core::Rect::with_center_and_size(window_center + state.positions[i].current, image_size);
+		core::Rect quad = core::Rect::with_center_and_size(window_center + state.images[i].current.position, image_size);
 		glm::vec4 color = { current_scale, current_scale, current_scale, 1.0f };
 		renderer->draw_texture_with_color(texture, quad, color);
 	}
