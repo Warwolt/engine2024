@@ -33,21 +33,19 @@ namespace platform {
 	};
 
 	struct ResourceLoadPayload {
-		size_t total_num_fonts = 0;
-		size_t total_num_images = 0;
-		size_t num_loaded_fonts = 0;
-		size_t num_loaded_images = 0;
+		size_t num_requested_fonts = 0;
+		size_t num_requested_images = 0;
 
 		core::vector_map<std::string, platform::Font> fonts;
 		core::vector_map<std::string, platform::Texture> textures;
 		std::vector<std::filesystem::path> invalid_paths;
 
 		size_t total_num_resources() const {
-			return total_num_fonts + total_num_images;
+			return num_requested_fonts + num_requested_images;
 		}
 
 		size_t num_loaded_resources() const {
-			return num_loaded_fonts + num_loaded_images;
+			return fonts.size() + textures.size();
 		}
 
 		bool is_done() const {

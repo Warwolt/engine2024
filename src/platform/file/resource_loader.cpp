@@ -42,8 +42,8 @@ namespace platform {
 
 	std::shared_ptr<const ResourceLoadPayload> ResourceLoader::load_manifest(const ResourceManifest& manifest) {
 		auto progress = std::make_shared<ResourceLoadPayload>(ResourceLoadPayload {
-			.total_num_fonts = manifest.fonts.size(),
-			.total_num_images = manifest.images.size(),
+			.num_requested_fonts = manifest.fonts.size(),
+			.num_requested_images = manifest.images.size(),
 		});
 
 		m_jobs.push_back(ResourceLoadJob {
@@ -84,7 +84,6 @@ namespace platform {
 			if (result.has_value()) {
 				const auto& [name, atlas] = result.value();
 				fonts->insert({ name, platform::create_font_from_atlas(gl_context, atlas) });
-				payload->num_loaded_fonts++;
 			}
 			else {
 				auto& [error_msg, invalid_path] = result.error();
@@ -105,7 +104,6 @@ namespace platform {
 				const auto& [name, image] = result.value();
 				platform::Texture texture = gl_context->add_texture(image.data.get(), image.width, image.height);
 				textures->insert({ name, texture });
-				payload->num_loaded_images++;
 			}
 			else {
 				auto& [error_msg, invalid_path] = result.error();
