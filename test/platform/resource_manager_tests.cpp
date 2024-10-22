@@ -8,17 +8,17 @@
 
 using namespace testing;
 
-TEST(ResourceManagerTests, InitiallyEmpty) {
-	platform::ResourceManager resource_manager;
+TEST(ResourceLoaderTests, InitiallyEmpty) {
+	platform::ResourceLoader resource_manager;
 
 	EXPECT_TRUE(resource_manager.fonts().empty());
 	EXPECT_TRUE(resource_manager.textures().empty());
 }
 
-TEST(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) {
+TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) {
 	testing::MockOpenGLContext gl_context_mock;
 	std::filesystem::path working_directory = std::filesystem::current_path();
-	platform::ResourceManager resource_manager;
+	platform::ResourceLoader resource_manager;
 	platform::ResourceManifest manifest = {
 		.fonts = { platform::FontDeclaration {
 			.name = "test_font",
@@ -42,9 +42,9 @@ TEST(ResourceManagerTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) 
 }
 
 // Doesn't run in CI
-TEST(ResourceManagerTests, DISABLED_LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
+TEST(ResourceLoaderTests, DISABLED_LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
 	testing::MockOpenGLContext gl_context_mock;
-	platform::ResourceManager resource_manager;
+	platform::ResourceLoader resource_manager;
 	platform::ResourceManifest manifest = {
 		.fonts = { platform::FontDeclaration {
 			.name = "test_font",

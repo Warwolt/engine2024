@@ -5,7 +5,7 @@
 
 namespace platform {
 
-	std::shared_ptr<const ResourceLoadProgress> ResourceManager::load_manifest(const ResourceManifest& manifest) {
+	std::shared_ptr<const ResourceLoadProgress> ResourceLoader::load_manifest(const ResourceManifest& manifest) {
 		auto progress = std::make_shared<ResourceLoadProgress>(ResourceLoadProgress {
 			.total_num_fonts = manifest.fonts.size(),
 			.total_num_images = manifest.images.size(),
@@ -20,22 +20,22 @@ namespace platform {
 		return progress;
 	}
 
-	void ResourceManager::update(platform::OpenGLContext* gl_context) {
+	void ResourceLoader::update(platform::OpenGLContext* gl_context) {
 		for (ResourceLoadJob& job : m_jobs) {
 			_process_fonts(&job.font_batch, &m_fonts, gl_context, job.progress.get());
 			_process_images(&job.image_batch, &m_textures, gl_context, job.progress.get());
 		}
 	}
 
-	const core::vector_map<std::string, platform::Font>& ResourceManager::fonts() const {
+	const core::vector_map<std::string, platform::Font>& ResourceLoader::fonts() const {
 		return m_fonts;
 	}
 
-	const core::vector_map<std::string, platform::Texture>& ResourceManager::textures() const {
+	const core::vector_map<std::string, platform::Texture>& ResourceLoader::textures() const {
 		return m_textures;
 	}
 
-	ResourceManager::LoadFontResult ResourceManager::_load_font(const FontDeclaration& font_decl) {
+	ResourceLoader::LoadFontResult ResourceLoader::_load_font(const FontDeclaration& font_decl) {
 		std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
 		if (font_face.has_value()) {
 			platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
@@ -53,7 +53,7 @@ namespace platform {
 		}
 	};
 
-	ResourceManager::LoadImageResult ResourceManager::_load_image(const ImageDeclaration& image_decl) {
+	ResourceLoader::LoadImageResult ResourceLoader::_load_image(const ImageDeclaration& image_decl) {
 		if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
 			return NamedImage { image_decl.name, std::move(image.value()) };
 		}
@@ -67,7 +67,7 @@ namespace platform {
 		}
 	};
 
-	void ResourceManager::_process_fonts(
+	void ResourceLoader::_process_fonts(
 		std::vector<std::future<LoadFontResult>>* font_batch,
 		core::vector_map<std::string, platform::Font>* fonts,
 		platform::OpenGLContext* gl_context,
@@ -87,7 +87,7 @@ namespace platform {
 		}
 	}
 
-	void ResourceManager::_process_images(
+	void ResourceLoader::_process_images(
 		std::vector<std::future<LoadImageResult>>* image_batch,
 		core::vector_map<std::string, platform::Texture>* textures,
 		platform::OpenGLContext* gl_context,

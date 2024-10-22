@@ -56,7 +56,7 @@ namespace platform {
 		}
 	};
 
-	class ResourceManager {
+	class ResourceLoader {
 	public:
 		std::shared_ptr<const ResourceLoadProgress> load_manifest(const ResourceManifest& manifest);
 		void update(platform::OpenGLContext* gl_context);
