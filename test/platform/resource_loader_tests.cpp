@@ -9,16 +9,16 @@
 using namespace testing;
 
 TEST(ResourceLoaderTests, InitiallyEmpty) {
-	platform::ResourceLoader resource_manager;
+	platform::ResourceLoader resource_loader;
 
-	EXPECT_TRUE(resource_manager.fonts().empty());
-	EXPECT_TRUE(resource_manager.textures().empty());
+	EXPECT_TRUE(resource_loader.fonts().empty());
+	EXPECT_TRUE(resource_loader.textures().empty());
 }
 
-TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) {
+TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoaded) {
 	testing::MockOpenGLContext gl_context_mock;
 	std::filesystem::path working_directory = std::filesystem::current_path();
-	platform::ResourceLoader resource_manager;
+	platform::ResourceLoader resource_loader;
 	platform::ResourceManifest manifest = {
 		.fonts = { platform::FontDeclaration {
 			.name = "test_font",
@@ -32,19 +32,19 @@ TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoadedIntoManager) {
 	};
 
 	EXPECT_CALL(gl_context_mock, add_texture).WillRepeatedly(Return(platform::Texture {}));
-	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_manager.load_manifest(manifest);
+	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_loader.load_manifest(manifest);
 	WAIT_FOR(progress->is_done(), std::chrono::seconds(1)) {
-		resource_manager.update(&gl_context_mock);
+		resource_loader.update(&gl_context_mock);
 	}
 
-	ASSERT_TRUE(resource_manager.fonts().contains("test_font"));
-	ASSERT_TRUE(resource_manager.textures().contains("test_image"));
+	ASSERT_TRUE(resource_loader.fonts().contains("test_font"));
+	ASSERT_TRUE(resource_loader.textures().contains("test_image"));
 }
 
 // Doesn't run in CI
-TEST(ResourceLoaderTests, DISABLED_LoadManifest_WithInvalidPaths_NotLoadedIntoManager) {
+TEST(ResourceLoaderTests, DISABLED_LoadManifest_WithInvalidPaths_GivesErrors) {
 	testing::MockOpenGLContext gl_context_mock;
-	platform::ResourceLoader resource_manager;
+	platform::ResourceLoader resource_loader;
 	platform::ResourceManifest manifest = {
 		.fonts = { platform::FontDeclaration {
 			.name = "test_font",
@@ -57,10 +57,10 @@ TEST(ResourceLoaderTests, DISABLED_LoadManifest_WithInvalidPaths_NotLoadedIntoMa
 		} }
 	};
 
-	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_manager.load_manifest(manifest);
+	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_loader.load_manifest(manifest);
 	WAIT_FOR(progress->invalid_paths.size() == 2, std::chrono::seconds(1)) {
 		fprintf(stderr, "update\n");
-		resource_manager.update(&gl_context_mock);
+		resource_loader.update(&gl_context_mock);
 	}
 
 	EXPECT_THAT(progress->invalid_paths, UnorderedElementsAre("bad_font_path.ttf", "bad_image_path.png"));
