@@ -37,6 +37,9 @@ namespace platform {
 		size_t total_num_images = 0;
 		size_t num_loaded_fonts = 0;
 		size_t num_loaded_images = 0;
+
+		core::vector_map<std::string, platform::Font> fonts;
+		core::vector_map<std::string, platform::Texture> textures;
 		std::vector<std::filesystem::path> invalid_paths;
 
 		size_t total_num_resources() const {
@@ -56,8 +59,26 @@ namespace platform {
 		}
 	};
 
+	struct ResourceLoadError {
+		std::string error_msg;
+		std::filesystem::path path;
+	};
+
+	class IResourceFileIO {
+	public:
+		virtual ~IResourceFileIO() {}
+		virtual std::expected<platform::FontAtlas, ResourceLoadError> load_font(std::filesystem::path font_path, uint8_t font_size) = 0;
+		virtual std::expected<platform::Image, ResourceLoadError> load_image(std::filesystem::path image_path) = 0;
+	};
+
+	class ResourceFileIO {
+		// TODO implement
+	};
+
 	class ResourceLoader {
 	public:
+		ResourceLoader(IResourceFileIO* file_io);
+
 		std::shared_ptr<const ResourceLoadProgress> load_manifest(const ResourceManifest& manifest);
 		void update(platform::OpenGLContext* gl_context);
 
@@ -73,12 +94,8 @@ namespace platform {
 			std::string name;
 			platform::Image image;
 		};
-		struct LoadError {
-			std::string error_msg;
-			std::filesystem::path path;
-		};
-		using LoadFontResult = std::expected<NamedFontAtlas, LoadError>;
-		using LoadImageResult = std::expected<NamedImage, LoadError>;
+		using LoadFontResult = std::expected<NamedFontAtlas, ResourceLoadError>;
+		using LoadImageResult = std::expected<NamedImage, ResourceLoadError>;
 
 		struct ResourceLoadJob {
 			std::vector<std::future<LoadFontResult>> font_batch;
@@ -86,6 +103,7 @@ namespace platform {
 			std::shared_ptr<ResourceLoadProgress> progress;
 		};
 
+		IResourceFileIO* m_file_io;
 		std::vector<ResourceLoadJob> m_jobs;
 		core::vector_map<std::string, platform::Font> m_fonts;
 		core::vector_map<std::string, platform::Texture> m_textures;

@@ -5,6 +5,10 @@
 
 namespace platform {
 
+	ResourceLoader::ResourceLoader(IResourceFileIO* file_io)
+		: m_file_io(file_io) {
+	}
+
 	std::shared_ptr<const ResourceLoadProgress> ResourceLoader::load_manifest(const ResourceManifest& manifest) {
 		auto progress = std::make_shared<ResourceLoadProgress>(ResourceLoadProgress {
 			.total_num_fonts = manifest.fonts.size(),
@@ -12,7 +16,13 @@ namespace platform {
 		});
 
 		m_jobs.push_back(ResourceLoadJob {
-			.font_batch = core::batch_async(std::launch::async, manifest.fonts, _load_font),
+			.font_batch = core::batch_async(std::launch::async, manifest.fonts, [file_io = m_file_io](const FontDeclaration& font_decl) -> LoadFontResult {
+				std::expected<platform::FontAtlas, ResourceLoadError> result = file_io->load_font(font_decl.path, font_decl.size);
+				if (result.has_value()) {
+					return NamedFontAtlas { .name = font_decl.name, .atlas = result.value() };
+				}
+				return std::unexpected(result.error());
+			}),
 			.image_batch = core::batch_async(std::launch::async, manifest.images, _load_image),
 			.progress = progress,
 		});
@@ -49,7 +59,7 @@ namespace platform {
 				font_decl.size,
 				font_face.error()
 			);
-			return std::unexpected(LoadError { error_msg, font_decl.path });
+			return std::unexpected(ResourceLoadError { error_msg, font_decl.path });
 		}
 	};
 
@@ -63,7 +73,7 @@ namespace platform {
 				image_decl.name.c_str(),
 				image_decl.path.string()
 			);
-			return std::unexpected(LoadError { error_msg, image_decl.path });
+			return std::unexpected(ResourceLoadError { error_msg, image_decl.path });
 		}
 	};
 
