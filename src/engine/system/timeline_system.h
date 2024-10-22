@@ -14,12 +14,12 @@ DEFINE_NEWTYPE_HASH_IMPL(engine::TimelineID, int);
 namespace engine {
 
 	struct Timeline {
-		TimelineID id;
 		uint64_t start;
 		uint64_t length;
 		bool repeats;
 
 		bool is_active(uint64_t global_time) const; // global_time in range [start, start + length]
+		bool is_expired(uint64_t global_time) const;
 		float local_time(uint64_t global_time) const; // in range [0,1]
 	};
 

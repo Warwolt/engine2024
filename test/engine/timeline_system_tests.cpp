@@ -2,126 +2,130 @@
 
 #include <engine/system/timeline_system.h>
 
-constexpr const char TIMELINE_KEY[] = "timeline-key";
+TEST(TimelineTests, StartedTimeline_CanLaterBeRetreived) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
+	const uint64_t start_time = 1;
 
-// TEST(TimelineTests, TimelineSystem_Initially_HoldsZeroTimelines_ForGivenKey) {
-// 	engine::TimelineSystem timeline_system;
-// 	EXPECT_TRUE(timeline_system.timelines_DEPRECATED(TIMELINE_KEY).empty());
-// }
+	engine::TimelineID id = timeline_system.add_repeating_timeline(start_time, length);
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
 
-// TEST(TimelineTests, StartedTimeline_CanLaterBeRetreived) {
-// 	engine::TimelineSystem timeline_system;
-// 	const uint64_t length = 10;
-// 	const uint64_t start_time = 1;
+	ASSERT_TRUE(timeline.has_value());
+	EXPECT_EQ(timeline->start, start_time);
+	EXPECT_EQ(timeline->length, length);
+	EXPECT_EQ(timeline->repeats, true);
+}
 
-// 	engine::TimelineID id = timeline_system.add_repeating_timeline(TIMELINE_KEY, start_time, length);
-// 	engine::Timeline timeline = timeline_system.timelines_DEPRECATED(TIMELINE_KEY).back();
+TEST(TimelineTests, TimelineCanBeRemoved) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
+	const uint64_t start_time = 1;
 
-// 	EXPECT_EQ(timeline.id.value, id.value);
-// 	EXPECT_EQ(timeline.id.key, id.key);
-// 	EXPECT_EQ(timeline.start, start_time);
-// 	EXPECT_EQ(timeline.length, length);
-// 	EXPECT_EQ(timeline.repeats, true);
-// }
+	engine::TimelineID id = timeline_system.add_repeating_timeline(start_time, length);
+	timeline_system.remove_timeline(id);
 
-// TEST(TimelineTests, StoppedTimeline_BecomesRemoved) {
-// 	engine::TimelineSystem timeline_system;
-// 	const uint64_t length = 10;
-// 	const uint64_t start_time = 1;
+	EXPECT_FALSE(timeline_system.timeline(id).has_value());
+}
 
-// 	engine::TimelineID id = timeline_system.add_repeating_timeline(TIMELINE_KEY, start_time, length);
-// 	timeline_system.remove_timeline(id);
+TEST(TimelineTests, StartedTimeline_GlobalTimeLessThanStartTime_TimelineNotActive) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = 2;
 
-// 	EXPECT_TRUE(timeline_system.timelines_DEPRECATED(TIMELINE_KEY).empty());
-// }
+	engine::TimelineID id = timeline_system.add_repeating_timeline(start_time, length);
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
 
-// TEST(TimelineTests, StartedTimeline_GlobalTimeLessThanStartTime_TimelineNotActive) {
-// 	engine::TimelineSystem timeline_system;
-// 	const uint64_t length = 10;
-// 	const uint64_t start_time = 3;
-// 	const uint64_t global_time = 2;
+	ASSERT_TRUE(global_time < start_time);
+	ASSERT_TRUE(timeline.has_value());
+	EXPECT_FALSE(timeline->is_active(global_time));
+	EXPECT_EQ(timeline->local_time(global_time), 0.0f);
+}
 
-// 	engine::TimelineID id = timeline_system.add_repeating_timeline(TIMELINE_KEY, start_time, length);
-// 	engine::Timeline timeline = timeline_system.timelines_DEPRECATED(TIMELINE_KEY).back();
+TEST(TimelineTests, RepeatingTimeline_GlobalTimeHalfWayPoint_LocalTime05) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
+	const uint64_t start_time = 0;
+	const uint64_t global_time = start_time + length / 2;
 
-// 	ASSERT_TRUE(global_time < start_time);
-// 	EXPECT_FALSE(timeline.is_active(global_time));
-// }
+	engine::TimelineID id = timeline_system.add_repeating_timeline(start_time, length);
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
 
-// TEST(TimelineTests, StartedTimeline_TimelineHalfWayDone_LocalTime05) {
-// 	engine::TimelineSystem timeline_system;
-// 	const uint64_t length = 10;
-// 	const uint64_t start_time = 0;
-// 	const uint64_t global_time = start_time + length / 2;
+	ASSERT_TRUE(timeline.has_value());
+	EXPECT_TRUE(timeline->is_active(global_time));
+	EXPECT_EQ(timeline->local_time(global_time), 0.5f);
+}
 
-// 	engine::TimelineID id = timeline_system.add_repeating_timeline(TIMELINE_KEY, start_time, length);
-// 	engine::Timeline timeline = timeline_system.timelines_DEPRECATED(TIMELINE_KEY).back();
+TEST(TimelineTests, RepeatingTimeline_GlobalTimeEqualsStartTime_IsActive) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = 3;
 
-// 	EXPECT_EQ(timeline.local_time(global_time), 0.5f);
-// }
+	engine::TimelineID id = timeline_system.add_repeating_timeline(start_time, length);
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
 
-// TEST(TimelineTests, RepeatingTimeline_GlobalTimeEqualsStartTime_TimelineIsActive) {
-// 	engine::TimelineSystem timeline_system;
-// 	const uint64_t length = 10;
-// 	const uint64_t start_time = 3;
-// 	const uint64_t global_time = 3;
+	ASSERT_TRUE(global_time == start_time);
+	ASSERT_TRUE(timeline.has_value());
+	EXPECT_TRUE(timeline->is_active(global_time));
+	EXPECT_EQ(timeline->local_time(global_time), 0.0f);
+}
 
-// 	engine::TimelineID id = timeline_system.add_repeating_timeline(TIMELINE_KEY, start_time, length);
-// 	engine::Timeline timeline = timeline_system.timelines_DEPRECATED(TIMELINE_KEY).back();
+TEST(TimelineTests, RepeatingTimeline_GlobalTimePastEndTime_IsActive) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = start_time + length;
 
-// 	ASSERT_TRUE(global_time == start_time);
-// 	EXPECT_TRUE(timeline.is_active(global_time));
-// }
+	engine::TimelineID id = timeline_system.add_repeating_timeline(start_time, length);
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
 
-// TEST(TimelineTests, RepeatingTimeline_GlobalTimePastEndTime_TimelineStillActive) {
-// 	engine::TimelineSystem timeline_system;
-// 	const uint64_t length = 10;
-// 	const uint64_t start_time = 3;
-// 	const uint64_t global_time = start_time + length;
+	ASSERT_TRUE(global_time > start_time);
+	ASSERT_TRUE(timeline.has_value());
+	EXPECT_TRUE(timeline->is_active(global_time));
+	EXPECT_NE(timeline->local_time(global_time), 1.0f);
+}
 
-// 	engine::TimelineID id = timeline_system.add_repeating_timeline(TIMELINE_KEY, start_time, length);
-// 	engine::Timeline timeline = timeline_system.timelines_DEPRECATED(TIMELINE_KEY).back();
+TEST(TimelineTests, OneShotTimeline_GlobalTimeEqualsStartTime_IsActive) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = 3;
 
-// 	ASSERT_TRUE(global_time > start_time);
-// 	EXPECT_TRUE(timeline.is_active(global_time));
-// }
+	engine::TimelineID id = timeline_system.add_one_shot_timeline(start_time, length);
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
 
-// TEST(TimelineTests, OneShotTimeline_GlobalTimeEqualsStartTime_TimelineIsActive) {
-// 	engine::TimelineSystem timeline_system;
-// 	const uint64_t length = 10;
-// 	const uint64_t start_time = 3;
-// 	const uint64_t global_time = 3;
+	ASSERT_TRUE(global_time == start_time);
+	ASSERT_TRUE(timeline.has_value());
+	EXPECT_TRUE(timeline->is_active(global_time));
+	EXPECT_EQ(timeline->local_time(global_time), 0.0f);
+}
 
-// 	engine::TimelineID id = timeline_system.add_one_shot_timeline(TIMELINE_KEY, start_time, length);
-// 	engine::Timeline timeline = timeline_system.timelines_DEPRECATED(TIMELINE_KEY).back();
+TEST(TimelineTests, OneShotTimeline_GlobalTimePastEndTime_NotActive) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = start_time + length;
 
-// 	ASSERT_TRUE(global_time == start_time);
-// 	EXPECT_TRUE(timeline.is_active(global_time));
-// }
+	engine::TimelineID id = timeline_system.add_one_shot_timeline(start_time, length);
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
 
-// TEST(TimelineTests, OneShotTimeline_GlobalTimePastEndTime_TimelineStopped) {
-// 	engine::TimelineSystem timeline_system;
-// 	const uint64_t length = 10;
-// 	const uint64_t start_time = 3;
-// 	const uint64_t global_time = start_time + length;
+	ASSERT_TRUE(global_time > start_time);
+	ASSERT_TRUE(timeline.has_value());
+	EXPECT_FALSE(timeline->is_active(global_time));
+	EXPECT_EQ(timeline->local_time(global_time), 1.0f);
+}
 
-// 	engine::TimelineID id = timeline_system.add_one_shot_timeline(TIMELINE_KEY, start_time, length);
-// 	engine::Timeline timeline = timeline_system.timelines_DEPRECATED(TIMELINE_KEY).back();
+TEST(TimelineTests, OneShotTimeline_GlobalTimePastEndTime_Removed) {
+	engine::TimelineSystem timeline_system;
+	const uint64_t length = 10;
+	const uint64_t start_time = 3;
+	const uint64_t global_time = start_time + length + 1;
 
-// 	ASSERT_TRUE(global_time > start_time);
-// 	EXPECT_FALSE(timeline.is_active(global_time));
-// }
+	engine::TimelineID id = timeline_system.add_one_shot_timeline(start_time, length);
+	timeline_system.remove_expired_timelines(global_time);
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
 
-// TEST(TimelineTests, OneShotTimeline_GlobalTimePastEndTime_CanBeClearedOut) {
-// 	engine::TimelineSystem timeline_system;
-// 	const uint64_t length = 10;
-// 	const uint64_t start_time = 3;
-// 	const uint64_t global_time = start_time + length + 1;
-
-// 	engine::TimelineID id = timeline_system.add_one_shot_timeline(TIMELINE_KEY, start_time, length);
-// 	timeline_system.remove_expired_timelines(global_time);
-// 	std::optional<engine::Timeline> timeline = timeline_system.most_recent_timeline_DEPRECATED(TIMELINE_KEY);
-
-// 	ASSERT_TRUE(global_time > start_time + length);
-// 	EXPECT_FALSE(timeline.has_value());
-// }
+	ASSERT_TRUE(global_time > start_time + length);
+	EXPECT_FALSE(timeline.has_value());
+}
