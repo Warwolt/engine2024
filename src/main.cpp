@@ -40,11 +40,15 @@
 // prototyping
 #include <core/container/vector_map.h>
 #include <core/future.h>
-#include <engine/system/timeline_system.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/compatibility.hpp> // lerp
 #include <nlohmann/json.hpp>
 #include <platform/file/resource_manager.h>
 #include <platform/file/zip.h>
 #include <thread>
+
+// HACK: inline TimelineSystem so we can use it from main without linking
+#include <engine/system/timeline_system.cpp>
 
 const char* LIBRARY_NAME = "GameEngine2024Library";
 
@@ -223,10 +227,16 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	return buffer;
 }
 
+struct Position {
+	glm::vec2 current;
+	glm::vec2 start;
+	glm::vec2 target;
+};
+
 struct ScriptState {
 	std::string texture_ids[3];
 	std::string captions[3];
-	glm::vec2 positions[3]; // relative center of screen
+	Position positions[3]; // relative center of screen
 	glm::vec2 target_positions[3];
 	engine::TimelineID timelines[3];
 	int index = 0;
@@ -260,19 +270,21 @@ static void run_script(
 	engine::TimelineSystem* timeline_system,
 	const platform::Input& input
 ) {
-	// TODO:
-	// - When pressing left / right, slide image to new position by interpolating with the help of a timeline
-
-	// update image based on keyboard input
 	if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
 		state->index = (3 + state->index - 1) % 3;
-		state->positions[1] = state->target_positions[state->index];
-		// timeline_system->add_one_shot_timeline("image1");
+		state->positions[1].target = state->target_positions[state->index];
+		state->positions[1].start = state->positions[1].current;
+		state->timelines[1] = timeline_system->add_one_shot_timeline(input.global_time_ms, 500);
 	}
-	if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
-		state->index = (3 + state->index + 1) % 3;
-		state->positions[1] = state->target_positions[state->index];
+
+	if (std::optional<engine::Timeline> timeline = timeline_system->timeline(state->timelines[1])) {
+		state->positions[1].current = glm::lerp(state->positions[1].start, state->positions[1].target, timeline->local_time(input.global_time_ms));
 	}
+
+	// if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
+	// 	state->index = (3 + state->index + 1) % 3;
+	// 	state->positions[1].current = state->target_positions[state->index];
+	// }
 }
 
 static void render_script(
@@ -322,7 +334,7 @@ static void render_script(
 	const platform::Texture& texture = resource_manager.textures().at(state.texture_ids[0]);
 	glm::vec2 window_center = input.window_resolution / 2.0f;
 	glm::vec2 image_size = texture.size * 2.0f;
-	core::Rect quad = core::Rect::with_center_and_size(window_center + state.positions[1], image_size);
+	core::Rect quad = core::Rect::with_center_and_size(window_center + state.positions[1].current, image_size);
 
 	renderer->draw_texture_with_color(texture, quad, glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
 }
