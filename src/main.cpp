@@ -227,16 +227,22 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	return buffer;
 }
 
-struct Position {
-	glm::vec2 current;
-	glm::vec2 start;
-	glm::vec2 target;
+template <typename T>
+struct Lerped {
+	T current;
+	T start;
+	T end;
+
+	void set_target(const T& target) {
+		this->start = this->current;
+		this->end = target;
+	}
 };
 
 struct ScriptState {
 	std::string texture_ids[3];
 	std::string captions[3];
-	Position positions[3]; // relative center of screen
+	Lerped<glm::vec2> positions[3]; // relative center of screen
 	glm::vec2 target_positions[3];
 	engine::TimelineID timelines[3];
 	int index = 0;
@@ -272,19 +278,19 @@ static void run_script(
 ) {
 	if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
 		state->index = (3 + state->index - 1) % 3;
-		state->positions[1].target = state->target_positions[state->index];
-		state->positions[1].start = state->positions[1].current;
+		state->positions[1].set_target(state->target_positions[state->index]);
+		state->timelines[1] = timeline_system->add_one_shot_timeline(input.global_time_ms, 500);
+	}
+
+	if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
+		state->index = (3 + state->index + 1) % 3;
+		state->positions[1].set_target(state->target_positions[state->index]);
 		state->timelines[1] = timeline_system->add_one_shot_timeline(input.global_time_ms, 500);
 	}
 
 	if (std::optional<engine::Timeline> timeline = timeline_system->timeline(state->timelines[1])) {
-		state->positions[1].current = glm::lerp(state->positions[1].start, state->positions[1].target, timeline->local_time(input.global_time_ms));
+		state->positions[1].current = glm::lerp(state->positions[1].start, state->positions[1].end, timeline->local_time(input.global_time_ms));
 	}
-
-	// if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
-	// 	state->index = (3 + state->index + 1) % 3;
-	// 	state->positions[1].current = state->target_positions[state->index];
-	// }
 }
 
 static void render_script(
