@@ -18,15 +18,18 @@ public:
 	MOCK_METHOD((std::expected<platform::Image, platform::ResourceLoadError>), load_image, (std::filesystem::path image_path), (override));
 };
 
-static unsigned char* _load_image(const std::filesystem::path& image_path) {
+static platform::ImageData _load_image(const std::filesystem::path& image_path) {
 	int width, height, num_channels;
-	return stbi_load(image_path.string().c_str(), &width, &height, &num_channels, STBI_rgb_alpha);
+	return platform::ImageData {
+		stbi_load(image_path.string().c_str(), &width, &height, &num_channels, STBI_rgb_alpha)
+	};
 }
 
 TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoaded) {
 	MockResourceFileIO mock_file_io;
 	testing::MockOpenGLContext mock_gl_context;
 	std::filesystem::path working_directory = std::filesystem::current_path();
+	std::filesystem::path image_path = working_directory / "test/platform/test_data/test_image.png";
 	platform::ResourceLoader resource_loader(&mock_file_io);
 	platform::ResourceManifest manifest = {
 		.fonts = { platform::FontDeclaration {
@@ -36,14 +39,12 @@ TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoaded) {
 		} },
 		.images = { platform::ImageDeclaration {
 			.name = "test_image",
-			.path = working_directory / "test/platform/test_data/test_image.png",
+			.path = image_path,
 		} }
 	};
 
-	std::filesystem::path image_path = working_directory / "test/platform/test_data/test_image.png";
-	unsigned char* image_data = _load_image(image_path);
 	EXPECT_CALL(mock_file_io, load_font).WillRepeatedly(Return(platform::FontAtlas {}));
-	EXPECT_CALL(mock_file_io, load_image).WillRepeatedly(Return(ByMove(platform::Image { .data = platform::ImageData { image_data } })));
+	EXPECT_CALL(mock_file_io, load_image).WillRepeatedly(Return(ByMove(platform::Image { .data = _load_image(image_path) })));
 	EXPECT_CALL(mock_gl_context, add_texture).WillRepeatedly(Return(platform::Texture {}));
 	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_loader.load_manifest(manifest);
 	WAIT_FOR(progress->is_done(), std::chrono::seconds(1)) {
