@@ -225,10 +225,13 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 struct ScriptState {
 	std::string texture_ids[3];
 	std::string captions[3];
+	glm::vec2 positions[3]; // relative center of screen
+	glm::vec2 target_positions[3];
 	int index = 0;
 };
 
 static ScriptState init_script() {
+	const glm::vec2 image_size = 2.0f * glm::vec2 { 128, 128 }; // hack variable
 	return ScriptState {
 		.texture_ids = {
 			"alice",
@@ -240,17 +243,28 @@ static ScriptState init_script() {
 			"Bob",
 			"Charlie",
 		},
-		.index = 0,
+		.positions = {},
+		.target_positions = {
+			glm::vec2 { -image_size.x / 2.0f, 0.0f },
+			glm::vec2 { 0.0f, 0.0f },
+			glm::vec2 { image_size.x / 2.0f, 0.0f },
+		},
+		.index = 1,
 	};
 }
 
 static void run_script(ScriptState* state, const platform::Input& input) {
+	// TODO:
+	// - When pressing left / right, slide image to new position by interpolating with the help of a timeline
+
 	// update image based on keyboard input
 	if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
 		state->index = (3 + state->index - 1) % 3;
+		state->positions[1] = state->target_positions[state->index];
 	}
 	if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
 		state->index = (3 + state->index + 1) % 3;
+		state->positions[1] = state->target_positions[state->index];
 	}
 }
 
@@ -298,13 +312,10 @@ static void render_script(
 		renderer->draw_text_centered(resource_manager.fonts().at("arial16"), center_caption, center_text_pos, fg_text_color);
 	}
 
-	// TODO:
-	// - Add some animation to this just to try it out + have a "cool enough"
-	//   scene to wanna work on the rest of the infrastructure.
 	const platform::Texture& texture = resource_manager.textures().at(state.texture_ids[0]);
 	glm::vec2 window_center = input.window_resolution / 2.0f;
 	glm::vec2 image_size = texture.size * 2.0f;
-	core::Rect quad = core::Rect::with_center_and_size(window_center, image_size);
+	core::Rect quad = core::Rect::with_center_and_size(window_center + state.positions[1], image_size);
 
 	renderer->draw_texture_with_color(texture, quad, glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
 }

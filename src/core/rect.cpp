@@ -23,6 +23,12 @@ namespace core {
 		this->bottom_right = this->top_left + size;
 	}
 
+	void Rect::set_center(glm::vec2 center) {
+		const glm::vec2 size = this->size();
+		this->top_left = center - size / 2.0f;
+		this->bottom_right = center + size / 2.0f;
+	}
+
 	void Rect::set_size(glm::vec2 size) {
 		this->bottom_right = this->top_left + size;
 	}

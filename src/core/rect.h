@@ -17,6 +17,7 @@ namespace core {
 		static Rect with_center_and_size(glm::vec2 center, glm::vec2 size);
 
 		void set_position(glm::vec2 pos);
+		void set_center(glm::vec2 center);
 		void set_size(glm::vec2 size);
 
 		glm::vec2 size() const;
