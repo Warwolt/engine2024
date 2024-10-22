@@ -86,5 +86,5 @@ TEST(ResourceLoaderTests, LoadManifest_WithInvalidPaths_GivesErrors) {
 		resource_loader.update(&gl_context_mock);
 	}
 
-	EXPECT_THAT(payload->invalid_paths, UnorderedElementsAre("bad_font_path.ttf", "bad_image_path.png"));
+	EXPECT_THAT(payload->invalid_paths, UnorderedElementsAre(font_path, image_path));
 }
