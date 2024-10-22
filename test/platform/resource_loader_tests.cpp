@@ -4,7 +4,7 @@
 #include <mock_gl_context.h>
 #include <test_helper.h>
 
-#include <platform/file/resource_manager.h>
+#include <platform/file/resource_loader.h>
 
 using namespace testing;
 

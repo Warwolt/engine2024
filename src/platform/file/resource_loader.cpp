@@ -1,4 +1,4 @@
-#include <platform/file/resource_manager.h>
+#include <platform/file/resource_loader.h>
 
 #include <core/future.h>
 #include <platform/debug/logging.h>
