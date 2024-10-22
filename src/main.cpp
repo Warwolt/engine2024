@@ -289,21 +289,26 @@ static void run_script(
 	engine::TimelineSystem* timeline_system,
 	const platform::Input& input
 ) {
-	for (size_t i = 0; i < 3; i++) {
-		if (input.keyboard.key_pressed_now(SDLK_LEFT)) {
-			state->index[i] = (3 + state->index[i] - 1) % 3;
-			state->positions[i].set_target(state->target_positions[state->index[i]]);
-			state->timelines[i] = timeline_system->add_one_shot_timeline(input.global_time_ms, 500);
-		}
+	const bool left_pressed = input.keyboard.key_pressed_now(SDLK_LEFT);
+	const bool right_pressed = input.keyboard.key_pressed_now(SDLK_RIGHT);
+	const bool any_pressed = left_pressed || right_pressed;
 
-		if (input.keyboard.key_pressed_now(SDLK_RIGHT)) {
+	for (size_t i = 0; i < 3; i++) {
+		if (left_pressed) {
+			state->index[i] = (3 + state->index[i] - 1) % 3;
+		}
+		if (right_pressed) {
 			state->index[i] = (3 + state->index[i] + 1) % 3;
+		}
+		if (any_pressed) {
 			state->positions[i].set_target(state->target_positions[state->index[i]]);
+			state->scales[i].set_target(state->target_scales[state->index[i]]);
 			state->timelines[i] = timeline_system->add_one_shot_timeline(input.global_time_ms, 500);
 		}
 
 		float local_time = timeline_system->local_time(state->timelines[i], input.global_time_ms);
 		state->positions[i].current = core::lerp(state->positions[i].start, state->positions[i].end, local_time);
+		state->scales[i].current = core::lerp(state->scales[i].start, state->scales[i].end, local_time);
 	}
 }
 
