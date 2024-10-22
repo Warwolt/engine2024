@@ -27,11 +27,11 @@ namespace platform {
 		}
 	}
 
-	const core::VecMap<std::string, platform::Font>& ResourceManager::fonts() const {
+	const core::vector_map<std::string, platform::Font>& ResourceManager::fonts() const {
 		return m_fonts;
 	}
 
-	const core::VecMap<std::string, platform::Texture>& ResourceManager::textures() const {
+	const core::vector_map<std::string, platform::Texture>& ResourceManager::textures() const {
 		return m_textures;
 	}
 
@@ -69,7 +69,7 @@ namespace platform {
 
 	void ResourceManager::_process_fonts(
 		std::vector<std::future<LoadFontResult>>* font_batch,
-		core::VecMap<std::string, platform::Font>* fonts,
+		core::vector_map<std::string, platform::Font>* fonts,
 		platform::OpenGLContext* gl_context,
 		ResourceLoadProgress* progress
 	) {
@@ -89,7 +89,7 @@ namespace platform {
 
 	void ResourceManager::_process_images(
 		std::vector<std::future<LoadImageResult>>* image_batch,
-		core::VecMap<std::string, platform::Texture>* textures,
+		core::vector_map<std::string, platform::Texture>* textures,
 		platform::OpenGLContext* gl_context,
 		ResourceLoadProgress* progress
 	) {

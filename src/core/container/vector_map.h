@@ -9,14 +9,14 @@
 namespace core {
 
 	template <typename Key, typename T>
-	class VecMap {
+	class vector_map {
 	public:
 		using value_type = std::pair<Key, T>;
 		using iterator = std::vector<value_type>::iterator;
 		using const_iterator = std::vector<value_type>::const_iterator;
 
-		VecMap() = default;
-		VecMap(std::initializer_list<value_type> init) {
+		vector_map() = default;
+		vector_map(std::initializer_list<value_type> init) {
 			size_t i = 0;
 			for (const auto& [key, value] : init) {
 				if (!m_indexes.contains(key)) {
@@ -38,7 +38,7 @@ namespace core {
 			return m_indexes.contains(key);
 		}
 
-		bool operator==(const VecMap<Key, T>& rhs) const {
+		bool operator==(const vector_map<Key, T>& rhs) const {
 			if (m_values.size() != rhs.size()) {
 				return false;
 			}
@@ -56,7 +56,7 @@ namespace core {
 			return true;
 		}
 
-		bool operator!=(const VecMap<Key, T>& rhs) const {
+		bool operator!=(const vector_map<Key, T>& rhs) const {
 			return !(*this == rhs);
 		}
 

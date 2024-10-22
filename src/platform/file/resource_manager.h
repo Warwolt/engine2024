@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/container/vec_map.h>
+#include <core/container/vector_map.h>
 #include <platform/graphics/font.h>
 #include <platform/graphics/gl_context.h>
 #include <platform/graphics/image.h>
@@ -61,8 +61,8 @@ namespace platform {
 		std::shared_ptr<const ResourceLoadProgress> load_manifest(const ResourceManifest& manifest);
 		void update(platform::OpenGLContext* gl_context);
 
-		const core::VecMap<std::string, platform::Font>& fonts() const;
-		const core::VecMap<std::string, platform::Texture>& textures() const;
+		const core::vector_map<std::string, platform::Font>& fonts() const;
+		const core::vector_map<std::string, platform::Texture>& textures() const;
 
 	private:
 		struct NamedFontAtlas {
@@ -87,20 +87,20 @@ namespace platform {
 		};
 
 		std::vector<ResourceLoadJob> m_jobs;
-		core::VecMap<std::string, platform::Font> m_fonts;
-		core::VecMap<std::string, platform::Texture> m_textures;
+		core::vector_map<std::string, platform::Font> m_fonts;
+		core::vector_map<std::string, platform::Texture> m_textures;
 
 		static LoadFontResult _load_font(const FontDeclaration& font_decl);
 		static LoadImageResult _load_image(const ImageDeclaration& image_decl);
 		static void _process_fonts(
 			std::vector<std::future<LoadFontResult>>* font_batch,
-			core::VecMap<std::string, platform::Font>* fonts,
+			core::vector_map<std::string, platform::Font>* fonts,
 			platform::OpenGLContext* gl_context,
 			ResourceLoadProgress* progress
 		);
 		static void _process_images(
 			std::vector<std::future<LoadImageResult>>* image_batch,
-			core::VecMap<std::string, platform::Texture>* textures,
+			core::vector_map<std::string, platform::Texture>* textures,
 			platform::OpenGLContext* gl_context,
 			ResourceLoadProgress* progress
 		);
