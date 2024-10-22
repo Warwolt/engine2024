@@ -229,6 +229,7 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 struct Image {
 	glm::vec2 position; // relative center of screen
 	float scale;
+	float color;
 };
 
 struct ScriptState {
@@ -244,19 +245,24 @@ struct ScriptState {
 
 static ScriptState init_script() {
 	const glm::vec2 image_size = 2.0f * glm::vec2 { 128, 128 }; // hack variable
+	const float fg_color = 1.0f;
+	const float bg_color = 0.5f;
 
 	Image targets[3] = {
 		{
 			.position = glm::vec2 { -image_size.x / 2.0f, 0.0f },
 			.scale = 0.8f,
+			.color = bg_color,
 		},
 		{
 			.position = glm::vec2 { 0.0f, 0.0f },
 			.scale = 1.0f,
+			.color = fg_color,
 		},
 		{
 			.position = glm::vec2 { image_size.x / 2.0f, 0.0f },
 			.scale = 0.8f,
+			.color = bg_color,
 		},
 	};
 
@@ -305,6 +311,7 @@ static void run_script(
 			state->images[i].set_target(Image {
 				.position = state->targets[state->index[i]].position,
 				.scale = state->targets[state->index[i]].scale,
+				.color = state->targets[state->index[i]].color,
 			});
 			state->timelines[i] = timeline_system->add_one_shot_timeline(input.global_time_ms, 250);
 		}
@@ -312,6 +319,7 @@ static void run_script(
 		float local_time = timeline_system->local_time(state->timelines[i], input.global_time_ms);
 		state->images[i].current.position = core::lerp(state->images[i].start.position, state->images[i].end.position, local_time);
 		state->images[i].current.scale = core::lerp(state->images[i].start.scale, state->images[i].end.scale, local_time);
+		state->images[i].current.color = core::lerp(state->images[i].start.color, state->images[i].end.color, local_time);
 	}
 }
 
@@ -334,7 +342,7 @@ static void render_script(
 		const platform::Texture& texture = resource_manager.textures().at(state.texture_ids[i]);
 		const glm::vec2 image_size = current_scale * texture.size * 2.0f;
 		core::Rect quad = core::Rect::with_center_and_size(window_center + state.images[i].current.position, image_size);
-		glm::vec4 color = { current_scale, current_scale, current_scale, 1.0f };
+		glm::vec4 color = { state.images[i].current.color, state.images[i].current.color, state.images[i].current.color, 1.0f };
 		renderer->draw_texture_with_color(texture, quad, color);
 	}
 }
