@@ -4,8 +4,9 @@
 
 #include <stb_image/stb_image.h>
 
+#include <expected>
 #include <filesystem>
-#include <optional>
+#include <string>
 
 namespace platform {
 
@@ -24,6 +25,6 @@ namespace platform {
 		int num_channels;
 	};
 
-	std::optional<Image> read_image(std::filesystem::path path);
+	std::expected<Image, std::string> read_image(std::filesystem::path path);
 
 } // namespace platform

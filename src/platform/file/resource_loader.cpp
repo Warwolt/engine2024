@@ -5,6 +5,37 @@
 
 namespace platform {
 
+	std::expected<platform::FontAtlas, ResourceLoadError> ResourceFileIO::load_font(std::filesystem::path font_path, uint8_t font_size) {
+		std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_path);
+		if (font_face.has_value()) {
+			return platform::generate_font_atlas(font_face.value(), font_size);
+		}
+		else {
+			std::string error_msg = std::format(
+				"Couldn't load font! path = \"{}\", size = {}. error: {}",
+				font_path.string(),
+				font_size,
+				font_face.error()
+			);
+			return std::unexpected(ResourceLoadError { error_msg, font_path });
+		}
+	}
+
+	std::expected<platform::Image, ResourceLoadError> ResourceFileIO::load_image(std::filesystem::path image_path) {
+		std::expected<platform::Image, std::string> image = platform::read_image(image_path);
+		if (image.has_value()) {
+			return std::move(image.value());
+		}
+		else {
+			std::string error_msg = std::format(
+				"Couldn't load image! path = {}, error: {}",
+				image_path.string(),
+				image.error()
+			);
+			return std::unexpected(ResourceLoadError { error_msg, image_path });
+		}
+	}
+
 	ResourceLoader::ResourceLoader(IResourceFileIO* file_io)
 		: m_file_io(file_io) {
 	}
@@ -23,7 +54,13 @@ namespace platform {
 				}
 				return std::unexpected(result.error());
 			}),
-			.image_batch = core::batch_async(std::launch::async, manifest.images, _load_image),
+			.image_batch = core::batch_async(std::launch::async, manifest.images, [file_io = m_file_io](const ImageDeclaration& image_decl) -> LoadImageResult {
+				std::expected<platform::Image, ResourceLoadError> result = file_io->load_image(image_decl.path);
+				if (result.has_value()) {
+					return NamedImage { .name = image_decl.name, .image = std::move(result.value()) };
+				}
+				return std::unexpected(result.error());
+			}),
 			.progress = progress,
 		});
 
@@ -44,38 +81,6 @@ namespace platform {
 	const core::vector_map<std::string, platform::Texture>& ResourceLoader::textures() const {
 		return m_textures;
 	}
-
-	ResourceLoader::LoadFontResult ResourceLoader::_load_font(const FontDeclaration& font_decl) {
-		std::expected<platform::FontFace, std::string> font_face = platform::load_font_face(font_decl.path);
-		if (font_face.has_value()) {
-			platform::FontAtlas atlas = platform::generate_font_atlas(font_face.value(), font_decl.size);
-			return NamedFontAtlas { font_decl.name, atlas };
-		}
-		else {
-			std::string error_msg = std::format(
-				"Couldn't load font in manifest! name = \"{}\", path = \"{}\", size = {}. error: {}",
-				font_decl.name,
-				font_decl.path.string(),
-				font_decl.size,
-				font_face.error()
-			);
-			return std::unexpected(ResourceLoadError { error_msg, font_decl.path });
-		}
-	};
-
-	ResourceLoader::LoadImageResult ResourceLoader::_load_image(const ImageDeclaration& image_decl) {
-		if (std::optional<platform::Image> image = platform::read_image(image_decl.path)) {
-			return NamedImage { image_decl.name, std::move(image.value()) };
-		}
-		else {
-			std::string error_msg = std::format(
-				"Couldn't load image in manifest! name = {}, path = {}",
-				image_decl.name.c_str(),
-				image_decl.path.string()
-			);
-			return std::unexpected(ResourceLoadError { error_msg, image_decl.path });
-		}
-	};
 
 	void ResourceLoader::_process_fonts(
 		std::vector<std::future<LoadFontResult>>* font_batch,
@@ -106,7 +111,8 @@ namespace platform {
 		for (const LoadImageResult& result : core::get_ready_batch_values(*image_batch)) {
 			if (result.has_value()) {
 				const auto& [name, image] = result.value();
-				textures->insert({ name, gl_context->add_texture(image.data.get(), image.width, image.height) });
+				platform::Texture texture = gl_context->add_texture(image.data.get(), image.width, image.height);
+				textures->insert({ name, texture });
 				progress->num_loaded_images++;
 			}
 			else {

@@ -6,13 +6,22 @@
 
 #include <platform/file/resource_loader.h>
 
+#include <platform/debug/logging.h>
+
 using namespace testing;
+
+static unsigned char g_mock_image_data[1];
 
 class MockResourceFileIO : public platform::IResourceFileIO {
 public:
 	MOCK_METHOD((std::expected<platform::FontAtlas, platform::ResourceLoadError>), load_font, (std::filesystem::path font_path, uint8_t font_size), (override));
 	MOCK_METHOD((std::expected<platform::Image, platform::ResourceLoadError>), load_image, (std::filesystem::path image_path), (override));
 };
+
+static unsigned char* _load_image(const std::filesystem::path& image_path) {
+	int width, height, num_channels;
+	return stbi_load(image_path.string().c_str(), &width, &height, &num_channels, STBI_rgb_alpha);
+}
 
 TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoaded) {
 	MockResourceFileIO mock_file_io;
@@ -31,7 +40,10 @@ TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoaded) {
 		} }
 	};
 
+	std::filesystem::path image_path = working_directory / "test/platform/test_data/test_image.png";
+	unsigned char* image_data = _load_image(image_path);
 	EXPECT_CALL(mock_file_io, load_font).WillRepeatedly(Return(platform::FontAtlas {}));
+	EXPECT_CALL(mock_file_io, load_image).WillRepeatedly(Return(ByMove(platform::Image { .data = platform::ImageData { image_data } })));
 	EXPECT_CALL(mock_gl_context, add_texture).WillRepeatedly(Return(platform::Texture {}));
 	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_loader.load_manifest(manifest);
 	WAIT_FOR(progress->is_done(), std::chrono::seconds(1)) {

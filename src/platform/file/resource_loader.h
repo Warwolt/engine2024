@@ -71,8 +71,9 @@ namespace platform {
 		virtual std::expected<platform::Image, ResourceLoadError> load_image(std::filesystem::path image_path) = 0;
 	};
 
-	class ResourceFileIO {
-		// TODO implement
+	class ResourceFileIO : public IResourceFileIO {
+		std::expected<platform::FontAtlas, ResourceLoadError> load_font(std::filesystem::path font_path, uint8_t font_size) override;
+		std::expected<platform::Image, ResourceLoadError> load_image(std::filesystem::path image_path) override;
 	};
 
 	class ResourceLoader {
@@ -108,8 +109,6 @@ namespace platform {
 		core::vector_map<std::string, platform::Font> m_fonts;
 		core::vector_map<std::string, platform::Texture> m_textures;
 
-		static LoadFontResult _load_font(const FontDeclaration& font_decl);
-		static LoadImageResult _load_image(const ImageDeclaration& image_decl);
 		static void _process_fonts(
 			std::vector<std::future<LoadFontResult>>* font_batch,
 			core::vector_map<std::string, platform::Font>* fonts,
