@@ -342,8 +342,10 @@ static void render_script(
 		const platform::Texture& texture = resource_manager.textures().at(state.texture_ids[i]);
 		const glm::vec2 image_size = current_scale * texture.size * 2.0f;
 		core::Rect quad = core::Rect::with_center_and_size(window_center + state.images[i].current.position, image_size);
+		glm::vec2 text_position = quad.center() + glm::vec2 { 0.0f, image_size.y * 2.0f / 3.0f };
 		glm::vec4 color = { state.images[i].current.color, state.images[i].current.color, state.images[i].current.color, 1.0f };
 		renderer->draw_texture_with_color(texture, quad, color);
+		renderer->draw_text_centered(resource_manager.fonts().at("arial16"), state.captions[i], text_position, color);
 	}
 }
 
