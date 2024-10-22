@@ -303,7 +303,7 @@ static void run_script(
 		if (any_pressed) {
 			state->positions[i].set_target(state->target_positions[state->index[i]]);
 			state->scales[i].set_target(state->target_scales[state->index[i]]);
-			state->timelines[i] = timeline_system->add_one_shot_timeline(input.global_time_ms, 100);
+			state->timelines[i] = timeline_system->add_one_shot_timeline(input.global_time_ms, 250);
 		}
 
 		float local_time = timeline_system->local_time(state->timelines[i], input.global_time_ms);
@@ -327,10 +327,12 @@ static void render_script(
 
 	const glm::vec2 window_center = input.window_resolution / 2.0f;
 	for (size_t i : sorted_indexes) {
+		const float current_scale = state.scales[i].current;
 		const platform::Texture& texture = resource_manager.textures().at(state.texture_ids[i]);
-		const glm::vec2 image_size = state.scales[i].current * texture.size * 2.0f;
+		const glm::vec2 image_size = current_scale * texture.size * 2.0f;
 		core::Rect quad = core::Rect::with_center_and_size(window_center + state.positions[i].current, image_size);
-		renderer->draw_texture_with_color(texture, quad, glm::vec4 { 1.0f, 1.0f, 1.0f, 1.0f });
+		glm::vec4 color = { current_scale, current_scale, current_scale, 1.0f };
+		renderer->draw_texture_with_color(texture, quad, color);
 	}
 }
 
