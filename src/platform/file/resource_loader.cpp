@@ -40,8 +40,8 @@ namespace platform {
 		: m_file_io(file_io) {
 	}
 
-	std::shared_ptr<const ResourceLoadProgress> ResourceLoader::load_manifest(const ResourceManifest& manifest) {
-		auto progress = std::make_shared<ResourceLoadProgress>(ResourceLoadProgress {
+	std::shared_ptr<const ResourceLoadPayload> ResourceLoader::load_manifest(const ResourceManifest& manifest) {
+		auto progress = std::make_shared<ResourceLoadPayload>(ResourceLoadPayload {
 			.total_num_fonts = manifest.fonts.size(),
 			.total_num_images = manifest.images.size(),
 		});
@@ -61,7 +61,7 @@ namespace platform {
 				}
 				return std::unexpected(result.error());
 			}),
-			.progress = progress,
+			.payload = progress,
 		});
 
 		return progress;
@@ -69,34 +69,26 @@ namespace platform {
 
 	void ResourceLoader::update(platform::OpenGLContext* gl_context) {
 		for (ResourceLoadJob& job : m_jobs) {
-			_process_fonts(&job.font_batch, &m_fonts, gl_context, job.progress.get());
-			_process_images(&job.image_batch, &m_textures, gl_context, job.progress.get());
+			_process_fonts(&job.font_batch, &job.payload->fonts, gl_context, job.payload.get());
+			_process_images(&job.image_batch, &job.payload->textures, gl_context, job.payload.get());
 		}
-	}
-
-	const core::vector_map<std::string, platform::Font>& ResourceLoader::fonts() const {
-		return m_fonts;
-	}
-
-	const core::vector_map<std::string, platform::Texture>& ResourceLoader::textures() const {
-		return m_textures;
 	}
 
 	void ResourceLoader::_process_fonts(
 		std::vector<std::future<LoadFontResult>>* font_batch,
 		core::vector_map<std::string, platform::Font>* fonts,
 		platform::OpenGLContext* gl_context,
-		ResourceLoadProgress* progress
+		ResourceLoadPayload* payload
 	) {
 		for (const LoadFontResult& result : core::get_ready_batch_values(*font_batch)) {
 			if (result.has_value()) {
 				const auto& [name, atlas] = result.value();
 				fonts->insert({ name, platform::create_font_from_atlas(gl_context, atlas) });
-				progress->num_loaded_fonts++;
+				payload->num_loaded_fonts++;
 			}
 			else {
 				auto& [error_msg, invalid_path] = result.error();
-				progress->invalid_paths.push_back(invalid_path);
+				payload->invalid_paths.push_back(invalid_path);
 				LOG_ERROR("%s", error_msg.c_str());
 			}
 		}
@@ -106,18 +98,18 @@ namespace platform {
 		std::vector<std::future<LoadImageResult>>* image_batch,
 		core::vector_map<std::string, platform::Texture>* textures,
 		platform::OpenGLContext* gl_context,
-		ResourceLoadProgress* progress
+		ResourceLoadPayload* payload
 	) {
 		for (const LoadImageResult& result : core::get_ready_batch_values(*image_batch)) {
 			if (result.has_value()) {
 				const auto& [name, image] = result.value();
 				platform::Texture texture = gl_context->add_texture(image.data.get(), image.width, image.height);
 				textures->insert({ name, texture });
-				progress->num_loaded_images++;
+				payload->num_loaded_images++;
 			}
 			else {
 				auto& [error_msg, invalid_path] = result.error();
-				progress->invalid_paths.push_back(invalid_path);
+				payload->invalid_paths.push_back(invalid_path);
 				LOG_ERROR("%s", error_msg.c_str());
 			}
 		}

@@ -46,36 +46,45 @@ TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoaded) {
 	EXPECT_CALL(mock_file_io, load_font).WillRepeatedly(Return(platform::FontAtlas {}));
 	EXPECT_CALL(mock_file_io, load_image).WillRepeatedly(Return(ByMove(platform::Image { .data = _load_image(image_path) })));
 	EXPECT_CALL(mock_gl_context, add_texture).WillRepeatedly(Return(platform::Texture {}));
-	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_loader.load_manifest(manifest);
-	WAIT_FOR(progress->is_done(), std::chrono::seconds(1)) {
+	std::shared_ptr<const platform::ResourceLoadPayload> payload = resource_loader.load_manifest(manifest);
+	WAIT_FOR(payload->is_done(), std::chrono::seconds(1)) {
 		resource_loader.update(&mock_gl_context);
 	}
 
-	ASSERT_TRUE(resource_loader.fonts().contains("test_font"));
-	ASSERT_TRUE(resource_loader.textures().contains("test_image"));
+	ASSERT_TRUE(payload->fonts.contains("test_font"));
+	ASSERT_TRUE(payload->textures.contains("test_image"));
 }
 
-// // Doesn't run in CI
-// TEST(ResourceLoaderTests, DISABLED_LoadManifest_WithInvalidPaths_GivesErrors) {
-// 	testing::MockOpenGLContext gl_context_mock;
-// 	platform::ResourceLoader resource_loader;
-// 	platform::ResourceManifest manifest = {
-// 		.fonts = { platform::FontDeclaration {
-// 			.name = "test_font",
-// 			.path = "bad_font_path.ttf",
-// 			.size = 16,
-// 		} },
-// 		.images = { platform::ImageDeclaration {
-// 			.name = "test_image",
-// 			.path = "bad_image_path.png",
-// 		} }
-// 	};
+TEST(ResourceLoaderTests, LoadManifest_WithInvalidPaths_GivesErrors) {
+	MockResourceFileIO mock_file_io;
+	testing::MockOpenGLContext gl_context_mock;
+	platform::ResourceLoader resource_loader(&mock_file_io);
+	std::filesystem::path font_path = "bad_font_path.ttf";
+	std::filesystem::path image_path = "bad_image_path.png";
+	platform::ResourceManifest manifest = {
+		.fonts = { platform::FontDeclaration {
+			.name = "test_font",
+			.path = font_path,
+			.size = 16,
+		} },
+		.images = { platform::ImageDeclaration {
+			.name = "test_image",
+			.path = image_path,
+		} }
+	};
 
-// 	std::shared_ptr<const platform::ResourceLoadProgress> progress = resource_loader.load_manifest(manifest);
-// 	WAIT_FOR(progress->invalid_paths.size() == 2, std::chrono::seconds(1)) {
-// 		fprintf(stderr, "update\n");
-// 		resource_loader.update(&gl_context_mock);
-// 	}
+	EXPECT_CALL(mock_file_io, load_font).WillRepeatedly(Return(std::unexpected(platform::ResourceLoadError {
+		.error_msg = "error message 1",
+		.path = font_path,
+	})));
+	EXPECT_CALL(mock_file_io, load_image).WillRepeatedly(Return(ByMove(std::unexpected(platform::ResourceLoadError {
+		.error_msg = "error message 2",
+		.path = image_path,
+	}))));
+	std::shared_ptr<const platform::ResourceLoadPayload> payload = resource_loader.load_manifest(manifest);
+	WAIT_FOR(payload->invalid_paths.size() == 2, std::chrono::seconds(1)) {
+		resource_loader.update(&gl_context_mock);
+	}
 
-// 	EXPECT_THAT(progress->invalid_paths, UnorderedElementsAre("bad_font_path.ttf", "bad_image_path.png"));
-// }
+	EXPECT_THAT(payload->invalid_paths, UnorderedElementsAre("bad_font_path.ttf", "bad_image_path.png"));
+}

@@ -32,7 +32,7 @@ namespace platform {
 		std::vector<ImageDeclaration> images;
 	};
 
-	struct ResourceLoadProgress {
+	struct ResourceLoadPayload {
 		size_t total_num_fonts = 0;
 		size_t total_num_images = 0;
 		size_t num_loaded_fonts = 0;
@@ -80,11 +80,8 @@ namespace platform {
 	public:
 		ResourceLoader(IResourceFileIO* file_io);
 
-		std::shared_ptr<const ResourceLoadProgress> load_manifest(const ResourceManifest& manifest);
+		std::shared_ptr<const ResourceLoadPayload> load_manifest(const ResourceManifest& manifest);
 		void update(platform::OpenGLContext* gl_context);
-
-		const core::vector_map<std::string, platform::Font>& fonts() const;
-		const core::vector_map<std::string, platform::Texture>& textures() const;
 
 	private:
 		struct NamedFontAtlas {
@@ -101,25 +98,23 @@ namespace platform {
 		struct ResourceLoadJob {
 			std::vector<std::future<LoadFontResult>> font_batch;
 			std::vector<std::future<LoadImageResult>> image_batch;
-			std::shared_ptr<ResourceLoadProgress> progress;
+			std::shared_ptr<ResourceLoadPayload> payload;
 		};
 
 		IResourceFileIO* m_file_io;
 		std::vector<ResourceLoadJob> m_jobs;
-		core::vector_map<std::string, platform::Font> m_fonts;
-		core::vector_map<std::string, platform::Texture> m_textures;
 
 		static void _process_fonts(
 			std::vector<std::future<LoadFontResult>>* font_batch,
 			core::vector_map<std::string, platform::Font>* fonts,
 			platform::OpenGLContext* gl_context,
-			ResourceLoadProgress* progress
+			ResourceLoadPayload* payload
 		);
 		static void _process_images(
 			std::vector<std::future<LoadImageResult>>* image_batch,
 			core::vector_map<std::string, platform::Texture>* textures,
 			platform::OpenGLContext* gl_context,
-			ResourceLoadProgress* progress
+			ResourceLoadPayload* payload
 		);
 	};
 
