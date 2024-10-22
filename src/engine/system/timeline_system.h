@@ -27,6 +27,7 @@ namespace engine {
 	class TimelineSystem {
 	public:
 		std::optional<Timeline> timeline(TimelineID id) const;
+		float local_time(TimelineID id, uint64_t global_time) const;
 
 		TimelineID add_repeating_timeline(uint64_t start_time, uint64_t length);
 		TimelineID add_one_shot_timeline(uint64_t start_time, uint64_t length);
