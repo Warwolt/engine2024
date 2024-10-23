@@ -82,9 +82,11 @@ TEST(ResourceLoaderTests, LoadManifest_WithInvalidPaths_GivesErrors) {
 		.path = image_path,
 	}))));
 	std::shared_ptr<const platform::ResourceLoadPayload> payload = resource_loader.load_manifest(manifest);
-	WAIT_FOR(payload->invalid_paths.size() == 2, std::chrono::seconds(1)) {
+	WAIT_FOR(payload->errors.size() == 2, std::chrono::seconds(1)) {
 		resource_loader.update(&gl_context_mock);
 	}
 
-	EXPECT_THAT(payload->invalid_paths, UnorderedElementsAre(font_path, image_path));
+	const platform::ResourceLoadError error1 = { .error_msg = "error message 1", .path = font_path };
+	const platform::ResourceLoadError error2 = { .error_msg = "error message 2", .path = image_path };
+	EXPECT_THAT(payload->errors, UnorderedElementsAre(error1, error2));
 }

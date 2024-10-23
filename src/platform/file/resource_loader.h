@@ -32,13 +32,20 @@ namespace platform {
 		std::vector<ImageDeclaration> images;
 	};
 
+	struct ResourceLoadError {
+		std::string error_msg;
+		std::filesystem::path path;
+		bool operator==(ResourceLoadError rhs) const {
+			return error_msg == rhs.error_msg && path == rhs.path;
+		}
+	};
+
 	struct ResourceLoadPayload {
 		size_t num_requested_fonts = 0;
 		size_t num_requested_images = 0;
-
 		core::vector_map<std::string, platform::Font> fonts;
 		core::vector_map<std::string, platform::Texture> textures;
-		std::vector<std::filesystem::path> invalid_paths;
+		std::vector<ResourceLoadError> errors;
 
 		size_t total_num_resources() const {
 			return num_requested_fonts + num_requested_images;
@@ -55,11 +62,6 @@ namespace platform {
 		bool has_errors() const {
 			return !invalid_paths.empty();
 		}
-	};
-
-	struct ResourceLoadError {
-		std::string error_msg;
-		std::filesystem::path path;
 	};
 
 	class IResourceFileIO {

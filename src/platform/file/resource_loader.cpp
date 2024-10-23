@@ -86,9 +86,7 @@ namespace platform {
 				fonts->insert({ name, create_font_from_atlas(gl_context, atlas) });
 			}
 			else {
-				auto& [error_msg, invalid_path] = result.error();
-				payload->invalid_paths.push_back(invalid_path);
-				LOG_ERROR("%s", error_msg.c_str());
+				payload->errors.push_back(result.error());
 			}
 		}
 	}
@@ -106,9 +104,7 @@ namespace platform {
 				textures->insert({ name, texture });
 			}
 			else {
-				auto& [error_msg, invalid_path] = result.error();
-				payload->invalid_paths.push_back(invalid_path);
-				LOG_ERROR("%s", error_msg.c_str());
+				payload->errors.push_back(result.error());
 			}
 		}
 	}
