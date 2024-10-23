@@ -46,7 +46,7 @@ TEST(ResourceLoaderTests, LoadManifest_WithExistingFiles_AreLoaded) {
 	EXPECT_CALL(mock_file_io, load_font).WillRepeatedly(Return(platform::FontAtlas {}));
 	EXPECT_CALL(mock_file_io, load_image).WillRepeatedly(Return(ByMove(platform::Image { .data = _load_image(image_path) })));
 	EXPECT_CALL(mock_gl_context, add_texture).WillRepeatedly(Return(platform::Texture {}));
-	std::shared_ptr<const platform::ResourceLoadPayload> payload = resource_loader.load_manifest(manifest);
+	std::shared_ptr<const platform::ResourcePayload> payload = resource_loader.load_manifest(manifest);
 	WAIT_FOR(payload->is_done(), std::chrono::seconds(1)) {
 		resource_loader.update(&mock_gl_context);
 	}
@@ -81,7 +81,7 @@ TEST(ResourceLoaderTests, LoadManifest_WithInvalidPaths_GivesErrors) {
 		.error_msg = "error message 2",
 		.path = image_path,
 	}))));
-	std::shared_ptr<const platform::ResourceLoadPayload> payload = resource_loader.load_manifest(manifest);
+	std::shared_ptr<const platform::ResourcePayload> payload = resource_loader.load_manifest(manifest);
 	WAIT_FOR(payload->errors.size() == 2, std::chrono::seconds(1)) {
 		resource_loader.update(&gl_context_mock);
 	}

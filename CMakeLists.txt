@@ -86,7 +86,7 @@ set(PLATFORM_SRC
     src/platform/file/file.cpp
     src/platform/file/resource_loader.cpp
     src/platform/file/zip.cpp
-    src/platform/file/resource_manager.cpp
+    src/platform/file/resource_loader.cpp
     src/platform/graphics/font.cpp
     src/platform/graphics/gl_context.cpp
     src/platform/graphics/image.cpp

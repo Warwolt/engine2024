@@ -40,8 +40,8 @@ namespace platform {
 		: m_file_io(file_io) {
 	}
 
-	std::shared_ptr<const ResourceLoadPayload> ResourceLoader::load_manifest(const ResourceManifest& manifest) {
-		auto progress = std::make_shared<ResourceLoadPayload>(ResourceLoadPayload {
+	std::shared_ptr<const ResourcePayload> ResourceLoader::load_manifest(const ResourceManifest& manifest) {
+		auto progress = std::make_shared<ResourcePayload>(ResourcePayload {
 			.num_requested_fonts = manifest.fonts.size(),
 			.num_requested_images = manifest.images.size(),
 		});
@@ -79,7 +79,7 @@ namespace platform {
 		std::vector<std::future<LoadFontResult>>* font_batch,
 		core::vector_map<std::string, Font>* fonts,
 		OpenGLContext* gl_context,
-		ResourceLoadPayload* payload
+		ResourcePayload* payload
 	) {
 		for (const LoadFontResult& result : core::get_ready_batch_values(*font_batch)) {
 			if (result.has_value()) {
@@ -96,7 +96,7 @@ namespace platform {
 		std::vector<std::future<LoadImageResult>>* image_batch,
 		core::vector_map<std::string, Texture>* textures,
 		OpenGLContext* gl_context,
-		ResourceLoadPayload* payload
+		ResourcePayload* payload
 	) {
 		for (const LoadImageResult& result : core::get_ready_batch_values(*image_batch)) {
 			if (result.has_value()) {

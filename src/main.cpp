@@ -42,7 +42,7 @@
 #include <core/future.h>
 #include <core/lerp.h>
 #include <nlohmann/json.hpp>
-#include <platform/file/resource_manager.h>
+#include <platform/file/resource_loader.h>
 #include <platform/file/zip.h>
 #include <thread>
 
@@ -327,7 +327,8 @@ static void render_script(
 	platform::Renderer* renderer,
 	const ScriptState& state,
 	const platform::Input& input,
-	const platform::ResourceManager& resource_manager
+	const core::vector_map<std::string, platform::Font>& fonts,
+	const core::vector_map<std::string, platform::Texture>& textures
 ) {
 	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::rgba(74, 57, 32, 255)); // clear
 
@@ -339,13 +340,13 @@ static void render_script(
 	const glm::vec2 window_center = input.window_resolution / 2.0f;
 	for (size_t i : sorted_indexes) {
 		const float current_scale = state.images[i].current.scale;
-		const platform::Texture& texture = resource_manager.textures().at(state.texture_ids[i]);
+		const platform::Texture& texture = textures.at(state.texture_ids[i]);
 		const glm::vec2 image_size = current_scale * texture.size * 2.0f;
 		core::Rect quad = core::Rect::with_center_and_size(window_center + state.images[i].current.position, image_size);
 		glm::vec2 text_position = quad.center() + glm::vec2 { 0.0f, image_size.y * 2.0f / 3.0f };
 		glm::vec4 color = { state.images[i].current.color, state.images[i].current.color, state.images[i].current.color, 1.0f };
 		renderer->draw_texture_with_color(texture, quad, color);
-		renderer->draw_text_centered(resource_manager.fonts().at("arial16"), state.captions[i], text_position, color);
+		renderer->draw_text_centered(fonts.at("arial16"), state.captions[i], text_position, color);
 	}
 }
 
@@ -558,8 +559,9 @@ int main(int argc, char** argv) {
 			{ "charlie", "charlie.png" },
 		}
 	};
-	platform::ResourceManager resource_manager;
-	std::shared_ptr<const platform::ResourceLoadProgress> load_scene_progress = resource_manager.load_manifest(scene_manifest);
+	platform::ResourceFileIO file_io;
+	platform::ResourceLoader resource_manager(&file_io);
+	std::shared_ptr<const platform::ResourcePayload> scene_load_data = resource_manager.load_manifest(scene_manifest);
 
 	/* Main loop */
 	while (!quit) {
@@ -692,7 +694,7 @@ int main(int argc, char** argv) {
 				}
 
 				resource_manager.update(&gl_context);
-				scene_has_loaded = load_scene_progress->is_done();
+				scene_has_loaded = scene_load_data->is_done();
 
 				if (scene_has_loaded) {
 					run_script(&script_state, &timeline_system, input);
@@ -809,11 +811,11 @@ int main(int argc, char** argv) {
 				// PROTOTYPE RENDERING
 				{
 					if (scene_has_loaded) {
-						render_script(&renderer, script_state, input, resource_manager);
+						render_script(&renderer, script_state, input, scene_load_data->fonts, scene_load_data->textures);
 					}
 					else {
 						// loading bar
-						float load_progress = (float)(load_scene_progress->num_loaded_resources()) / (float)(load_scene_progress->total_num_resources());
+						float load_progress = (float)(scene_load_data->num_loaded_resources()) / (float)(scene_load_data->total_num_resources());
 
 						glm::vec2 window_center = input.window_resolution / 2.0f;
 						float loading_bar_max_width = 100.0f;
