@@ -72,6 +72,7 @@ namespace platform {
 	};
 
 	class ResourceFileIO : public IResourceFileIO {
+	public:
 		std::expected<platform::FontAtlas, ResourceLoadError> load_font(std::filesystem::path font_path, uint8_t font_size) override;
 		std::expected<platform::Image, ResourceLoadError> load_image(std::filesystem::path image_path) override;
 	};

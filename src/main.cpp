@@ -51,7 +51,21 @@
 
 const char* LIBRARY_NAME = "GameEngine2024Library";
 
-static void set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
+class SlowResourceFileIO : public platform::ResourceFileIO {
+public:
+	std::expected<platform::FontAtlas, platform::ResourceLoadError> load_font(std::filesystem::path font_path, uint8_t font_size) override {
+		return platform::ResourceFileIO::load_font(font_path, font_size);
+	}
+
+	std::expected<platform::Image, platform::ResourceLoadError> load_image(std::filesystem::path image_path) override {
+		static int i = 0;
+		std::this_thread::sleep_for(std::chrono::milliseconds(++i * 300));
+		return platform::ResourceFileIO::load_image(image_path);
+	}
+};
+
+static void
+set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
 	int scale = (int)std::min(std::floor((float)window_width / (float)canvas_width), std::floor((float)window_height / (float)canvas_height));
 	glm::ivec2 window_size = { window_width, window_height };
 	glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
@@ -559,7 +573,8 @@ int main(int argc, char** argv) {
 			{ "charlie", "charlie.png" },
 		}
 	};
-	platform::ResourceFileIO file_io;
+	// platform::ResourceFileIO file_io;
+	SlowResourceFileIO file_io;
 	platform::ResourceLoader resource_manager(&file_io);
 	std::shared_ptr<const platform::ResourcePayload> scene_load_data = resource_manager.load_manifest(scene_manifest);
 
