@@ -10,7 +10,13 @@ namespace engine {
 		}
 	}
 
-	std::expected<FontID, std::string> TextSystem::add_font(platform::OpenGLContext* gl_context, const char* font_path, uint8_t font_size) {
+	FontID TextSystem::add_font(platform::Font font) {
+		const FontID id = FontID(m_next_font_id++);
+		m_fonts.insert({ id, font });
+		return id;
+	}
+
+	std::expected<FontID, std::string> TextSystem::add_font_from_path_DEPRECATED(platform::OpenGLContext* gl_context, const char* font_path, uint8_t font_size) {
 		std::expected<platform::Font, std::string> font = platform::add_font(gl_context, font_path, font_size);
 		if (!font.has_value()) {
 			return std::unexpected(font.error());

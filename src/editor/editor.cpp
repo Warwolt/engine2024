@@ -193,8 +193,8 @@ namespace editor {
 		}
 	}
 
-	static engine::FontID add_font(platform::OpenGLContext* gl_context, engine::TextSystem* text_system, const char* path, uint8_t font_size) {
-		return core::unwrap(text_system->add_font(gl_context, path, font_size), [&](std::string error) {
+	static engine::FontID add_font_from_path_DEPRECATED(platform::OpenGLContext* gl_context, engine::TextSystem* text_system, const char* path, uint8_t font_size) {
+		return core::unwrap(text_system->add_font_from_path_DEPRECATED(gl_context, path, font_size), [&](std::string error) {
 			ABORT("Failed to load font \"%s\": %s", path, error.c_str());
 		});
 	}
@@ -206,7 +206,7 @@ namespace editor {
 	)
 		: m_scene_window(gl_context) {
 		m_project_hash = std::hash<engine::ProjectState>()(engine->project());
-		m_system_font_id = add_font(gl_context, &engine->systems().text, "C:/windows/Fonts/tahoma.ttf", 13);
+		m_system_font_id = add_font_from_path_DEPRECATED(gl_context, &engine->systems().text, "C:/windows/Fonts/tahoma.ttf", 13);
 
 		/* Setup docking */
 		if (!config.window.docking_initialized) {
