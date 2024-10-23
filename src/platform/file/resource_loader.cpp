@@ -72,6 +72,7 @@ namespace platform {
 			_process_fonts(&job.font_batch, &job.payload->fonts, gl_context, job.payload.get());
 			_process_images(&job.image_batch, &job.payload->textures, gl_context, job.payload.get());
 		}
+		std::erase_if(m_jobs, [](const ResourceLoadJob& job) { return job.payload->is_done(); });
 	}
 
 	void ResourceLoader::_process_fonts(

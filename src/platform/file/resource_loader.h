@@ -60,7 +60,7 @@ namespace platform {
 		}
 
 		bool has_errors() const {
-			return !invalid_paths.empty();
+			return !errors.empty();
 		}
 	};
 
