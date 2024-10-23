@@ -69,10 +69,10 @@ namespace platform {
 		static constexpr size_t NUM_GLYPHS = 127;
 		Glyph glyphs[NUM_GLYPHS]; // indexed using ascii values
 		std::vector<RGBA> pixels;
-		size_t size;
-		unsigned int width;
-		unsigned int height;
-		int line_height; // measured from baseline
+		size_t size = 1;
+		unsigned int width = 1;
+		unsigned int height = 1;
+		int line_height = 0; // measured from baseline
 	};
 
 	struct Font {

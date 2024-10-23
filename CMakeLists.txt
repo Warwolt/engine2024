@@ -83,7 +83,7 @@ set(PLATFORM_SRC
     src/platform/debug/logging.cpp
     src/platform/file/config.cpp
     src/platform/file/file.cpp
-    src/platform/file/resource_manager.cpp
+    src/platform/file/resource_loader.cpp
     src/platform/file/zip.cpp
     src/platform/graphics/font.cpp
     src/platform/graphics/gl_context.cpp
@@ -109,7 +109,7 @@ set(TEST_SRC
     test/libs/kpeeters/tree_tests.cpp
     test/platform/imwin32_tests.cpp
     test/platform/keyboard_tests.cpp
-    test/platform/resource_manager_tests.cpp
+    test/platform/resource_loader_tests.cpp
     test/platform/zip_tests.cpp
 )
 
