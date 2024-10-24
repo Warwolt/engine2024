@@ -46,7 +46,8 @@
 #include <platform/file/zip.h>
 #include <thread>
 
-// HACK: inline TimelineSystem so we can use it from main without linking
+// HACK: inline files from engine.dll while we're prototyping in main.cpp
+#include <engine/system/text_system.cpp>
 #include <engine/system/timeline_system.cpp>
 
 const char* LIBRARY_NAME = "GameEngine2024Library";
@@ -517,7 +518,7 @@ int main(int argc, char** argv) {
 	// 		- [] Load the resources from a .pak zip archive
 	// - [] Update a counter value, then serialize back to disk
 	// - (Probably some kind of scenario that includes resources stored both externally on disk and internally in the .pak)
-
+	engine::TextSystem text_system;
 	engine::TimelineSystem timeline_system;
 	ScriptState script_state = init_script();
 
@@ -575,8 +576,8 @@ int main(int argc, char** argv) {
 	};
 	// platform::ResourceFileIO file_io;
 	SlowResourceFileIO file_io;
-	platform::ResourceLoader resource_manager(&file_io);
-	std::shared_ptr<const platform::ResourcePayload> scene_load_data = resource_manager.load_manifest(scene_manifest);
+	platform::ResourceLoader resource_loader(&file_io);
+	std::shared_ptr<const platform::ResourcePayload> load_scene_data = resource_loader.load_manifest(scene_manifest);
 
 	/* Main loop */
 	while (!quit) {
@@ -707,9 +708,12 @@ int main(int argc, char** argv) {
 				if (input.keyboard.key_pressed(SDLK_ESCAPE) || input.quit_signal_received) {
 					quit = true;
 				}
+				if (input.keyboard.key_pressed_now(SDLK_F11)) {
+					platform.toggle_fullscreen();
+				}
 
-				resource_manager.update(&gl_context);
-				scene_has_loaded = scene_load_data->is_done();
+				resource_loader.update(&gl_context);
+				scene_has_loaded = load_scene_data->is_done();
 
 				if (scene_has_loaded) {
 					run_script(&script_state, &timeline_system, input);
@@ -826,11 +830,11 @@ int main(int argc, char** argv) {
 				// PROTOTYPE RENDERING
 				{
 					if (scene_has_loaded) {
-						render_script(&renderer, script_state, input, scene_load_data->fonts, scene_load_data->textures);
+						render_script(&renderer, script_state, input, load_scene_data->fonts, load_scene_data->textures);
 					}
 					else {
 						// loading bar
-						float load_progress = (float)(scene_load_data->num_loaded_resources()) / (float)(scene_load_data->total_num_resources());
+						float load_progress = (float)(load_scene_data->num_loaded_resources()) / (float)(load_scene_data->total_num_resources());
 
 						glm::vec2 window_center = input.window_resolution / 2.0f;
 						float loading_bar_max_width = 100.0f;
