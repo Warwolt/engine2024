@@ -2,6 +2,24 @@
 
 #include <engine/system/timeline_system.h>
 
+TEST(TimelineTests, InvalidID_HasNoCorrespondingTimeline) {
+	engine::TimelineSystem timeline_system;
+	engine::TimelineID id = engine::INVALID_TIMELINE_ID;
+
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
+
+	EXPECT_FALSE(timeline.has_value());
+}
+
+TEST(TimelineTests, DefaultID_HasNoCorrespondingTimeline) {
+	engine::TimelineSystem timeline_system;
+	engine::TimelineID id = engine::TimelineID();
+
+	std::optional<engine::Timeline> timeline = timeline_system.timeline(id);
+
+	EXPECT_FALSE(timeline.has_value());
+}
+
 TEST(TimelineTests, StartedTimeline_CanLaterBeRetreived) {
 	engine::TimelineSystem timeline_system;
 	const uint64_t length = 10;
@@ -40,6 +58,7 @@ TEST(TimelineTests, StartedTimeline_GlobalTimeLessThanStartTime_TimelineNotActiv
 	ASSERT_TRUE(timeline.has_value());
 	EXPECT_FALSE(timeline->is_active(global_time));
 	EXPECT_EQ(timeline->local_time(global_time), 0.0f);
+	EXPECT_EQ(timeline_system.local_time(id, global_time), timeline->local_time(global_time));
 }
 
 TEST(TimelineTests, RepeatingTimeline_GlobalTimeHalfWayPoint_LocalTime05) {
@@ -54,6 +73,7 @@ TEST(TimelineTests, RepeatingTimeline_GlobalTimeHalfWayPoint_LocalTime05) {
 	ASSERT_TRUE(timeline.has_value());
 	EXPECT_TRUE(timeline->is_active(global_time));
 	EXPECT_EQ(timeline->local_time(global_time), 0.5f);
+	EXPECT_EQ(timeline_system.local_time(id, global_time), timeline->local_time(global_time));
 }
 
 TEST(TimelineTests, RepeatingTimeline_GlobalTimeEqualsStartTime_IsActive) {
@@ -69,6 +89,7 @@ TEST(TimelineTests, RepeatingTimeline_GlobalTimeEqualsStartTime_IsActive) {
 	ASSERT_TRUE(timeline.has_value());
 	EXPECT_TRUE(timeline->is_active(global_time));
 	EXPECT_EQ(timeline->local_time(global_time), 0.0f);
+	EXPECT_EQ(timeline_system.local_time(id, global_time), timeline->local_time(global_time));
 }
 
 TEST(TimelineTests, RepeatingTimeline_GlobalTimePastEndTime_IsActive) {
@@ -84,6 +105,7 @@ TEST(TimelineTests, RepeatingTimeline_GlobalTimePastEndTime_IsActive) {
 	ASSERT_TRUE(timeline.has_value());
 	EXPECT_TRUE(timeline->is_active(global_time));
 	EXPECT_NE(timeline->local_time(global_time), 1.0f);
+	EXPECT_EQ(timeline_system.local_time(id, global_time), timeline->local_time(global_time));
 }
 
 TEST(TimelineTests, OneShotTimeline_GlobalTimeEqualsStartTime_IsActive) {
@@ -99,6 +121,7 @@ TEST(TimelineTests, OneShotTimeline_GlobalTimeEqualsStartTime_IsActive) {
 	ASSERT_TRUE(timeline.has_value());
 	EXPECT_TRUE(timeline->is_active(global_time));
 	EXPECT_EQ(timeline->local_time(global_time), 0.0f);
+	EXPECT_EQ(timeline_system.local_time(id, global_time), timeline->local_time(global_time));
 }
 
 TEST(TimelineTests, OneShotTimeline_GlobalTimePastEndTime_NotActive) {
@@ -114,6 +137,7 @@ TEST(TimelineTests, OneShotTimeline_GlobalTimePastEndTime_NotActive) {
 	ASSERT_TRUE(timeline.has_value());
 	EXPECT_FALSE(timeline->is_active(global_time));
 	EXPECT_EQ(timeline->local_time(global_time), 1.0f);
+	EXPECT_EQ(timeline_system.local_time(id, global_time), timeline->local_time(global_time));
 }
 
 TEST(TimelineTests, OneShotTimeline_GlobalTimePastEndTime_Removed) {

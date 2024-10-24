@@ -239,6 +239,14 @@ namespace platform {
 		draw_texture_clipped(texture, quad, uv);
 	}
 
+	void Renderer::draw_texture_with_color(Texture texture, core::Rect quad, glm::vec4 color) {
+		core::FlipRect uv = {
+			.bottom_left = { 0.0f, 0.0f },
+			.top_right = { 1.0f, 1.0f }
+		};
+		draw_texture_clipped_with_color(texture, quad, uv, color);
+	}
+
 	void Renderer::draw_texture_clipped(Texture texture, core::Rect quad, core::FlipRect uv) {
 		glm::vec4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
 		draw_texture_clipped_with_color(texture, quad, uv, white);

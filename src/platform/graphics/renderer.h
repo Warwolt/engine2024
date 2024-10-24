@@ -42,6 +42,7 @@ namespace platform {
 		void draw_circle_fill(glm::vec2 center, float radius, glm::vec4 color);
 
 		void draw_texture(Texture texture, core::Rect quad);
+		void draw_texture_with_color(Texture texture, core::Rect quad, glm::vec4 color);
 		void draw_texture_clipped(Texture texture, core::Rect quad, core::FlipRect uv);
 		void draw_texture_clipped_with_color(Texture texture, core::Rect quad, core::FlipRect uv, glm::vec4 color);
 

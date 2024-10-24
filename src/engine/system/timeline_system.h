@@ -8,6 +8,7 @@
 
 namespace engine {
 	DEFINE_NEWTYPE(TimelineID, int);
+	constexpr TimelineID INVALID_TIMELINE_ID = TimelineID(0);
 } // namespace engine
 DEFINE_NEWTYPE_HASH_IMPL(engine::TimelineID, int);
 
@@ -26,6 +27,7 @@ namespace engine {
 	class TimelineSystem {
 	public:
 		std::optional<Timeline> timeline(TimelineID id) const;
+		float local_time(TimelineID id, uint64_t global_time) const;
 
 		TimelineID add_repeating_timeline(uint64_t start_time, uint64_t length);
 		TimelineID add_one_shot_timeline(uint64_t start_time, uint64_t length);

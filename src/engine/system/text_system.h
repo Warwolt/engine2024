@@ -41,9 +41,12 @@ namespace engine {
 
 		void shutdown(platform::OpenGLContext* gl_context);
 
-		std::expected<FontID, std::string> add_font(platform::OpenGLContext* gl_context, const char* font_path, uint8_t font_size);
+		FontID add_font(platform::Font font);
 		TextID add_text_node(FontID font, const std::string& text = "", glm::vec2 position = { 0.0f, 0.0f });
 		void remove_text_node(TextID text_id);
+
+		// deprecated: TextSystem should not load any resources, only store them
+		std::expected<FontID, std::string> add_font_from_path_DEPRECATED(platform::OpenGLContext* gl_context, const char* font_path, uint8_t font_size);
 
 		const core::vector_map<TextID, TextNode>& text_nodes() const;
 		const core::vector_map<FontID, platform::Font>& fonts() const;

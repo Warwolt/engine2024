@@ -10,10 +10,23 @@ namespace core {
 		};
 	}
 
+	Rect Rect::with_center_and_size(glm::vec2 center, glm::vec2 size) {
+		return Rect {
+			.top_left = center - size / 2.0f,
+			.bottom_right = center + size / 2.0f,
+		};
+	}
+
 	void Rect::set_position(glm::vec2 pos) {
 		const glm::vec2 size = this->size();
 		this->top_left = pos;
 		this->bottom_right = this->top_left + size;
+	}
+
+	void Rect::set_center(glm::vec2 center) {
+		const glm::vec2 size = this->size();
+		this->top_left = center - size / 2.0f;
+		this->bottom_right = center + size / 2.0f;
 	}
 
 	void Rect::set_size(glm::vec2 size) {
@@ -26,6 +39,10 @@ namespace core {
 
 	glm::vec2 Rect::position() const {
 		return this->top_left;
+	}
+
+	glm::vec2 Rect::center() const {
+		return this->top_left + this->size() / 2.0f;
 	}
 
 	glm::vec2 Rect::bottom_left() const {

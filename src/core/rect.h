@@ -14,12 +14,15 @@ namespace core {
 		glm::vec2 bottom_right = { 0.0f, 0.0f };
 
 		static Rect with_pos_and_size(glm::vec2 pos, glm::vec2 size);
+		static Rect with_center_and_size(glm::vec2 center, glm::vec2 size);
 
 		void set_position(glm::vec2 pos);
+		void set_center(glm::vec2 center);
 		void set_size(glm::vec2 size);
 
 		glm::vec2 size() const;
 		glm::vec2 position() const;
+		glm::vec2 center() const;
 		glm::vec2 bottom_left() const;
 		glm::vec2 top_right() const;
 

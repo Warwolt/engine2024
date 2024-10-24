@@ -34,6 +34,13 @@ namespace engine {
 		return std::nullopt;
 	}
 
+	float TimelineSystem::local_time(TimelineID id, uint64_t global_time) const {
+		if (std::optional<Timeline> timeline = this->timeline(id)) {
+			return timeline->local_time(global_time);
+		}
+		return 0.0f;
+	}
+
 	TimelineID TimelineSystem::add_repeating_timeline(uint64_t start_time, uint64_t length) {
 		return _start_timeline(length, start_time, true);
 	}
@@ -55,8 +62,8 @@ namespace engine {
 	}
 
 	TimelineID TimelineSystem::_start_timeline(uint64_t length, uint64_t start_time, bool repeats) {
-		static int id_value = 0;
-		TimelineID id = TimelineID { ++id_value };
+		static int id_value = INVALID_TIMELINE_ID.value;
+		TimelineID id = TimelineID { id_value++ };
 		m_timelines.insert({
 			id,
 			Timeline {

@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <ft2build.h>
 
+#include <core/random.h>
 #include <core/unwrap.h>
 #include <core/util.h>
 #include <library.h>
@@ -36,9 +37,37 @@
 
 #include <fstream>
 
+// prototyping
+#include <core/container/vector_map.h>
+#include <core/future.h>
+#include <core/lerp.h>
+#include <nlohmann/json.hpp>
+#include <platform/file/resource_loader.h>
+#include <platform/file/zip.h>
+#include <thread>
+#include <unordered_map>
+
+// HACK: inline files from engine.dll while we're prototyping in main.cpp
+#include <engine/system/text_system.cpp>
+#include <engine/system/timeline_system.cpp>
+
 const char* LIBRARY_NAME = "GameEngine2024Library";
 
-static void set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
+class SlowResourceFileIO : public platform::ResourceFileIO {
+public:
+	std::expected<platform::FontAtlas, platform::ResourceLoadError> load_font(std::filesystem::path font_path, uint8_t font_size) override {
+		return platform::ResourceFileIO::load_font(font_path, font_size);
+	}
+
+	std::expected<platform::Image, platform::ResourceLoadError> load_image(std::filesystem::path image_path) override {
+		static int i = 0;
+		std::this_thread::sleep_for(std::chrono::milliseconds(++i * 300));
+		return platform::ResourceFileIO::load_image(image_path);
+	}
+};
+
+static void
+set_viewport_to_stretch_canvas(int window_width, int window_height, int canvas_width, int canvas_height) {
 	int scale = (int)std::min(std::floor((float)window_width / (float)canvas_width), std::floor((float)window_height / (float)canvas_height));
 	glm::ivec2 window_size = { window_width, window_height };
 	glm::ivec2 scaled_canvas_size = { scale * canvas_width, scale * canvas_height };
@@ -213,6 +242,131 @@ static std::vector<uint8_t> read_file_to_string(const std::filesystem::path& pat
 	return buffer;
 }
 
+struct Image {
+	glm::vec2 position; // relative center of screen
+	float scale;
+	float color;
+};
+
+struct ScriptState {
+	std::unordered_map<std::string, engine::FontID> font_ids;
+	std::string texture_ids[3];
+	std::string captions[3];
+
+	core::Lerped<Image> images[3];
+	Image targets[3];
+
+	engine::TimelineID timelines[3];
+	size_t index[3];
+};
+
+static ScriptState init_script() {
+	const glm::vec2 image_size = 2.0f * glm::vec2 { 128, 128 }; // hack variable
+	const float fg_color = 1.0f;
+	const float bg_color = 0.5f;
+
+	Image targets[3] = {
+		{
+			.position = glm::vec2 { -image_size.x / 2.0f, 0.0f },
+			.scale = 0.8f,
+			.color = bg_color,
+		},
+		{
+			.position = glm::vec2 { 0.0f, 0.0f },
+			.scale = 1.0f,
+			.color = fg_color,
+		},
+		{
+			.position = glm::vec2 { image_size.x / 2.0f, 0.0f },
+			.scale = 0.8f,
+			.color = bg_color,
+		},
+	};
+
+	return ScriptState {
+		.texture_ids = {
+			"alice",
+			"bob",
+			"charlie",
+		},
+		.captions = {
+			"Alice",
+			"Bob",
+			"Charlie",
+		},
+		.images = {
+			targets[0],
+			targets[1],
+			targets[2],
+		},
+		.targets = {
+			targets[0],
+			targets[1],
+			targets[2],
+		},
+		.index = { 0, 1, 2 },
+	};
+}
+
+static void run_script(
+	ScriptState* state,
+	engine::TimelineSystem* timeline_system,
+	const platform::Input& input
+) {
+	const bool left_pressed = input.keyboard.key_pressed_now(SDLK_LEFT);
+	const bool right_pressed = input.keyboard.key_pressed_now(SDLK_RIGHT);
+	const bool any_pressed = left_pressed || right_pressed;
+
+	for (size_t i = 0; i < 3; i++) {
+		if (left_pressed) {
+			state->index[i] = (3 + state->index[i] - 1) % 3;
+		}
+		if (right_pressed) {
+			state->index[i] = (3 + state->index[i] + 1) % 3;
+		}
+		if (any_pressed) {
+			state->images[i].set_target(Image {
+				.position = state->targets[state->index[i]].position,
+				.scale = state->targets[state->index[i]].scale,
+				.color = state->targets[state->index[i]].color,
+			});
+			state->timelines[i] = timeline_system->add_one_shot_timeline(input.global_time_ms, 250);
+		}
+
+		float local_time = timeline_system->local_time(state->timelines[i], input.global_time_ms);
+		state->images[i].current.position = core::lerp(state->images[i].start.position, state->images[i].end.position, local_time);
+		state->images[i].current.scale = core::lerp(state->images[i].start.scale, state->images[i].end.scale, local_time);
+		state->images[i].current.color = core::lerp(state->images[i].start.color, state->images[i].end.color, local_time);
+	}
+}
+
+static void render_script(
+	platform::Renderer* renderer,
+	const ScriptState& state,
+	const platform::Input& input,
+	const engine::TextSystem& text_system,
+	const core::vector_map<std::string, platform::Texture>& textures
+) {
+	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::rgba(74, 57, 32, 255)); // clear
+
+	std::array<size_t, 3> sorted_indexes = { state.index[0], state.index[1], state.index[2] };
+	std::sort(sorted_indexes.begin(), sorted_indexes.end(), [&state](size_t i, size_t j) {
+		return state.images[i].current.scale < state.images[j].current.scale;
+	});
+
+	const glm::vec2 window_center = input.window_resolution / 2.0f;
+	for (size_t i : sorted_indexes) {
+		const float current_scale = state.images[i].current.scale;
+		const platform::Texture& texture = textures.at(state.texture_ids[i]);
+		const glm::vec2 image_size = current_scale * texture.size * 2.0f;
+		core::Rect quad = core::Rect::with_center_and_size(window_center + state.images[i].current.position, image_size);
+		glm::vec2 text_position = quad.center() + glm::vec2 { 0.0f, image_size.y * 2.0f / 3.0f };
+		glm::vec4 color = { state.images[i].current.color, state.images[i].current.color, state.images[i].current.color, 1.0f };
+		renderer->draw_texture_with_color(texture, quad, color);
+		renderer->draw_text_centered(text_system.fonts().at(state.font_ids.at("arial16")), state.captions[i], text_position, color);
+	}
+}
+
 int main(int argc, char** argv) {
 	/* Parse args */
 	platform::CommandLineArgs cmd_args = core::unwrap(platform::parse_arguments(argc, argv), [](std::string error) {
@@ -350,6 +504,84 @@ int main(int argc, char** argv) {
 		library.load_engine_data(engine, path.string().c_str());
 	}
 
+	// GOAL: Represent a scene on disk, so that we can then compose the game out
+	// of scenes and store the game on disk by storing its scenes.
+	//
+	// Each scene consists of a scene graph (node tree) and the resources that
+	// those nodes use.
+	//
+	// To initialize a scene, we need all the resources loaded and to construct
+	// the scene graph.
+	//
+	// TODO:
+	// - [] Implement the 3-image carousel as a scene graph and systems (Text and Image nodes + systems)
+	// - [] Write a prototype scenario where resources are loaded from disk and a scene graph is construted.
+	// 		- [] Load the resources from disk
+	// 		- [] Load the resources from a .pak zip archive
+	// - [] Update a counter value, then serialize back to disk
+	// - (Probably some kind of scenario that includes resources stored both externally on disk and internally in the .pak)
+	engine::TextSystem text_system;
+	engine::TimelineSystem timeline_system;
+	ScriptState script_state = init_script();
+
+	if (0) {
+		/* Read */
+		platform::FileArchive archive;
+		nlohmann::json payload_json;
+		{
+			archive = core::unwrap(platform::FileArchive::open_from_file("test.zip"), [](std::string error) {
+				ABORT("FileArchive::open_from_file(\"test.zip\") failed with: %s", error.c_str());
+			});
+			std::vector<uint8_t> payload_bytes = core::unwrap(archive.read_from_archive("data.json"), [](platform::FileArchiveError error) {
+				LOG_DEBUG("archive.read_from_archive(\"data.json\") failed with %s", core::util::enum_to_string(error));
+			});
+			payload_json = nlohmann::json::parse(payload_bytes);
+		}
+
+		/* Update */
+		struct Payload {
+			int counter;
+		};
+		Payload payload;
+		{
+			payload = Payload {
+				.counter = payload_json["counter"],
+			};
+
+			payload.counter += 1;
+		}
+
+		/* Write */
+		{
+			nlohmann::json payload_json2;
+			payload_json2["counter"] = payload.counter;
+			std::string payload_string2 = payload_json2.dump();
+			std::vector<uint8_t> payload_bytes2 = std::vector<uint8_t>(payload_string2.begin(), payload_string2.end());
+			archive.write_to_archive("data.json", payload_bytes2.data(), payload_bytes2.size());
+
+			std::expected<void, platform::FileArchiveError> result = archive.write_archive_to_disk("test.zip");
+			if (!result.has_value()) {
+				LOG_DEBUG("write to archive failed with %s", core::util::enum_to_string(result.error()));
+			}
+		}
+	}
+
+	platform::ResourceManifest scene_manifest = {
+		.fonts = {
+			{ "arial16", "C:/windows/Fonts/Arial.ttf", 16 },
+		},
+		.images = {
+			{ "alice", "alice.png" },
+			{ "bob", "bob.png" },
+			{ "charlie", "charlie.png" },
+		}
+	};
+	// platform::ResourceFileIO file_io;
+	SlowResourceFileIO file_io;
+	platform::ResourceLoader resource_loader(&file_io);
+
+	std::shared_ptr<const platform::ResourcePayload> load_scene_data = resource_loader.load_manifest(scene_manifest);
+
 	/* Main loop */
 	while (!quit) {
 		/* Input */
@@ -461,16 +693,58 @@ int main(int argc, char** argv) {
 		}
 
 		/* Update */
+		core::Signal<bool> scene_has_loaded = false;
 		{
 			/* Hot reloading */
 			hot_reloader.update(&library);
 
 			/* Engine update */
 			start_imgui_frame();
-			if (editor) {
-				library.update_editor(editor, config, input, engine, &platform, &gl_context);
+			// DISABLED WHILE PROTOTYPING
+			// if (editor) {
+			// library.update_editor(editor, config, input, engine, &platform, &gl_context);
+			// }
+			// library.update_engine(engine, input, &platform, &gl_context);
+
+			/* PROTOTYPE CODE */
+			{
+				if (input.keyboard.key_pressed(SDLK_ESCAPE) || input.quit_signal_received) {
+					quit = true;
+				}
+				if (input.keyboard.key_pressed_now(SDLK_F11)) {
+					platform.toggle_fullscreen();
+				}
+
+				resource_loader.update(&gl_context);
+				scene_has_loaded = load_scene_data->is_done();
+				if (scene_has_loaded.just_became(true)) {
+					for (auto& [name, font] : load_scene_data->fonts) {
+						script_state.font_ids[name] = text_system.add_font(font);
+					}
+					// !!
+					//
+					//
+					// TODO:
+					// - Now that we have loaded the scene resources we should prepare the scene graph
+					// - That scene graph must be described:
+					// 		- The description should tell us enough to construct the _actual_ scene graph
+					// 		- That scene graph + the systems is what should be used in the update + render script functions
+					//
+					// When we save the scene we need some kind of serialized representation of its scene graph.
+					// It will have to be some kind of tree as well, since that structure can't be lost.
+					// Instead of saving FontID, TextID etc. we can probably save named references to resources.
+					// These named references would then be used when loading the resources.
+					//
+					// So, all the IDs are _arbitrary_ values that depend on the order we added stuff to the systems,
+					// but the resources names are _rigid_ in that they should always be the same each execution.
+					//
+					// !!
+				}
+
+				if (scene_has_loaded) {
+					run_script(&script_state, &timeline_system, input);
+				}
 			}
-			library.update_engine(engine, input, &platform, &gl_context);
 
 			/* Platform update */
 			while (platform.has_commands()) {
@@ -579,12 +853,40 @@ int main(int argc, char** argv) {
 
 			/* Render to canvas */
 			{
-				if (editor && run_mode == platform::RunMode::Editor) {
-					library.render_editor(*editor, *engine, &gl_context, &renderer);
+				// PROTOTYPE RENDERING
+				{
+					if (scene_has_loaded) {
+						render_script(&renderer, script_state, input, text_system, load_scene_data->textures);
+					}
+					else {
+						// loading bar
+						float load_progress = (float)(load_scene_data->num_loaded_resources()) / (float)(load_scene_data->total_num_resources());
+
+						glm::vec2 window_center = input.window_resolution / 2.0f;
+						float loading_bar_max_width = 100.0f;
+						float loading_bar_width = load_progress * loading_bar_max_width;
+						float loading_bar_height = 10.0f;
+						glm::vec2 loading_bar_max_size = { loading_bar_max_width, loading_bar_height };
+						glm::vec2 loading_bar_size = { loading_bar_width, loading_bar_height };
+						core::Rect fill_rect = core::Rect::with_pos_and_size(
+							window_center - loading_bar_max_size / 2.0f,
+							loading_bar_size
+						);
+						core::Rect outline = core::Rect::with_pos_and_size(
+							fill_rect.position() - glm::vec2 { 1.0f, 1.0f },
+							glm::vec2 { loading_bar_max_width, loading_bar_height } + glm::vec2 { 3.0f, 3.0f }
+						);
+						renderer.draw_rect_fill(fill_rect, platform::Color::white);
+						renderer.draw_rect(outline, platform::Color::white);
+					}
 				}
-				else {
-					library.render_engine(*engine, &renderer);
-				}
+
+				// if (editor && run_mode == platform::RunMode::Editor) {
+				// 	library.render_editor(*editor, *engine, &gl_context, &renderer);
+				// }
+				// else {
+				// 	library.render_engine(*engine, &renderer);
+				// }
 
 				renderer.set_render_canvas(window_canvas);
 				renderer.render(shader_program);

@@ -40,7 +40,7 @@ namespace platform {
 		}
 	};
 
-	struct ResourceLoadPayload {
+	struct ResourcePayload {
 		size_t num_requested_fonts = 0;
 		size_t num_requested_images = 0;
 		core::vector_map<std::string, platform::Font> fonts;
@@ -72,6 +72,7 @@ namespace platform {
 	};
 
 	class ResourceFileIO : public IResourceFileIO {
+	public:
 		std::expected<platform::FontAtlas, ResourceLoadError> load_font(std::filesystem::path font_path, uint8_t font_size) override;
 		std::expected<platform::Image, ResourceLoadError> load_image(std::filesystem::path image_path) override;
 	};
@@ -80,7 +81,7 @@ namespace platform {
 	public:
 		ResourceLoader(IResourceFileIO* file_io);
 
-		std::shared_ptr<const ResourceLoadPayload> load_manifest(const ResourceManifest& manifest);
+		std::shared_ptr<const ResourcePayload> load_manifest(const ResourceManifest& manifest);
 		void update(platform::OpenGLContext* gl_context);
 
 	private:
@@ -98,7 +99,7 @@ namespace platform {
 		struct ResourceLoadJob {
 			std::vector<std::future<LoadFontResult>> font_batch;
 			std::vector<std::future<LoadImageResult>> image_batch;
-			std::shared_ptr<ResourceLoadPayload> payload;
+			std::shared_ptr<ResourcePayload> payload;
 		};
 
 		IResourceFileIO* m_file_io;
@@ -108,13 +109,13 @@ namespace platform {
 			std::vector<std::future<LoadFontResult>>* font_batch,
 			core::vector_map<std::string, platform::Font>* fonts,
 			platform::OpenGLContext* gl_context,
-			ResourceLoadPayload* payload
+			ResourcePayload* payload
 		);
 		static void _process_images(
 			std::vector<std::future<LoadImageResult>>* image_batch,
 			core::vector_map<std::string, platform::Texture>* textures,
 			platform::OpenGLContext* gl_context,
-			ResourceLoadPayload* payload
+			ResourcePayload* payload
 		);
 	};
 

@@ -8,8 +8,6 @@ Goals:
   - "Mario maker" style
 
 ## TODO
-- Save scene to disk
-
 - Make scene graph affect "unsaved changes"
 - Rename ´engine_api´ files to just `engine`
 - Add bar with run button (window that can't be docked)
@@ -27,9 +25,10 @@ Goals:
 - (Mess around with Bayer matrix dithering and Perlin noise)
 
 ## Doing
-- Run current scene in engine
+- Save scene to disk
 
 ## Done
+- Run current scene in engine
 - Add TextSystem to store TextNode instances
 - Return a key-value pair for VecMap::iterator
 - Fix canvas moving outside of ImGui::Image we render the canvas inside of

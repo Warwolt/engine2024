@@ -65,7 +65,7 @@ namespace engine {
 	Engine::Engine(platform::OpenGLContext* gl_context) {
 		// add fake elements
 		const char* arial_font_path = "C:/windows/Fonts/Arial.ttf";
-		FontID arial_font_16 = core::unwrap(m_systems.text.add_font(gl_context, arial_font_path, 16), [&](std::string error) {
+		FontID arial_font_16 = core::unwrap(m_systems.text.add_font_from_path_DEPRECATED(gl_context, arial_font_path, 16), [&](std::string error) {
 			ABORT("Failed to load font \"%s\": %s", arial_font_path, error.c_str());
 		});
 		TextID hello = m_systems.text.add_text_node(arial_font_16, "Hello", { 0.0f, 0.0f });
@@ -77,7 +77,7 @@ namespace engine {
 	void Engine::load_data(const char* path_str) {
 		std::filesystem::path path = std::filesystem::path(path_str);
 		if (std::filesystem::is_regular_file(path)) {
-			std::vector<uint8_t> data = platform::read_file_bytes(path).value();
+			std::vector<uint8_t> data = platform::read_bytes_from_file(path).value();
 			m_project = core::unwrap(engine::ProjectState::from_json_string(data, path), [&](const std::string& error) {
 				ABORT("Could not parse json file \"%s\": %s", path_str, error.c_str());
 			});
