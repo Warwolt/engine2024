@@ -45,6 +45,7 @@
 #include <platform/file/resource_loader.h>
 #include <platform/file/zip.h>
 #include <thread>
+#include <unordered_map>
 
 // HACK: inline files from engine.dll while we're prototyping in main.cpp
 #include <engine/system/text_system.cpp>
@@ -248,6 +249,7 @@ struct Image {
 };
 
 struct ScriptState {
+	std::unordered_map<std::string, engine::FontID> font_ids;
 	std::string texture_ids[3];
 	std::string captions[3];
 
@@ -342,7 +344,7 @@ static void render_script(
 	platform::Renderer* renderer,
 	const ScriptState& state,
 	const platform::Input& input,
-	const core::vector_map<std::string, platform::Font>& fonts,
+	const engine::TextSystem& text_system,
 	const core::vector_map<std::string, platform::Texture>& textures
 ) {
 	renderer->draw_rect_fill(core::Rect { { 0.0f, 0.0f }, input.window_resolution }, platform::Color::rgba(74, 57, 32, 255)); // clear
@@ -361,7 +363,7 @@ static void render_script(
 		glm::vec2 text_position = quad.center() + glm::vec2 { 0.0f, image_size.y * 2.0f / 3.0f };
 		glm::vec4 color = { state.images[i].current.color, state.images[i].current.color, state.images[i].current.color, 1.0f };
 		renderer->draw_texture_with_color(texture, quad, color);
-		renderer->draw_text_centered(fonts.at("arial16"), state.captions[i], text_position, color);
+		renderer->draw_text_centered(text_system.fonts().at(state.font_ids.at("arial16")), state.captions[i], text_position, color);
 	}
 }
 
@@ -577,6 +579,7 @@ int main(int argc, char** argv) {
 	// platform::ResourceFileIO file_io;
 	SlowResourceFileIO file_io;
 	platform::ResourceLoader resource_loader(&file_io);
+
 	std::shared_ptr<const platform::ResourcePayload> load_scene_data = resource_loader.load_manifest(scene_manifest);
 
 	/* Main loop */
@@ -690,7 +693,7 @@ int main(int argc, char** argv) {
 		}
 
 		/* Update */
-		bool scene_has_loaded = false;
+		core::Signal<bool> scene_has_loaded = false;
 		{
 			/* Hot reloading */
 			hot_reloader.update(&library);
@@ -714,6 +717,29 @@ int main(int argc, char** argv) {
 
 				resource_loader.update(&gl_context);
 				scene_has_loaded = load_scene_data->is_done();
+				if (scene_has_loaded.just_became(true)) {
+					for (auto& [name, font] : load_scene_data->fonts) {
+						script_state.font_ids[name] = text_system.add_font(font);
+					}
+					// !!
+					//
+					//
+					// TODO:
+					// - Now that we have loaded the scene resources we should prepare the scene graph
+					// - That scene graph must be described:
+					// 		- The description should tell us enough to construct the _actual_ scene graph
+					// 		- That scene graph + the systems is what should be used in the update + render script functions
+					//
+					// When we save the scene we need some kind of serialized representation of its scene graph.
+					// It will have to be some kind of tree as well, since that structure can't be lost.
+					// Instead of saving FontID, TextID etc. we can probably save named references to resources.
+					// These named references would then be used when loading the resources.
+					//
+					// So, all the IDs are _arbitrary_ values that depend on the order we added stuff to the systems,
+					// but the resources names are _rigid_ in that they should always be the same each execution.
+					//
+					// !!
+				}
 
 				if (scene_has_loaded) {
 					run_script(&script_state, &timeline_system, input);
@@ -830,7 +856,7 @@ int main(int argc, char** argv) {
 				// PROTOTYPE RENDERING
 				{
 					if (scene_has_loaded) {
-						render_script(&renderer, script_state, input, load_scene_data->fonts, load_scene_data->textures);
+						render_script(&renderer, script_state, input, text_system, load_scene_data->textures);
 					}
 					else {
 						// loading bar
